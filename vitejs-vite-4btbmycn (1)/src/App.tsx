@@ -8,7 +8,7 @@ const HEADERS = {
   "Authorization": `Bearer ${SUPABASE_KEY}`,
   "Prefer": "return=representation"
 };
-
+ 
 const RESTAURANTS = [
   { id: "rue-neuve", name: "Sekai Corndogs", subtitle: "Rue Neuve", emoji: "🏪" },
   { id: "event-1", name: "Sekai Event 1", subtitle: "Point de vente", emoji: "🎪" },
