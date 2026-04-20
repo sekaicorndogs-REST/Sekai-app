@@ -395,8 +395,12 @@ export default function App() {
   }
 
   // ── CYCLE PLANNING ─────────────────────────────────────────
-  // Cycle start: Monday April 20, 2026 = Week 2, Day 1
-  const CYCLE_START = new Date("2026-04-20");
+  // Cycle start: Monday April 20, 2026 = Semaine 2, Jour 1 (index 1 in 0-based)
+  // CYCLE_START_WEEK_INDEX = 1 (semaine 2 = index 1)
+  const CYCLE_START_DATE = "2026-04-20";
+  const CYCLE_START_WEEK_INDEX = 1; // semaine 2 = index 1
+
+  // planDay: 0=lun, 1=mar, 2=mer, 3=jeu, 4=ven, 5=sam, 6=dim
   const CYCLE = [
     { // Semaine 1
       0: ["Wassim","Moha"], 1: ["Wassim","Moha"], 2: ["Moha","Nabil"],
@@ -412,35 +416,41 @@ export default function App() {
     }
   ];
 
+  // planDay: 0=lun,...,4=ven, 5=sam, 6=dim
   const HORAIRES_JOUR = {
-    0: { debut: "11:30", fin: "20:30" }, 1: { debut: "11:30", fin: "20:30" },
-    2: { debut: "11:30", fin: "20:30" }, 3: { debut: "11:30", fin: "20:30" },
-    4: { debut: "11:30", fin: "20:30" }, 5: { debut: "12:30", fin: "21:30" },
+    0: { debut: "11:30", fin: "20:30" },
+    1: { debut: "11:30", fin: "20:30" },
+    2: { debut: "11:30", fin: "20:30" },
+    3: { debut: "11:30", fin: "20:30" },
+    4: { debut: "11:30", fin: "20:30" },
+    5: { debut: "12:30", fin: "21:30" },
     6: { debut: "13:30", fin: "20:30" }
   };
 
-  function getWeekInfo(dateStr) {
-    const d = new Date(dateStr);
-    const diffMs = d - CYCLE_START;
-    const diffDays = Math.floor(diffMs / 86400000);
-    const totalWeeks = Math.floor(diffDays / 7);
-    const weekInCycle = ((totalWeeks % 3) + 3) % 3;
-    const dow = d.getDay(); // 0=Sun,1=Mon,...
-    const jsDay = dow; // 0=dim, 1=lun...
-    // Remap: planning uses 0=lun,1=mar,...,6=dim
-    const planDay = dow === 0 ? 6 : dow - 1;
-    return { weekInCycle, planDay, dow };
+  function getPlanDay(dateStr) {
+    // Returns 0=lun, 1=mar, ..., 5=sam, 6=dim
+    const d = new Date(dateStr + "T12:00:00");
+    const dow = d.getDay(); // 0=dim, 1=lun, ..., 6=sam
+    return dow === 0 ? 6 : dow - 1;
+  }
+
+  function getWeekInCycle(dateStr) {
+    const start = new Date(CYCLE_START_DATE + "T12:00:00");
+    const d = new Date(dateStr + "T12:00:00");
+    const diffDays = Math.round((d - start) / 86400000);
+    const diffWeeks = Math.floor(diffDays / 7);
+    return ((CYCLE_START_WEEK_INDEX + diffWeeks) % 3 + 3) % 3;
   }
 
   function getAutoEmployes(dateStr) {
-    const { weekInCycle, planDay } = getWeekInfo(dateStr);
+    const weekInCycle = getWeekInCycle(dateStr);
+    const planDay = getPlanDay(dateStr);
     return CYCLE[weekInCycle][planDay] || [];
   }
 
   function getAutoHoraire(dateStr) {
-    const d = new Date(dateStr);
-    const dow = d.getDay();
-    return HORAIRES_JOUR[dow];
+    const planDay = getPlanDay(dateStr);
+    return HORAIRES_JOUR[planDay];
   }
 
   function getTodayDateStr() {
