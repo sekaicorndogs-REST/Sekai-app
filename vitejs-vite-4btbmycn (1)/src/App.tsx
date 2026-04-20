@@ -486,6 +486,11 @@ export default function App() {
     return new Date(dateStr).toLocaleDateString("fr-BE", { weekday: "short", day: "numeric", month: "short" });
   }
 
+  function normalizeDate(dateStr) {
+    // Supabase peut retourner "2026-04-25" ou "2026-04-25T00:00:00"
+    return dateStr ? dateStr.split("T")[0] : "";
+  }
+
   function calcHeures(debut, fin) {
     const [dh, dm] = debut.split(":").map(Number);
     const [fh, fm] = fin.split(":").map(Number);
@@ -581,10 +586,10 @@ export default function App() {
     const weekDates = getWeekDates();
     const autoEmployesToday = getAutoEmployes(todayStr);
     const autoHoraireToday = getAutoHoraire(todayStr);
-    const horairesDuJour = horaires.filter(h => h.date === todayStr && h.restaurant_id === horaireRestaurant);
+    const horairesDuJour = horaires.filter(h => normalizeDate(h.date) === todayStr && h.restaurant_id === horaireRestaurant);
     
     // Remplacements stats
-    const moisHoraires = horaires.filter(h => h.date.startsWith(remplacementMois));
+    const moisHoraires = horaires.filter(h => normalizeDate(h.date).startsWith(remplacementMois));
     const remplacementsParPersonne = {};
     moisHoraires.filter(h => h.est_remplacement).forEach(h => {
       const nom = h.remplace_nom;
@@ -739,7 +744,7 @@ export default function App() {
               {weekDates.map(dateStr => {
                 const autoEmps = getAutoEmployes(dateStr);
                 const autoH = getAutoHoraire(dateStr);
-                const encoded = horaires.filter(h => h.date === dateStr && h.restaurant_id === horaireRestaurant);
+                const encoded = horaires.filter(h => normalizeDate(h.date) === dateStr && h.restaurant_id === horaireRestaurant);
                 const isToday = dateStr === todayStr;
                 return (
                   <div key={dateStr} style={{ background: isToday ? "#0f1a0f" : "#141414", border: `1px solid ${isToday ? "#1e3a1e" : "#1e1e1e"}`, borderRadius: "12px", padding: "0.85rem 1rem", marginBottom: "0.5rem" }}>
