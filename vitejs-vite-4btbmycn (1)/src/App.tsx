@@ -244,11 +244,26 @@ export default function App() {
   const [showOldPwd, setShowOldPwd] = useState(false);
   const [showNewPwd, setShowNewPwd] = useState(false);
   const [showNewPwd2, setShowNewPwd2] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const inputRef = useRef(null);
 
   useEffect(() => {
     if (editingId && inputRef.current) inputRef.current.focus();
   }, [editingId]);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("sekai_user");
+    if (saved) {
+      try {
+        const user = JSON.parse(saved);
+        setCurrentUser(user);
+        if (user.role === "employe" && user.restaurant_id) {
+          const resto = RESTAURANTS.find(r => r.id === user.restaurant_id);
+          if (resto) { setRestaurant(resto); loadData(resto); }
+        }
+      } catch {}
+    }
+  }, []);
 
   const isAdmin = currentUser?.role === "admin" || currentUser?.role === "superadmin";
   const isSuperAdmin = currentUser?.role === "superadmin";
@@ -264,6 +279,11 @@ export default function App() {
       const user = await loginUser(loginPrenom.trim(), loginPassword.trim());
       if (!user) { setLoginError("Prénom ou mot de passe incorrect."); return; }
       setCurrentUser(user);
+      if (rememberMe) {
+        localStorage.setItem("sekai_user", JSON.stringify(user));
+      } else {
+        localStorage.removeItem("sekai_user");
+      }
       if (user.role === "employe" && user.restaurant_id) {
         const resto = RESTAURANTS.find(r => r.id === user.restaurant_id);
         if (resto) { setRestaurant(resto); loadData(resto); }
@@ -273,6 +293,7 @@ export default function App() {
   }
 
   function handleLogout() {
+    localStorage.removeItem("sekai_user");
     setCurrentUser(null); setRestaurant(null); setItems([]);
     setActiveStore(null); setPage("stock"); setLoginPrenom(""); setLoginPassword("");
   }
@@ -382,6 +403,11 @@ export default function App() {
           <button onClick={() => setShowLoginPwd(p => !p)} style={{ position: "absolute", right: "0.75rem", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", fontSize: "1.1rem", padding: 0 }}>
             {showLoginPwd ? "🙈" : "👁️"}
           </button>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
+          <input type="checkbox" id="rememberMe" checked={rememberMe} onChange={e => setRememberMe(e.target.checked)}
+            style={{ width: "1.1rem", height: "1.1rem", accentColor: "#f5c842", cursor: "pointer" }} />
+          <label htmlFor="rememberMe" style={{ color: "#888", fontSize: "0.85rem", cursor: "pointer" }}>Se souvenir de moi</label>
         </div>
         {loginError && <p style={{ color: "#e57373", fontSize: "0.85rem", margin: 0, textAlign: "center" }}>{loginError}</p>}
         <button onClick={handleLogin} disabled={loginLoading} style={{ ...btnPrimary, opacity: loginLoading ? 0.7 : 1 }}>
