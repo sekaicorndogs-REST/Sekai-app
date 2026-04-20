@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-
+ 
 const SUPABASE_URL = "https://ldpxgfgcnlzktaymtnwd.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkcHhnZmdjbmx6a3RheW10bndkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxOTgyMTAsImV4cCI6MjA5MTc3NDIxMH0.N_yUwjRvBM9rfxu0Xj-FCCGJ9eJ3UomPZdcUYAb8B8s";
 const HEADERS = {
@@ -8,13 +8,13 @@ const HEADERS = {
   "Authorization": `Bearer ${SUPABASE_KEY}`,
   "Prefer": "return=representation"
 };
-
+ 
 const RESTAURANTS = [
   { id: "rue-neuve", name: "Sekai Corndogs", subtitle: "Rue Neuve", emoji: "🏪" },
   { id: "event-1", name: "Sekai Event 1", subtitle: "Point de vente", emoji: "🎪" },
   { id: "event-2", name: "Sekai Event 2", subtitle: "Point de vente", emoji: "🎪" },
 ];
-
+ 
 const RUE_NEUVE_STOCK = [
   { store: "🧃 OZ FOOD", name: "Saucisse", qty: "23", unit: "", threshold: 10, threshold_label: "< 10" },
   { store: "🧃 OZ FOOD", name: "Frites", qty: "6", unit: "", threshold: 6, threshold_label: "< 6" },
@@ -55,7 +55,7 @@ const RUE_NEUVE_STOCK = [
   { store: "🍜 MAGASIN CHINOIS", name: "Baguette", qty: "1", unit: "cartons", threshold: 1, threshold_label: "< 1 carton" },
   { store: "🍶 SAUCE MAISON", name: "Sekai", qty: "0", unit: "", threshold: 3, threshold_label: "< 3" },
 ];
-
+ 
 const EVENT_STOCK = [
   { store: "🧃 OZ FOOD", name: "Saucisse", qty: "", unit: "", threshold: 8, threshold_label: "< 8" },
   { store: "🧃 OZ FOOD", name: "Huile", qty: "", unit: "", threshold: 4, threshold_label: "< 4" },
@@ -108,10 +108,10 @@ const EVENT_STOCK = [
   { store: "🔧 MATÉRIEL", name: "Machine à pâtes", qty: "", unit: "", threshold: 1, threshold_label: "< 1", note: "" },
   { store: "🔧 MATÉRIEL", name: "Machine à chips", qty: "", unit: "", threshold: 1, threshold_label: "< 1", note: "" },
 ];
-
+ 
 const STORE_ORDER_RUE_NEUVE = ["🧃 OZ FOOD","🥟 FOOD EX","🧀 TADAL","🛒 COLRUYT","🥔 SILGRO","🍜 MAGASIN CHINOIS","🍶 SAUCE MAISON"];
 const STORE_ORDER_EVENT = ["🧃 OZ FOOD","🧀 TADAL","🛒 COLRUYT","🥔 SILGRO","🍜 MAGASIN CHINOIS","🍶 SAUCE MAISON","🔧 MATÉRIEL"];
-
+ 
 function isLow(item) {
   if (item.threshold === 0) return false;
   const raw = (item.qty || "").trim().toLowerCase();
@@ -120,7 +120,7 @@ function isLow(item) {
   if (!isNaN(num)) return num < item.threshold;
   return false;
 }
-
+ 
 function groupByStore(items) {
   const map = {};
   items.forEach(item => {
@@ -129,20 +129,20 @@ function groupByStore(items) {
   });
   return map;
 }
-
+ 
 function getTodayStr() {
   return new Date().toLocaleDateString("fr-BE", { weekday: "long", day: "numeric", month: "long" });
 }
 function getTimeStr() {
   return new Date().toLocaleTimeString("fr-BE", { hour: "2-digit", minute: "2-digit" });
 }
-
+ 
 async function fetchStock(restaurantId) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/stock?select=*&restaurant_id=eq.${restaurantId}&order=id.asc`, { headers: HEADERS });
   if (!res.ok) throw new Error("Fetch failed");
   return res.json();
 }
-
+ 
 async function seedStock(restaurantId, seedData) {
   const data = seedData.map(item => ({ ...item, restaurant_id: restaurantId }));
   const res = await fetch(`${SUPABASE_URL}/rest/v1/stock`, {
@@ -151,7 +151,7 @@ async function seedStock(restaurantId, seedData) {
   if (!res.ok) throw new Error("Seed failed");
   return res.json();
 }
-
+ 
 async function updateItem(id, qty, updatedBy) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/stock?id=eq.${id}`, {
     method: "PATCH", headers: HEADERS,
@@ -160,7 +160,7 @@ async function updateItem(id, qty, updatedBy) {
   if (!res.ok) throw new Error("Update failed");
   return res.json();
 }
-
+ 
 async function insertItem(item) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/stock`, {
     method: "POST", headers: HEADERS, body: JSON.stringify(item)
@@ -168,9 +168,9 @@ async function insertItem(item) {
   if (!res.ok) throw new Error("Insert failed");
   return res.json();
 }
-
+ 
 export default function App() {
-  const [step, setStep] = useState("author"); // author | restaurant | stores | items
+  const [step, setStep] = useState("author");
   const [author, setAuthor] = useState("");
   const [authorInput, setAuthorInput] = useState("");
   const [restaurant, setRestaurant] = useState(null);
@@ -189,11 +189,11 @@ export default function App() {
   const [newThreshold, setNewThreshold] = useState("");
   const [showAlerts, setShowAlerts] = useState(false);
   const inputRef = useRef(null);
-
+ 
   useEffect(() => {
     if (editingId && inputRef.current) inputRef.current.focus();
   }, [editingId]);
-
+ 
   async function loadData(resto) {
     setLoading(true);
     try {
@@ -212,12 +212,12 @@ export default function App() {
       setLoading(false);
     }
   }
-
+ 
   function flash(msg) {
     setToast(msg);
     setTimeout(() => setToast(null), 2500);
   }
-
+ 
   async function saveQty(id) {
     setSaving(true);
     try {
@@ -229,7 +229,7 @@ export default function App() {
     } catch { flash("❌ Erreur"); }
     finally { setSaving(false); }
   }
-
+ 
   async function addItem(store) {
     if (!newName.trim()) return;
     const newItem = { store, name: newName.trim(), qty: newQty, unit: "", threshold: parseFloat(newThreshold) || 1, threshold_label: `< ${newThreshold || 1}`, restaurant_id: restaurant.id, updated_by: author };
@@ -242,19 +242,23 @@ export default function App() {
     } catch { flash("❌ Erreur"); }
     finally { setSaving(false); }
   }
-
+ 
   const storeOrder = restaurant?.id === "rue-neuve" ? STORE_ORDER_RUE_NEUVE : STORE_ORDER_EVENT;
   const stock = groupByStore(items);
   const stores = storeOrder.filter(s => stock[s] && stock[s].length > 0);
   const allAlerts = items.filter(i => isLow(i));
   const totalAlerts = allAlerts.length;
-
+ 
   const s = { fontFamily: "'Georgia', serif" };
-
+ 
   // ── AUTHOR ─────────────────────────────────────────────────
   if (step === "author") return (
     <div style={{ ...s, minHeight: "100vh", background: "#0d0d0d", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "2rem" }}>
-      <div style={{ fontSize: "3.5rem", marginBottom: "0.25rem" }}>🍟</div>
+      <img
+        src="/Fichier-source-logo-Sekai-_1_.png"
+        alt="Sekai Corndogs"
+        style={{ width: "200px", marginBottom: "1rem", borderRadius: "12px" }}
+      />
       <h1 style={{ color: "#f5c842", fontSize: "1.5rem", margin: "0 0 0.25rem", textAlign: "center" }}>STOCK DU SOIR</h1>
       <p style={{ color: "#444", fontSize: "0.82rem", margin: "0 0 2.5rem", textAlign: "center" }}>{getTodayStr()}</p>
       <p style={{ color: "#aaa", marginBottom: "0.75rem" }}>C'est qui qui fait le stock ?</p>
@@ -269,7 +273,7 @@ export default function App() {
       </button>
     </div>
   );
-
+ 
   // ── RESTAURANT CHOICE ──────────────────────────────────────
   if (step === "restaurant") return (
     <div style={{ ...s, minHeight: "100vh", background: "#0d0d0d", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "2rem" }}>
@@ -290,7 +294,7 @@ export default function App() {
       </div>
     </div>
   );
-
+ 
   // ── LOADING ────────────────────────────────────────────────
   if (loading) return (
     <div style={{ ...s, minHeight: "100vh", background: "#0d0d0d", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
@@ -298,14 +302,14 @@ export default function App() {
       <p style={{ color: "#f5c842" }}>Chargement du stock...</p>
     </div>
   );
-
+ 
   if (error) return (
     <div style={{ ...s, minHeight: "100vh", background: "#0d0d0d", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "2rem" }}>
       <p style={{ color: "#e57373" }}>{error}</p>
       <button onClick={() => loadData(restaurant)} style={{ marginTop: "1rem", background: "#f5c842", color: "#111", border: "none", padding: "0.8rem 2rem", borderRadius: "10px", fontFamily: "inherit", fontWeight: "bold", cursor: "pointer" }}>Réessayer</button>
     </div>
   );
-
+ 
   // ── ALERTS ─────────────────────────────────────────────────
   if (showAlerts) {
     const byStore = {};
@@ -340,7 +344,7 @@ export default function App() {
       </div>
     );
   }
-
+ 
   // ── STORE LIST ─────────────────────────────────────────────
   if (!activeStore) return (
     <div style={{ ...s, minHeight: "100vh", background: "#0d0d0d", paddingBottom: "2rem" }}>
@@ -361,9 +365,9 @@ export default function App() {
           </div>
         </div>
       </div>
-
+ 
       {lastSave && <div style={{ margin: "0.8rem 1.1rem 0", background: "#0f1f0f", border: "1px solid #1e3a1e", borderRadius: "8px", padding: "0.6rem 1rem", fontSize: "0.78rem", color: "#5cb85c" }}>✅ {lastSave.time} · {lastSave.who}</div>}
-
+ 
       <div style={{ padding: "0.8rem 1.1rem", display: "flex", flexDirection: "column", gap: "0.55rem" }}>
         {stores.map(store => {
           const alerts = stock[store].filter(i => isLow(i)).length;
@@ -383,13 +387,13 @@ export default function App() {
       </div>
     </div>
   );
-
+ 
   // ── ITEMS ──────────────────────────────────────────────────
   const storeItems = stock[activeStore] || [];
   return (
     <div style={{ ...s, minHeight: "100vh", background: "#0d0d0d", paddingBottom: "5rem" }}>
       {toast && <div style={{ position: "fixed", top: "1rem", left: "50%", transform: "translateX(-50%)", background: "#1e1e1e", color: "#f5c842", padding: "0.55rem 1.4rem", borderRadius: "20px", fontSize: "0.88rem", zIndex: 999, border: "1px solid #2e2e2e", whiteSpace: "nowrap", pointerEvents: "none" }}>{toast}</div>}
-
+ 
       <div style={{ background: "#141414", padding: "1rem 1.2rem", borderBottom: "1px solid #1e1e1e", position: "sticky", top: 0, zIndex: 10 }}>
         <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
           <button onClick={() => { setActiveStore(null); setEditingId(null); setAddMode(false); }} style={{ background: "none", border: "none", color: "#f5c842", fontSize: "1.6rem", cursor: "pointer", padding: 0, lineHeight: 1 }}>‹</button>
@@ -399,7 +403,7 @@ export default function App() {
           </div>
         </div>
       </div>
-
+ 
       <div style={{ padding: "0.75rem 1.1rem", display: "flex", flexDirection: "column", gap: "0.5rem" }}>
         {storeItems.map(item => {
           const low = isLow(item);
@@ -442,7 +446,7 @@ export default function App() {
             </div>
           );
         })}
-
+ 
         {addMode ? (
           <div style={{ background: "#141414", border: "1px solid #1e1e1e", borderRadius: "12px", padding: "1rem" }}>
             <input autoFocus value={newName} onChange={e => setNewName(e.target.value)} placeholder="Nom de l'article..."
@@ -460,7 +464,7 @@ export default function App() {
           <button onClick={() => setAddMode(true)} style={{ background: "none", border: "1px dashed #252525", color: "#3a3a3a", borderRadius: "12px", padding: "0.9rem", fontFamily: "inherit", fontSize: "0.9rem", cursor: "pointer", width: "100%" }}>+ Ajouter un article</button>
         )}
       </div>
-
+ 
       <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: "#141414", borderTop: "1px solid #1e1e1e", padding: "0.75rem 1.2rem", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div style={{ color: "#3a3a3a", fontSize: "0.73rem" }}>{lastSave ? `💾 ${lastSave.time} · ${lastSave.who}` : "Pas encore sauvegardé"}</div>
         <div style={{ fontSize: "0.78rem", fontWeight: "bold", color: storeItems.filter(i => isLow(i)).length > 0 ? "#e57373" : "#5cb85c" }}>
