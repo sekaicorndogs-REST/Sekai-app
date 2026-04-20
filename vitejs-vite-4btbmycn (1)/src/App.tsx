@@ -609,7 +609,7 @@ export default function App() {
           <div style={{ background: "#141414", borderRadius: "16px 16px 0 0", padding: "1.2rem", width: "100%", display: "flex", flexDirection: "column", gap: "0.75rem", maxHeight: "85vh", overflowY: "auto" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div style={{ color: "#f5c842", fontWeight: "bold", fontSize: "0.95rem" }}>
-                ➕ {addHoraireDate ? formatDateShort(addHoraireDate) : "Choisir une date"}
+                ➕ {addHoraireDate ? formatDateShort(addHoraireDate) : "📅 Choisir une date future"}
               </div>
               <button onClick={() => { setShowAddHoraire(false); setAddHoraireIsRemplacement(false); setAddHoraireExtra(false); setAddHoraireEmploye(""); setAddHoraireExtranom(""); setAddHoraireRemplaceNom(""); }}
                 style={{ background: "#2a2a2a", border: "none", color: "#888", borderRadius: "50%", width: "2rem", height: "2rem", cursor: "pointer", fontSize: "1rem" }}>✕</button>
@@ -636,8 +636,8 @@ export default function App() {
               );
             })()}
 
-            {/* Type selection */}
-            <div style={{ display: "flex", gap: "0.5rem" }}>
+            {/* Type selection - only show after date selected */}
+            {addHoraireDate && <div style={{ display: "flex", gap: "0.5rem" }}>
               <button onClick={() => { setAddHoraireIsRemplacement(false); setAddHoraireExtra(false); }}
                 style={{ flex: 1, background: !addHoraireIsRemplacement && !addHoraireExtra ? "#f5c842" : "#1e1e1e", color: !addHoraireIsRemplacement && !addHoraireExtra ? "#111" : "#555", border: "none", borderRadius: "8px", padding: "0.6rem", fontSize: "0.8rem", fontFamily: "inherit", cursor: "pointer", fontWeight: "bold" }}>
                 👤 Employé normal
@@ -650,7 +650,7 @@ export default function App() {
                 style={{ flex: 1, background: addHoraireIsRemplacement ? "#f5c842" : "#1e1e1e", color: addHoraireIsRemplacement ? "#111" : "#555", border: "none", borderRadius: "8px", padding: "0.6rem", fontSize: "0.8rem", fontFamily: "inherit", cursor: "pointer", fontWeight: "bold" }}>
                 🔄 Remplacement
               </button>
-            </div>
+            </div>}
 
             {/* Employé normal */}
             {!addHoraireIsRemplacement && !addHoraireExtra && (
@@ -737,7 +737,7 @@ export default function App() {
               </>
             )}
 
-            <button onClick={async () => {
+            {addHoraireDate && <button onClick={async () => {
               if (!addHoraireDate) return;
               const nom = addHoraireExtra ? (addHoraireExtranom || addHoraireEmploye) : addHoraireEmploye;
               if (!nom) return;
@@ -761,7 +761,7 @@ export default function App() {
               } catch { flash("❌ Erreur"); }
             }} style={{ background: "#f5c842", color: "#111", border: "none", padding: "0.9rem", borderRadius: "10px", fontFamily: "inherit", fontWeight: "bold", fontSize: "1rem", cursor: "pointer", width: "100%" }}>
               ✅ Confirmer
-            </button>
+            </button>}
           </div>
         </div>
       );
