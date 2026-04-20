@@ -282,6 +282,8 @@ export default function App() {
           const resto = RESTAURANTS.find(r => r.id === user.restaurant_id);
           if (resto) { setRestaurant(resto); loadData(resto); }
         }
+        // Précharger les horaires en arrière-plan
+        fetchHoraires("rue-neuve");
       } catch {}
     }
   }, []);
@@ -309,6 +311,8 @@ export default function App() {
         const resto = RESTAURANTS.find(r => r.id === user.restaurant_id);
         if (resto) { setRestaurant(resto); loadData(resto); }
       }
+      // Précharger les horaires en arrière-plan
+      fetchHoraires("rue-neuve");
     } catch { setLoginError("Erreur de connexion."); }
     finally { setLoginLoading(false); }
   }
@@ -563,7 +567,7 @@ export default function App() {
         { id: "comptes", label: "Comptes", icon: "👥", adminOnly: true },
         { id: "profil", label: "Profil", icon: "👤", adminOnly: false }
       ].filter(tab => !tab.adminOnly || isAdmin).map(tab => (
-        <button key={tab.id} onClick={() => { setPage(tab.id); if (tab.id === "comptes") loadUsers(); if (tab.id === "horaires") fetchHoraires(horaireRestaurant); }} style={{ flex: 1, background: "none", border: "none", padding: "0.7rem 0", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: "0.15rem" }}>
+        <button key={tab.id} onClick={() => { setPage(tab.id); if (tab.id === "comptes") loadUsers(); if (tab.id === "horaires" && !horaires.length) fetchHoraires(horaireRestaurant); }} style={{ flex: 1, background: "none", border: "none", padding: "0.7rem 0", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: "0.15rem" }}>
           <span style={{ fontSize: "1.2rem" }}>{tab.icon}</span>
           <span style={{ fontSize: "0.65rem", color: page === tab.id ? "#f5c842" : "#444", fontFamily: "inherit" }}>{tab.label}</span>
         </button>
