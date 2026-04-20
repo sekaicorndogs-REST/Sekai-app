@@ -968,36 +968,45 @@ export default function App() {
                 });
 
                 // VUE ADMIN/SUPERADMIN
+                const ADMINS = ["Abdel", "Nabil", "Mohammed"];
                 if (isAdmin) {
-                  const moi = currentUser.prenom;
-                  const mesRemplacees = heuresRemplacees[moi];
-                  const mesEnPlus = heuresEnPlus[moi];
                   return (
                     <div>
-                      {/* Mon résumé perso */}
-                      <div style={{ color: "#f5c842", fontSize: "0.75rem", fontWeight: "bold", marginBottom: "0.5rem" }}>👑 {moi} — Mon mois</div>
-                      <div style={{ display: "flex", gap: "0.6rem", marginBottom: "1.2rem" }}>
-                        <div style={{ flex: 1, background: "#1a0f0f", border: "1px solid #3a1a1a", borderRadius: "10px", padding: "0.8rem" }}>
-                          <div style={{ color: "#e57373", fontSize: "0.7rem", marginBottom: "0.3rem" }}>🔄 Remplacé</div>
-                          <div style={{ color: "#e57373", fontSize: "1.4rem", fontWeight: "bold" }}>{mesRemplacees ? "-" + mesRemplacees.heures.toFixed(1) + "h" : "0h"}</div>
-                          <div style={{ color: "#5a2a2a", fontSize: "0.7rem" }}>{mesRemplacees ? mesRemplacees.jours + " jour" + (mesRemplacees.jours > 1 ? "s" : "") : "0 jour"}</div>
-                          {mesRemplacees && mesRemplacees.details.map((r: any) => (
-                            <div key={r.id} style={{ borderTop: "1px solid #2a1a1a", marginTop: "0.4rem", paddingTop: "0.3rem", fontSize: "0.72rem", color: "#7a3a3a" }}>
-                              {formatDateShort(normalizeDate(r.date))} · par {r.employe_nom}
+                      {/* Résumé des 3 admins */}
+                      <div style={{ color: "#f5c842", fontSize: "0.75rem", fontWeight: "bold", marginBottom: "0.5rem" }}>👑 Admins</div>
+                      {ADMINS.map(nom => {
+                        const remplacees = heuresRemplacees[nom];
+                        const enPlus = heuresEnPlus[nom];
+                        return (
+                          <div key={nom} style={{ background: "#141414", border: `1px solid ${nom === currentUser.prenom ? "#f5c842" : "#1e1e1e"}`, borderRadius: "12px", padding: "1rem", marginBottom: "0.6rem" }}>
+                            <div style={{ color: "#f5c842", fontSize: "0.9rem", fontWeight: "bold", marginBottom: "0.5rem" }}>
+                              👑 {nom} {nom === currentUser.prenom ? "· Moi" : ""}
                             </div>
-                          ))}
-                        </div>
-                        <div style={{ flex: 1, background: "#0f1a2a", border: "1px solid #1e3a5a", borderRadius: "10px", padding: "0.8rem" }}>
-                          <div style={{ color: "#6ab0ff", fontSize: "0.7rem", marginBottom: "0.3rem" }}>➕ Fait en plus</div>
-                          <div style={{ color: "#6ab0ff", fontSize: "1.4rem", fontWeight: "bold" }}>{mesEnPlus ? "+" + mesEnPlus.heures.toFixed(1) + "h" : "0h"}</div>
-                          <div style={{ color: "#2a4a6a", fontSize: "0.7rem" }}>{mesEnPlus ? mesEnPlus.jours + " jour" + (mesEnPlus.jours > 1 ? "s" : "") : "0 jour"}</div>
-                          {mesEnPlus && mesEnPlus.details.map((r: any) => (
-                            <div key={r.id} style={{ borderTop: "1px solid #1a2a3a", marginTop: "0.4rem", paddingTop: "0.3rem", fontSize: "0.72rem", color: "#4a7aaa" }}>
-                              {formatDateShort(normalizeDate(r.date))} · pour {r.remplace_nom}
+                            <div style={{ display: "flex", gap: "0.5rem" }}>
+                              <div style={{ flex: 1, background: "#1a0f0f", border: "1px solid #3a1a1a", borderRadius: "8px", padding: "0.6rem 0.8rem" }}>
+                                <div style={{ color: "#e57373", fontSize: "0.7rem", marginBottom: "0.2rem" }}>🔄 Remplacé</div>
+                                <div style={{ color: "#e57373", fontSize: "1.2rem", fontWeight: "bold" }}>{remplacees ? "-" + remplacees.heures.toFixed(1) + "h" : "0h"}</div>
+                                <div style={{ color: "#5a2a2a", fontSize: "0.7rem" }}>{remplacees ? remplacees.jours + " jour" + (remplacees.jours > 1 ? "s" : "") : "0 jour"}</div>
+                                {remplacees && remplacees.details.map((r: any) => (
+                                  <div key={r.id} style={{ borderTop: "1px solid #2a1a1a", marginTop: "0.3rem", paddingTop: "0.3rem", fontSize: "0.7rem", color: "#7a3a3a" }}>
+                                    {formatDateShort(normalizeDate(r.date))} · par {r.employe_nom}
+                                  </div>
+                                ))}
+                              </div>
+                              <div style={{ flex: 1, background: "#0f1a2a", border: "1px solid #1e3a5a", borderRadius: "8px", padding: "0.6rem 0.8rem" }}>
+                                <div style={{ color: "#6ab0ff", fontSize: "0.7rem", marginBottom: "0.2rem" }}>➕ Fait en plus</div>
+                                <div style={{ color: "#6ab0ff", fontSize: "1.2rem", fontWeight: "bold" }}>{enPlus ? "+" + enPlus.heures.toFixed(1) + "h" : "0h"}</div>
+                                <div style={{ color: "#2a4a6a", fontSize: "0.7rem" }}>{enPlus ? enPlus.jours + " jour" + (enPlus.jours > 1 ? "s" : "") : "0 jour"}</div>
+                                {enPlus && enPlus.details.map((r: any) => (
+                                  <div key={r.id} style={{ borderTop: "1px solid #1a2a3a", marginTop: "0.3rem", paddingTop: "0.3rem", fontSize: "0.7rem", color: "#4a7aaa" }}>
+                                    {formatDateShort(normalizeDate(r.date))} · pour {r.remplace_nom}
+                                  </div>
+                                ))}
+                              </div>
                             </div>
-                          ))}
-                        </div>
-                      </div>
+                          </div>
+                        );
+                      })}
 
                       {/* Employés */}
                       <div style={{ color: "#f5c842", fontSize: "0.75rem", fontWeight: "bold", marginBottom: "0.5rem" }}>👤 Employés</div>
