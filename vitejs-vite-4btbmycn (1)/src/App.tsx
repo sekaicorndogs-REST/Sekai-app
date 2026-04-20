@@ -799,7 +799,7 @@ export default function App() {
             </div>
           </div>
           <div style={{ display: "flex", gap: "0.4rem" }}>
-            {[{id:"week",label:"Semaine"},{id:"remplacements",label:"Remplacements"}].map(tab => (
+            {[{id:"week",label:"Semaine"},{id:"remplacements",label:"Remplacements"},{id:"stats",label:"Stats"}].map(tab => (
               <button key={tab.id} onClick={() => setHoraireView(tab.id)}
                 style={{ background: horaireView === tab.id ? "#f5c842" : "#1e1e1e", color: horaireView === tab.id ? "#111" : "#555", border: "none", borderRadius: "8px", padding: "0.35rem 0.9rem", fontSize: "0.78rem", fontFamily: "inherit", fontWeight: horaireView === tab.id ? "bold" : "normal", cursor: "pointer" }}>
                 {tab.label}
@@ -916,6 +916,75 @@ export default function App() {
               ))}
             </div>
           )}
+          {/* STATS VIEW */}
+          {horaireView === "stats" && (
+            <div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
+                <div style={{ color: "#555", fontSize: "0.75rem", fontWeight: "bold" }}>Heures du mois</div>
+                <input type="month" value={remplacementMois} onChange={e => setRemplacementMois(e.target.value)}
+                  style={{ background: "#1e1e1e", border: "1px solid #2e2e2e", color: "#f5c842", borderRadius: "8px", padding: "0.3rem 0.5rem", fontSize: "0.75rem", fontFamily: "inherit", outline: "none" }} />
+              </div>
+
+              {(() => {
+                const moisH = horaires.filter(h => normalizeDate(h.date).startsWith(remplacementMois));
+                
+                // Heures travaillées par employé (depuis le cycle auto)
+                const statsParPersonne = {};
+                
+                // Compter les jours travaillés selon le cycle
+                const daysInMonth = new Date(parseInt(remplacementMois.split("-")[0]), parseInt(remplacementMois.split("-")[1]), 0).getDate();
+                const year = parseInt(remplacementMois.split("-")[0]);
+                const month = parseInt(remplacementMois.split("-")[1]) - 1;
+                
+                for (let d = 1; d <= daysInMonth; d++) {
+                  const dateObj = new Date(year, month, d);
+                  const dateStr = year + "-" + String(month+1).padStart(2,"0") + "-" + String(d).padStart(2,"0");
+                  const emps = getAutoEmployes(dateStr);
+                  const autoH = getAutoHoraire(dateStr);
+                  const heures = parseFloat(calcHeures(autoH.debut, autoH.fin));
+                  
+                  emps.forEach(emp => {
+                    if (!statsParPersonne[emp]) statsParPersonne[emp] = { heuresTravail: 0, heuresRemplacement: 0, joursRemplacement: 0 };
+                    
+                    // Vérifier si remplacé ce jour
+                    const remplace = moisH.find(h => normalizeDate(h.date) === dateStr && h.est_remplacement && h.remplace_nom === emp);
+                    if (!remplace) {
+                      statsParPersonne[emp].heuresTravail += heures;
+                    } else {
+                      statsParPersonne[emp].heuresRemplacement += heures;
+                      statsParPersonne[emp].joursRemplacement += 1;
+                    }
+                  });
+                }
+
+                const personnes = isAdmin 
+                  ? Object.entries(statsParPersonne)
+                  : Object.entries(statsParPersonne).filter(([nom]) => nom === currentUser.prenom);
+
+                if (personnes.length === 0) return <div style={{ color: "#333", fontSize: "0.82rem", textAlign: "center", padding: "2rem" }}>Aucune donnée ce mois-ci</div>;
+
+                return personnes.map(([nom, stats]: [string, any]) => (
+                  <div key={nom} style={{ background: "#141414", border: "1px solid #1e1e1e", borderRadius: "12px", padding: "1rem", marginBottom: "0.75rem" }}>
+                    <div style={{ color: "#f5c842", fontSize: "0.95rem", fontWeight: "bold", marginBottom: "0.6rem" }}>👤 {nom}</div>
+                    <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+                      <div style={{ background: "#0f1a0f", border: "1px solid #1e3a1e", borderRadius: "8px", padding: "0.5rem 0.8rem", flex: 1 }}>
+                        <div style={{ color: "#5cb85c", fontSize: "0.7rem", marginBottom: "0.2rem" }}>✅ Heures travaillées</div>
+                        <div style={{ color: "#f0ede6", fontSize: "1.1rem", fontWeight: "bold" }}>{stats.heuresTravail.toFixed(1)}h</div>
+                      </div>
+                      {(isAdmin || currentUser.prenom === nom) && stats.joursRemplacement > 0 && (
+                        <div style={{ background: "#1a0f0f", border: "1px solid #3a1a1a", borderRadius: "8px", padding: "0.5rem 0.8rem", flex: 1 }}>
+                          <div style={{ color: "#e57373", fontSize: "0.7rem", marginBottom: "0.2rem" }}>🔄 Heures remplacées</div>
+                          <div style={{ color: "#e57373", fontSize: "1.1rem", fontWeight: "bold" }}>{stats.heuresRemplacement.toFixed(1)}h</div>
+                          <div style={{ color: "#5a2a2a", fontSize: "0.7rem" }}>{stats.joursRemplacement} jour{stats.joursRemplacement > 1 ? "s" : ""}</div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ));
+              })()}
+            </div>
+          )}
+
           </>}
         </div>
         <BottomNav />
