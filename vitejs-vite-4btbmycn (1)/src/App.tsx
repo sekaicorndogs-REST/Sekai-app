@@ -206,6 +206,12 @@ async function deleteUser(id) {
   if (!res.ok) throw new Error("Delete user failed");
 }
 
+function getCurrentMois() {
+  const d = new Date();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  return d.getFullYear() + "-" + month;
+}
+
 export default function App() {
   const [currentUser, setCurrentUser] = useState(null);
   const [loginPrenom, setLoginPrenom] = useState("");
@@ -258,10 +264,7 @@ export default function App() {
   const [addHoraireIsRemplacement, setAddHoraireIsRemplacement] = useState(false);
   const [addHoraireRemplaceNom, setAddHoraireRemplaceNom] = useState("");
   const [horaireRestaurant, setHoraireRestaurant] = useState("rue-neuve");
-  const [remplacementMois, setRemplacementMois] = useState(() => {
-    const d = new Date();
-    const month = String(d.getMonth()+1).padStart(2,'0'); return `${d.getFullYear()}-${month}`;
-  });
+  const [remplacementMois, setRemplacementMois] = useState(getCurrentMois());
   const inputRef = useRef(null);
 
   useEffect(() => {
