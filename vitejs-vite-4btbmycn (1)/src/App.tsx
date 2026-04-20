@@ -836,16 +836,18 @@ export default function App() {
                         {isToday && <span style={{ color: "#5cb85c", fontSize: "0.72rem", marginLeft: "0.4rem" }}>· Aujourd'hui</span>}
                         <span style={{ color: "#444", fontSize: "0.72rem", marginLeft: "0.5rem" }}>{autoH.debut}-{autoH.fin}</span>
                       </div>
-                      <button onClick={() => {
-                        const h = getAutoHoraire(dateStr);
-                        setAddHoraireDate(dateStr);
-                        setAddHoraireDebut(h.debut);
-                        setAddHoraireFin(h.fin);
-                        setAddHoraireIsRemplacement(false);
-                        setAddHoraireExtra(false);
-                        setAddHoraireEmploye("");
-                        setShowAddHoraire(true);
-                      }} style={{ background: "#f5c842", border: "none", color: "#111", borderRadius: "50%", width: "1.8rem", height: "1.8rem", cursor: "pointer", fontSize: "1.1rem", fontWeight: "bold", display: "flex", alignItems: "center", justifyContent: "center" }}>+</button>
+                      {dateStr >= todayStr && (
+                        <button onClick={() => {
+                          const h = getAutoHoraire(dateStr);
+                          setAddHoraireDate(dateStr);
+                          setAddHoraireDebut(h.debut);
+                          setAddHoraireFin(h.fin);
+                          setAddHoraireIsRemplacement(false);
+                          setAddHoraireExtra(false);
+                          setAddHoraireEmploye("");
+                          setShowAddHoraire(true);
+                        }} style={{ background: "#f5c842", border: "none", color: "#111", borderRadius: "50%", width: "1.8rem", height: "1.8rem", cursor: "pointer", fontSize: "1.1rem", fontWeight: "bold", display: "flex", alignItems: "center", justifyContent: "center" }}>+</button>
+                      )}
                     </div>
                     {/* Workers */}
                     <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap" }}>
@@ -901,10 +903,13 @@ export default function App() {
                     </div>
                   </div>
                   {stats.details.map((h: any) => (
-                    <div key={h.id} style={{ borderTop: "1px solid #2a1a1a", paddingTop: "0.4rem", marginTop: "0.4rem", display: "flex", justifyContent: "space-between", fontSize: "0.78rem" }}>
+                    <div key={h.id} style={{ borderTop: "1px solid #2a1a1a", paddingTop: "0.4rem", marginTop: "0.4rem", display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.78rem" }}>
                       <span style={{ color: "#777", textTransform: "capitalize" }}>{formatDateShort(normalizeDate(h.date))}</span>
                       <span style={{ color: "#555" }}>remplacé par <span style={{ color: "#f0ede6" }}>{h.employe_nom}</span></span>
                       <span style={{ color: "#555" }}>{h.heure_debut.slice(0,5)}-{h.heure_fin.slice(0,5)}</span>
+                      {isSuperAdmin && (
+                        <button onClick={() => handleDeleteHoraire(h.id)} style={{ background: "none", border: "none", color: "#e57373", cursor: "pointer", fontSize: "0.85rem", padding: "0 0.2rem" }}>🗑️</button>
+                      )}
                     </div>
                   ))}
                 </div>
