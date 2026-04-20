@@ -609,11 +609,32 @@ export default function App() {
           <div style={{ background: "#141414", borderRadius: "16px 16px 0 0", padding: "1.2rem", width: "100%", display: "flex", flexDirection: "column", gap: "0.75rem", maxHeight: "85vh", overflowY: "auto" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div style={{ color: "#f5c842", fontWeight: "bold", fontSize: "0.95rem" }}>
-                ➕ {formatDateShort(addHoraireDate)}
+                ➕ {addHoraireDate ? formatDateShort(addHoraireDate) : "Choisir une date"}
               </div>
               <button onClick={() => { setShowAddHoraire(false); setAddHoraireIsRemplacement(false); setAddHoraireExtra(false); setAddHoraireEmploye(""); setAddHoraireExtranom(""); setAddHoraireRemplaceNom(""); }}
                 style={{ background: "#2a2a2a", border: "none", color: "#888", borderRadius: "50%", width: "2rem", height: "2rem", cursor: "pointer", fontSize: "1rem" }}>✕</button>
             </div>
+
+            {/* Date picker - only future dates (after current week) */}
+            {(() => {
+              const today = new Date();
+              const dow = today.getDay();
+              const sunday = new Date(today);
+              sunday.setDate(today.getDate() + (dow === 0 ? 0 : 7 - dow));
+              const minDate = sunday.getFullYear() + "-" + String(sunday.getMonth()+1).padStart(2,"0") + "-" + String(sunday.getDate()).padStart(2,"0");
+              return (
+                <input type="date" value={addHoraireDate} min={minDate}
+                  onChange={e => {
+                    setAddHoraireDate(e.target.value);
+                    if (e.target.value) {
+                      const h = getAutoHoraire(e.target.value);
+                      setAddHoraireDebut(h.debut);
+                      setAddHoraireFin(h.fin);
+                    }
+                  }}
+                  style={{ background: "#0d0d0d", border: `1px solid ${addHoraireDate ? "#2e2e2e" : "#f5c842"}`, color: "#fff", padding: "0.7rem 1rem", borderRadius: "8px", fontSize: "0.95rem", fontFamily: "inherit", outline: "none", boxSizing: "border-box" as const, width: "100%" }} />
+              );
+            })()}
 
             {/* Type selection */}
             <div style={{ display: "flex", gap: "0.5rem" }}>
@@ -762,6 +783,17 @@ export default function App() {
               </select>
               <button onClick={() => fetchHoraires(horaireRestaurant)}
                 style={{ background: "#1e1e1e", border: "1px solid #2e2e2e", color: "#555", borderRadius: "8px", padding: "0.3rem 0.6rem", fontSize: "0.8rem", cursor: "pointer" }}>🔄</button>
+              <button onClick={() => {
+                setAddHoraireDate("");
+                setAddHoraireDebut("11:30");
+                setAddHoraireFin("20:30");
+                setAddHoraireIsRemplacement(false);
+                setAddHoraireExtra(false);
+                setAddHoraireEmploye("");
+                setAddHoraireExtranom("");
+                setAddHoraireRemplaceNom("");
+                setShowAddHoraire(true);
+              }} style={{ background: "#f5c842", border: "none", color: "#111", borderRadius: "8px", padding: "0.3rem 0.7rem", fontFamily: "inherit", fontWeight: "bold", fontSize: "0.78rem", cursor: "pointer" }}>📅 Autre date</button>
             </div>
           </div>
           <div style={{ display: "flex", gap: "0.4rem" }}>
