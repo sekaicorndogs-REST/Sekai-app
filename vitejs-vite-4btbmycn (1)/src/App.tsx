@@ -927,60 +927,141 @@ export default function App() {
 
               {(() => {
                 const moisH = horaires.filter(h => normalizeDate(h.date).startsWith(remplacementMois));
-                
-                // Heures travaillées par employé (depuis le cycle auto)
-                const statsParPersonne = {};
-                
-                // Compter les jours travaillés selon le cycle
                 const daysInMonth = new Date(parseInt(remplacementMois.split("-")[0]), parseInt(remplacementMois.split("-")[1]), 0).getDate();
                 const year = parseInt(remplacementMois.split("-")[0]);
                 const month = parseInt(remplacementMois.split("-")[1]) - 1;
-                
+                const EMPLOYES = ["Wassim", "Rachid", "Ali", "Momo"];
+
+                // Heures prestées cycle
+                const heuresPrestees = {};
                 for (let d = 1; d <= daysInMonth; d++) {
-                  const dateObj = new Date(year, month, d);
                   const dateStr = year + "-" + String(month+1).padStart(2,"0") + "-" + String(d).padStart(2,"0");
                   const emps = getAutoEmployes(dateStr);
                   const autoH = getAutoHoraire(dateStr);
-                  const heures = parseFloat(calcHeures(autoH.debut, autoH.fin));
-                  
+                  const h = parseFloat(calcHeures(autoH.debut, autoH.fin));
                   emps.forEach(emp => {
-                    if (!statsParPersonne[emp]) statsParPersonne[emp] = { heuresTravail: 0, heuresRemplacement: 0, joursRemplacement: 0 };
-                    
-                    // Vérifier si remplacé ce jour
-                    const remplace = moisH.find(h => normalizeDate(h.date) === dateStr && h.est_remplacement && h.remplace_nom === emp);
-                    if (!remplace) {
-                      statsParPersonne[emp].heuresTravail += heures;
-                    } else {
-                      statsParPersonne[emp].heuresRemplacement += heures;
-                      statsParPersonne[emp].joursRemplacement += 1;
-                    }
+                    if (!heuresPrestees[emp]) heuresPrestees[emp] = { travail: 0, remplace: 0, joursRemplace: 0 };
+                    const estRemplace = moisH.find(r => normalizeDate(r.date) === dateStr && r.est_remplacement && r.remplace_nom === emp);
+                    if (estRemplace) { heuresPrestees[emp].remplace += h; heuresPrestees[emp].joursRemplace += 1; }
+                    else heuresPrestees[emp].travail += h;
                   });
                 }
 
-                const personnes = isAdmin 
-                  ? Object.entries(statsParPersonne)
-                  : Object.entries(statsParPersonne).filter(([nom]) => nom === currentUser.prenom);
+                // Heures faites en remplacement
+                const heuresEnPlus = {};
+                moisH.filter(r => r.est_remplacement).forEach(r => {
+                  if (!heuresEnPlus[r.employe_nom]) heuresEnPlus[r.employe_nom] = { heures: 0, jours: 0, details: [] };
+                  const h = parseFloat(calcHeures(r.heure_debut.slice(0,5), r.heure_fin.slice(0,5)));
+                  heuresEnPlus[r.employe_nom].heures += h;
+                  heuresEnPlus[r.employe_nom].jours += 1;
+                  heuresEnPlus[r.employe_nom].details.push(r);
+                });
 
-                if (personnes.length === 0) return <div style={{ color: "#333", fontSize: "0.82rem", textAlign: "center", padding: "2rem" }}>Aucune donnée ce mois-ci</div>;
+                // Heures remplacées
+                const heuresRemplacees = {};
+                moisH.filter(r => r.est_remplacement).forEach(r => {
+                  if (!heuresRemplacees[r.remplace_nom]) heuresRemplacees[r.remplace_nom] = { heures: 0, jours: 0, details: [] };
+                  const h = parseFloat(calcHeures(r.heure_debut.slice(0,5), r.heure_fin.slice(0,5)));
+                  heuresRemplacees[r.remplace_nom].heures += h;
+                  heuresRemplacees[r.remplace_nom].jours += 1;
+                  heuresRemplacees[r.remplace_nom].details.push(r);
+                });
 
-                return personnes.map(([nom, stats]: [string, any]) => (
-                  <div key={nom} style={{ background: "#141414", border: "1px solid #1e1e1e", borderRadius: "12px", padding: "1rem", marginBottom: "0.75rem" }}>
-                    <div style={{ color: "#f5c842", fontSize: "0.95rem", fontWeight: "bold", marginBottom: "0.6rem" }}>👤 {nom}</div>
+                // VUE ADMIN/SUPERADMIN
+                if (isAdmin) {
+                  const moi = currentUser.prenom;
+                  const mesRemplacees = heuresRemplacees[moi];
+                  const mesEnPlus = heuresEnPlus[moi];
+                  return (
+                    <div>
+                      {/* Mon résumé perso */}
+                      <div style={{ color: "#f5c842", fontSize: "0.75rem", fontWeight: "bold", marginBottom: "0.5rem" }}>👑 {moi} — Mon mois</div>
+                      <div style={{ display: "flex", gap: "0.6rem", marginBottom: "1.2rem" }}>
+                        <div style={{ flex: 1, background: "#1a0f0f", border: "1px solid #3a1a1a", borderRadius: "10px", padding: "0.8rem" }}>
+                          <div style={{ color: "#e57373", fontSize: "0.7rem", marginBottom: "0.3rem" }}>🔄 Remplacé</div>
+                          <div style={{ color: "#e57373", fontSize: "1.4rem", fontWeight: "bold" }}>{mesRemplacees ? "-" + mesRemplacees.heures.toFixed(1) + "h" : "0h"}</div>
+                          <div style={{ color: "#5a2a2a", fontSize: "0.7rem" }}>{mesRemplacees ? mesRemplacees.jours + " jour" + (mesRemplacees.jours > 1 ? "s" : "") : "0 jour"}</div>
+                          {mesRemplacees && mesRemplacees.details.map((r: any) => (
+                            <div key={r.id} style={{ borderTop: "1px solid #2a1a1a", marginTop: "0.4rem", paddingTop: "0.3rem", fontSize: "0.72rem", color: "#7a3a3a" }}>
+                              {formatDateShort(normalizeDate(r.date))} · par {r.employe_nom}
+                            </div>
+                          ))}
+                        </div>
+                        <div style={{ flex: 1, background: "#0f1a2a", border: "1px solid #1e3a5a", borderRadius: "10px", padding: "0.8rem" }}>
+                          <div style={{ color: "#6ab0ff", fontSize: "0.7rem", marginBottom: "0.3rem" }}>➕ Fait en plus</div>
+                          <div style={{ color: "#6ab0ff", fontSize: "1.4rem", fontWeight: "bold" }}>{mesEnPlus ? "+" + mesEnPlus.heures.toFixed(1) + "h" : "0h"}</div>
+                          <div style={{ color: "#2a4a6a", fontSize: "0.7rem" }}>{mesEnPlus ? mesEnPlus.jours + " jour" + (mesEnPlus.jours > 1 ? "s" : "") : "0 jour"}</div>
+                          {mesEnPlus && mesEnPlus.details.map((r: any) => (
+                            <div key={r.id} style={{ borderTop: "1px solid #1a2a3a", marginTop: "0.4rem", paddingTop: "0.3rem", fontSize: "0.72rem", color: "#4a7aaa" }}>
+                              {formatDateShort(normalizeDate(r.date))} · pour {r.remplace_nom}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Employés */}
+                      <div style={{ color: "#f5c842", fontSize: "0.75rem", fontWeight: "bold", marginBottom: "0.5rem" }}>👤 Employés</div>
+                      {EMPLOYES.map(nom => {
+                        const st = heuresPrestees[nom];
+                        if (!st) return null;
+                        const enPlus = heuresEnPlus[nom];
+                        return (
+                          <div key={nom} style={{ background: "#141414", border: "1px solid #1e1e1e", borderRadius: "12px", padding: "1rem", marginBottom: "0.6rem" }}>
+                            <div style={{ color: "#f0ede6", fontSize: "0.9rem", fontWeight: "bold", marginBottom: "0.5rem" }}>👤 {nom}</div>
+                            <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+                              <div style={{ background: "#0f1a0f", border: "1px solid #1e3a1e", borderRadius: "8px", padding: "0.5rem 0.8rem", flex: 1 }}>
+                                <div style={{ color: "#5cb85c", fontSize: "0.7rem", marginBottom: "0.2rem" }}>✅ Prestées</div>
+                                <div style={{ color: "#f0ede6", fontSize: "1.1rem", fontWeight: "bold" }}>{st.travail.toFixed(1)}h</div>
+                              </div>
+                              {st.joursRemplace > 0 && (
+                                <div style={{ background: "#1a0f0f", border: "1px solid #3a1a1a", borderRadius: "8px", padding: "0.5rem 0.8rem", flex: 1 }}>
+                                  <div style={{ color: "#e57373", fontSize: "0.7rem", marginBottom: "0.2rem" }}>🔄 Remplacé</div>
+                                  <div style={{ color: "#e57373", fontSize: "1.1rem", fontWeight: "bold" }}>-{st.remplace.toFixed(1)}h</div>
+                                  <div style={{ color: "#5a2a2a", fontSize: "0.7rem" }}>{st.joursRemplace} jour{st.joursRemplace > 1 ? "s" : ""}</div>
+                                </div>
+                              )}
+                              {enPlus && (
+                                <div style={{ background: "#0f1a2a", border: "1px solid #1e3a5a", borderRadius: "8px", padding: "0.5rem 0.8rem", flex: 1 }}>
+                                  <div style={{ color: "#6ab0ff", fontSize: "0.7rem", marginBottom: "0.2rem" }}>➕ En plus</div>
+                                  <div style={{ color: "#6ab0ff", fontSize: "1.1rem", fontWeight: "bold" }}>+{enPlus.heures.toFixed(1)}h</div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                }
+
+                // VUE EMPLOYÉ
+                const st = heuresPrestees[currentUser.prenom];
+                const enPlus = heuresEnPlus[currentUser.prenom];
+                if (!st) return <div style={{ color: "#333", fontSize: "0.82rem", textAlign: "center", padding: "2rem" }}>Aucune donnée ce mois-ci</div>;
+                return (
+                  <div style={{ background: "#141414", border: "1px solid #1e1e1e", borderRadius: "12px", padding: "1rem" }}>
+                    <div style={{ color: "#f5c842", fontSize: "0.9rem", fontWeight: "bold", marginBottom: "0.5rem" }}>👤 {currentUser.prenom}</div>
                     <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
                       <div style={{ background: "#0f1a0f", border: "1px solid #1e3a1e", borderRadius: "8px", padding: "0.5rem 0.8rem", flex: 1 }}>
-                        <div style={{ color: "#5cb85c", fontSize: "0.7rem", marginBottom: "0.2rem" }}>✅ Heures travaillées</div>
-                        <div style={{ color: "#f0ede6", fontSize: "1.1rem", fontWeight: "bold" }}>{stats.heuresTravail.toFixed(1)}h</div>
+                        <div style={{ color: "#5cb85c", fontSize: "0.7rem", marginBottom: "0.2rem" }}>✅ Prestées</div>
+                        <div style={{ color: "#f0ede6", fontSize: "1.1rem", fontWeight: "bold" }}>{st.travail.toFixed(1)}h</div>
                       </div>
-                      {(isAdmin || currentUser.prenom === nom) && stats.joursRemplacement > 0 && (
+                      {st.joursRemplace > 0 && (
                         <div style={{ background: "#1a0f0f", border: "1px solid #3a1a1a", borderRadius: "8px", padding: "0.5rem 0.8rem", flex: 1 }}>
-                          <div style={{ color: "#e57373", fontSize: "0.7rem", marginBottom: "0.2rem" }}>🔄 Heures remplacées</div>
-                          <div style={{ color: "#e57373", fontSize: "1.1rem", fontWeight: "bold" }}>{stats.heuresRemplacement.toFixed(1)}h</div>
-                          <div style={{ color: "#5a2a2a", fontSize: "0.7rem" }}>{stats.joursRemplacement} jour{stats.joursRemplacement > 1 ? "s" : ""}</div>
+                          <div style={{ color: "#e57373", fontSize: "0.7rem", marginBottom: "0.2rem" }}>🔄 Remplacé</div>
+                          <div style={{ color: "#e57373", fontSize: "1.1rem", fontWeight: "bold" }}>-{st.remplace.toFixed(1)}h</div>
+                          <div style={{ color: "#5a2a2a", fontSize: "0.7rem" }}>{st.joursRemplace} jour{st.joursRemplace > 1 ? "s" : ""}</div>
+                        </div>
+                      )}
+                      {enPlus && (
+                        <div style={{ background: "#0f1a2a", border: "1px solid #1e3a5a", borderRadius: "8px", padding: "0.5rem 0.8rem", flex: 1 }}>
+                          <div style={{ color: "#6ab0ff", fontSize: "0.7rem", marginBottom: "0.2rem" }}>➕ En plus</div>
+                          <div style={{ color: "#6ab0ff", fontSize: "1.1rem", fontWeight: "bold" }}>+{enPlus.heures.toFixed(1)}h</div>
                         </div>
                       )}
                     </div>
                   </div>
-                ));
+                );
               })()}
             </div>
           )}
