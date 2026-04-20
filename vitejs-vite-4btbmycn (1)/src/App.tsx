@@ -260,7 +260,7 @@ export default function App() {
   const [horaireRestaurant, setHoraireRestaurant] = useState("rue-neuve");
   const [remplacementMois, setRemplacementMois] = useState(() => {
     const d = new Date();
-    return \`\${d.getFullYear()}-\${String(d.getMonth()+1).padStart(2,'0')}\`;
+    const month = String(d.getMonth()+1).padStart(2,'0'); return `${d.getFullYear()}-${month}`;
   });
   const inputRef = useRef(null);
 
