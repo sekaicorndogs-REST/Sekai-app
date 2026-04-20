@@ -762,6 +762,9 @@ export default function App() {
                       {autoEmps.map(emp => (
                         <span key={emp} style={{ background: "#1a2a1a", color: "#8bc08b", borderRadius: "6px", padding: "0.2rem 0.5rem", fontSize: "0.75rem" }}>👤 {emp}</span>
                       ))}
+                      {encoded.filter(h => !h.extra && !h.est_remplacement).map(h => (
+                        <span key={h.id} style={{ background: "#1e2a1e", color: "#7bc07b", borderRadius: "6px", padding: "0.2rem 0.5rem", fontSize: "0.75rem" }}>👤 {h.employe_nom}</span>
+                      ))}
                       {encoded.filter(h => h.extra).map(h => (
                         <span key={h.id} style={{ background: "#2a3a1a", color: "#a8d060", borderRadius: "6px", padding: "0.2rem 0.5rem", fontSize: "0.75rem" }}>⭐ {h.employe_nom}</span>
                       ))}
