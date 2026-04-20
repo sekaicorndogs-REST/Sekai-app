@@ -264,6 +264,7 @@ export default function App() {
   const [addHoraireIsRemplacement, setAddHoraireIsRemplacement] = useState(false);
   const [addHoraireRemplaceNom, setAddHoraireRemplaceNom] = useState("");
   const [horaireRestaurant, setHoraireRestaurant] = useState("rue-neuve");
+  const [horaireLoading, setHoraireLoading] = useState(false);
   const [remplacementMois, setRemplacementMois] = useState(getCurrentMois());
   const inputRef = useRef(null);
 
@@ -489,13 +490,17 @@ export default function App() {
   }
 
   async function fetchHoraires(restoId) {
-    const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/horaires?select=*&restaurant_id=eq.${restoId}&order=date.asc,heure_debut.asc`,
-      { headers: HEADERS }
-    );
-    if (!res.ok) throw new Error("Fetch horaires failed");
-    const data = await res.json();
-    setHoraires(data);
+    setHoraireLoading(true);
+    try {
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/horaires?select=*&restaurant_id=eq.${restoId}&order=date.asc,heure_debut.asc`,
+        { headers: HEADERS }
+      );
+      if (!res.ok) throw new Error("Fetch horaires failed");
+      const data = await res.json();
+      setHoraires(data);
+    } catch { flash("❌ Erreur chargement horaires"); }
+    finally { setHoraireLoading(false); }
   }
 
   async function addHoraire(entry) {
@@ -551,7 +556,7 @@ export default function App() {
   }
 
   const BottomNav = () => currentUser ? (
-    <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: "#141414", borderTop: "1px solid #1e1e1e", display: "flex", zIndex: 50 }}>
+    <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: "#141414", borderTop: "1px solid #1e1e1e", display: "flex", zIndex: 40 }}>
       {[
         { id: "stock", label: "Stock", icon: "📦", adminOnly: false },
         { id: "horaires", label: "Horaires", icon: "📅", adminOnly: false },
@@ -585,16 +590,12 @@ export default function App() {
       remplacementsParPersonne[nom].details.push(h);
     });
 
-    if (!horaires.length && horaireRestaurant) {
-      fetchHoraires(horaireRestaurant);
-    }
-
     return (
-      <div style={{ ...s, minHeight: "100vh", background: "#0d0d0d", paddingBottom: "5rem" }}>
+      <div style={{ ...s, minHeight: "100vh", background: "#0d0d0d", paddingBottom: "6rem" }}>
         {toast && <div style={{ position: "fixed", top: "1rem", left: "50%", transform: "translateX(-50%)", background: "#1e1e1e", color: "#f5c842", padding: "0.55rem 1.4rem", borderRadius: "20px", fontSize: "0.88rem", zIndex: 999, border: "1px solid #2e2e2e", whiteSpace: "nowrap" }}>{toast}</div>}
         
         {/* Header */}
-        <div style={{ background: "#141414", padding: "1rem 1.2rem", borderBottom: "1px solid #1e1e1e", position: "sticky", top: 0, zIndex: 10 }}>
+        <div style={{ background: "#141414", padding: "1rem 1.2rem", borderBottom: "1px solid #1e1e1e", position: "sticky", top: 0, zIndex: 30 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
             <h1 style={{ color: "#f5c842", fontSize: "1.1rem", margin: 0 }}>📅 Horaires</h1>
             <div style={{ display: "flex", gap: "0.4rem" }}>
@@ -618,6 +619,16 @@ export default function App() {
         </div>
 
         <div style={{ padding: "0.8rem 1.1rem" }}>
+
+          {/* LOADING */}
+          {horaireLoading && (
+            <div style={{ textAlign: "center", padding: "3rem", color: "#f5c842" }}>
+              <div style={{ fontSize: "1.5rem", marginBottom: "0.5rem" }}>⏳</div>
+              <div style={{ fontSize: "0.85rem" }}>Chargement...</div>
+            </div>
+          )}
+
+          {!horaireLoading && <>
 
           {/* ADD FORM */}
           {showAddHoraire && (
@@ -666,7 +677,7 @@ export default function App() {
                 <select value={addHoraireRemplaceNom} onChange={e => setAddHoraireRemplaceNom(e.target.value)}
                   style={{ background: "#0d0d0d", border: "1px solid #e57373", color: "#fff", padding: "0.7rem 1rem", borderRadius: "8px", fontSize: "0.95rem", fontFamily: "inherit", outline: "none", boxSizing: "border-box", width: "100%" }}>
                   <option value="">Qui est remplacé ?</option>
-                  {["Abdel","Nabil","Mohammed","Wassim","Rachid","Ali","Momo"].map(n => <option key={n} value={n}>{n}</option>)}
+                  {(addHoraireDate ? getAutoEmployes(addHoraireDate) : []).map(n => <option key={n} value={n}>{n}</option>)}
                 </select>
               )}
 
@@ -785,6 +796,7 @@ export default function App() {
               ))}
             </div>
           )}
+          </>}
         </div>
         <BottomNav />
       </div>
