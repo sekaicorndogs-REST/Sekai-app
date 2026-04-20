@@ -590,25 +590,167 @@ export default function App() {
   if (page === "horaires" && currentUser) {
     const todayStr = getTodayDateStr();
     const weekDates = getWeekDates();
-    const autoEmployesToday = getAutoEmployes(todayStr);
-    const autoHoraireToday = getAutoHoraire(todayStr);
-    const horairesDuJour = horaires.filter(h => normalizeDate(h.date) === todayStr);
-    
-    // Remplacements stats
+
     const moisHoraires = horaires.filter(h => normalizeDate(h.date).startsWith(remplacementMois));
     const remplacementsParPersonne = {};
     moisHoraires.filter(h => h.est_remplacement).forEach(h => {
       const nom = h.remplace_nom;
       if (!remplacementsParPersonne[nom]) remplacementsParPersonne[nom] = { count: 0, heures: 0, details: [] };
       remplacementsParPersonne[nom].count++;
-      remplacementsParPersonne[nom].heures += parseFloat(calcHeures(h.heure_debut, h.heure_fin));
+      remplacementsParPersonne[nom].heures += parseFloat(calcHeures(h.heure_debut.slice(0,5), h.heure_fin.slice(0,5)));
       remplacementsParPersonne[nom].details.push(h);
     });
+
+    const AddModal = () => {
+      if (!showAddHoraire) return null;
+      const workersToday = getAutoEmployes(addHoraireDate);
+      return (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", zIndex: 200, display: "flex", alignItems: "flex-end" }}>
+          <div style={{ background: "#141414", borderRadius: "16px 16px 0 0", padding: "1.2rem", width: "100%", display: "flex", flexDirection: "column", gap: "0.75rem", maxHeight: "85vh", overflowY: "auto" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div style={{ color: "#f5c842", fontWeight: "bold", fontSize: "0.95rem" }}>
+                ➕ {formatDateShort(addHoraireDate)}
+              </div>
+              <button onClick={() => { setShowAddHoraire(false); setAddHoraireIsRemplacement(false); setAddHoraireExtra(false); setAddHoraireEmploye(""); setAddHoraireExtranom(""); setAddHoraireRemplaceNom(""); }}
+                style={{ background: "#2a2a2a", border: "none", color: "#888", borderRadius: "50%", width: "2rem", height: "2rem", cursor: "pointer", fontSize: "1rem" }}>✕</button>
+            </div>
+
+            {/* Type selection */}
+            <div style={{ display: "flex", gap: "0.5rem" }}>
+              <button onClick={() => { setAddHoraireIsRemplacement(false); setAddHoraireExtra(false); }}
+                style={{ flex: 1, background: !addHoraireIsRemplacement && !addHoraireExtra ? "#f5c842" : "#1e1e1e", color: !addHoraireIsRemplacement && !addHoraireExtra ? "#111" : "#555", border: "none", borderRadius: "8px", padding: "0.6rem", fontSize: "0.8rem", fontFamily: "inherit", cursor: "pointer", fontWeight: "bold" }}>
+                👤 Employé normal
+              </button>
+              <button onClick={() => { setAddHoraireExtra(true); setAddHoraireIsRemplacement(false); }}
+                style={{ flex: 1, background: addHoraireExtra ? "#f5c842" : "#1e1e1e", color: addHoraireExtra ? "#111" : "#555", border: "none", borderRadius: "8px", padding: "0.6rem", fontSize: "0.8rem", fontFamily: "inherit", cursor: "pointer", fontWeight: "bold" }}>
+                ⭐ Extra
+              </button>
+              <button onClick={() => { setAddHoraireIsRemplacement(true); setAddHoraireExtra(false); }}
+                style={{ flex: 1, background: addHoraireIsRemplacement ? "#f5c842" : "#1e1e1e", color: addHoraireIsRemplacement ? "#111" : "#555", border: "none", borderRadius: "8px", padding: "0.6rem", fontSize: "0.8rem", fontFamily: "inherit", cursor: "pointer", fontWeight: "bold" }}>
+                🔄 Remplacement
+              </button>
+            </div>
+
+            {/* Employé normal */}
+            {!addHoraireIsRemplacement && !addHoraireExtra && (
+              <>
+                <select value={addHoraireEmploye} onChange={e => setAddHoraireEmploye(e.target.value)}
+                  style={{ background: "#0d0d0d", border: "1px solid #2e2e2e", color: "#fff", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", fontFamily: "inherit", outline: "none", width: "100%" }}>
+                  <option value="">Choisir un employé...</option>
+                  {["Abdel","Nabil","Mohammed","Wassim","Rachid","Ali","Momo"].map(n => <option key={n} value={n}>{n}</option>)}
+                </select>
+                <div style={{ display: "flex", gap: "0.5rem" }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ color: "#555", fontSize: "0.72rem", marginBottom: "0.25rem" }}>Début</div>
+                    <input type="time" value={addHoraireDebut} onChange={e => setAddHoraireDebut(e.target.value)}
+                      style={{ background: "#0d0d0d", border: "1px solid #2e2e2e", color: "#fff", padding: "0.7rem 0.8rem", borderRadius: "8px", fontSize: "0.95rem", fontFamily: "inherit", outline: "none", width: "100%", boxSizing: "border-box" as const }} />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ color: "#555", fontSize: "0.72rem", marginBottom: "0.25rem" }}>Fin</div>
+                    <input type="time" value={addHoraireFin} onChange={e => setAddHoraireFin(e.target.value)}
+                      style={{ background: "#0d0d0d", border: "1px solid #2e2e2e", color: "#fff", padding: "0.7rem 0.8rem", borderRadius: "8px", fontSize: "0.95rem", fontFamily: "inherit", outline: "none", width: "100%", boxSizing: "border-box" as const }} />
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* Extra */}
+            {addHoraireExtra && (
+              <>
+                <div style={{ color: "#888", fontSize: "0.8rem" }}>Employé existant ou nom libre :</div>
+                <select value={addHoraireEmploye} onChange={e => { setAddHoraireEmploye(e.target.value); setAddHoraireExtranom(""); }}
+                  style={{ background: "#0d0d0d", border: "1px solid #2e2e2e", color: "#fff", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", fontFamily: "inherit", outline: "none", width: "100%" }}>
+                  <option value="">-- Choisir un employé --</option>
+                  {["Abdel","Nabil","Mohammed","Wassim","Rachid","Ali","Momo"].map(n => <option key={n} value={n}>{n}</option>)}
+                </select>
+                <div style={{ color: "#555", fontSize: "0.78rem", textAlign: "center" }}>— ou —</div>
+                <input value={addHoraireExtranom} onChange={e => { setAddHoraireExtranom(e.target.value); setAddHoraireEmploye(""); }} placeholder="Nom libre (sans compte)..."
+                  style={{ background: "#0d0d0d", border: "1px solid #2e2e2e", color: "#fff", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", fontFamily: "inherit", outline: "none", width: "100%", boxSizing: "border-box" as const }} />
+                <div style={{ display: "flex", gap: "0.5rem" }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ color: "#555", fontSize: "0.72rem", marginBottom: "0.25rem" }}>Début</div>
+                    <input type="time" value={addHoraireDebut} onChange={e => setAddHoraireDebut(e.target.value)}
+                      style={{ background: "#0d0d0d", border: "1px solid #2e2e2e", color: "#fff", padding: "0.7rem 0.8rem", borderRadius: "8px", fontSize: "0.95rem", fontFamily: "inherit", outline: "none", width: "100%", boxSizing: "border-box" as const }} />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ color: "#555", fontSize: "0.72rem", marginBottom: "0.25rem" }}>Fin</div>
+                    <input type="time" value={addHoraireFin} onChange={e => setAddHoraireFin(e.target.value)}
+                      style={{ background: "#0d0d0d", border: "1px solid #2e2e2e", color: "#fff", padding: "0.7rem 0.8rem", borderRadius: "8px", fontSize: "0.95rem", fontFamily: "inherit", outline: "none", width: "100%", boxSizing: "border-box" as const }} />
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* Remplacement */}
+            {addHoraireIsRemplacement && (
+              <>
+                <div style={{ color: "#888", fontSize: "0.8rem" }}>Qui fait le remplacement ?</div>
+                <select value={addHoraireEmploye} onChange={e => setAddHoraireEmploye(e.target.value)}
+                  style={{ background: "#0d0d0d", border: "1px solid #2e2e2e", color: "#fff", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", fontFamily: "inherit", outline: "none", width: "100%" }}>
+                  <option value="">Qui remplace ?</option>
+                  {["Abdel","Nabil","Mohammed","Wassim","Rachid","Ali","Momo"].map(n => <option key={n} value={n}>{n}</option>)}
+                </select>
+                <div style={{ color: "#888", fontSize: "0.8rem" }}>Qui est remplacé ? (prend ses heures automatiquement)</div>
+                <select value={addHoraireRemplaceNom} onChange={e => {
+                  setAddHoraireRemplaceNom(e.target.value);
+                  const h = getAutoHoraire(addHoraireDate);
+                  setAddHoraireDebut(h.debut);
+                  setAddHoraireFin(h.fin);
+                }}
+                  style={{ background: "#0d0d0d", border: "1px solid #e57373", color: "#fff", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", fontFamily: "inherit", outline: "none", width: "100%" }}>
+                  <option value="">Qui est remplacé ?</option>
+                  {getAutoEmployes(addHoraireDate).map(n => <option key={n} value={n}>{n}</option>)}
+                </select>
+                <div style={{ display: "flex", gap: "0.5rem" }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ color: "#555", fontSize: "0.72rem", marginBottom: "0.25rem" }}>Début (auto)</div>
+                    <input type="time" value={addHoraireDebut} onChange={e => setAddHoraireDebut(e.target.value)}
+                      style={{ background: "#0d0d0d", border: "1px solid #2e2e2e", color: "#fff", padding: "0.7rem 0.8rem", borderRadius: "8px", fontSize: "0.95rem", fontFamily: "inherit", outline: "none", width: "100%", boxSizing: "border-box" as const }} />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ color: "#555", fontSize: "0.72rem", marginBottom: "0.25rem" }}>Fin (auto)</div>
+                    <input type="time" value={addHoraireFin} onChange={e => setAddHoraireFin(e.target.value)}
+                      style={{ background: "#0d0d0d", border: "1px solid #2e2e2e", color: "#fff", padding: "0.7rem 0.8rem", borderRadius: "8px", fontSize: "0.95rem", fontFamily: "inherit", outline: "none", width: "100%", boxSizing: "border-box" as const }} />
+                  </div>
+                </div>
+              </>
+            )}
+
+            <button onClick={async () => {
+              if (!addHoraireDate) return;
+              const nom = addHoraireExtra ? (addHoraireExtranom || addHoraireEmploye) : addHoraireEmploye;
+              if (!nom) return;
+              try {
+                await addHoraire({
+                  restaurant_id: horaireRestaurant,
+                  employe_nom: nom,
+                  date: addHoraireDate,
+                  heure_debut: addHoraireDebut,
+                  heure_fin: addHoraireFin,
+                  est_remplacement: addHoraireIsRemplacement,
+                  remplace_nom: addHoraireIsRemplacement ? addHoraireRemplaceNom : null,
+                  extra: addHoraireExtra,
+                  created_by: currentUser.prenom
+                });
+                flash("✅ Ajouté !");
+                setShowAddHoraire(false);
+                setAddHoraireIsRemplacement(false); setAddHoraireExtra(false);
+                setAddHoraireEmploye(""); setAddHoraireExtranom(""); setAddHoraireRemplaceNom("");
+                fetchHoraires(horaireRestaurant);
+              } catch { flash("❌ Erreur"); }
+            }} style={{ background: "#f5c842", color: "#111", border: "none", padding: "0.9rem", borderRadius: "10px", fontFamily: "inherit", fontWeight: "bold", fontSize: "1rem", cursor: "pointer", width: "100%" }}>
+              ✅ Confirmer
+            </button>
+          </div>
+        </div>
+      );
+    };
 
     return (
       <div style={{ ...s, minHeight: "100vh", background: "#0d0d0d", paddingBottom: "6rem" }}>
         {toast && <div style={{ position: "fixed", top: "1rem", left: "50%", transform: "translateX(-50%)", background: "#1e1e1e", color: "#f5c842", padding: "0.55rem 1.4rem", borderRadius: "20px", fontSize: "0.88rem", zIndex: 999, border: "1px solid #2e2e2e", whiteSpace: "nowrap" }}>{toast}</div>}
-        
+        <AddModal />
+
         {/* Header */}
         <div style={{ background: "#141414", padding: "1rem 1.2rem", borderBottom: "1px solid #1e1e1e", position: "sticky", top: 0, zIndex: 30 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
@@ -618,15 +760,14 @@ export default function App() {
                 style={{ background: "#1e1e1e", border: "1px solid #2e2e2e", color: "#f5c842", borderRadius: "8px", padding: "0.3rem 0.5rem", fontSize: "0.75rem", fontFamily: "inherit" }}>
                 {RESTAURANTS.map(r => <option key={r.id} value={r.id}>{r.emoji} {r.name}</option>)}
               </select>
-              <button onClick={() => { setShowAddHoraire(true); const h = getAutoHoraire(todayStr); setAddHoraireDate(todayStr); setAddHoraireDebut(h.debut); setAddHoraireFin(h.fin); }}
-                style={{ background: "#f5c842", color: "#111", border: "none", borderRadius: "8px", padding: "0.3rem 0.7rem", fontFamily: "inherit", fontWeight: "bold", fontSize: "0.8rem", cursor: "pointer" }}>+ Ajouter</button>
+              <button onClick={() => fetchHoraires(horaireRestaurant)}
+                style={{ background: "#1e1e1e", border: "1px solid #2e2e2e", color: "#555", borderRadius: "8px", padding: "0.3rem 0.6rem", fontSize: "0.8rem", cursor: "pointer" }}>🔄</button>
             </div>
           </div>
-          {/* Tabs */}
           <div style={{ display: "flex", gap: "0.4rem" }}>
-            {[{id:"today",label:"Aujourd'hui"},{id:"week",label:"Semaine"},{id:"remplacements",label:"Remplacements"}].map(tab => (
+            {[{id:"week",label:"Semaine"},{id:"remplacements",label:"Remplacements"}].map(tab => (
               <button key={tab.id} onClick={() => setHoraireView(tab.id)}
-                style={{ background: horaireView === tab.id ? "#f5c842" : "#1e1e1e", color: horaireView === tab.id ? "#111" : "#555", border: "none", borderRadius: "8px", padding: "0.35rem 0.7rem", fontSize: "0.75rem", fontFamily: "inherit", fontWeight: horaireView === tab.id ? "bold" : "normal", cursor: "pointer" }}>
+                style={{ background: horaireView === tab.id ? "#f5c842" : "#1e1e1e", color: horaireView === tab.id ? "#111" : "#555", border: "none", borderRadius: "8px", padding: "0.35rem 0.9rem", fontSize: "0.78rem", fontFamily: "inherit", fontWeight: horaireView === tab.id ? "bold" : "normal", cursor: "pointer" }}>
                 {tab.label}
               </button>
             ))}
@@ -635,7 +776,6 @@ export default function App() {
 
         <div style={{ padding: "0.8rem 1.1rem" }}>
 
-          {/* LOADING */}
           {horaireLoading && (
             <div style={{ textAlign: "center", padding: "3rem", color: "#f5c842" }}>
               <div style={{ fontSize: "1.5rem", marginBottom: "0.5rem" }}>⏳</div>
@@ -645,108 +785,9 @@ export default function App() {
 
           {!horaireLoading && <>
 
-          {/* ADD FORM */}
-          {showAddHoraire && (
-            <div style={{ background: "#141414", border: "1px solid #f5c842", borderRadius: "12px", padding: "1rem", marginBottom: "1rem", display: "flex", flexDirection: "column", gap: "0.6rem" }}>
-              <div style={{ color: "#f5c842", fontWeight: "bold", fontSize: "0.9rem" }}>➕ Ajouter un horaire</div>
-              <input type="date" value={addHoraireDate} onChange={e => { setAddHoraireDate(e.target.value); const h = getAutoHoraire(e.target.value); setAddHoraireDebut(h.debut); setAddHoraireFin(h.fin); }}
-                style={{ background: "#0d0d0d", border: "1px solid #2e2e2e", color: "#fff", padding: "0.7rem 1rem", borderRadius: "8px", fontSize: "0.95rem", fontFamily: "inherit", outline: "none", boxSizing: "border-box", width: "100%" }} />
-              
-              {/* Personne extra ou normale */}
-              <div style={{ display: "flex", gap: "0.5rem" }}>
-                <button onClick={() => setAddHoraireExtra(false)} style={{ flex: 1, background: !addHoraireExtra ? "#f5c842" : "#1e1e1e", color: !addHoraireExtra ? "#111" : "#555", border: "none", borderRadius: "8px", padding: "0.5rem", fontSize: "0.8rem", fontFamily: "inherit", cursor: "pointer", fontWeight: !addHoraireExtra ? "bold" : "normal" }}>👤 Employé</button>
-                <button onClick={() => setAddHoraireExtra(true)} style={{ flex: 1, background: addHoraireExtra ? "#f5c842" : "#1e1e1e", color: addHoraireExtra ? "#111" : "#555", border: "none", borderRadius: "8px", padding: "0.5rem", fontSize: "0.8rem", fontFamily: "inherit", cursor: "pointer", fontWeight: addHoraireExtra ? "bold" : "normal" }}>⭐ Extra (Samedi)</button>
-              </div>
-
-              {addHoraireExtra ? (
-                <input value={addHoraireExtranom} onChange={e => setAddHoraireExtranom(e.target.value)} placeholder="Nom de l'extra..."
-                  style={{ background: "#0d0d0d", border: "1px solid #2e2e2e", color: "#fff", padding: "0.7rem 1rem", borderRadius: "8px", fontSize: "0.95rem", fontFamily: "inherit", outline: "none", boxSizing: "border-box", width: "100%" }} />
-              ) : (
-                <select value={addHoraireEmploye} onChange={e => setAddHoraireEmploye(e.target.value)}
-                  style={{ background: "#0d0d0d", border: "1px solid #2e2e2e", color: "#fff", padding: "0.7rem 1rem", borderRadius: "8px", fontSize: "0.95rem", fontFamily: "inherit", outline: "none", boxSizing: "border-box", width: "100%" }}>
-                  <option value="">Choisir un employé...</option>
-                  {["Abdel","Nabil","Mohammed","Wassim","Rachid","Ali","Momo"].map(n => <option key={n} value={n}>{n}</option>)}
-                </select>
-              )}
-
-              <div style={{ display: "flex", gap: "0.5rem" }}>
-                <div style={{ flex: 1 }}>
-                  <div style={{ color: "#555", fontSize: "0.72rem", marginBottom: "0.25rem" }}>Début</div>
-                  <input type="time" value={addHoraireDebut} onChange={e => setAddHoraireDebut(e.target.value)}
-                    style={{ background: "#0d0d0d", border: "1px solid #2e2e2e", color: "#fff", padding: "0.7rem 0.8rem", borderRadius: "8px", fontSize: "0.95rem", fontFamily: "inherit", outline: "none", width: "100%", boxSizing: "border-box" }} />
-                </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ color: "#555", fontSize: "0.72rem", marginBottom: "0.25rem" }}>Fin</div>
-                  <input type="time" value={addHoraireFin} onChange={e => setAddHoraireFin(e.target.value)}
-                    style={{ background: "#0d0d0d", border: "1px solid #2e2e2e", color: "#fff", padding: "0.7rem 0.8rem", borderRadius: "8px", fontSize: "0.95rem", fontFamily: "inherit", outline: "none", width: "100%", boxSizing: "border-box" }} />
-                </div>
-              </div>
-
-              {/* Remplacement */}
-              <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
-                <input type="checkbox" id="isRemp" checked={addHoraireIsRemplacement} onChange={e => setAddHoraireIsRemplacement(e.target.checked)}
-                  style={{ width: "1.1rem", height: "1.1rem", accentColor: "#f5c842", cursor: "pointer" }} />
-                <label htmlFor="isRemp" style={{ color: "#888", fontSize: "0.85rem", cursor: "pointer" }}>C'est un remplacement</label>
-              </div>
-              {addHoraireIsRemplacement && (
-                <select value={addHoraireRemplaceNom} onChange={e => setAddHoraireRemplaceNom(e.target.value)}
-                  style={{ background: "#0d0d0d", border: "1px solid #e57373", color: "#fff", padding: "0.7rem 1rem", borderRadius: "8px", fontSize: "0.95rem", fontFamily: "inherit", outline: "none", boxSizing: "border-box", width: "100%" }}>
-                  <option value="">Qui est remplacé ?</option>
-                  {(addHoraireDate ? getAutoEmployes(addHoraireDate) : []).map(n => <option key={n} value={n}>{n}</option>)}
-                </select>
-              )}
-
-              <div style={{ display: "flex", gap: "0.5rem" }}>
-                <button onClick={handleAddHoraire} style={{ flex: 1, background: "#f5c842", color: "#111", border: "none", padding: "0.8rem", borderRadius: "8px", fontFamily: "inherit", fontWeight: "bold", fontSize: "0.95rem", cursor: "pointer" }}>✅ Confirmer</button>
-                <button onClick={() => setShowAddHoraire(false)} style={{ background: "#1e1e1e", color: "#666", border: "none", padding: "0.8rem 1rem", borderRadius: "8px", cursor: "pointer" }}>✕</button>
-              </div>
-            </div>
-          )}
-
-          {/* TODAY VIEW */}
-          {horaireView === "today" && (
-            <div>
-              <div style={{ color: "#f5c842", fontSize: "0.85rem", fontWeight: "bold", marginBottom: "0.75rem", textTransform: "capitalize" }}>{formatDate(todayStr)}</div>
-              
-              {/* Planning automatique */}
-              <div style={{ background: "#0f1a0f", border: "1px solid #1e3a1e", borderRadius: "12px", padding: "1rem", marginBottom: "0.75rem" }}>
-                <div style={{ color: "#5cb85c", fontSize: "0.75rem", fontWeight: "bold", marginBottom: "0.5rem" }}>📋 Planning cycle automatique</div>
-                {autoEmployesToday.map(emp => (
-                  <div key={emp} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.3rem" }}>
-                    <span style={{ color: "#f0ede6", fontSize: "0.9rem" }}>👤 {emp}</span>
-                    <span style={{ color: "#5cb85c", fontSize: "0.82rem" }}>{autoHoraireToday.debut} → {autoHoraireToday.fin} ({calcHeures(autoHoraireToday.debut, autoHoraireToday.fin)}h)</span>
-                  </div>
-                ))}
-              </div>
-
-              {/* Horaires encodés */}
-              {horairesDuJour.length > 0 && (
-                <div style={{ marginBottom: "0.5rem" }}>
-                  <div style={{ color: "#555", fontSize: "0.75rem", fontWeight: "bold", marginBottom: "0.4rem" }}>📝 Encodés manuellement</div>
-                  {horairesDuJour.map(h => (
-                    <div key={h.id} style={{ background: "#141414", border: `1px solid ${h.est_remplacement ? "#5a1a1a" : h.extra ? "#2a3a1a" : "#1e1e1e"}`, borderRadius: "10px", padding: "0.85rem 1rem", marginBottom: "0.4rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                      <div>
-                        <div style={{ color: h.extra ? "#a8d060" : "#f0ede6", fontSize: "0.9rem", fontWeight: "bold" }}>
-                          {h.extra ? "⭐" : "👤"} {h.employe_nom}
-                          {h.est_remplacement && <span style={{ color: "#e57373", fontSize: "0.75rem", marginLeft: "0.4rem" }}>remplace {h.remplace_nom}</span>}
-                        </div>
-                        <div style={{ color: "#555", fontSize: "0.75rem" }}>{h.heure_debut.slice(0,5)} → {h.heure_fin.slice(0,5)} · {calcHeures(h.heure_debut.slice(0,5), h.heure_fin.slice(0,5))}h</div>
-                      </div>
-                      {isSuperAdmin && (
-                        <button onClick={() => handleDeleteHoraire(h.id)} style={{ background: "#1a0f0f", border: "none", color: "#e57373", borderRadius: "8px", padding: "0.4rem 0.6rem", cursor: "pointer", fontSize: "0.8rem" }}>🗑️</button>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-              {horairesDuJour.length === 0 && <div style={{ color: "#333", fontSize: "0.82rem", textAlign: "center", padding: "1rem" }}>Aucun horaire encodé pour aujourd'hui</div>}
-            </div>
-          )}
-
           {/* WEEK VIEW */}
           {horaireView === "week" && (
             <div>
-              <div style={{ color: "#555", fontSize: "0.75rem", fontWeight: "bold", marginBottom: "0.75rem" }}>Planning de la semaine</div>
               {weekDates.map(dateStr => {
                 const autoEmps = getAutoEmployes(dateStr);
                 const autoH = getAutoHoraire(dateStr);
@@ -754,22 +795,46 @@ export default function App() {
                 const isToday = dateStr === todayStr;
                 return (
                   <div key={dateStr} style={{ background: isToday ? "#0f1a0f" : "#141414", border: `1px solid ${isToday ? "#1e3a1e" : "#1e1e1e"}`, borderRadius: "12px", padding: "0.85rem 1rem", marginBottom: "0.5rem" }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.4rem" }}>
-                      <div style={{ color: isToday ? "#5cb85c" : "#f5c842", fontSize: "0.82rem", fontWeight: "bold", textTransform: "capitalize" }}>{formatDateShort(dateStr)}{isToday ? " · Aujourd'hui" : ""}</div>
-                      <div style={{ color: "#444", fontSize: "0.72rem" }}>{autoH.debut} - {autoH.fin}</div>
+                    {/* Day header */}
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
+                      <div>
+                        <span style={{ color: isToday ? "#5cb85c" : "#f5c842", fontSize: "0.85rem", fontWeight: "bold", textTransform: "capitalize" }}>{formatDateShort(dateStr)}</span>
+                        {isToday && <span style={{ color: "#5cb85c", fontSize: "0.72rem", marginLeft: "0.4rem" }}>· Aujourd'hui</span>}
+                        <span style={{ color: "#444", fontSize: "0.72rem", marginLeft: "0.5rem" }}>{autoH.debut}-{autoH.fin}</span>
+                      </div>
+                      <button onClick={() => {
+                        const h = getAutoHoraire(dateStr);
+                        setAddHoraireDate(dateStr);
+                        setAddHoraireDebut(h.debut);
+                        setAddHoraireFin(h.fin);
+                        setAddHoraireIsRemplacement(false);
+                        setAddHoraireExtra(false);
+                        setAddHoraireEmploye("");
+                        setShowAddHoraire(true);
+                      }} style={{ background: "#f5c842", border: "none", color: "#111", borderRadius: "50%", width: "1.8rem", height: "1.8rem", cursor: "pointer", fontSize: "1.1rem", fontWeight: "bold", display: "flex", alignItems: "center", justifyContent: "center" }}>+</button>
                     </div>
+                    {/* Workers */}
                     <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap" }}>
                       {autoEmps.map(emp => (
-                        <span key={emp} style={{ background: "#1a2a1a", color: "#8bc08b", borderRadius: "6px", padding: "0.2rem 0.5rem", fontSize: "0.75rem" }}>👤 {emp}</span>
+                        <span key={emp} style={{ background: "#1a2a1a", color: "#8bc08b", borderRadius: "6px", padding: "0.25rem 0.6rem", fontSize: "0.78rem" }}>👤 {emp}</span>
                       ))}
                       {encoded.filter(h => !h.extra && !h.est_remplacement).map(h => (
-                        <span key={h.id} style={{ background: "#1e2a1e", color: "#7bc07b", borderRadius: "6px", padding: "0.2rem 0.5rem", fontSize: "0.75rem" }}>👤 {h.employe_nom}</span>
+                        <span key={h.id} style={{ background: "#1e2a1e", color: "#7bc07b", borderRadius: "6px", padding: "0.25rem 0.6rem", fontSize: "0.78rem" }}>
+                          👤 {h.employe_nom}
+                          {isSuperAdmin && <button onClick={() => handleDeleteHoraire(h.id)} style={{ background: "none", border: "none", color: "#e57373", cursor: "pointer", fontSize: "0.7rem", marginLeft: "0.3rem" }}>✕</button>}
+                        </span>
                       ))}
                       {encoded.filter(h => h.extra).map(h => (
-                        <span key={h.id} style={{ background: "#2a3a1a", color: "#a8d060", borderRadius: "6px", padding: "0.2rem 0.5rem", fontSize: "0.75rem" }}>⭐ {h.employe_nom}</span>
+                        <span key={h.id} style={{ background: "#2a3a1a", color: "#a8d060", borderRadius: "6px", padding: "0.25rem 0.6rem", fontSize: "0.78rem" }}>
+                          ⭐ {h.employe_nom}
+                          {isSuperAdmin && <button onClick={() => handleDeleteHoraire(h.id)} style={{ background: "none", border: "none", color: "#e57373", cursor: "pointer", fontSize: "0.7rem", marginLeft: "0.3rem" }}>✕</button>}
+                        </span>
                       ))}
                       {encoded.filter(h => h.est_remplacement).map(h => (
-                        <span key={h.id} style={{ background: "#2a1a1a", color: "#e57373", borderRadius: "6px", padding: "0.2rem 0.5rem", fontSize: "0.75rem" }}>🔄 {h.employe_nom} / {h.remplace_nom}</span>
+                        <span key={h.id} style={{ background: "#2a1a1a", color: "#e57373", borderRadius: "6px", padding: "0.25rem 0.6rem", fontSize: "0.78rem" }}>
+                          🔄 {h.employe_nom}→{h.remplace_nom}
+                          {isSuperAdmin && <button onClick={() => handleDeleteHoraire(h.id)} style={{ background: "none", border: "none", color: "#e57373", cursor: "pointer", fontSize: "0.7rem", marginLeft: "0.3rem" }}>✕</button>}
+                        </span>
                       ))}
                     </div>
                   </div>
@@ -786,15 +851,13 @@ export default function App() {
                 <input type="month" value={remplacementMois} onChange={e => setRemplacementMois(e.target.value)}
                   style={{ background: "#1e1e1e", border: "1px solid #2e2e2e", color: "#f5c842", borderRadius: "8px", padding: "0.3rem 0.5rem", fontSize: "0.75rem", fontFamily: "inherit", outline: "none" }} />
               </div>
-
               {Object.keys(remplacementsParPersonne).length === 0 && (
                 <div style={{ color: "#333", fontSize: "0.82rem", textAlign: "center", padding: "2rem" }}>Aucun remplacement ce mois-ci</div>
               )}
-
               {(isAdmin
                 ? Object.entries(remplacementsParPersonne)
                 : Object.entries(remplacementsParPersonne).filter(([nom]) => nom === currentUser.prenom)
-              ).map(([nom, stats]) => (
+              ).map(([nom, stats]: [string, any]) => (
                 <div key={nom} style={{ background: "#141414", border: "1px solid #3a1a1a", borderRadius: "12px", padding: "1rem", marginBottom: "0.75rem" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
                     <div style={{ color: "#e57373", fontSize: "0.95rem", fontWeight: "bold" }}>👤 {nom}</div>
@@ -803,9 +866,9 @@ export default function App() {
                       <span style={{ background: "#1a1a2a", color: "#8888ff", borderRadius: "8px", padding: "0.2rem 0.6rem", fontSize: "0.78rem" }}>{stats.heures.toFixed(1)}h</span>
                     </div>
                   </div>
-                  {stats.details.map(h => (
+                  {stats.details.map((h: any) => (
                     <div key={h.id} style={{ borderTop: "1px solid #2a1a1a", paddingTop: "0.4rem", marginTop: "0.4rem", display: "flex", justifyContent: "space-between", fontSize: "0.78rem" }}>
-                      <span style={{ color: "#777", textTransform: "capitalize" }}>{formatDateShort(h.date)}</span>
+                      <span style={{ color: "#777", textTransform: "capitalize" }}>{formatDateShort(normalizeDate(h.date))}</span>
                       <span style={{ color: "#555" }}>remplacé par <span style={{ color: "#f0ede6" }}>{h.employe_nom}</span></span>
                       <span style={{ color: "#555" }}>{h.heure_debut.slice(0,5)}-{h.heure_fin.slice(0,5)}</span>
                     </div>
@@ -821,7 +884,7 @@ export default function App() {
     );
   }
 
-  // ── LOGIN ──────────────────────────────────────────────────
+    // ── LOGIN ──────────────────────────────────────────────────
   if (!currentUser) return (
     <div style={{ ...s, minHeight: "100vh", background: "#0d0d0d", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "2rem" }}>
       <img src="/Fichier-source-logo-Sekai-_1_.png" alt="Sekai Corndogs" style={{ width: "180px", marginBottom: "1.5rem", borderRadius: "12px" }} />
