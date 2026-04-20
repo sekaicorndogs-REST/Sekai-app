@@ -451,14 +451,16 @@ export default function App() {
   }
 
   function getAutoEmployes(dateStr) {
+    if (!dateStr) return [];
     const weekInCycle = getWeekInCycle(dateStr);
     const planDay = getPlanDay(dateStr);
     return CYCLE[weekInCycle][planDay] || [];
   }
 
   function getAutoHoraire(dateStr) {
+    if (!dateStr) return { debut: "11:30", fin: "20:30" };
     const planDay = getPlanDay(dateStr);
-    return HORAIRES_JOUR[planDay];
+    return HORAIRES_JOUR[planDay] || { debut: "11:30", fin: "20:30" };
   }
 
   function getTodayDateStr() {
