@@ -586,7 +586,7 @@ export default function App() {
     const weekDates = getWeekDates();
     const autoEmployesToday = getAutoEmployes(todayStr);
     const autoHoraireToday = getAutoHoraire(todayStr);
-    const horairesDuJour = horaires.filter(h => normalizeDate(h.date) === todayStr && h.restaurant_id === horaireRestaurant);
+    const horairesDuJour = horaires.filter(h => normalizeDate(h.date) === todayStr);
     
     // Remplacements stats
     const moisHoraires = horaires.filter(h => normalizeDate(h.date).startsWith(remplacementMois));
@@ -744,7 +744,7 @@ export default function App() {
               {weekDates.map(dateStr => {
                 const autoEmps = getAutoEmployes(dateStr);
                 const autoH = getAutoHoraire(dateStr);
-                const encoded = horaires.filter(h => normalizeDate(h.date) === dateStr && h.restaurant_id === horaireRestaurant);
+                const encoded = horaires.filter(h => normalizeDate(h.date) === dateStr);
                 const isToday = dateStr === todayStr;
                 return (
                   <div key={dateStr} style={{ background: isToday ? "#0f1a0f" : "#141414", border: `1px solid ${isToday ? "#1e3a1e" : "#1e1e1e"}`, borderRadius: "12px", padding: "0.85rem 1rem", marginBottom: "0.5rem" }}>
