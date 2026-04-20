@@ -245,6 +245,23 @@ export default function App() {
   const [showNewPwd, setShowNewPwd] = useState(false);
   const [showNewPwd2, setShowNewPwd2] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
+  // Horaires
+  const [horaires, setHoraires] = useState([]);
+  const [horaireView, setHoraireView] = useState("today"); // today | week | remplacements
+  const [showAddHoraire, setShowAddHoraire] = useState(false);
+  const [addHoraireDate, setAddHoraireDate] = useState("");
+  const [addHoraireEmploye, setAddHoraireEmploye] = useState("");
+  const [addHoraireDebut, setAddHoraireDebut] = useState("11:30");
+  const [addHoraireFin, setAddHoraireFin] = useState("20:30");
+  const [addHoraireExtra, setAddHoraireExtra] = useState(false);
+  const [addHoraireExtranom, setAddHoraireExtranom] = useState("");
+  const [addHoraireIsRemplacement, setAddHoraireIsRemplacement] = useState(false);
+  const [addHoraireRemplaceNom, setAddHoraireRemplaceNom] = useState("");
+  const [horaireRestaurant, setHoraireRestaurant] = useState("rue-neuve");
+  const [remplacementMois, setRemplacementMois] = useState(() => {
+    const d = new Date();
+    return \`\${d.getFullYear()}-\${String(d.getMonth()+1).padStart(2,'0')}\`;
+  });
   const inputRef = useRef(null);
 
   useEffect(() => {
@@ -377,16 +394,389 @@ export default function App() {
     } catch { setPwdMsg("❌ Erreur."); }
   }
 
-  const BottomNav = () => isAdmin ? (
+  // ── CYCLE PLANNING ─────────────────────────────────────────
+  // Cycle start: Monday April 20, 2026 = Week 2, Day 1
+  const CYCLE_START = new Date("2026-04-20");
+  const CYCLE = [
+    { // Semaine 1
+      0: ["Wassim","Moha"], 1: ["Wassim","Moha"], 2: ["Moha","Nabil"],
+      3: ["Moha","Nabil"], 4: ["Abdel","Nabil"], 5: ["Wassim","Abdel"], 6: ["Wassim","Abdel"]
+    },
+    { // Semaine 2
+      0: ["Wassim","Nabil"], 1: ["Wassim","Nabil"], 2: ["Nabil","Abdel"],
+      3: ["Nabil","Abdel"], 4: ["Moha","Abdel"], 5: ["Wassim","Moha"], 6: ["Wassim","Moha"]
+    },
+    { // Semaine 3
+      0: ["Wassim","Abdel"], 1: ["Wassim","Abdel"], 2: ["Abdel","Moha"],
+      3: ["Abdel","Moha"], 4: ["Nabil","Moha"], 5: ["Wassim","Nabil"], 6: ["Wassim","Nabil"]
+    }
+  ];
+
+  const HORAIRES_JOUR = {
+    0: { debut: "11:30", fin: "20:30" }, 1: { debut: "11:30", fin: "20:30" },
+    2: { debut: "11:30", fin: "20:30" }, 3: { debut: "11:30", fin: "20:30" },
+    4: { debut: "11:30", fin: "20:30" }, 5: { debut: "12:30", fin: "21:30" },
+    6: { debut: "13:30", fin: "20:30" }
+  };
+
+  function getWeekInfo(dateStr) {
+    const d = new Date(dateStr);
+    const diffMs = d - CYCLE_START;
+    const diffDays = Math.floor(diffMs / 86400000);
+    const totalWeeks = Math.floor(diffDays / 7);
+    const weekInCycle = ((totalWeeks % 3) + 3) % 3;
+    const dow = d.getDay(); // 0=Sun,1=Mon,...
+    const jsDay = dow; // 0=dim, 1=lun...
+    // Remap: planning uses 0=lun,1=mar,...,6=dim
+    const planDay = dow === 0 ? 6 : dow - 1;
+    return { weekInCycle, planDay, dow };
+  }
+
+  function getAutoEmployes(dateStr) {
+    const { weekInCycle, planDay } = getWeekInfo(dateStr);
+    return CYCLE[weekInCycle][planDay] || [];
+  }
+
+  function getAutoHoraire(dateStr) {
+    const d = new Date(dateStr);
+    const dow = d.getDay();
+    return HORAIRES_JOUR[dow];
+  }
+
+  function getTodayDateStr() {
+    const d = new Date();
+    return d.toISOString().split("T")[0];
+  }
+
+  function getWeekDates() {
+    const today = new Date();
+    const dow = today.getDay();
+    const monday = new Date(today);
+    monday.setDate(today.getDate() - (dow === 0 ? 6 : dow - 1));
+    return Array.from({length: 7}, (_, i) => {
+      const d = new Date(monday);
+      d.setDate(monday.getDate() + i);
+      return d.toISOString().split("T")[0];
+    });
+  }
+
+  function formatDate(dateStr) {
+    return new Date(dateStr).toLocaleDateString("fr-BE", { weekday: "long", day: "numeric", month: "long" });
+  }
+
+  function formatDateShort(dateStr) {
+    return new Date(dateStr).toLocaleDateString("fr-BE", { weekday: "short", day: "numeric", month: "short" });
+  }
+
+  function calcHeures(debut, fin) {
+    const [dh, dm] = debut.split(":").map(Number);
+    const [fh, fm] = fin.split(":").map(Number);
+    const total = (fh * 60 + fm) - (dh * 60 + dm);
+    return (total / 60).toFixed(1);
+  }
+
+  async function fetchHoraires(restoId) {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/horaires?select=*&restaurant_id=eq.${restoId}&order=date.asc,heure_debut.asc`,
+      { headers: HEADERS }
+    );
+    if (!res.ok) throw new Error("Fetch horaires failed");
+    const data = await res.json();
+    setHoraires(data);
+  }
+
+  async function addHoraire(entry) {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/horaires`, {
+      method: "POST", headers: HEADERS, body: JSON.stringify(entry)
+    });
+    if (!res.ok) throw new Error("Add horaire failed");
+    return res.json();
+  }
+
+  async function deleteHoraire(id) {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/horaires?id=eq.${id}`, {
+      method: "DELETE", headers: HEADERS
+    });
+    if (!res.ok) throw new Error("Delete horaire failed");
+  }
+
+  async function handleAddHoraire() {
+    if (!addHoraireDate) return;
+    const employes = addHoraireExtra
+      ? [{ nom: addHoraireExtranom, extra: true }]
+      : [{ nom: addHoraireEmploye, extra: false }];
+
+    try {
+      for (const emp of employes) {
+        await addHoraire({
+          restaurant_id: horaireRestaurant,
+          employe_nom: emp.nom,
+          date: addHoraireDate,
+          heure_debut: addHoraireDebut,
+          heure_fin: addHoraireFin,
+          est_remplacement: addHoraireIsRemplacement,
+          remplace_nom: addHoraireIsRemplacement ? addHoraireRemplaceNom : null,
+          extra: emp.extra,
+          created_by: currentUser.prenom
+        });
+      }
+      flash("✅ Horaire ajouté !");
+      setShowAddHoraire(false);
+      setAddHoraireEmploye(""); setAddHoraireExtra(false); setAddHoraireExtranom("");
+      setAddHoraireIsRemplacement(false); setAddHoraireRemplaceNom("");
+      fetchHoraires(horaireRestaurant);
+    } catch { flash("❌ Erreur"); }
+  }
+
+  async function handleDeleteHoraire(id) {
+    if (!confirm("Annuler cet horaire ?")) return;
+    try {
+      await deleteHoraire(id);
+      flash("🗑️ Horaire annulé !");
+      fetchHoraires(horaireRestaurant);
+    } catch { flash("❌ Erreur"); }
+  }
+
+  const BottomNav = () => currentUser ? (
     <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: "#141414", borderTop: "1px solid #1e1e1e", display: "flex", zIndex: 50 }}>
-      {[{ id: "stock", label: "Stock", icon: "📦" }, { id: "comptes", label: "Comptes", icon: "👥" }, { id: "profil", label: "Profil", icon: "👤" }].map(tab => (
-        <button key={tab.id} onClick={() => { setPage(tab.id); if (tab.id === "comptes") loadUsers(); }} style={{ flex: 1, background: "none", border: "none", padding: "0.7rem 0", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: "0.15rem" }}>
+      {[
+        { id: "stock", label: "Stock", icon: "📦", adminOnly: false },
+        { id: "horaires", label: "Horaires", icon: "📅", adminOnly: false },
+        { id: "comptes", label: "Comptes", icon: "👥", adminOnly: true },
+        { id: "profil", label: "Profil", icon: "👤", adminOnly: false }
+      ].filter(tab => !tab.adminOnly || isAdmin).map(tab => (
+        <button key={tab.id} onClick={() => { setPage(tab.id); if (tab.id === "comptes") loadUsers(); if (tab.id === "horaires") fetchHoraires(horaireRestaurant); }} style={{ flex: 1, background: "none", border: "none", padding: "0.7rem 0", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: "0.15rem" }}>
           <span style={{ fontSize: "1.2rem" }}>{tab.icon}</span>
           <span style={{ fontSize: "0.65rem", color: page === tab.id ? "#f5c842" : "#444", fontFamily: "inherit" }}>{tab.label}</span>
         </button>
       ))}
     </div>
   ) : null;
+
+  // ── HORAIRES PAGE ─────────────────────────────────────────
+  if (page === "horaires" && currentUser) {
+    const todayStr = getTodayDateStr();
+    const weekDates = getWeekDates();
+    const autoEmployesToday = getAutoEmployes(todayStr);
+    const autoHoraireToday = getAutoHoraire(todayStr);
+    const horairesDuJour = horaires.filter(h => h.date === todayStr && h.restaurant_id === horaireRestaurant);
+    
+    // Remplacements stats
+    const moisHoraires = horaires.filter(h => h.date.startsWith(remplacementMois));
+    const remplacementsParPersonne = {};
+    moisHoraires.filter(h => h.est_remplacement).forEach(h => {
+      const nom = h.remplace_nom;
+      if (!remplacementsParPersonne[nom]) remplacementsParPersonne[nom] = { count: 0, heures: 0, details: [] };
+      remplacementsParPersonne[nom].count++;
+      remplacementsParPersonne[nom].heures += parseFloat(calcHeures(h.heure_debut, h.heure_fin));
+      remplacementsParPersonne[nom].details.push(h);
+    });
+
+    if (!horaires.length && horaireRestaurant) {
+      fetchHoraires(horaireRestaurant);
+    }
+
+    return (
+      <div style={{ ...s, minHeight: "100vh", background: "#0d0d0d", paddingBottom: "5rem" }}>
+        {toast && <div style={{ position: "fixed", top: "1rem", left: "50%", transform: "translateX(-50%)", background: "#1e1e1e", color: "#f5c842", padding: "0.55rem 1.4rem", borderRadius: "20px", fontSize: "0.88rem", zIndex: 999, border: "1px solid #2e2e2e", whiteSpace: "nowrap" }}>{toast}</div>}
+        
+        {/* Header */}
+        <div style={{ background: "#141414", padding: "1rem 1.2rem", borderBottom: "1px solid #1e1e1e", position: "sticky", top: 0, zIndex: 10 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
+            <h1 style={{ color: "#f5c842", fontSize: "1.1rem", margin: 0 }}>📅 Horaires</h1>
+            <div style={{ display: "flex", gap: "0.4rem" }}>
+              <select value={horaireRestaurant} onChange={e => { setHoraireRestaurant(e.target.value); setHoraires([]); fetchHoraires(e.target.value); }}
+                style={{ background: "#1e1e1e", border: "1px solid #2e2e2e", color: "#f5c842", borderRadius: "8px", padding: "0.3rem 0.5rem", fontSize: "0.75rem", fontFamily: "inherit" }}>
+                {RESTAURANTS.map(r => <option key={r.id} value={r.id}>{r.emoji} {r.name}</option>)}
+              </select>
+              <button onClick={() => { setShowAddHoraire(true); const h = getAutoHoraire(todayStr); setAddHoraireDate(todayStr); setAddHoraireDebut(h.debut); setAddHoraireFin(h.fin); }}
+                style={{ background: "#f5c842", color: "#111", border: "none", borderRadius: "8px", padding: "0.3rem 0.7rem", fontFamily: "inherit", fontWeight: "bold", fontSize: "0.8rem", cursor: "pointer" }}>+ Ajouter</button>
+            </div>
+          </div>
+          {/* Tabs */}
+          <div style={{ display: "flex", gap: "0.4rem" }}>
+            {[{id:"today",label:"Aujourd'hui"},{id:"week",label:"Semaine"},{id:"remplacements",label:"Remplacements"}].map(tab => (
+              <button key={tab.id} onClick={() => setHoraireView(tab.id)}
+                style={{ background: horaireView === tab.id ? "#f5c842" : "#1e1e1e", color: horaireView === tab.id ? "#111" : "#555", border: "none", borderRadius: "8px", padding: "0.35rem 0.7rem", fontSize: "0.75rem", fontFamily: "inherit", fontWeight: horaireView === tab.id ? "bold" : "normal", cursor: "pointer" }}>
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div style={{ padding: "0.8rem 1.1rem" }}>
+
+          {/* ADD FORM */}
+          {showAddHoraire && (
+            <div style={{ background: "#141414", border: "1px solid #f5c842", borderRadius: "12px", padding: "1rem", marginBottom: "1rem", display: "flex", flexDirection: "column", gap: "0.6rem" }}>
+              <div style={{ color: "#f5c842", fontWeight: "bold", fontSize: "0.9rem" }}>➕ Ajouter un horaire</div>
+              <input type="date" value={addHoraireDate} onChange={e => { setAddHoraireDate(e.target.value); const h = getAutoHoraire(e.target.value); setAddHoraireDebut(h.debut); setAddHoraireFin(h.fin); }}
+                style={{ background: "#0d0d0d", border: "1px solid #2e2e2e", color: "#fff", padding: "0.7rem 1rem", borderRadius: "8px", fontSize: "0.95rem", fontFamily: "inherit", outline: "none", boxSizing: "border-box", width: "100%" }} />
+              
+              {/* Personne extra ou normale */}
+              <div style={{ display: "flex", gap: "0.5rem" }}>
+                <button onClick={() => setAddHoraireExtra(false)} style={{ flex: 1, background: !addHoraireExtra ? "#f5c842" : "#1e1e1e", color: !addHoraireExtra ? "#111" : "#555", border: "none", borderRadius: "8px", padding: "0.5rem", fontSize: "0.8rem", fontFamily: "inherit", cursor: "pointer", fontWeight: !addHoraireExtra ? "bold" : "normal" }}>👤 Employé</button>
+                <button onClick={() => setAddHoraireExtra(true)} style={{ flex: 1, background: addHoraireExtra ? "#f5c842" : "#1e1e1e", color: addHoraireExtra ? "#111" : "#555", border: "none", borderRadius: "8px", padding: "0.5rem", fontSize: "0.8rem", fontFamily: "inherit", cursor: "pointer", fontWeight: addHoraireExtra ? "bold" : "normal" }}>⭐ Extra (Samedi)</button>
+              </div>
+
+              {addHoraireExtra ? (
+                <input value={addHoraireExtranom} onChange={e => setAddHoraireExtranom(e.target.value)} placeholder="Nom de l'extra..."
+                  style={{ background: "#0d0d0d", border: "1px solid #2e2e2e", color: "#fff", padding: "0.7rem 1rem", borderRadius: "8px", fontSize: "0.95rem", fontFamily: "inherit", outline: "none", boxSizing: "border-box", width: "100%" }} />
+              ) : (
+                <select value={addHoraireEmploye} onChange={e => setAddHoraireEmploye(e.target.value)}
+                  style={{ background: "#0d0d0d", border: "1px solid #2e2e2e", color: "#fff", padding: "0.7rem 1rem", borderRadius: "8px", fontSize: "0.95rem", fontFamily: "inherit", outline: "none", boxSizing: "border-box", width: "100%" }}>
+                  <option value="">Choisir un employé...</option>
+                  {["Abdel","Nabil","Mohammed","Wassim","Rachid","Ali","Momo"].map(n => <option key={n} value={n}>{n}</option>)}
+                </select>
+              )}
+
+              <div style={{ display: "flex", gap: "0.5rem" }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ color: "#555", fontSize: "0.72rem", marginBottom: "0.25rem" }}>Début</div>
+                  <input type="time" value={addHoraireDebut} onChange={e => setAddHoraireDebut(e.target.value)}
+                    style={{ background: "#0d0d0d", border: "1px solid #2e2e2e", color: "#fff", padding: "0.7rem 0.8rem", borderRadius: "8px", fontSize: "0.95rem", fontFamily: "inherit", outline: "none", width: "100%", boxSizing: "border-box" }} />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ color: "#555", fontSize: "0.72rem", marginBottom: "0.25rem" }}>Fin</div>
+                  <input type="time" value={addHoraireFin} onChange={e => setAddHoraireFin(e.target.value)}
+                    style={{ background: "#0d0d0d", border: "1px solid #2e2e2e", color: "#fff", padding: "0.7rem 0.8rem", borderRadius: "8px", fontSize: "0.95rem", fontFamily: "inherit", outline: "none", width: "100%", boxSizing: "border-box" }} />
+                </div>
+              </div>
+
+              {/* Remplacement */}
+              <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
+                <input type="checkbox" id="isRemp" checked={addHoraireIsRemplacement} onChange={e => setAddHoraireIsRemplacement(e.target.checked)}
+                  style={{ width: "1.1rem", height: "1.1rem", accentColor: "#f5c842", cursor: "pointer" }} />
+                <label htmlFor="isRemp" style={{ color: "#888", fontSize: "0.85rem", cursor: "pointer" }}>C'est un remplacement</label>
+              </div>
+              {addHoraireIsRemplacement && (
+                <select value={addHoraireRemplaceNom} onChange={e => setAddHoraireRemplaceNom(e.target.value)}
+                  style={{ background: "#0d0d0d", border: "1px solid #e57373", color: "#fff", padding: "0.7rem 1rem", borderRadius: "8px", fontSize: "0.95rem", fontFamily: "inherit", outline: "none", boxSizing: "border-box", width: "100%" }}>
+                  <option value="">Qui est remplacé ?</option>
+                  {["Abdel","Nabil","Mohammed","Wassim","Rachid","Ali","Momo"].map(n => <option key={n} value={n}>{n}</option>)}
+                </select>
+              )}
+
+              <div style={{ display: "flex", gap: "0.5rem" }}>
+                <button onClick={handleAddHoraire} style={{ flex: 1, background: "#f5c842", color: "#111", border: "none", padding: "0.8rem", borderRadius: "8px", fontFamily: "inherit", fontWeight: "bold", fontSize: "0.95rem", cursor: "pointer" }}>✅ Confirmer</button>
+                <button onClick={() => setShowAddHoraire(false)} style={{ background: "#1e1e1e", color: "#666", border: "none", padding: "0.8rem 1rem", borderRadius: "8px", cursor: "pointer" }}>✕</button>
+              </div>
+            </div>
+          )}
+
+          {/* TODAY VIEW */}
+          {horaireView === "today" && (
+            <div>
+              <div style={{ color: "#f5c842", fontSize: "0.85rem", fontWeight: "bold", marginBottom: "0.75rem", textTransform: "capitalize" }}>{formatDate(todayStr)}</div>
+              
+              {/* Planning automatique */}
+              <div style={{ background: "#0f1a0f", border: "1px solid #1e3a1e", borderRadius: "12px", padding: "1rem", marginBottom: "0.75rem" }}>
+                <div style={{ color: "#5cb85c", fontSize: "0.75rem", fontWeight: "bold", marginBottom: "0.5rem" }}>📋 Planning cycle automatique</div>
+                {autoEmployesToday.map(emp => (
+                  <div key={emp} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.3rem" }}>
+                    <span style={{ color: "#f0ede6", fontSize: "0.9rem" }}>👤 {emp}</span>
+                    <span style={{ color: "#5cb85c", fontSize: "0.82rem" }}>{autoHoraireToday.debut} → {autoHoraireToday.fin} ({calcHeures(autoHoraireToday.debut, autoHoraireToday.fin)}h)</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Horaires encodés */}
+              {horairesDuJour.length > 0 && (
+                <div style={{ marginBottom: "0.5rem" }}>
+                  <div style={{ color: "#555", fontSize: "0.75rem", fontWeight: "bold", marginBottom: "0.4rem" }}>📝 Encodés manuellement</div>
+                  {horairesDuJour.map(h => (
+                    <div key={h.id} style={{ background: "#141414", border: `1px solid ${h.est_remplacement ? "#5a1a1a" : h.extra ? "#2a3a1a" : "#1e1e1e"}`, borderRadius: "10px", padding: "0.85rem 1rem", marginBottom: "0.4rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <div>
+                        <div style={{ color: h.extra ? "#a8d060" : "#f0ede6", fontSize: "0.9rem", fontWeight: "bold" }}>
+                          {h.extra ? "⭐" : "👤"} {h.employe_nom}
+                          {h.est_remplacement && <span style={{ color: "#e57373", fontSize: "0.75rem", marginLeft: "0.4rem" }}>remplace {h.remplace_nom}</span>}
+                        </div>
+                        <div style={{ color: "#555", fontSize: "0.75rem" }}>{h.heure_debut.slice(0,5)} → {h.heure_fin.slice(0,5)} · {calcHeures(h.heure_debut.slice(0,5), h.heure_fin.slice(0,5))}h</div>
+                      </div>
+                      {isSuperAdmin && (
+                        <button onClick={() => handleDeleteHoraire(h.id)} style={{ background: "#1a0f0f", border: "none", color: "#e57373", borderRadius: "8px", padding: "0.4rem 0.6rem", cursor: "pointer", fontSize: "0.8rem" }}>🗑️</button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+              {horairesDuJour.length === 0 && <div style={{ color: "#333", fontSize: "0.82rem", textAlign: "center", padding: "1rem" }}>Aucun horaire encodé pour aujourd'hui</div>}
+            </div>
+          )}
+
+          {/* WEEK VIEW */}
+          {horaireView === "week" && (
+            <div>
+              <div style={{ color: "#555", fontSize: "0.75rem", fontWeight: "bold", marginBottom: "0.75rem" }}>Planning de la semaine</div>
+              {weekDates.map(dateStr => {
+                const autoEmps = getAutoEmployes(dateStr);
+                const autoH = getAutoHoraire(dateStr);
+                const encoded = horaires.filter(h => h.date === dateStr && h.restaurant_id === horaireRestaurant);
+                const isToday = dateStr === todayStr;
+                return (
+                  <div key={dateStr} style={{ background: isToday ? "#0f1a0f" : "#141414", border: `1px solid ${isToday ? "#1e3a1e" : "#1e1e1e"}`, borderRadius: "12px", padding: "0.85rem 1rem", marginBottom: "0.5rem" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.4rem" }}>
+                      <div style={{ color: isToday ? "#5cb85c" : "#f5c842", fontSize: "0.82rem", fontWeight: "bold", textTransform: "capitalize" }}>{formatDateShort(dateStr)}{isToday ? " · Aujourd'hui" : ""}</div>
+                      <div style={{ color: "#444", fontSize: "0.72rem" }}>{autoH.debut} - {autoH.fin}</div>
+                    </div>
+                    <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap" }}>
+                      {autoEmps.map(emp => (
+                        <span key={emp} style={{ background: "#1a2a1a", color: "#8bc08b", borderRadius: "6px", padding: "0.2rem 0.5rem", fontSize: "0.75rem" }}>👤 {emp}</span>
+                      ))}
+                      {encoded.filter(h => h.extra).map(h => (
+                        <span key={h.id} style={{ background: "#2a3a1a", color: "#a8d060", borderRadius: "6px", padding: "0.2rem 0.5rem", fontSize: "0.75rem" }}>⭐ {h.employe_nom}</span>
+                      ))}
+                      {encoded.filter(h => h.est_remplacement).map(h => (
+                        <span key={h.id} style={{ background: "#2a1a1a", color: "#e57373", borderRadius: "6px", padding: "0.2rem 0.5rem", fontSize: "0.75rem" }}>🔄 {h.employe_nom} / {h.remplace_nom}</span>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* REMPLACEMENTS VIEW */}
+          {horaireView === "remplacements" && (
+            <div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
+                <div style={{ color: "#555", fontSize: "0.75rem", fontWeight: "bold" }}>Remplacements du mois</div>
+                <input type="month" value={remplacementMois} onChange={e => setRemplacementMois(e.target.value)}
+                  style={{ background: "#1e1e1e", border: "1px solid #2e2e2e", color: "#f5c842", borderRadius: "8px", padding: "0.3rem 0.5rem", fontSize: "0.75rem", fontFamily: "inherit", outline: "none" }} />
+              </div>
+
+              {Object.keys(remplacementsParPersonne).length === 0 && (
+                <div style={{ color: "#333", fontSize: "0.82rem", textAlign: "center", padding: "2rem" }}>Aucun remplacement ce mois-ci</div>
+              )}
+
+              {(isAdmin
+                ? Object.entries(remplacementsParPersonne)
+                : Object.entries(remplacementsParPersonne).filter(([nom]) => nom === currentUser.prenom)
+              ).map(([nom, stats]) => (
+                <div key={nom} style={{ background: "#141414", border: "1px solid #3a1a1a", borderRadius: "12px", padding: "1rem", marginBottom: "0.75rem" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
+                    <div style={{ color: "#e57373", fontSize: "0.95rem", fontWeight: "bold" }}>👤 {nom}</div>
+                    <div style={{ display: "flex", gap: "0.5rem" }}>
+                      <span style={{ background: "#2a0f0f", color: "#e57373", borderRadius: "8px", padding: "0.2rem 0.6rem", fontSize: "0.78rem" }}>{stats.count} jour{stats.count > 1 ? "s" : ""}</span>
+                      <span style={{ background: "#1a1a2a", color: "#8888ff", borderRadius: "8px", padding: "0.2rem 0.6rem", fontSize: "0.78rem" }}>{stats.heures.toFixed(1)}h</span>
+                    </div>
+                  </div>
+                  {stats.details.map(h => (
+                    <div key={h.id} style={{ borderTop: "1px solid #2a1a1a", paddingTop: "0.4rem", marginTop: "0.4rem", display: "flex", justifyContent: "space-between", fontSize: "0.78rem" }}>
+                      <span style={{ color: "#777", textTransform: "capitalize" }}>{formatDateShort(h.date)}</span>
+                      <span style={{ color: "#555" }}>remplacé par <span style={{ color: "#f0ede6" }}>{h.employe_nom}</span></span>
+                      <span style={{ color: "#555" }}>{h.heure_debut.slice(0,5)}-{h.heure_fin.slice(0,5)}</span>
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+        <BottomNav />
+      </div>
+    );
+  }
 
   // ── LOGIN ──────────────────────────────────────────────────
   if (!currentUser) return (
