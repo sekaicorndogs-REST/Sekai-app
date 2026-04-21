@@ -704,7 +704,7 @@ export default function App() {
           date: addHoraireDate,
           heure_debut: addHoraireDebut,
           heure_fin: addHoraireFin,
-          est_remplacement: addHoraireIsRemplacement,
+          est_remplacement: !isAdmin ? true : addHoraireIsRemplacement,
           remplace_nom: addHoraireIsRemplacement ? addHoraireRemplaceNom : null,
           extra: emp.extra,
           created_by: currentUser.prenom
@@ -801,18 +801,32 @@ export default function App() {
             })()}
 
             {/* Type selection - only show after date selected */}
-            {addHoraireDate && <div style={{ display: "flex", gap: "0.5rem" }}>
-              <button onClick={() => { setAddHoraireIsRemplacement(false); setAddHoraireExtra(false); }}
-                style={{ flex: 1, background: !addHoraireIsRemplacement && !addHoraireExtra ? "#f5c842" : "#1e1e1e", color: !addHoraireIsRemplacement && !addHoraireExtra ? "#111" : "#555", border: "none", borderRadius: "8px", padding: "0.6rem", fontSize: "0.8rem", fontFamily: "'Poppins', sans-serif", cursor: "pointer", fontWeight: "bold" }}>
-                👤 Employé normal
-              </button>
-              <button onClick={() => { setAddHoraireExtra(true); setAddHoraireIsRemplacement(false); }}
-                style={{ flex: 1, background: addHoraireExtra ? "#f5c842" : "#1e1e1e", color: addHoraireExtra ? "#111" : "#555", border: "none", borderRadius: "8px", padding: "0.6rem", fontSize: "0.8rem", fontFamily: "'Poppins', sans-serif", cursor: "pointer", fontWeight: "bold" }}>
-                ⭐ Extra
-              </button>
-              <button onClick={() => { setAddHoraireIsRemplacement(true); setAddHoraireExtra(false); }}
-                style={{ flex: 1, background: addHoraireIsRemplacement ? "#f5c842" : "#1e1e1e", color: addHoraireIsRemplacement ? "#111" : "#555", border: "none", borderRadius: "8px", padding: "0.6rem", fontSize: "0.8rem", fontFamily: "'Poppins', sans-serif", cursor: "pointer", fontWeight: "bold" }}>
-                🔄 Remplacement
+            {addHoraireDate && (isAdmin ? (
+              <div style={{ display: "flex", gap: "0.5rem" }}>
+                <button onClick={() => { setAddHoraireIsRemplacement(false); setAddHoraireExtra(false); }}
+                  style={{ flex: 1, background: !addHoraireIsRemplacement && !addHoraireExtra ? "#e8213a" : "#fff8f0", color: !addHoraireIsRemplacement && !addHoraireExtra ? "#fff" : "#a07848", border: "1.5px solid #f0d8b8", borderRadius: "8px", padding: "0.6rem", fontSize: "0.8rem", fontFamily: "'Poppins', sans-serif", cursor: "pointer", fontWeight: "600" }}>
+                  👤 Normal
+                </button>
+                <button onClick={() => { setAddHoraireExtra(true); setAddHoraireIsRemplacement(false); }}
+                  style={{ flex: 1, background: addHoraireExtra ? "#e8213a" : "#fff8f0", color: addHoraireExtra ? "#fff" : "#a07848", border: "1.5px solid #f0d8b8", borderRadius: "8px", padding: "0.6rem", fontSize: "0.8rem", fontFamily: "'Poppins', sans-serif", cursor: "pointer", fontWeight: "600" }}>
+                  ⭐ Extra
+                </button>
+                <button onClick={() => { setAddHoraireIsRemplacement(true); setAddHoraireExtra(false); setAddHoraireEmploye(currentUser?.prenom || ""); }}
+                  style={{ flex: 1, background: addHoraireIsRemplacement ? "#e8213a" : "#fff8f0", color: addHoraireIsRemplacement ? "#fff" : "#a07848", border: "1.5px solid #f0d8b8", borderRadius: "8px", padding: "0.6rem", fontSize: "0.8rem", fontFamily: "'Poppins', sans-serif", cursor: "pointer", fontWeight: "600" }}>
+                  🔄 Remplacement
+                </button>
+              </div>
+            ) : (
+              // Employé → seulement remplacement, forcé
+              <div style={{ background: "#fff5f5", border: "1.5px solid #e8213a33", borderRadius: "10px", padding: "0.75rem 1rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                <span style={{ color: "#e8213a", fontSize: "1rem" }}>🔄</span>
+                <div>
+                  <div style={{ color: "#e8213a", fontSize: "0.82rem", fontWeight: "600" }}>Remplacement</div>
+                  <div style={{ color: "#a07848", fontSize: "0.72rem" }}>Tu seras automatiquement le remplaçant</div>
+                </div>
+              </div>
+            ))}
+
               </button>
             </div>}
 
@@ -867,29 +881,45 @@ export default function App() {
             )}
 
             {/* Remplacement */}
-            {addHoraireIsRemplacement && (
+            {(addHoraireIsRemplacement || !isAdmin) && addHoraireDate && (
               <>
-                <div style={{ color: "#c8a878", fontSize: "0.8rem" }}>Qui fait le remplacement ?</div>
-                <select value={addHoraireEmploye} onChange={e => setAddHoraireEmploye(e.target.value)}
-                  style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", fontFamily: "'Poppins', sans-serif", outline: "none", width: "100%" }}>
-                  <option value="">Qui remplace ?</option>
-                  {["Abdel","Nabil","Mohammed","Wassim","Rachid","Ali","Momo"].map(n => <option key={n} value={n}>{n}</option>)}
-                </select>
-                <div style={{ color: "#c8a878", fontSize: "0.8rem" }}>Qui est remplacé ? (prend ses heures automatiquement)</div>
+                {/* Qui remplace - admin choisit, employé = lui-même */}
+                {isAdmin ? (
+                  <>
+                    <div style={{ color: "#a07848", fontSize: "0.8rem" }}>Qui fait le remplacement ?</div>
+                    <select value={addHoraireEmploye} onChange={e => setAddHoraireEmploye(e.target.value)}
+                      style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", fontFamily: "'Poppins', sans-serif", outline: "none", width: "100%" }}>
+                      <option value="">Qui remplace ?</option>
+                      {["Abdel","Nabil","Mohammed","Wassim","Rachid","Ali","Momo"].map(n => <option key={n} value={n}>{n}</option>)}
+                    </select>
+                  </>
+                ) : (
+                  <div style={{ background: "#f5fff8", border: "1.5px solid #4caf5033", borderRadius: "10px", padding: "0.75rem 1rem" }}>
+                    <div style={{ color: "#4caf50", fontSize: "0.72rem", marginBottom: "0.2rem" }}>✅ Remplaçant</div>
+                    <div style={{ color: "#3d1a0a", fontSize: "0.95rem", fontWeight: "600" }}>{currentUser?.prenom}</div>
+                  </div>
+                )}
+                {/* Qui est remplacé */}
+                <div style={{ color: "#a07848", fontSize: "0.8rem" }}>Qui est remplacé ?</div>
                 <select value={addHoraireRemplaceNom} onChange={e => {
                   setAddHoraireRemplaceNom(e.target.value);
                   const h = getAutoHoraire(addHoraireDate);
                   setAddHoraireDebut(h.debut);
                   setAddHoraireFin(h.fin);
                 }}
-                  style={{ background: "#faebd7", border: "1px solid #e57373", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", fontFamily: "'Poppins', sans-serif", outline: "none", width: "100%" }}>
+                  style={{ background: "#faebd7", border: "1.5px solid #e8213a44", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", fontFamily: "'Poppins', sans-serif", outline: "none", width: "100%" }}>
                   <option value="">Qui est remplacé ?</option>
                   {getAutoEmployes(addHoraireDate).map(n => <option key={n} value={n}>{n}</option>)}
                 </select>
+                {/* Heures */}
                 <div style={{ display: "flex", gap: "0.5rem" }}>
                   <div style={{ flex: 1 }}>
-                    <div style={{ color: "#a07848", fontSize: "0.72rem", marginBottom: "0.25rem" }}>Début (auto)</div>
+                    <div style={{ color: "#a07848", fontSize: "0.72rem", marginBottom: "0.25rem" }}>Début</div>
                     <input type="time" value={addHoraireDebut} onChange={e => setAddHoraireDebut(e.target.value)}
+                      style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.7rem 0.8rem", borderRadius: "8px", fontSize: "0.95rem", fontFamily: "'Poppins', sans-serif", outline: "none", width: "100%", boxSizing: "border-box" as const }} />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ color: "#a07848", fontSize: "0.72rem", marginBottom: "0.25rem" }}>Fin</div>
                       style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.7rem 0.8rem", borderRadius: "8px", fontSize: "0.95rem", fontFamily: "'Poppins', sans-serif", outline: "none", width: "100%", boxSizing: "border-box" as const }} />
                   </div>
                   <div style={{ flex: 1 }}>
@@ -912,7 +942,7 @@ export default function App() {
                   date: addHoraireDate,
                   heure_debut: addHoraireDebut,
                   heure_fin: addHoraireFin,
-                  est_remplacement: addHoraireIsRemplacement,
+                  est_remplacement: !isAdmin ? true : addHoraireIsRemplacement,
                   remplace_nom: addHoraireIsRemplacement ? addHoraireRemplaceNom : null,
                   extra: addHoraireExtra,
                   created_by: currentUser.prenom
@@ -1208,34 +1238,63 @@ export default function App() {
                 // VUE EMPLOYÉ
                 const st = heuresPrestees[currentUser.prenom];
                 const enPlus = heuresEnPlus[currentUser.prenom];
-                if (!st) return <div style={{ color: "#c8a878", fontSize: "0.82rem", textAlign: "center", padding: "2rem" }}>Aucune donnée ce mois-ci</div>;
+                const todayEmp = new Date();
+                const todayEmpStr = todayEmp.getFullYear() + "-" + String(todayEmp.getMonth()+1).padStart(2,"0") + "-" + String(todayEmp.getDate()).padStart(2,"0");
+
+                // Prochains jours de travail ce mois
+                const prochainsJours = [];
+                for (let d = 1; d <= daysInMonth; d++) {
+                  const dateStr = year + "-" + String(month+1).padStart(2,"0") + "-" + String(d).padStart(2,"0");
+                  const emps = getAutoEmployes(dateStr);
+                  if (emps.includes(currentUser.prenom)) {
+                    const autoH = getAutoHoraire(dateStr);
+                    const estRemplace = moisH.find(h => normalizeDate(h.date) === dateStr && h.est_remplacement && h.remplace_nom === currentUser.prenom);
+                    prochainsJours.push({ dateStr, debut: autoH.debut, fin: autoH.fin, heures: parseFloat(calcHeures(autoH.debut, autoH.fin)), remplace: !!estRemplace });
+                  }
+                }
+                const heuresAVenir = prochainsJours.filter(j => j.dateStr >= todayEmpStr && !j.remplace).reduce((s, j) => s + j.heures, 0);
+
                 return (
-                  <div style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "12px", padding: "1rem" }}>
-                    <div style={{ color: "#e8213a", fontSize: "0.9rem", fontWeight: "bold", marginBottom: "0.5rem" }}>👤 {currentUser.prenom}</div>
-                    <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
-                      <div style={{ background: "#f5fff8", border: "1.5px solid #4caf5033", borderRadius: "8px", padding: "0.5rem 0.8rem", flex: 1 }}>
-                        <div style={{ color: "#4caf50", fontSize: "0.7rem", marginBottom: "0.2rem" }}>✅ Prestées</div>
-                        <div style={{ color: "#3d1a0a", fontSize: "1.1rem", fontWeight: "bold" }}>{st.travail.toFixed(1)}h</div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+                    <div style={{ display: "flex", gap: "0.5rem" }}>
+                      <div style={{ flex: 1, background: "#f5fff8", border: "1.5px solid #4caf5033", borderRadius: "12px", padding: "0.85rem" }}>
+                        <div style={{ color: "#4caf50", fontSize: "0.7rem", fontWeight: "600", marginBottom: "0.3rem" }}>✅ Déjà prestées</div>
+                        <div style={{ color: "#3d1a0a", fontSize: "1.3rem", fontWeight: "700" }}>{st ? st.travail.toFixed(1) : "0"}h</div>
                       </div>
-                      {st.joursRemplace > 0 && (
-                        <div style={{ background: "#fff5f5", border: "1px solid #3a1a1a", borderRadius: "8px", padding: "0.5rem 0.8rem", flex: 1 }}>
-                          <div style={{ color: "#e57373", fontSize: "0.7rem", marginBottom: "0.2rem" }}>🔄 Remplacé</div>
-                          <div style={{ color: "#e57373", fontSize: "1.1rem", fontWeight: "bold" }}>-{st.remplace.toFixed(1)}h</div>
-                          <div style={{ color: "#5a2a2a", fontSize: "0.7rem" }}>{st.joursRemplace} jour{st.joursRemplace > 1 ? "s" : ""}</div>
-                        </div>
-                      )}
-                      {enPlus && (
-                        <div style={{ background: "#0f1a2a", border: "1px solid #1e3a5a", borderRadius: "8px", padding: "0.5rem 0.8rem", flex: 1 }}>
-                          <div style={{ color: "#6ab0ff", fontSize: "0.7rem", marginBottom: "0.2rem" }}>➕ En plus</div>
-                          <div style={{ color: "#6ab0ff", fontSize: "1.1rem", fontWeight: "bold" }}>+{enPlus.heures.toFixed(1)}h</div>
+                      <div style={{ flex: 1, background: "#fff8f0", border: "1.5px solid #f5a62333", borderRadius: "12px", padding: "0.85rem" }}>
+                        <div style={{ color: "#f5a623", fontSize: "0.7rem", fontWeight: "600", marginBottom: "0.3rem" }}>📅 À venir</div>
+                        <div style={{ color: "#3d1a0a", fontSize: "1.3rem", fontWeight: "700" }}>{heuresAVenir.toFixed(1)}h</div>
+                      </div>
+                      {st && st.joursRemplace > 0 && (
+                        <div style={{ flex: 1, background: "#fff5f5", border: "1.5px solid #e8213a33", borderRadius: "12px", padding: "0.85rem" }}>
+                          <div style={{ color: "#e8213a", fontSize: "0.7rem", fontWeight: "600", marginBottom: "0.3rem" }}>🔄 Remplacé</div>
+                          <div style={{ color: "#e8213a", fontSize: "1.3rem", fontWeight: "700" }}>-{st ? st.remplace.toFixed(1) : "0"}h</div>
                         </div>
                       )}
                     </div>
+                    <div style={{ color: "#a07848", fontSize: "0.75rem", fontWeight: "600", marginBottom: "0.25rem" }}>📋 Mes jours ce mois</div>
+                    {prochainsJours.map(j => (
+                      <div key={j.dateStr} style={{ background: j.remplace ? "#fff5f5" : j.dateStr === todayEmpStr ? "#f5fff8" : "#ffffff", border: `1.5px solid ${j.remplace ? "#e8213a33" : j.dateStr === todayEmpStr ? "#4caf5033" : "#f0d8b8"}`, borderRadius: "10px", padding: "0.75rem 1rem", display: "flex", justifyContent: "space-between", alignItems: "center", opacity: j.dateStr < todayEmpStr ? 0.6 : 1 }}>
+                        <div>
+                          <div style={{ color: "#3d1a0a", fontSize: "0.88rem", fontWeight: "600", textTransform: "capitalize" }}>
+                            {j.dateStr === todayEmpStr ? "🟢 Aujourd'hui — " : ""}{formatDateShort(j.dateStr)}
+                          </div>
+                          {j.remplace && <div style={{ color: "#e8213a", fontSize: "0.72rem" }}>⚠️ Remplacé ce jour</div>}
+                        </div>
+                        <div style={{ textAlign: "right" }}>
+                          <div style={{ color: j.remplace ? "#e8213a" : "#f5a623", fontSize: "0.95rem", fontWeight: "700" }}>{j.heures.toFixed(1)}h</div>
+                          <div style={{ color: "#c8a878", fontSize: "0.7rem" }}>{j.debut} → {j.fin}</div>
+                        </div>
+                      </div>
+                    ))}
+                    {enPlus && (
+                      <div style={{ background: "#f0f8ff", border: "1.5px solid #6ab0ff33", borderRadius: "12px", padding: "0.85rem" }}>
+                        <div style={{ color: "#6ab0ff", fontSize: "0.7rem", fontWeight: "600", marginBottom: "0.3rem" }}>➕ Heures faites en plus</div>
+                        <div style={{ color: "#3d1a0a", fontSize: "1.1rem", fontWeight: "700" }}>+{enPlus.heures.toFixed(1)}h</div>
+                      </div>
+                    )}
                   </div>
                 );
-              })()}
-            </div>
-          )}
 
           </>}
         </div>
