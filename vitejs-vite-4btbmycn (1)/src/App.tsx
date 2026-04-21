@@ -1292,7 +1292,8 @@ export default function App() {
 
               })()}
             </div>
-          </>}
+          </>
+          }
         </div>
         <BottomNav />
       </div>
@@ -1900,4 +1901,3 @@ export default function App() {
     </div>
   );
 }
-      
