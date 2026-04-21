@@ -827,8 +827,6 @@ export default function App() {
               </div>
             ))}
 
-              </button>
-            </div>}
 
             {/* Employé normal */}
             {!addHoraireIsRemplacement && !addHoraireExtra && (
@@ -1768,7 +1766,7 @@ export default function App() {
             </div>
           </div>
           <div style={{ display: "flex", gap: "0.5rem" }}>
-            <button onClick={() => loadData(restaurant)} style={{ background: "none", border: "1.5px solid #f0d8b8", color: "#a07848", borderRadius: "8px", padding: "0.35rem 0.6rem", fontSize: "0.8rem", cursor: "pointer", fontFamily: "'Poppins', sans-serif" }}><RefreshCw size={16} /></button>
+            <button onClick={() => loadData(restaurant)} style={{ background: "rgba(255,255,255,0.2)", border: "1px solid rgba(255,255,255,0.4)", color: "#ffffff", borderRadius: "8px", padding: "0.35rem 0.6rem", fontSize: "0.8rem", cursor: "pointer", fontFamily: "'Poppins', sans-serif" }}><RefreshCw size={16} /></button>
             {totalAlerts > 0 && <button onClick={() => setShowAlerts(true)} style={{ background: "#ffffff", color: "#e8213a", border: "none", borderRadius: "20px", padding: "0.4rem 0.85rem", fontSize: "0.78rem", fontWeight: "bold", cursor: "pointer", fontFamily: "'Poppins', sans-serif", display: "flex", alignItems: "center", gap: "4px" }}><AlertTriangle size={13} /> {totalAlerts}</button>}
             {isAdmin && <button onClick={() => setShowResetConfirm(true)} style={{ background: "rgba(255,255,255,0.2)", color: "#ffffff", border: "1px solid rgba(255,255,255,0.4)", borderRadius: "8px", padding: "0.35rem 0.6rem", fontSize: "0.78rem", cursor: "pointer", fontFamily: "'Poppins', sans-serif" }}>RAZ</button>}
           </div>
@@ -1822,7 +1820,7 @@ export default function App() {
               <span style={{ background: "rgba(255,255,255,0.25)", borderRadius: "8px", padding: "2px 8px" }}>{activeStore.split(" ")[0]}</span>
               <span>{activeStore.split(" ").slice(1).join(" ")}</span>
             </h2>
-            <p style={{ color: "#c8a878", fontSize: "0.72rem", margin: "0.15rem 0 0" }}>{storeItems.length} articles · {currentUser.prenom}</p>
+            <p style={{ color: "#ffffff99", fontSize: "0.72rem", margin: "0.15rem 0 0" }}>{storeItems.length} articles · {currentUser.prenom}</p>
           </div>
         </div>
       </div>
