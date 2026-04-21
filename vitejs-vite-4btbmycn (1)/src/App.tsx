@@ -318,7 +318,7 @@ export default function App() {
   const [rememberMe, setRememberMe] = useState(false);
   // Horaires
   const [horaires, setHoraires] = useState([]);
-  const [horaireView, setHoraireView] = useState("today"); // today | week | remplacements
+  const [horaireView, setHoraireView] = useState("week"); // week | remplacements | stats
   const [showAddHoraire, setShowAddHoraire] = useState(false);
   const [addHoraireDate, setAddHoraireDate] = useState("");
   const [addHoraireEmploye, setAddHoraireEmploye] = useState("");
