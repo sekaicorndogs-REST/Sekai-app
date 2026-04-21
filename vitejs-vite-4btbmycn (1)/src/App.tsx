@@ -869,12 +869,21 @@ export default function App() {
             {/* Remplacement */}
             {addHoraireIsRemplacement && (
               <>
-                <div style={{ color: "#c8a878", fontSize: "0.8rem" }}>Qui fait le remplacement ?</div>
-                <select value={addHoraireEmploye} onChange={e => setAddHoraireEmploye(e.target.value)}
-                  style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", fontFamily: "'Poppins', sans-serif", outline: "none", width: "100%" }}>
-                  <option value="">Qui remplace ?</option>
-                  {["Abdel","Nabil","Mohammed","Wassim","Rachid","Ali","Momo"].map(n => <option key={n} value={n}>{n}</option>)}
-                </select>
+                {isAdmin ? (
+                  <>
+                    <div style={{ color: "#a07848", fontSize: "0.8rem" }}>Qui fait le remplacement ?</div>
+                    <select value={addHoraireEmploye} onChange={e => setAddHoraireEmploye(e.target.value)}
+                      style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", fontFamily: "'Poppins', sans-serif", outline: "none", width: "100%" }}>
+                      <option value="">Qui remplace ?</option>
+                      {["Abdel","Nabil","Mohammed","Wassim","Rachid","Ali","Momo"].map(n => <option key={n} value={n}>{n}</option>)}
+                    </select>
+                  </>
+                ) : (
+                  <div style={{ background: "#f5fff8", border: "1.5px solid #4caf5033", borderRadius: "10px", padding: "0.75rem 1rem" }}>
+                    <div style={{ color: "#4caf50", fontSize: "0.72rem", marginBottom: "0.2rem" }}>✅ Tu es le remplaçant</div>
+                    <div style={{ color: "#3d1a0a", fontSize: "0.95rem", fontWeight: "600" }}>{currentUser?.prenom}</div>
+                  </div>
+                )}
                 <div style={{ color: "#c8a878", fontSize: "0.8rem" }}>Qui est remplacé ? (prend ses heures automatiquement)</div>
                 <select value={addHoraireRemplaceNom} onChange={e => {
                   setAddHoraireRemplaceNom(e.target.value);
@@ -903,7 +912,7 @@ export default function App() {
 
             {addHoraireDate && <button onClick={async () => {
               if (!addHoraireDate) return;
-              const nom = addHoraireExtra ? (addHoraireExtranom || addHoraireEmploye) : addHoraireEmploye;
+              const nom = addHoraireExtra ? (addHoraireExtranom || addHoraireEmploye) : (addHoraireIsRemplacement && !isAdmin ? currentUser?.prenom : addHoraireEmploye);
               if (!nom) return;
               try {
                 await addHoraire({
