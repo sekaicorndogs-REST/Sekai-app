@@ -1290,22 +1290,21 @@ export default function App() {
                   </div>
                 );
 
-          }
+              })()}
+            </div>
+          </>}
         </div>
         <BottomNav />
       </div>
     );
   }
 
-    // ── PAIEMENTS PAGE ────────────────────────────────────────
-  if (page === "paiements" && isAdmin) {
-    const today = new Date();
     const todayStr = today.getFullYear() + "-" + String(today.getMonth()+1).padStart(2,"0") + "-" + String(today.getDate()).padStart(2,"0");
     const in3days = new Date(today); in3days.setDate(today.getDate() + 3);
-    const in3Str = in3days.getFullYear() + "-" + String(in3days.getMonth()+1).padStart(2,"0") + "-" + String(in3days.getDate()).padStart(2,"0");
-    const in3months = new Date(today); in3months.setMonth(today.getMonth() + 3);
-    const in3mStr = in3months.getFullYear() + "-" + String(in3months.getMonth()+1).padStart(2,"0") + "-" + String(in3months.getDate()).padStart(2,"0");
 
+  // ── PAIEMENTS PAGE ────────────────────────────────────────
+  if (page === "paiements" && isAdmin) {
+    const today = new Date();
     const paiementsAvenir = paiements.filter(p => p.statut === "en_attente" && p.date_echeance >= todayStr && p.date_echeance <= in3mStr);
     const paiementsEnRetard = paiements.filter(p => p.statut === "en_attente" && p.date_echeance < todayStr);
     const paiementsHistorique = paiements.filter(p => p.statut === "paye" || (p.statut === "en_attente" && p.date_echeance < todayStr));
