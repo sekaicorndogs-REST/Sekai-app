@@ -918,10 +918,6 @@ export default function App() {
                   </div>
                   <div style={{ flex: 1 }}>
                     <div style={{ color: "#a07848", fontSize: "0.72rem", marginBottom: "0.25rem" }}>Fin</div>
-                      style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.7rem 0.8rem", borderRadius: "8px", fontSize: "0.95rem", fontFamily: "'Poppins', sans-serif", outline: "none", width: "100%", boxSizing: "border-box" as const }} />
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ color: "#a07848", fontSize: "0.72rem", marginBottom: "0.25rem" }}>Fin (auto)</div>
                     <input type="time" value={addHoraireFin} onChange={e => setAddHoraireFin(e.target.value)}
                       style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.7rem 0.8rem", borderRadius: "8px", fontSize: "0.95rem", fontFamily: "'Poppins', sans-serif", outline: "none", width: "100%", boxSizing: "border-box" as const }} />
                   </div>
@@ -1906,3 +1902,4 @@ export default function App() {
     </div>
   );
 }
+        
