@@ -1810,8 +1810,22 @@ export default function App() {
                     {isAdmin && <button onClick={e => { e.stopPropagation(); setEditItemId(item.id); setEditItemName(item.name); setEditItemThreshold(String(item.threshold)); setEditItemThresholdLabel(item.threshold_label); }} style={{ background: "none", border: "none", color: "#a07848", cursor: "pointer", fontSize: "0.85rem", padding: 0 }}>⚙️</button>}
                   </div>
                 </div>
+                ) : (
+                <div style={{ display: "flex", alignItems: "center", padding: "0.9rem 1rem", gap: "0.75rem", cursor: "pointer" }} onClick={() => { setEditingId(item.id); setEditVal(item.qty); }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ color: low ? "#e57373" : "#3d1a0a", fontSize: "0.95rem" }}>{item.name}</div>
+                    <div style={{ color: "#c8a878", fontSize: "0.7rem", marginTop: "0.1rem" }}>
+                      {item.note && <span style={{ color: "#a07848" }}>📌 {item.note} · </span>}
+                      Seuil : {item.threshold_label} {item.unit}
+                    </div>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                    {low && <span>⚠️</span>}
+                    <span style={{ background: low ? "#fff0f0" : "#faebd7", color: low ? "#e8213a" : "#f5a623", padding: "0.35rem 0.75rem", borderRadius: "6px", fontSize: "0.92rem", fontWeight: "bold", minWidth: "2.2rem", textAlign: "center" }}>{item.qty === "" ? "—" : item.qty}</span>
+                    {isAdmin && <button onClick={e => { e.stopPropagation(); setEditItemId(item.id); setEditItemName(item.name); setEditItemThreshold(String(item.threshold)); setEditItemThresholdLabel(item.threshold_label); }} style={{ background: "none", border: "none", color: "#a07848", cursor: "pointer", fontSize: "0.85rem", padding: 0 }}>⚙️</button>}
+                  </div>
+                </div>
                 )}
-              )}
             </div>
           );
         })}
