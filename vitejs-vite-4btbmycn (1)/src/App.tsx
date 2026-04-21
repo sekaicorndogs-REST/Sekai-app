@@ -1776,7 +1776,7 @@ export default function App() {
                     ))}
                   </div>
                   <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.75rem" }}>
-                    <button onClick={() => saveQty(item.id)} disabled={saving} style={{ flex: 1, background: saving ? "#888" : "#f5c842", color: "#fff", border: "none", padding: "0.8rem", borderRadius: "8px", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", fontSize: "0.95rem", cursor: "pointer" }} style={{color:"#ffffff"}}>{saving ? "⏳..." : "Enregistrer"}</button>
+                    <button onClick={() => saveQty(item.id)} disabled={saving} style={{ flex: 1, background: saving ? "#c8a878" : "#e8213a", color: "#ffffff", border: "none", padding: "0.8rem", borderRadius: "8px", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", fontSize: "0.95rem", cursor: "pointer" }}>{saving ? "⏳..." : "Enregistrer"}</button>
                     <button onClick={() => setEditingId(null)} style={{ background: "#faebd7", color: "#c8a878", border: "none", padding: "0.8rem 1rem", borderRadius: "8px", cursor: "pointer" }}>✕</button>
                   </div>
                 </div>
@@ -1795,36 +1795,20 @@ export default function App() {
                     </div>
                   </div>
                 ) : (
-                <div style={{ display: "flex", alignItems: "center", padding: "0.9rem 1rem", gap: "0.75rem", cursor: "pointer" }} onClick={() => { setEditingId(item.id); setEditVal(item.qty); }}>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ color: low ? "#e57373" : "#f0ede6", fontSize: "0.95rem" }}>{item.name}</div>
-                    <div style={{ color: "#c8a878", fontSize: "0.7rem", marginTop: "0.1rem" }}>
-                      {item.note && <span style={{ color: "#5a4a2a" }}>📌 {item.note} · </span>}
-                      Seuil : {item.threshold_label} {item.unit}
+                  <div style={{ display: "flex", alignItems: "center", padding: "0.9rem 1rem", gap: "0.75rem", cursor: "pointer" }} onClick={() => { setEditingId(item.id); setEditVal(item.qty); }}>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ color: low ? "#e8213a" : "#3d1a0a", fontSize: "0.95rem" }}>{item.name}</div>
+                      <div style={{ color: "#c8a878", fontSize: "0.7rem", marginTop: "0.1rem" }}>
+                        {item.note && <span style={{ color: "#a07848" }}>📌 {item.note} · </span>}
+                        Seuil : {item.threshold_label} {item.unit}
+                      </div>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                      {low && <span>⚠️</span>}
+                      <span style={{ background: low ? "#fff0f0" : "#faebd7", color: low ? "#e8213a" : "#f5a623", padding: "0.35rem 0.75rem", borderRadius: "6px", fontSize: "0.92rem", fontWeight: "bold", minWidth: "2.2rem", textAlign: "center" }}>{item.qty === "" ? "—" : item.qty}</span>
+                      {isAdmin && <button onClick={e => { e.stopPropagation(); setEditItemId(item.id); setEditItemName(item.name); setEditItemThreshold(String(item.threshold)); setEditItemThresholdLabel(item.threshold_label); }} style={{ background: "none", border: "none", color: "#a07848", cursor: "pointer", fontSize: "0.85rem", padding: 0 }}>⚙️</button>}
                     </div>
                   </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                    {low && <span>⚠️</span>}
-                    <span style={{ background: low ? "#2a0f0f" : "#1e1e1e", color: low ? "#e57373" : "#f5c842", padding: "0.35rem 0.75rem", borderRadius: "6px", fontSize: "0.92rem", fontWeight: "bold", minWidth: "2.2rem", textAlign: "center" }}>{item.qty === "" ? "—" : item.qty}</span>
-                    <span style={{ color: "#c8a878" }}>✏️</span>
-                    {isAdmin && <button onClick={e => { e.stopPropagation(); setEditItemId(item.id); setEditItemName(item.name); setEditItemThreshold(String(item.threshold)); setEditItemThresholdLabel(item.threshold_label); }} style={{ background: "none", border: "none", color: "#a07848", cursor: "pointer", fontSize: "0.85rem", padding: 0 }}>⚙️</button>}
-                  </div>
-                </div>
-                ) : (
-                <div style={{ display: "flex", alignItems: "center", padding: "0.9rem 1rem", gap: "0.75rem", cursor: "pointer" }} onClick={() => { setEditingId(item.id); setEditVal(item.qty); }}>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ color: low ? "#e57373" : "#3d1a0a", fontSize: "0.95rem" }}>{item.name}</div>
-                    <div style={{ color: "#c8a878", fontSize: "0.7rem", marginTop: "0.1rem" }}>
-                      {item.note && <span style={{ color: "#a07848" }}>📌 {item.note} · </span>}
-                      Seuil : {item.threshold_label} {item.unit}
-                    </div>
-                  </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                    {low && <span>⚠️</span>}
-                    <span style={{ background: low ? "#fff0f0" : "#faebd7", color: low ? "#e8213a" : "#f5a623", padding: "0.35rem 0.75rem", borderRadius: "6px", fontSize: "0.92rem", fontWeight: "bold", minWidth: "2.2rem", textAlign: "center" }}>{item.qty === "" ? "—" : item.qty}</span>
-                    {isAdmin && <button onClick={e => { e.stopPropagation(); setEditItemId(item.id); setEditItemName(item.name); setEditItemThreshold(String(item.threshold)); setEditItemThresholdLabel(item.threshold_label); }} style={{ background: "none", border: "none", color: "#a07848", cursor: "pointer", fontSize: "0.85rem", padding: 0 }}>⚙️</button>}
-                  </div>
-                </div>
                 )}
             </div>
           );
