@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { Package, Calendar, CreditCard, Users, UserCircle, ArrowLeft, RefreshCw, AlertTriangle, AlertCircle, CheckCircle, Pencil, Save, Eye, EyeOff, Check, Lock, User, ArrowRight, Trash2, Plus, ChevronRight, Settings, LogOut, Shield, Star } from "lucide-react";
 
 const SUPABASE_URL = "https://ldpxgfgcnlzktaymtnwd.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkcHhnZmdjbmx6a3RheW10bndkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxOTgyMTAsImV4cCI6MjA5MTc3NDIxMH0.N_yUwjRvBM9rfxu0Xj-FCCGJ9eJ3UomPZdcUYAb8B8s";
@@ -729,14 +730,20 @@ export default function App() {
   const BottomNav = () => currentUser ? (
     <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: "#fff8f0", borderTop: "1.5px solid #f0d8b8", display: "flex", zIndex: 40, paddingBottom: "env(safe-area-inset-bottom, 0px)" }}>
       {[
-        { id: "stock", label: "Stock", icon: "📦", adminOnly: false },
-        { id: "horaires", label: "Horaires", icon: "📅", adminOnly: false },
-        { id: "paiements", label: "Paiements", icon: "💰", adminOnly: true },
-        { id: "comptes", label: "Comptes", icon: "👥", adminOnly: true },
-        { id: "profil", label: "Profil", icon: "👤", adminOnly: false }
+        { id: "stock", label: "Stock", icon: "stock", adminOnly: false },
+        { id: "horaires", label: "Horaires", icon: "horaires", adminOnly: false },
+        { id: "paiements", label: "Paiements", icon: "paiements", adminOnly: true },
+        { id: "comptes", label: "Comptes", icon: "comptes", adminOnly: true },
+        { id: "profil", label: "Profil", icon: "profil", adminOnly: false }
       ].filter(tab => !tab.adminOnly || isAdmin).map(tab => (
         <button key={tab.id} onClick={() => { setPage(tab.id); if (tab.id === "comptes") loadUsers(); if (tab.id === "horaires" && !horaires.length) fetchHoraires(horaireRestaurant); if (tab.id === "paiements") loadPaiements(); }} style={{ flex: 1, background: "none", border: "none", padding: "0.7rem 0", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: "0.15rem" }}>
-          <span style={{ fontSize: "1.2rem" }}>{tab.icon}</span>
+          <span style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+            {tab.icon === "stock" && <Package size={20} color={page === tab.id ? "#e8213a" : "#c8a878"} />}
+            {tab.icon === "horaires" && <Calendar size={20} color={page === tab.id ? "#e8213a" : "#c8a878"} />}
+            {tab.icon === "paiements" && <CreditCard size={20} color={page === tab.id ? "#e8213a" : "#c8a878"} />}
+            {tab.icon === "comptes" && <Users size={20} color={page === tab.id ? "#e8213a" : "#c8a878"} />}
+            {tab.icon === "profil" && <UserCircle size={20} color={page === tab.id ? "#e8213a" : "#c8a878"} />}
+          </span>
           <span style={{ fontSize: "0.65rem", color: page === tab.id ? "#f5c842" : "#444", fontFamily: "'Poppins', sans-serif" }}>{tab.label}</span>
         </button>
       ))}
@@ -939,7 +946,7 @@ export default function App() {
                 {RESTAURANTS.map(r => <option key={r.id} value={r.id}>{r.emoji} {r.name}</option>)}
               </select>
               <button onClick={() => fetchHoraires(horaireRestaurant)}
-                style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#a07848", borderRadius: "8px", padding: "0.3rem 0.6rem", fontSize: "0.8rem", cursor: "pointer" }}>🔄</button>
+                style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#a07848", borderRadius: "8px", padding: "0.3rem 0.6rem", fontSize: "0.8rem", cursor: "pointer" }}><RefreshCw size={16} /></button>
               <button onClick={() => {
                 setAddHoraireDate("");
                 setAddHoraireDebut("11:30");
@@ -1063,7 +1070,7 @@ export default function App() {
                       <span style={{ color: "#a07848" }}>remplacé par <span style={{ color: "#3d1a0a" }}>{h.employe_nom}</span></span>
                       <span style={{ color: "#a07848" }}>{h.heure_debut.slice(0,5)}-{h.heure_fin.slice(0,5)}</span>
                       {isSuperAdmin && (
-                        <button onClick={() => handleDeleteHoraire(h.id)} style={{ background: "none", border: "none", color: "#e57373", cursor: "pointer", fontSize: "0.85rem", padding: "0 0.2rem" }}>🗑️</button>
+                        <button onClick={() => handleDeleteHoraire(h.id)} style={{ background: "none", border: "none", color: "#e57373", cursor: "pointer", fontSize: "0.85rem", padding: "0 0.2rem" }}><Trash2 size={15} /></button>
                       )}
                     </div>
                   ))}
@@ -1272,9 +1279,9 @@ export default function App() {
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
             <h1 style={{ color: "#ffffff", fontSize: "1.1rem", margin: 0 }}>💰 Paiements</h1>
             <div style={{ display: "flex", gap: "0.4rem" }}>
-              <button onClick={loadPaiements} style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#a07848", borderRadius: "8px", padding: "0.3rem 0.6rem", fontSize: "0.8rem", cursor: "pointer" }}>🔄</button>
+              <button onClick={loadPaiements} style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#a07848", borderRadius: "8px", padding: "0.3rem 0.6rem", fontSize: "0.8rem", cursor: "pointer" }}><RefreshCw size={16} /></button>
               <button onClick={() => { setPaiementTitre(""); setPaiementMontant(""); setPaiementDate(""); setPaiementNote(""); setPaiementRecurrent(false); setPaiementType("autre"); setShowAddPaiement(true); }}
-                style={{ background: "#e8213a", color: "#ffffff", border: "none", borderRadius: "8px", padding: "0.3rem 0.9rem", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", fontSize: "0.8rem", cursor: "pointer" }}>+ Ajouter</button>
+                style={{ background: "#e8213a", color: "#ffffff", border: "none", borderRadius: "8px", padding: "0.3rem 0.9rem", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", fontSize: "0.8rem", cursor: "pointer" }}><span style={{display:"flex",alignItems:"center",gap:"6px"}}><Plus size={14} /> Ajouter</span></button>
             </div>
           </div>
           <div style={{ display: "flex", gap: "0.4rem" }}>
@@ -1375,7 +1382,7 @@ export default function App() {
                               <button onClick={() => handlePayerPaiement(p.id, p.recurrent, p.frequence, p.date_echeance)}
                                 style={{ background: "#5cb85c", color: "#3d1a0a", border: "none", borderRadius: "8px", padding: "0.4rem 0.7rem", fontSize: "0.78rem", cursor: "pointer", fontFamily: "'Poppins', sans-serif", fontWeight: "bold" }}>✅ Payé</button>
                               <button onClick={() => handleDeletePaiement(p.id)}
-                                style={{ background: "#fff5f5", color: "#e57373", border: "none", borderRadius: "8px", padding: "0.4rem 0.6rem", fontSize: "0.78rem", cursor: "pointer" }}>🗑️</button>
+                                style={{ background: "#fff5f5", color: "#e57373", border: "none", borderRadius: "8px", padding: "0.4rem 0.6rem", fontSize: "0.78rem", cursor: "pointer" }}><Trash2 size={15} /></button>
                             </div>
                           </div>
                         </div>
@@ -1410,7 +1417,7 @@ export default function App() {
                           <button onClick={() => handlePayerPaiement(p.id, p.recurrent, p.frequence, p.date_echeance)}
                             style={{ background: "#1a2a1a", color: "#4caf50", border: "1px solid #2a4a2a", borderRadius: "8px", padding: "0.4rem 0.7rem", fontSize: "0.78rem", cursor: "pointer", fontFamily: "'Poppins', sans-serif", fontWeight: "bold" }}>✅ Payé</button>
                           <button onClick={() => handleDeletePaiement(p.id)}
-                            style={{ background: "#fff5f5", color: "#e57373", border: "none", borderRadius: "8px", padding: "0.4rem 0.6rem", fontSize: "0.78rem", cursor: "pointer" }}>🗑️</button>
+                            style={{ background: "#fff5f5", color: "#e57373", border: "none", borderRadius: "8px", padding: "0.4rem 0.6rem", fontSize: "0.78rem", cursor: "pointer" }}><Trash2 size={15} /></button>
                         </div>
                       </div>
                     </div>
@@ -1438,7 +1445,7 @@ export default function App() {
                     <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
                       {p.montant && <div style={{ color: "#a07848", fontSize: "0.9rem" }}>{parseFloat(p.montant).toFixed(2)}€</div>}
                       <button onClick={() => handleDeletePaiement(p.id)}
-                        style={{ background: "none", color: "#c8a878", border: "none", cursor: "pointer", fontSize: "0.85rem" }}>🗑️</button>
+                        style={{ background: "none", color: "#c8a878", border: "none", cursor: "pointer", fontSize: "0.85rem" }}><Trash2 size={15} /></button>
                     </div>
                   </div>
                 </div>
@@ -1473,13 +1480,13 @@ export default function App() {
           <input value={loginPassword} onChange={e => setLoginPassword(e.target.value)} placeholder="Mot de passe..." type={showLoginPwd ? "text" : "password"}
             onKeyDown={e => e.key === "Enter" && handleLogin()} style={{ ...inputStyle, border: "2px solid #f5c842", paddingRight: "3rem" }} />
           <button onClick={() => setShowLoginPwd(p => !p)} style={{ position: "absolute", right: "0.75rem", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", fontSize: "1.1rem", padding: 0 }}>
-            {showLoginPwd ? "🙈" : "👁️"}
+            {showLoginPwd ? <EyeOff size={18} color="#c8a878" /> : <Eye size={18} color="#c8a878" />}
           </button>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
           <input type="checkbox" id="rememberMe" checked={rememberMe} onChange={e => setRememberMe(e.target.checked)}
             style={{ width: "1.1rem", height: "1.1rem", accentColor: "#f5c842", cursor: "pointer" }} />
-          <label htmlFor="rememberMe" style={{ color: "#c8a878", fontSize: "0.85rem", cursor: "pointer" }}>Se souvenir de moi</label>
+          <label htmlFor="rememberMe" style={{ color: "#c8a878", fontSize: "0.85rem", cursor: "pointer" }} style={{display:"flex",alignItems:"center",gap:"6px"}}>Se souvenir de moi</label>
         </div>
         {loginError && <p style={{ color: "#e57373", fontSize: "0.85rem", margin: 0, textAlign: "center" }}>{loginError}</p>}
         <button onClick={handleLogin} disabled={loginLoading} style={{ ...btnPrimary, opacity: loginLoading ? 0.7 : 1, marginTop: "0.5rem" }}>
@@ -1500,7 +1507,7 @@ export default function App() {
         <div style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "12px", padding: "1.2rem" }}>
           <div style={{ color: "#e8213a", fontSize: "1.2rem", fontWeight: "bold" }}>{currentUser.prenom}</div>
           <div style={{ color: "#a07848", fontSize: "0.8rem", marginTop: "0.25rem" }}>
-            {currentUser.role === "superadmin" ? "👑 Super Admin" : currentUser.role === "admin" ? "🔑 Admin" : "👤 Employé"}
+            {currentUser.role === "superadmin" ? "Super Admin" : currentUser.role === "admin" ? "Admin" : "Employé"}
           </div>
         </div>
         {!showChangePwd ? (
@@ -1512,15 +1519,15 @@ export default function App() {
             <div style={{ color: "#e8213a", fontSize: "0.9rem", fontWeight: "bold" }}>🔑 Changer le mot de passe</div>
             <div style={{ position: "relative" }}>
               <input value={oldPwd} onChange={e => setOldPwd(e.target.value)} placeholder="Ancien mot de passe" type={showOldPwd ? "text" : "password"} style={{ ...inputStyle, paddingRight: "3rem" }} />
-              <button onClick={() => setShowOldPwd(p => !p)} style={{ position: "absolute", right: "0.75rem", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", fontSize: "1.1rem", padding: 0 }}>{showOldPwd ? "🙈" : "👁️"}</button>
+              <button onClick={() => setShowOldPwd(p => !p)} style={{ position: "absolute", right: "0.75rem", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", fontSize: "1.1rem", padding: 0 }}>{showOldPwd ? <EyeOff size={18} color="#c8a878" /> : <Eye size={18} color="#c8a878" />}</button>
             </div>
             <div style={{ position: "relative" }}>
               <input value={newPwd} onChange={e => setNewPwd(e.target.value)} placeholder="Nouveau mot de passe" type={showNewPwd ? "text" : "password"} style={{ ...inputStyle, paddingRight: "3rem" }} />
-              <button onClick={() => setShowNewPwd(p => !p)} style={{ position: "absolute", right: "0.75rem", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", fontSize: "1.1rem", padding: 0 }}>{showNewPwd ? "🙈" : "👁️"}</button>
+              <button onClick={() => setShowNewPwd(p => !p)} style={{ position: "absolute", right: "0.75rem", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", fontSize: "1.1rem", padding: 0 }}>{showNewPwd ? <EyeOff size={18} color="#c8a878" /> : <Eye size={18} color="#c8a878" />}</button>
             </div>
             <div style={{ position: "relative" }}>
               <input value={newPwd2} onChange={e => setNewPwd2(e.target.value)} placeholder="Confirmer le nouveau mot de passe" type={showNewPwd2 ? "text" : "password"} style={{ ...inputStyle, paddingRight: "3rem" }} />
-              <button onClick={() => setShowNewPwd2(p => !p)} style={{ position: "absolute", right: "0.75rem", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", fontSize: "1.1rem", padding: 0 }}>{showNewPwd2 ? "🙈" : "👁️"}</button>
+              <button onClick={() => setShowNewPwd2(p => !p)} style={{ position: "absolute", right: "0.75rem", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", fontSize: "1.1rem", padding: 0 }}>{showNewPwd2 ? <EyeOff size={18} color="#c8a878" /> : <Eye size={18} color="#c8a878" />}</button>
             </div>
             {pwdMsg && <p style={{ color: pwdMsg.startsWith("✅") ? "#5cb85c" : "#e57373", fontSize: "0.85rem", margin: 0 }}>{pwdMsg}</p>}
             <div style={{ display: "flex", gap: "0.5rem" }}>
@@ -1543,7 +1550,7 @@ export default function App() {
       {toast && <div style={{ position: "fixed", top: "1rem", left: "50%", transform: "translateX(-50%)", background: "#faebd7", color: "#e8213a", padding: "0.55rem 1.4rem", borderRadius: "20px", fontSize: "0.88rem", zIndex: 999, border: "1.5px solid #f0d8b8", whiteSpace: "nowrap" }}>{toast}</div>}
       <div style={{ background: "#e8213a", padding: "1.2rem", borderBottom: "none", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <h1 style={{ color: "#ffffff", fontSize: "1.1rem", margin: 0 }}>👥 Gestion des comptes</h1>
-        <button onClick={() => setShowNewUser(true)} style={{ background: "#e8213a", color: "#ffffff", border: "none", borderRadius: "8px", padding: "0.5rem 0.9rem", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", fontSize: "0.85rem", cursor: "pointer" }}>+ Nouveau</button>
+        <button onClick={() => setShowNewUser(true)} style={{ background: "#e8213a", color: "#ffffff", border: "none", borderRadius: "8px", padding: "0.5rem 0.9rem", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", fontSize: "0.85rem", cursor: "pointer" }}><span style={{display:"flex",alignItems:"center",gap:"6px"}}><Plus size={14} /> Nouveau</span></button>
       </div>
       {showNewUser && (
         <div style={{ margin: "1rem", background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "12px", padding: "1rem", display: "flex", flexDirection: "column", gap: "0.6rem" }}>
@@ -1590,7 +1597,7 @@ export default function App() {
                 <div>
                   <div style={{ color: "#3d1a0a", fontSize: "0.95rem", fontWeight: "bold" }}>{u.prenom}</div>
                   <div style={{ color: "#a07848", fontSize: "0.75rem", marginTop: "0.2rem" }}>
-                    {u.role === "superadmin" ? "👑 Super Admin" : u.role === "admin" ? "🔑 Admin" : "👤 Employé"}
+                    {u.role === "superadmin" ? "Super Admin" : u.role === "admin" ? "Admin" : "Employé"}
                     {u.restaurant_id && ` · ${RESTAURANTS.find(r => r.id === u.restaurant_id)?.name || u.restaurant_id}`}
                   </div>
                 </div>
@@ -1599,7 +1606,7 @@ export default function App() {
                     <>
                       <button onClick={() => setEditingUser(u)} style={{ background: "#faebd7", border: "none", color: "#e8213a", borderRadius: "8px", padding: "0.4rem 0.7rem", cursor: "pointer", fontSize: "0.85rem" }}>✏️</button>
                       {isSuperAdmin && u.id !== currentUser.id && (
-                        <button onClick={() => handleDeleteUser(u.id)} style={{ background: "#fff5f5", border: "none", color: "#e57373", borderRadius: "8px", padding: "0.4rem 0.7rem", cursor: "pointer", fontSize: "0.85rem" }}>🗑️</button>
+                        <button onClick={() => handleDeleteUser(u.id)} style={{ background: "#fff5f5", border: "none", color: "#e57373", borderRadius: "8px", padding: "0.4rem 0.7rem", cursor: "pointer", fontSize: "0.85rem" }}><Trash2 size={15} /></button>
                       )}
                     </>
                   )}
@@ -1661,7 +1668,7 @@ export default function App() {
     return (
       <div style={{ ...s, minHeight: "100vh", background: "#faebd7", paddingBottom: isAdmin ? "5rem" : "2rem" }}>
         <div style={{ background: "#e8213a", padding: "1.2rem", borderBottom: "none", position: "sticky", top: 0, zIndex: 10, display: "flex", alignItems: "center", gap: "0.75rem" }}>
-          <button onClick={() => setShowAlerts(false)} style={{ background: "none", border: "none", color: "#e8213a", fontSize: "1.6rem", cursor: "pointer", padding: 0 }}>‹</button>
+          <button onClick={() => setShowAlerts(false)} style={{ background: "none", border: "none", color: "#e8213a", fontSize: "1.6rem", cursor: "pointer", padding: 0 }}><ArrowLeft size={20} /></button>
           <h2 style={{ color: "#ffffff", fontSize: "1.05rem", fontWeight: "bold", margin: 0 }}>⚠️ {totalAlerts} à commander</h2>
         </div>
         <div style={{ padding: "0.8rem 1.1rem" }}>
@@ -1695,15 +1702,15 @@ export default function App() {
       <div style={{ background: "#e8213a", padding: "1.2rem", borderBottom: "none", position: "sticky", top: 0, zIndex: 10 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-            <button onClick={() => { setRestaurant(null); setItems([]); }} style={{ background: "none", border: "none", color: "#ffffff", fontSize: "1.4rem", cursor: "pointer", padding: 0 }}>‹</button>
+            <button onClick={() => { setRestaurant(null); setItems([]); }} style={{ background: "none", border: "none", color: "#ffffff", fontSize: "1.4rem", cursor: "pointer", padding: 0 }}><ArrowLeft size={20} /></button>
             <div>
               <h1 style={{ color: "#ffffff", fontSize: "1.1rem", fontWeight: "bold", margin: 0 }}>{restaurant?.emoji} {restaurant?.name}</h1>
               <p style={{ color: "#ffffff99", fontSize: "0.72rem", margin: 0 }}>{getTodayStr()} · {currentUser.prenom}</p>
             </div>
           </div>
           <div style={{ display: "flex", gap: "0.5rem" }}>
-            <button onClick={() => loadData(restaurant)} style={{ background: "none", border: "1.5px solid #f0d8b8", color: "#a07848", borderRadius: "8px", padding: "0.35rem 0.6rem", fontSize: "0.8rem", cursor: "pointer", fontFamily: "'Poppins', sans-serif" }}>🔄</button>
-            {totalAlerts > 0 && <button onClick={() => setShowAlerts(true)} style={{ background: "#e8213a22", color: "#e8213a", border: "none", borderRadius: "20px", padding: "0.4rem 0.85rem", fontSize: "0.78rem", fontWeight: "bold", cursor: "pointer", fontFamily: "'Poppins', sans-serif" }}>⚠️ {totalAlerts}</button>}
+            <button onClick={() => loadData(restaurant)} style={{ background: "none", border: "1.5px solid #f0d8b8", color: "#a07848", borderRadius: "8px", padding: "0.35rem 0.6rem", fontSize: "0.8rem", cursor: "pointer", fontFamily: "'Poppins', sans-serif" }}><RefreshCw size={16} /></button>
+            {totalAlerts > 0 && <button onClick={() => setShowAlerts(true)} style={{ background: "#e8213a22", color: "#e8213a", border: "none", borderRadius: "20px", padding: "0.4rem 0.85rem", fontSize: "0.78rem", fontWeight: "bold", cursor: "pointer", fontFamily: "'Poppins', sans-serif", display: "flex", alignItems: "center", gap: "4px" }}><AlertTriangle size={13} /> {totalAlerts}</button>}
             {isAdmin && <button onClick={() => setShowResetConfirm(true)} style={{ background: "#1a1a2a", color: "#8888ff", border: "1px solid #2a2a4a", borderRadius: "8px", padding: "0.35rem 0.6rem", fontSize: "0.78rem", cursor: "pointer", fontFamily: "'Poppins', sans-serif" }}>🔄 RAZ</button>}
           </div>
         </div>
@@ -1750,7 +1757,7 @@ export default function App() {
       {toast && <div style={{ position: "fixed", top: "1rem", left: "50%", transform: "translateX(-50%)", background: "#faebd7", color: "#e8213a", padding: "0.55rem 1.4rem", borderRadius: "20px", fontSize: "0.88rem", zIndex: 999, border: "1.5px solid #f0d8b8", whiteSpace: "nowrap", pointerEvents: "none" }}>{toast}</div>}
       <div style={{ background: "#fff8f0", padding: "1rem 1.2rem", borderBottom: "1.5px solid #f0d8b8", position: "sticky", top: 0, zIndex: 10 }}>
         <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-          <button onClick={() => { setActiveStore(null); setEditingId(null); setAddMode(false); }} style={{ background: "none", border: "none", color: "#ffffff", fontSize: "1.6rem", cursor: "pointer", padding: 0, lineHeight: 1 }}>‹</button>
+          <button onClick={() => { setActiveStore(null); setEditingId(null); setAddMode(false); }} style={{ background: "none", border: "none", color: "#ffffff", fontSize: "1.6rem", cursor: "pointer", padding: 0, lineHeight: 1 }}><ArrowLeft size={20} /></button>
           <div>
             <h2 style={{ color: "#3d1a0a", fontSize: "1rem", fontWeight: "bold", margin: 0 }}>{activeStore}</h2>
             <p style={{ color: "#c8a878", fontSize: "0.72rem", margin: "0.15rem 0 0" }}>{storeItems.length} articles · {currentUser.prenom}</p>
@@ -1775,7 +1782,7 @@ export default function App() {
                     ))}
                   </div>
                   <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.75rem" }}>
-                    <button onClick={() => saveQty(item.id)} disabled={saving} style={{ flex: 1, background: saving ? "#c8a878" : "#e8213a", color: "#ffffff", border: "none", padding: "0.8rem", borderRadius: "8px", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", fontSize: "0.95rem", cursor: "pointer" }}>{saving ? "⏳..." : "Enregistrer"}</button>
+                    <button onClick={() => saveQty(item.id)} disabled={saving} style={{ flex: 1, background: saving ? "#c8a878" : "#e8213a", color: "#ffffff", border: "none", padding: "0.8rem", borderRadius: "8px", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", fontSize: "0.95rem", cursor: "pointer" }} style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}>{saving ? "⏳..." : <><Save size={15} /> Enregistrer</>}</button>
                     <button onClick={() => setEditingId(null)} style={{ background: "#faebd7", color: "#c8a878", border: "none", padding: "0.8rem 1rem", borderRadius: "8px", cursor: "pointer" }}>✕</button>
                   </div>
                 </div>
@@ -1805,7 +1812,7 @@ export default function App() {
                     <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
                       {low && <span>⚠️</span>}
                       <span style={{ background: low ? "#fff0f0" : "#faebd7", color: low ? "#e8213a" : "#f5a623", padding: "0.35rem 0.75rem", borderRadius: "6px", fontSize: "0.92rem", fontWeight: "bold", minWidth: "2.2rem", textAlign: "center" }}>{item.qty === "" ? "—" : item.qty}</span>
-                      {isAdmin && <button onClick={e => { e.stopPropagation(); setEditItemId(item.id); setEditItemName(item.name); setEditItemThreshold(String(item.threshold)); setEditItemThresholdLabel(item.threshold_label); }} style={{ background: "none", border: "none", color: "#a07848", cursor: "pointer", fontSize: "0.85rem", padding: 0 }}>⚙️</button>}
+                      {isAdmin && <button onClick={e => { e.stopPropagation(); setEditItemId(item.id); setEditItemName(item.name); setEditItemThreshold(String(item.threshold)); setEditItemThresholdLabel(item.threshold_label); }} style={{ background: "none", border: "none", color: "#a07848", cursor: "pointer", fontSize: "0.85rem", padding: 0 }}><Settings size={14} /></button>}
                     </div>
                   </div>
                 )}
