@@ -1780,8 +1780,7 @@ export default function App() {
                     <button onClick={() => setEditingId(null)} style={{ background: "#faebd7", color: "#c8a878", border: "none", padding: "0.8rem 1rem", borderRadius: "8px", cursor: "pointer" }}>✕</button>
                   </div>
                 </div>
-              ) : (
-                {editItemId === item.id ? (
+              ) : editItemId === item.id ? (
                   <div style={{ padding: "0.9rem 1rem", display: "flex", flexDirection: "column", gap: "0.5rem" }}>
                     <div style={{ color: "#e8213a", fontSize: "0.85rem", fontWeight: "bold" }}>⚙️ Modifier l'article</div>
                     <input value={editItemName} onChange={e => setEditItemName(e.target.value)} placeholder="Nom..."
