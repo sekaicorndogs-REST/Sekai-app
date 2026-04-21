@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from "react";
-import { Package, Calendar, CreditCard, User, Users, AlertTriangle, CheckCircle, ChevronRight, RefreshCw, ArrowLeft, Save, Eye, EyeOff, Check, Lock, AlertCircle, Pencil, LogOut, Shield, Star, Settings, Plus, Trash2, ChevronDown, Clock, TrendingUp, BarChart2 } from "lucide-react";
 
 const SUPABASE_URL = "https://ldpxgfgcnlzktaymtnwd.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkcHhnZmdjbmx6a3RheW10bndkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxOTgyMTAsImV4cCI6MjA5MTc3NDIxMH0.N_yUwjRvBM9rfxu0Xj-FCCGJ9eJ3UomPZdcUYAb8B8s";
