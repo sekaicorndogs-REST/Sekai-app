@@ -1206,31 +1206,103 @@ export default function App() {
                 }
 
                 // VUE EMPLOYÉ
-                const st = heuresPrestees[currentUser.prenom];
-                const enPlus = heuresEnPlus[currentUser.prenom];
-                if (!st) return <div style={{ color: "#c8a878", fontSize: "0.82rem", textAlign: "center", padding: "2rem" }}>Aucune donnée ce mois-ci</div>;
+                const nom = currentUser.prenom;
+                const enPlus = heuresEnPlus[nom];
+                const todayEmp = new Date();
+                const todayEmpStr = todayEmp.getFullYear() + "-" + String(todayEmp.getMonth()+1).padStart(2,"0") + "-" + String(todayEmp.getDate()).padStart(2,"0");
+
+                // Tous les jours du cycle pour cet employé ce mois
+                const tousLesJours = [];
+                for (let d = 1; d <= daysInMonth; d++) {
+                  const dateStr = year + "-" + String(month+1).padStart(2,"0") + "-" + String(d).padStart(2,"0");
+                  const emps = getAutoEmployes(dateStr);
+                  if (emps.includes(nom)) {
+                    const autoH = getAutoHoraire(dateStr);
+                    const h = parseFloat(calcHeures(autoH.debut, autoH.fin));
+                    const estRemplace = moisH.find(r => normalizeDate(r.date) === dateStr && r.est_remplacement && r.remplace_nom === nom);
+                    tousLesJours.push({ dateStr, debut: autoH.debut, fin: autoH.fin, heures: h, estRemplace: !!estRemplace, type: "normal" });
+                  }
+                }
+
+                // Jours supplémentaires encodés manuellement (hors cycle)
+                const joursExtra = moisH.filter(h => {
+                  const isInCycle = tousLesJours.find(j => j.dateStr === normalizeDate(h.date));
+                  return h.employe_nom === nom && !h.est_remplacement && !isInCycle;
+                }).map(h => ({
+                  dateStr: normalizeDate(h.date),
+                  debut: h.heure_debut.slice(0,5),
+                  fin: h.heure_fin.slice(0,5),
+                  heures: parseFloat(calcHeures(h.heure_debut.slice(0,5), h.heure_fin.slice(0,5))),
+                  estRemplace: false,
+                  type: "extra"
+                }));
+
+                // Remplacements qu'il fait pour quelqu'un d'autre
+                const joursRemplacement = moisH.filter(h => h.employe_nom === nom && h.est_remplacement).map(h => ({
+                  dateStr: normalizeDate(h.date),
+                  debut: h.heure_debut.slice(0,5),
+                  fin: h.heure_fin.slice(0,5),
+                  heures: parseFloat(calcHeures(h.heure_debut.slice(0,5), h.heure_fin.slice(0,5))),
+                  remplace_nom: h.remplace_nom,
+                  type: "remplacement"
+                }));
+
+                const tousJours = [...tousLesJours, ...joursExtra, ...joursRemplacement]
+                  .sort((a, b) => a.dateStr.localeCompare(b.dateStr));
+
+                const heuresFaites = tousLesJours.filter(j => j.dateStr < todayEmpStr && !j.estRemplace).reduce((s, j) => s + j.heures, 0)
+                  + joursExtra.filter(j => j.dateStr < todayEmpStr).reduce((s, j) => s + j.heures, 0)
+                  + joursRemplacement.filter(j => j.dateStr < todayEmpStr).reduce((s, j) => s + j.heures, 0);
+
+                const heuresAvenir = tousLesJours.filter(j => j.dateStr >= todayEmpStr && !j.estRemplace).reduce((s, j) => s + j.heures, 0)
+                  + joursExtra.filter(j => j.dateStr >= todayEmpStr).reduce((s, j) => s + j.heures, 0)
+                  + joursRemplacement.filter(j => j.dateStr >= todayEmpStr).reduce((s, j) => s + j.heures, 0);
+
+                const heuresRemplaceesMoi = tousLesJours.filter(j => j.estRemplace).reduce((s, j) => s + j.heures, 0);
+                const totalNet = heuresFaites + heuresAvenir;
+
                 return (
-                  <div style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "12px", padding: "1rem" }}>
-                    <div style={{ color: "#e8213a", fontSize: "0.9rem", fontWeight: "bold", marginBottom: "0.5rem" }}>👤 {currentUser.prenom}</div>
-                    <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
-                      <div style={{ background: "#f5fff8", border: "1.5px solid #4caf5033", borderRadius: "8px", padding: "0.5rem 0.8rem", flex: 1 }}>
-                        <div style={{ color: "#4caf50", fontSize: "0.7rem", marginBottom: "0.2rem" }}>✅ Prestées</div>
-                        <div style={{ color: "#3d1a0a", fontSize: "1.1rem", fontWeight: "bold" }}>{st.travail.toFixed(1)}h</div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+                    {/* Résumé */}
+                    <div style={{ background: "#e8213a", borderRadius: "14px", padding: "1rem 1.2rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <div>
+                        <div style={{ color: "#ffffff99", fontSize: "0.72rem", marginBottom: "0.2rem" }}>Total du mois</div>
+                        <div style={{ color: "#ffffff", fontSize: "1.6rem", fontWeight: "700" }}>{totalNet.toFixed(1)}h</div>
                       </div>
-                      {st.joursRemplace > 0 && (
-                        <div style={{ background: "#fff5f5", border: "1px solid #3a1a1a", borderRadius: "8px", padding: "0.5rem 0.8rem", flex: 1 }}>
-                          <div style={{ color: "#e57373", fontSize: "0.7rem", marginBottom: "0.2rem" }}>🔄 Remplacé</div>
-                          <div style={{ color: "#e57373", fontSize: "1.1rem", fontWeight: "bold" }}>-{st.remplace.toFixed(1)}h</div>
-                          <div style={{ color: "#5a2a2a", fontSize: "0.7rem" }}>{st.joursRemplace} jour{st.joursRemplace > 1 ? "s" : ""}</div>
-                        </div>
-                      )}
-                      {enPlus && (
-                        <div style={{ background: "#0f1a2a", border: "1px solid #1e3a5a", borderRadius: "8px", padding: "0.5rem 0.8rem", flex: 1 }}>
-                          <div style={{ color: "#6ab0ff", fontSize: "0.7rem", marginBottom: "0.2rem" }}>➕ En plus</div>
-                          <div style={{ color: "#6ab0ff", fontSize: "1.1rem", fontWeight: "bold" }}>+{enPlus.heures.toFixed(1)}h</div>
-                        </div>
-                      )}
+                      <div style={{ textAlign: "right", display: "flex", flexDirection: "column", gap: "0.15rem" }}>
+                        <div style={{ color: "#ffffff99", fontSize: "0.7rem" }}>✅ {heuresFaites.toFixed(1)}h faites</div>
+                        <div style={{ color: "#ffffff99", fontSize: "0.7rem" }}>📅 {heuresAvenir.toFixed(1)}h à venir</div>
+                        {heuresRemplaceesMoi > 0 && <div style={{ color: "#ffffff99", fontSize: "0.7rem" }}>🔄 -{heuresRemplaceesMoi.toFixed(1)}h remplacé</div>}
+                      </div>
                     </div>
+
+                    {/* Liste des jours */}
+                    <div style={{ color: "#a07848", fontSize: "0.75rem", fontWeight: "600" }}>📋 Mes jours ce mois</div>
+                    {tousJours.map((j, idx) => (
+                      <div key={idx} style={{
+                        background: j.estRemplace ? "#fff5f5" : j.type === "extra" ? "#f0fff4" : j.type === "remplacement" ? "#f0f8ff" : j.dateStr === todayEmpStr ? "#f5fff8" : "#ffffff",
+                        border: `1.5px solid ${j.estRemplace ? "#e8213a33" : j.type === "extra" ? "#4caf5033" : j.type === "remplacement" ? "#6ab0ff33" : j.dateStr === todayEmpStr ? "#4caf5033" : "#f0d8b8"}`,
+                        borderRadius: "10px", padding: "0.7rem 1rem",
+                        display: "flex", justifyContent: "space-between", alignItems: "center",
+                        opacity: j.dateStr < todayEmpStr ? 0.65 : 1
+                      }}>
+                        <div>
+                          <div style={{ color: "#3d1a0a", fontSize: "0.85rem", fontWeight: "600", textTransform: "capitalize" }}>
+                            {j.dateStr === todayEmpStr ? "🟢 " : ""}{formatDateShort(j.dateStr)}
+                          </div>
+                          {j.estRemplace && <div style={{ color: "#e8213a", fontSize: "0.7rem" }}>🔄 Remplacé</div>}
+                          {j.type === "extra" && <div style={{ color: "#4caf50", fontSize: "0.7rem" }}>➕ Heure extra</div>}
+                          {j.type === "remplacement" && <div style={{ color: "#6ab0ff", fontSize: "0.7rem" }}>🔄 Remplace {j.remplace_nom}</div>}
+                        </div>
+                        <div style={{ textAlign: "right" }}>
+                          <div style={{ color: j.estRemplace ? "#e8213a" : j.type === "extra" ? "#4caf50" : j.type === "remplacement" ? "#6ab0ff" : "#f5a623", fontSize: "0.95rem", fontWeight: "700" }}>
+                            {j.estRemplace ? "-" : j.type !== "normal" ? "+" : ""}{j.heures.toFixed(1)}h
+                          </div>
+                          <div style={{ color: "#c8a878", fontSize: "0.7rem" }}>{j.debut}→{j.fin}</div>
+                        </div>
+                      </div>
+                    ))}
+                    {tousJours.length === 0 && <div style={{ color: "#c8a878", fontSize: "0.82rem", textAlign: "center", padding: "2rem" }}>Aucun jour ce mois-ci</div>}
                   </div>
                 );
               })()}
