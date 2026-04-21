@@ -1058,7 +1058,7 @@ export default function App() {
               ).map(([nom, stats]: [string, any]) => (
                 <div key={nom} style={{ background: "#fff8f0", border: "1px solid #3a1a1a", borderRadius: "12px", padding: "1rem", marginBottom: "0.75rem" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
-                    <div style={{ color: "#e57373", fontSize: "0.95rem", fontWeight: "bold" }}>👤 {nom}</div>
+                    <div style={{ color: "#e8213a", fontSize: "0.95rem", fontWeight: "bold" }}>👤 {nom}</div>
                     <div style={{ display: "flex", gap: "0.5rem" }}>
                       <span style={{ background: "#fff0f0", color: "#e57373", borderRadius: "8px", padding: "0.2rem 0.6rem", fontSize: "0.78rem" }}>{stats.count} jour{stats.count > 1 ? "s" : ""}</span>
                       <span style={{ background: "#1a1a2a", color: "#8888ff", borderRadius: "8px", padding: "0.2rem 0.6rem", fontSize: "0.78rem" }}>{stats.heures.toFixed(1)}h</span>
@@ -1681,9 +1681,9 @@ export default function App() {
                 {list.map(item => (
                   <div key={item.id} style={{ background: "#fff5f5", border: "1.5px solid #e8213a44", borderRadius: "10px", padding: "0.85rem 1rem", marginBottom: "0.4rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <div>
-                      <div style={{ color: "#e57373", fontSize: "0.95rem" }}>{item.name}</div>
-                      {item.note && <div style={{ color: "#7a3a3a", fontSize: "0.7rem" }}>📌 {item.note}</div>}
-                      <div style={{ color: "#5a2a2a", fontSize: "0.72rem" }}>Seuil : {item.threshold_label}</div>
+                      <div style={{ color: "#e8213a", fontSize: "0.95rem" }}>{item.name}</div>
+                      {item.note && <div style={{ color: "#a07848", fontSize: "0.7rem" }}>📌 {item.note}</div>}
+                      <div style={{ color: "#a07848", fontSize: "0.72rem" }}>Seuil : {item.threshold_label}</div>
                     </div>
                     <span style={{ background: "#fff0f0", color: "#e57373", padding: "0.35rem 0.75rem", borderRadius: "6px", fontSize: "0.92rem", fontWeight: "bold" }}>{item.qty === "" ? "—" : item.qty}</span>
                   </div>
