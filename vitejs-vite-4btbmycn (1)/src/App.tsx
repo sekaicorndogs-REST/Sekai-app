@@ -1428,7 +1428,7 @@ export default function App() {
                 <div key={p.id} style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "12px", padding: "1rem", marginBottom: "0.5rem", opacity: p.statut === "paye" ? 0.7 : 1 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <div style={{ flex: 1 }}>
-                      <div style={{ color: p.statut === "paye" ? "#5cb85c" : "#e57373", fontSize: "0.9rem", fontWeight: "bold" }}>
+                      <div style={{ color: p.statut === "paye" ? "#4caf50" : "#e8213a", fontSize: "0.9rem", fontWeight: "bold" }}>
                         {p.statut === "paye" ? "✅" : "⚠️"} {TYPE_ICONS[p.type]} {p.titre}
                       </div>
                       <div style={{ color: "#a07848", fontSize: "0.75rem", marginTop: "0.2rem" }}>
