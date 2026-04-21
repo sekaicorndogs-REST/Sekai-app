@@ -1258,9 +1258,9 @@ export default function App() {
     const TYPE_LABELS = { fournisseur: "Fournisseur", salaire: "Salaire", loyer: "Loyer", autre: "Autre" };
 
     function getStatutStyle(p) {
-      if (p.date_echeance < todayStr) return { border: "#5a1a1a", bg: "#1a0f0f", color: "#e57373", label: "⚠️ En retard" };
-      if (p.date_echeance <= in3Str) return { border: "#5a4a1a", bg: "#1a1a0f", color: "#e8213a", label: "🔔 Urgent" };
-      return { border: "#1e1e1e", bg: "#141414", color: "#3d1a0a", label: "" };
+      if (p.date_echeance < todayStr) return { border: "#e8213a55", bg: "#fff5f5", color: "#e57373", label: "⚠️ En retard" };
+      if (p.date_echeance <= in3Str) return { border: "#f5a62355", bg: "#fff8f0", color: "#e8213a", label: "🔔 Urgent" };
+      return { border: "#f0d8b8", bg: "#ffffff", color: "#3d1a0a", label: "" };
     }
 
     return (
