@@ -469,6 +469,7 @@ export default function App() {
         const d = new Date(dateEcheance + "T12:00:00");
         if (frequence === "hebdo") d.setDate(d.getDate() + 7);
         else if (frequence === "mensuel") d.setMonth(d.getMonth() + 1);
+        else if (frequence === "trimestriel") d.setMonth(d.getMonth() + 3);
         else if (frequence === "annuel") d.setFullYear(d.getFullYear() + 1);
         const nextDate = d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
         const current = paiements.find(p => p.id === id);
@@ -1411,6 +1412,7 @@ export default function App() {
                   style={{ background: "#faebd7", border: "1px solid #f5c842", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", fontFamily: "'Poppins', sans-serif", outline: "none", width: "100%" }}>
                   <option value="hebdo">📅 Hebdomadaire</option>
                   <option value="mensuel">📅 Mensuel</option>
+                  <option value="trimestriel">📅 Trimestriel</option>
                   <option value="annuel">📅 Annuel</option>
                 </select>
               )}
@@ -1431,12 +1433,12 @@ export default function App() {
                 {totalRetard > 0 && (
                   <div style={{ flex: 1, background: "#fff5f5", border: "1px solid #3a1a1a", borderRadius: "10px", padding: "0.75rem" }}>
                     <div style={{ color: "#e57373", fontSize: "0.7rem" }}>⚠️ En retard</div>
-                    <div style={{ color: "#e57373", fontSize: "1.1rem", fontWeight: "bold" }}>{totalRetard.toFixed(2)}€</div>
+                    <div style={{ color: "#e57373", fontSize: "1.1rem", fontWeight: "bold" }}>{totalRetard % 1 === 0 ? totalRetard : totalRetard.toFixed(2)}€</div>
                   </div>
                 )}
                 <div style={{ flex: 1, background: "#f5fff8", border: "1.5px solid #4caf5033", borderRadius: "10px", padding: "0.75rem" }}>
                   <div style={{ color: "#4caf50", fontSize: "0.7rem" }}>📅 3 prochains mois</div>
-                  <div style={{ color: "#4caf50", fontSize: "1.1rem", fontWeight: "bold" }}>{totalAvenir.toFixed(2)}€</div>
+                  <div style={{ color: "#4caf50", fontSize: "1.1rem", fontWeight: "bold" }}>{totalAvenir % 1 === 0 ? totalAvenir : totalAvenir.toFixed(2)}€</div>
                 </div>
               </div>
 
@@ -1458,7 +1460,7 @@ export default function App() {
                             {p.note && <div style={{ color: "#a07848", fontSize: "0.72rem", marginTop: "0.2rem" }}>📌 {p.note}</div>}
                           </div>
                           <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "0.4rem" }}>
-                            {p.montant && <div style={{ color: "#3d1a0a", fontSize: "1rem", fontWeight: "700" }}>{parseFloat(p.montant).toFixed(2)}€</div>}
+                            {p.montant && <div style={{ color: "#3d1a0a", fontSize: "1rem", fontWeight: "700" }}>{parseFloat(p.montant) % 1 === 0 ? parseInt(p.montant) : parseFloat(p.montant).toFixed(2)}€</div>}
                             <div style={{ display: "flex", gap: "0.3rem" }}>
                               <button onClick={() => handlePayerPaiement(p.id, p.recurrent, p.frequence, p.date_echeance)}
                                 style={{ background: "#5cb85c", color: "#3d1a0a", border: "none", borderRadius: "8px", padding: "0.4rem 0.7rem", fontSize: "0.78rem", cursor: "pointer", fontFamily: "'Poppins', sans-serif", fontWeight: "bold" }}>✅ Payé</button>
@@ -1493,7 +1495,7 @@ export default function App() {
                         {p.note && <div style={{ color: "#a07848", fontSize: "0.72rem", marginTop: "0.2rem" }}>📌 {p.note}</div>}
                       </div>
                       <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "0.4rem" }}>
-                        {p.montant && <div style={{ color: "#3d1a0a", fontSize: "1rem", fontWeight: "700" }}>{parseFloat(p.montant).toFixed(2)}€</div>}
+                        {p.montant && <div style={{ color: "#3d1a0a", fontSize: "1rem", fontWeight: "700" }}>{parseFloat(p.montant) % 1 === 0 ? parseInt(p.montant) : parseFloat(p.montant).toFixed(2)}€</div>}
                         <div style={{ display: "flex", gap: "0.3rem" }}>
                           <button onClick={() => handlePayerPaiement(p.id, p.recurrent, p.frequence, p.date_echeance)}
                             style={{ background: "#1a2a1a", color: "#4caf50", border: "1px solid #2a4a2a", borderRadius: "8px", padding: "0.4rem 0.7rem", fontSize: "0.78rem", cursor: "pointer", fontFamily: "'Poppins', sans-serif", fontWeight: "bold" }}>✅ Payé</button>
@@ -1524,7 +1526,7 @@ export default function App() {
                       </div>
                     </div>
                     <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                      {p.montant && <div style={{ color: "#a07848", fontSize: "0.9rem" }}>{parseFloat(p.montant).toFixed(2)}€</div>}
+                      {p.montant && <div style={{ color: "#a07848", fontSize: "0.9rem" }}>{parseFloat(p.montant) % 1 === 0 ? parseInt(p.montant) : parseFloat(p.montant).toFixed(2)}€</div>}
                       <button onClick={() => handleDeletePaiement(p.id)}
                         style={{ background: "none", color: "#c8a878", border: "none", cursor: "pointer", fontSize: "0.85rem" }}><Trash2 size={15} /></button>
                     </div>
