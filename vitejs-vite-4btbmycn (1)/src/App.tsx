@@ -444,7 +444,7 @@ export default function App() {
     try {
       await createPaiement({
         titre: paiementTitre.trim(),
-        montant: parseFloat(paiementMontant) || null,
+        montant: parseFloat(paiementMontant.replace(",", ".")) || null,
         date_echeance: paiementDate,
         type: paiementType,
         statut: "en_attente",
@@ -1388,7 +1388,7 @@ export default function App() {
               <input value={paiementTitre} onChange={e => setPaiementTitre(e.target.value)} placeholder="Titre (ex: Facture OZ Food)..."
                 style={{ background: "#faebd7", border: "1px solid #f5c842", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", fontFamily: "'Poppins', sans-serif", outline: "none", width: "100%", boxSizing: "border-box" as const }} />
               <div style={{ display: "flex", gap: "0.5rem" }}>
-                <input value={paiementMontant} onChange={e => setPaiementMontant(e.target.value)} placeholder="Montant (€)..." inputMode="decimal"
+                <input value={paiementMontant} onChange={e => setPaiementMontant(e.target.value.replace(",", "."))} placeholder="Montant ex: 374.55" inputMode="decimal" type="text"
                   style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", fontFamily: "'Poppins', sans-serif", outline: "none", flex: 1, boxSizing: "border-box" as const }} />
                 <input type="date" value={paiementDate} onChange={e => setPaiementDate(e.target.value)}
                   style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", fontFamily: "'Poppins', sans-serif", outline: "none", flex: 1, boxSizing: "border-box" as const }} />
