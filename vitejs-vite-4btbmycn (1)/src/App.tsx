@@ -261,6 +261,28 @@ function getCurrentMois() {
   return d.getFullYear() + "-" + month;
 }
 
+// ── EVENT WORKERS API ──────────────────────────────────────
+async function fetchEventWorkers() {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/event_workers?select=*&order=event_date.asc`, { headers: HEADERS });
+  if (!res.ok) throw new Error("Fetch event_workers failed");
+  return res.json();
+}
+
+async function createEventWorker(data) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/event_workers`, {
+    method: "POST", headers: HEADERS, body: JSON.stringify(data)
+  });
+  if (!res.ok) throw new Error("Create event_worker failed");
+  return res.json();
+}
+
+async function deleteEventWorker(id) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/event_workers?id=eq.${id}`, {
+    method: "DELETE", headers: HEADERS
+  });
+  if (!res.ok) throw new Error("Delete event_worker failed");
+}
+
 export default function App() {
   const [currentUser, setCurrentUser] = useState(null);
   const [loginPrenom, setLoginPrenom] = useState("");
@@ -332,6 +354,16 @@ export default function App() {
   const [horaireRestaurant, setHoraireRestaurant] = useState("rue-neuve");
   const [horaireLoading, setHoraireLoading] = useState(false);
   const [remplacementMois, setRemplacementMois] = useState(getCurrentMois());
+  // ── Events team ──
+  const [eventWorkers, setEventWorkers] = useState([]);
+  const [eventWorkersLoading, setEventWorkersLoading] = useState(false);
+  const [showAddEvent, setShowAddEvent] = useState(false);
+  const [newEventLabel, setNewEventLabel] = useState("");
+  const [newEventStand, setNewEventStand] = useState("");
+  const [newEventDate, setNewEventDate] = useState("");
+  const [newEventEmployes, setNewEventEmployes] = useState([]);
+  const [newEventNote, setNewEventNote] = useState("");
+  const [eventMois, setEventMois] = useState(getCurrentMois());
   const inputRef = useRef(null);
 
   useEffect(() => {
@@ -350,6 +382,7 @@ export default function App() {
         }
         // Précharger les horaires en arrière-plan
         fetchHoraires("rue-neuve");
+        loadEventWorkers();
       } catch {}
     }
   }, []);
@@ -379,6 +412,7 @@ export default function App() {
       }
       // Précharger les horaires en arrière-plan
       fetchHoraires("rue-neuve");
+        loadEventWorkers();
     } catch { setLoginError("Erreur de connexion."); }
     finally { setLoginLoading(false); }
   }
@@ -728,6 +762,55 @@ export default function App() {
     } catch { flash("❌ Erreur"); }
   }
 
+  // ── Events team handlers ──
+  async function loadEventWorkers() {
+    setEventWorkersLoading(true);
+    try {
+      const data = await fetchEventWorkers();
+      setEventWorkers(data);
+    } catch { flash("❌ Erreur chargement events"); }
+    finally { setEventWorkersLoading(false); }
+  }
+
+  async function handleAddEvent() {
+    if (!newEventLabel.trim() || !newEventDate || newEventEmployes.length === 0) {
+      flash("❌ Nom, date et au moins 1 personne requis");
+      return;
+    }
+    try {
+      for (const nom of newEventEmployes) {
+        await createEventWorker({
+          employe_nom: nom,
+          event_label: newEventLabel.trim(),
+          event_stand: newEventStand || null,
+          event_date: newEventDate,
+          notes: newEventNote.trim() || null,
+          assigned_by: currentUser.prenom
+        });
+      }
+      flash(`✅ Event ajouté pour ${newEventEmployes.length} personne${newEventEmployes.length > 1 ? "s" : ""}`);
+      setShowAddEvent(false);
+      setNewEventLabel(""); setNewEventStand(""); setNewEventDate("");
+      setNewEventEmployes([]); setNewEventNote("");
+      loadEventWorkers();
+    } catch { flash("❌ Erreur création event"); }
+  }
+
+  async function handleDeleteEventWorker(id) {
+    if (!confirm("Retirer cette personne de l'event ?")) return;
+    try {
+      await deleteEventWorker(id);
+      flash("🗑️ Retiré !");
+      loadEventWorkers();
+    } catch { flash("❌ Erreur"); }
+  }
+
+  function toggleEventEmploye(nom) {
+    setNewEventEmployes(prev =>
+      prev.includes(nom) ? prev.filter(n => n !== nom) : [...prev, nom]
+    );
+  }
+
   const BottomNav = () => currentUser ? (
     <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: "#fff8f0", borderTop: "1.5px solid #f0d8b8", display: "flex", zIndex: 40, paddingBottom: "env(safe-area-inset-bottom, 0px)" }}>
       {[
@@ -971,7 +1054,7 @@ export default function App() {
             </div>
           </div>
           <div style={{ display: "flex", gap: "0.4rem" }}>
-            {[{id:"week",label:"Semaine"},{id:"remplacements",label:"Remplacements"},{id:"stats",label:"Stats"}].map(tab => (
+            {[{id:"week",label:"Semaine"},{id:"remplacements",label:"Remplacements"},{id:"events",label:"Events"},{id:"stats",label:"Stats"}].map(tab => (
               <button key={tab.id} onClick={() => setHoraireView(tab.id)}
                 style={{ background: horaireView === tab.id ? "#f5c842" : "#1e1e1e", color: horaireView === tab.id ? "#111" : "#555", border: "none", borderRadius: "8px", padding: "0.35rem 0.9rem", fontSize: "0.78rem", fontFamily: "'Poppins', sans-serif", fontWeight: horaireView === tab.id ? "bold" : "normal", cursor: "pointer" }}>
                 {tab.label}
@@ -1088,6 +1171,123 @@ export default function App() {
               ))}
             </div>
           )}
+          {/* EVENTS VIEW */}
+          {horaireView === "events" && (
+            <div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
+                <div style={{ color: "#a07848", fontSize: "0.75rem", fontWeight: "bold" }}>🎪 Events du mois</div>
+                <div style={{ display: "flex", gap: "0.4rem" }}>
+                  <input type="month" value={eventMois} onChange={e => setEventMois(e.target.value)}
+                    style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#e8213a", borderRadius: "8px", padding: "0.3rem 0.5rem", fontSize: "0.75rem", fontFamily: "'Poppins', sans-serif", outline: "none" }} />
+                  {isAdmin && (
+                    <button onClick={() => {
+                      setNewEventDate(getTodayDateStr());
+                      setNewEventLabel(""); setNewEventStand(""); setNewEventEmployes([]); setNewEventNote("");
+                      setShowAddEvent(true);
+                    }} style={{ background: "#e8213a", border: "none", color: "#fff", borderRadius: "8px", padding: "0.3rem 0.7rem", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", fontSize: "0.78rem", cursor: "pointer" }}>+ Event</button>
+                  )}
+                </div>
+              </div>
+
+              {(() => {
+                const moisEvents = eventWorkers.filter(e => normalizeDate(e.event_date).startsWith(eventMois));
+                const visible = isAdmin ? moisEvents : moisEvents.filter(e => e.employe_nom === currentUser.prenom);
+
+                const grouped = {};
+                visible.forEach(e => {
+                  const key = `${normalizeDate(e.event_date)}__${e.event_label}__${e.event_stand || ""}`;
+                  if (!grouped[key]) grouped[key] = { date: normalizeDate(e.event_date), label: e.event_label, stand: e.event_stand, items: [], note: e.notes };
+                  grouped[key].items.push(e);
+                });
+                const cards = Object.values(grouped).sort((a: any, b: any) => a.date.localeCompare(b.date));
+
+                if (cards.length === 0) {
+                  return <div style={{ color: "#c8a878", fontSize: "0.82rem", textAlign: "center", padding: "2rem" }}>Aucun event ce mois-ci</div>;
+                }
+
+                return cards.map((card: any, idx: number) => (
+                  <div key={idx} style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "12px", padding: "1rem", marginBottom: "0.75rem" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "0.5rem" }}>
+                      <div>
+                        <div style={{ color: "#e8213a", fontSize: "0.95rem", fontWeight: "bold" }}>🎪 {card.label}</div>
+                        <div style={{ color: "#a07848", fontSize: "0.78rem", marginTop: "0.2rem", textTransform: "capitalize" }}>
+                          📅 {formatDateShort(card.date)}
+                          {card.stand && <span style={{ marginLeft: "0.5rem" }}>· {card.stand === "event-1" ? "Event 1" : "Event 2"}</span>}
+                        </div>
+                      </div>
+                      <span style={{ background: "#fff0f0", color: "#e8213a", borderRadius: "10px", padding: "0.2rem 0.6rem", fontSize: "0.78rem", fontWeight: "bold" }}>
+                        {card.items.length} pers.
+                      </span>
+                    </div>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem", marginTop: "0.5rem" }}>
+                      {card.items.map((it: any) => (
+                        <span key={it.id} style={{ background: "#faebd7", color: "#3d1a0a", borderRadius: "8px", padding: "0.3rem 0.7rem", fontSize: "0.82rem", border: "1px solid #f0d8b8", display: "inline-flex", alignItems: "center", gap: "0.3rem" }}>
+                          👤 {it.employe_nom}
+                          {isAdmin && (
+                            <button onClick={() => handleDeleteEventWorker(it.id)}
+                              style={{ background: "none", border: "none", color: "#e57373", cursor: "pointer", fontSize: "0.85rem", padding: 0, lineHeight: 1 }}>✕</button>
+                          )}
+                        </span>
+                      ))}
+                    </div>
+                    {card.note && (
+                      <div style={{ color: "#a07848", fontSize: "0.72rem", marginTop: "0.5rem", borderTop: "1px solid #f0d8b8", paddingTop: "0.4rem" }}>
+                        📌 {card.note}
+                      </div>
+                    )}
+                  </div>
+                ));
+              })()}
+            </div>
+          )}
+
+          {/* EVENT ADD MODAL */}
+          {showAddEvent && (
+            <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", zIndex: 200, display: "flex", alignItems: "flex-end" }}>
+              <div style={{ background: "#fff8f0", borderRadius: "16px 16px 0 0", padding: "1.2rem", width: "100%", display: "flex", flexDirection: "column", gap: "0.7rem", maxHeight: "90vh", overflowY: "auto" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div style={{ color: "#e8213a", fontWeight: "bold", fontSize: "0.95rem" }}>🎪 Nouvel event</div>
+                  <button onClick={() => setShowAddEvent(false)} style={{ background: "#2a2a2a", border: "none", color: "#c8a878", borderRadius: "50%", width: "2rem", height: "2rem", cursor: "pointer" }}>✕</button>
+                </div>
+
+                <input value={newEventLabel} onChange={e => setNewEventLabel(e.target.value)} placeholder="Nom de l'event (ex: Made in Asia 2026)..."
+                  style={{ background: "#faebd7", border: "1px solid #f5c842", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", fontFamily: "'Poppins', sans-serif", outline: "none", width: "100%", boxSizing: "border-box" }} />
+
+                <input type="date" value={newEventDate} onChange={e => setNewEventDate(e.target.value)}
+                  style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", fontFamily: "'Poppins', sans-serif", outline: "none", width: "100%", boxSizing: "border-box" }} />
+
+                <select value={newEventStand} onChange={e => setNewEventStand(e.target.value)}
+                  style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", fontFamily: "'Poppins', sans-serif", outline: "none", width: "100%" }}>
+                  <option value="">Aucun stand spécifique (optionnel)</option>
+                  <option value="event-1">🎪 Event 1</option>
+                  <option value="event-2">🎪 Event 2</option>
+                </select>
+
+                <div style={{ color: "#a07848", fontSize: "0.78rem", marginTop: "0.3rem" }}>👥 Qui travaille cet event ?</div>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem" }}>
+                  {["Abdel","Nabil","Mohammed","Wassim","Rachid","Ali","Momo"].map(nom => {
+                    const sel = newEventEmployes.includes(nom);
+                    return (
+                      <button key={nom} onClick={() => toggleEventEmploye(nom)}
+                        style={{ background: sel ? "#e8213a" : "#faebd7", color: sel ? "#fff" : "#3d1a0a", border: `1.5px solid ${sel ? "#e8213a" : "#f0d8b8"}`, borderRadius: "20px", padding: "0.4rem 0.9rem", fontSize: "0.85rem", fontFamily: "'Poppins', sans-serif", cursor: "pointer", fontWeight: sel ? "bold" : "normal" }}>
+                        {sel ? "✓" : "+"} {nom}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <textarea value={newEventNote} onChange={e => setNewEventNote(e.target.value)} placeholder="Note (optionnel)..." rows={2}
+                  style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.9rem", fontFamily: "'Poppins', sans-serif", outline: "none", width: "100%", boxSizing: "border-box", resize: "none" }} />
+
+                <button onClick={handleAddEvent}
+                  disabled={!newEventLabel.trim() || !newEventDate || newEventEmployes.length === 0}
+                  style={{ background: "#e8213a", color: "#ffffff", border: "none", padding: "0.9rem", borderRadius: "10px", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", fontSize: "1rem", cursor: "pointer", width: "100%", opacity: (!newEventLabel.trim() || !newEventDate || newEventEmployes.length === 0) ? 0.5 : 1 }}>
+                  ✅ Confirmer ({newEventEmployes.length} pers.)
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* STATS VIEW */}
           {horaireView === "stats" && (
             <div>
@@ -1127,6 +1327,14 @@ export default function App() {
                   heuresEnPlus[r.employe_nom].heures += h;
                   heuresEnPlus[r.employe_nom].jours += 1;
                   heuresEnPlus[r.employe_nom].details.push(r);
+                });
+
+                // Events par personne (compteur)
+                const eventsParPersonne = {};
+                eventWorkers.filter(e => normalizeDate(e.event_date).startsWith(remplacementMois)).forEach(e => {
+                  if (!eventsParPersonne[e.employe_nom]) eventsParPersonne[e.employe_nom] = { count: 0, details: [] };
+                  eventsParPersonne[e.employe_nom].count++;
+                  eventsParPersonne[e.employe_nom].details.push(e);
                 });
 
                 // Heures remplacées
@@ -1175,6 +1383,22 @@ export default function App() {
                                   </div>
                                 ))}
                               </div>
+                              {/* Badge events admin */}
+                              {eventsParPersonne[nom] && (
+                                <div style={{ flex: 1, background: "#fff5e6", border: "1px solid #f5a62355", borderRadius: "8px", padding: "0.6rem 0.8rem" }}>
+                                  <div style={{ color: "#e8213a", fontSize: "0.7rem", marginBottom: "0.2rem" }}>🎪 Events</div>
+                                  <div style={{ color: "#e8213a", fontSize: "1.2rem", fontWeight: "bold" }}>+{eventsParPersonne[nom].count}</div>
+                                  <div style={{ color: "#a07848", fontSize: "0.7rem" }}>
+                                    {eventsParPersonne[nom].count} event{eventsParPersonne[nom].count > 1 ? "s" : ""}
+                                  </div>
+                                  {eventsParPersonne[nom].details.slice(0, 3).map((ev: any) => (
+                                    <div key={ev.id} style={{ borderTop: "1px solid #f0d8b8", marginTop: "0.3rem", paddingTop: "0.3rem", fontSize: "0.7rem", color: "#a07848" }}>
+                                      {formatDateShort(normalizeDate(ev.event_date))} · {ev.event_label}
+                                      {ev.event_stand && ` (${ev.event_stand})`}
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
                             </div>
                           </div>
                         );
@@ -1205,6 +1429,12 @@ export default function App() {
                                 <div style={{ background: "#0f1a2a", border: "1px solid #1e3a5a", borderRadius: "8px", padding: "0.5rem 0.8rem", flex: 1 }}>
                                   <div style={{ color: "#6ab0ff", fontSize: "0.7rem", marginBottom: "0.2rem" }}>➕ En plus</div>
                                   <div style={{ color: "#6ab0ff", fontSize: "1.1rem", fontWeight: "bold" }}>+{enPlus.heures.toFixed(1)}h</div>
+                                </div>
+                              )}
+                              {eventsParPersonne[nom] && (
+                                <div style={{ background: "#fff5e6", border: "1px solid #f5a62355", borderRadius: "8px", padding: "0.5rem 0.8rem", flex: 1 }}>
+                                  <div style={{ color: "#e8213a", fontSize: "0.7rem", marginBottom: "0.2rem" }}>🎪 Events</div>
+                                  <div style={{ color: "#e8213a", fontSize: "1.1rem", fontWeight: "bold" }}>+{eventsParPersonne[nom].count}</div>
                                 </div>
                               )}
                             </div>
@@ -1286,6 +1516,20 @@ export default function App() {
                       </div>
                     </div>
 
+                    {/* Badge events employé */}
+                    {eventsParPersonne[nom] && (
+                      <div style={{ background: "#fff5e6", border: "1.5px solid #f5a62355", borderRadius: "14px", padding: "0.85rem 1rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <div>
+                          <div style={{ color: "#e8213a", fontSize: "0.75rem", fontWeight: "bold" }}>🎪 Events ce mois</div>
+                          <div style={{ color: "#a07848", fontSize: "0.7rem", marginTop: "0.2rem" }}>
+                            {eventsParPersonne[nom].details.map((ev: any) =>
+                              `${formatDateShort(normalizeDate(ev.event_date))} · ${ev.event_label}`
+                            ).join(" · ")}
+                          </div>
+                        </div>
+                        <div style={{ color: "#e8213a", fontSize: "1.6rem", fontWeight: "700" }}>+{eventsParPersonne[nom].count}</div>
+                      </div>
+                    )}
                     {/* Liste des jours */}
                     <div style={{ color: "#a07848", fontSize: "0.75rem", fontWeight: "600" }}>📋 Mes jours ce mois</div>
                     {tousJours.map((j, idx) => (
