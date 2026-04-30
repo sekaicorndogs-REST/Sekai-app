@@ -283,6 +283,92 @@ async function deleteEventWorker(id) {
   if (!res.ok) throw new Error("Delete event_worker failed");
 }
 
+// ── FERMETURE API ──────────────────────────────────────────
+async function fetchFermetureTaches() {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/fermeture_taches?select=*&active=eq.true&order=ordre.asc`, { headers: HEADERS });
+  if (!res.ok) throw new Error("Fetch fermeture_taches failed");
+  return res.json();
+}
+
+async function createFermetureTache(data) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/fermeture_taches`, {
+    method: "POST", headers: HEADERS, body: JSON.stringify(data)
+  });
+  if (!res.ok) throw new Error("Create fermeture_tache failed");
+  return res.json();
+}
+
+async function updateFermetureTache(id, data) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/fermeture_taches?id=eq.${id}`, {
+    method: "PATCH", headers: HEADERS, body: JSON.stringify(data)
+  });
+  if (!res.ok) throw new Error("Update fermeture_tache failed");
+  return res.json();
+}
+
+async function fetchFermetureToday(restaurantId) {
+  const today = new Date();
+  const dateStr = today.getFullYear() + "-" + String(today.getMonth()+1).padStart(2,"0") + "-" + String(today.getDate()).padStart(2,"0");
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/fermetures?select=*&restaurant_id=eq.${restaurantId}&date=eq.${dateStr}`, { headers: HEADERS });
+  if (!res.ok) throw new Error("Fetch fermeture today failed");
+  const arr = await res.json();
+  return arr.length > 0 ? arr[0] : null;
+}
+
+async function createFermeture(data) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/fermetures`, {
+    method: "POST", headers: HEADERS, body: JSON.stringify(data)
+  });
+  if (!res.ok) throw new Error("Create fermeture failed");
+  const arr = await res.json();
+  return arr[0];
+}
+
+async function terminerFermeture(id) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/fermetures?id=eq.${id}`, {
+    method: "PATCH", headers: HEADERS,
+    body: JSON.stringify({ termine_at: new Date().toISOString() })
+  });
+  if (!res.ok) throw new Error("Terminer fermeture failed");
+  return res.json();
+}
+
+async function fetchValidations(fermetureId) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/fermeture_validations?select=*&fermeture_id=eq.${fermetureId}`, { headers: HEADERS });
+  if (!res.ok) throw new Error("Fetch validations failed");
+  return res.json();
+}
+
+async function validerTache(fermetureId, tache) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/fermeture_validations`, {
+    method: "POST", headers: HEADERS,
+    body: JSON.stringify({
+      fermeture_id: fermetureId,
+      tache_id: tache.id,
+      tache_label: tache.label,
+      tache_section: tache.section
+    })
+  });
+  if (!res.ok) throw new Error("Valider tache failed");
+  const arr = await res.json();
+  return arr[0];
+}
+
+async function unvaliderTache(validationId) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/fermeture_validations?id=eq.${validationId}`, {
+    method: "DELETE", headers: HEADERS
+  });
+  if (!res.ok) throw new Error("Unvalider tache failed");
+}
+
+async function fetchFermeturesHistorique(restaurantId, days = 30) {
+  const since = new Date(); since.setDate(since.getDate() - days);
+  const sinceStr = since.getFullYear() + "-" + String(since.getMonth()+1).padStart(2,"0") + "-" + String(since.getDate()).padStart(2,"0");
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/fermetures?select=*,fermeture_validations(*)&restaurant_id=eq.${restaurantId}&date=gte.${sinceStr}&order=date.desc`, { headers: HEADERS });
+  if (!res.ok) throw new Error("Fetch historique failed");
+  return res.json();
+}
+
 export default function App() {
   const [currentUser, setCurrentUser] = useState(null);
   const [loginPrenom, setLoginPrenom] = useState("");
@@ -364,6 +450,22 @@ export default function App() {
   const [newEventEmployes, setNewEventEmployes] = useState([]);
   const [newEventNote, setNewEventNote] = useState("");
   const [eventMois, setEventMois] = useState(getCurrentMois());
+  // ── Fermeture (closing checklist) ──
+  const [fermetureTaches, setFermetureTaches] = useState([]);
+  const [currentFermeture, setCurrentFermeture] = useState(null);
+  const [validations, setValidations] = useState([]);
+  const [fermetureLoading, setFermetureLoading] = useState(false);
+  const [fermetureNomInput, setFermetureNomInput] = useState("");
+  const [fermetureSubmitting, setFermetureSubmitting] = useState(false);
+  const [fermeturesHistorique, setFermeturesHistorique] = useState([]);
+  const [fermetureAdminView, setFermetureAdminView] = useState("historique");
+  const [selectedFermetureId, setSelectedFermetureId] = useState(null);
+  const [editingTache, setEditingTache] = useState(null);
+  const [showAddTache, setShowAddTache] = useState(false);
+  const [newTacheSection, setNewTacheSection] = useState("Équipement & Nettoyage");
+  const [newTacheLabel, setNewTacheLabel] = useState("");
+  const [newTacheDescription, setNewTacheDescription] = useState("");
+  const [newTacheOptionnelle, setNewTacheOptionnelle] = useState(false);
   const inputRef = useRef(null);
 
   useEffect(() => {
@@ -383,6 +485,7 @@ export default function App() {
         // Précharger les horaires en arrière-plan
         fetchHoraires("rue-neuve");
         loadEventWorkers();
+        loadFermetureData();
       } catch {}
     }
   }, []);
@@ -413,6 +516,7 @@ export default function App() {
       // Précharger les horaires en arrière-plan
       fetchHoraires("rue-neuve");
         loadEventWorkers();
+        loadFermetureData();
     } catch { setLoginError("Erreur de connexion."); }
     finally { setLoginLoading(false); }
   }
@@ -811,21 +915,146 @@ export default function App() {
     );
   }
 
-  const BottomNav = () => currentUser ? (
+  // ── Fermeture handlers ──
+  async function loadFermetureData() {
+    setFermetureLoading(true);
+    try {
+      const [taches, today] = await Promise.all([fetchFermetureTaches(), fetchFermetureToday("rue-neuve")]);
+      setFermetureTaches(taches);
+      setCurrentFermeture(today);
+      if (today) {
+        const vals = await fetchValidations(today.id);
+        setValidations(vals);
+      } else { setValidations([]); }
+    } catch { flash("❌ Erreur chargement fermeture"); }
+    finally { setFermetureLoading(false); }
+  }
+
+  async function loadFermetureHistorique() {
+    try {
+      const data = await fetchFermeturesHistorique("rue-neuve", 30);
+      setFermeturesHistorique(data);
+    } catch { flash("❌ Erreur historique"); }
+  }
+
+  async function handleStartFermeture() {
+    const nom = fermetureNomInput.trim();
+    if (!nom) { flash("❌ Entre ton prénom"); return; }
+    setFermetureSubmitting(true);
+    try {
+      const today = new Date();
+      const dateStr = today.getFullYear() + "-" + String(today.getMonth()+1).padStart(2,"0") + "-" + String(today.getDate()).padStart(2,"0");
+      const created = await createFermeture({ restaurant_id: "rue-neuve", date: dateStr, nom_personne: nom });
+      setCurrentFermeture(created);
+      setValidations([]);
+      setFermetureNomInput("");
+      flash("✅ C'est parti !");
+    } catch { flash("❌ Erreur démarrage"); }
+    finally { setFermetureSubmitting(false); }
+  }
+
+  async function handleToggleTache(tache) {
+    if (!currentFermeture || currentFermeture.termine_at) return;
+    const existing = validations.find(v => v.tache_id === tache.id);
+    try {
+      if (existing) {
+        await unvaliderTache(existing.id);
+        setValidations(prev => prev.filter(v => v.id !== existing.id));
+      } else {
+        const v = await validerTache(currentFermeture.id, tache);
+        setValidations(prev => [...prev, v]);
+      }
+    } catch { flash("❌ Erreur"); }
+  }
+
+  async function handleTerminerFermeture() {
+    if (!currentFermeture) return;
+    if (!confirm("Terminer la fermeture ?")) return;
+    try {
+      await terminerFermeture(currentFermeture.id);
+      setCurrentFermeture(prev => ({ ...prev, termine_at: new Date().toISOString() }));
+      flash("✅ Fermeture terminée !");
+    } catch { flash("❌ Erreur"); }
+  }
+
+  async function handleCreateTache() {
+    if (!newTacheLabel.trim()) { flash("❌ Label requis"); return; }
+    try {
+      const maxOrdre = fermetureTaches.length > 0 ? Math.max(...fermetureTaches.map(t => t.ordre || 0)) : 0;
+      await createFermetureTache({
+        section: newTacheSection,
+        label: newTacheLabel.trim(),
+        description: newTacheDescription.trim() || null,
+        ordre: maxOrdre + 10,
+        optionnelle: newTacheOptionnelle,
+        active: true,
+        restaurant_id: "rue-neuve"
+      });
+      flash("✅ Tâche ajoutée !");
+      setShowAddTache(false);
+      setNewTacheLabel(""); setNewTacheDescription(""); setNewTacheOptionnelle(false);
+      const updated = await fetchFermetureTaches();
+      setFermetureTaches(updated);
+    } catch { flash("❌ Erreur"); }
+  }
+
+  async function handleUpdateTache() {
+    if (!editingTache) return;
+    try {
+      await updateFermetureTache(editingTache.id, {
+        section: editingTache.section,
+        label: editingTache.label,
+        description: editingTache.description || null,
+        optionnelle: editingTache.optionnelle
+      });
+      flash("✅ Modifié !");
+      setEditingTache(null);
+      const updated = await fetchFermetureTaches();
+      setFermetureTaches(updated);
+    } catch { flash("❌ Erreur"); }
+  }
+
+  async function handleDeleteTache(id) {
+    if (!confirm("Désactiver cette tâche ? (l'historique reste)")) return;
+    try {
+      await updateFermetureTache(id, { active: false });
+      flash("🗑️ Désactivée");
+      const updated = await fetchFermetureTaches();
+      setFermetureTaches(updated);
+    } catch { flash("❌ Erreur"); }
+  }
+
+  async function handleMoveTache(tache, direction) {
+    const sorted = [...fermetureTaches].sort((a: any, b: any) => a.ordre - b.ordre);
+    const idx = sorted.findIndex(t => t.id === tache.id);
+    const otherIdx = direction === "up" ? idx - 1 : idx + 1;
+    if (otherIdx < 0 || otherIdx >= sorted.length) return;
+    const other = sorted[otherIdx];
+    try {
+      await updateFermetureTache(tache.id, { ordre: other.ordre });
+      await updateFermetureTache(other.id, { ordre: tache.ordre });
+      const updated = await fetchFermetureTaches();
+      setFermetureTaches(updated);
+    } catch { flash("❌ Erreur"); }
+  }
+
+  const BottomNav = () => (currentUser && currentUser.role !== "tablette") ? (
     <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: "#fff8f0", borderTop: "1.5px solid #f0d8b8", display: "flex", zIndex: 40, paddingBottom: "env(safe-area-inset-bottom, 0px)" }}>
       {[
         { id: "stock", label: "Stock", icon: "stock", adminOnly: false },
         { id: "horaires", label: "Horaires", icon: "horaires", adminOnly: false },
         { id: "paiements", label: "Paiements", icon: "paiements", adminOnly: true },
         { id: "comptes", label: "Comptes", icon: "comptes", adminOnly: true },
+        { id: "fermetures", label: "Fermeture", icon: "fermetures", adminOnly: true },
         { id: "profil", label: "Profil", icon: "profil", adminOnly: false }
       ].filter(tab => !tab.adminOnly || isAdmin).map(tab => (
-        <button key={tab.id} onClick={() => { setPage(tab.id); if (tab.id === "comptes") loadUsers(); if (tab.id === "horaires" && !horaires.length) fetchHoraires(horaireRestaurant); if (tab.id === "paiements") loadPaiements(); }} style={{ flex: 1, background: "none", border: "none", padding: "0.7rem 0", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: "0.15rem" }}>
+        <button key={tab.id} onClick={() => { setPage(tab.id); if (tab.id === "comptes") loadUsers(); if (tab.id === "horaires" && !horaires.length) fetchHoraires(horaireRestaurant); if (tab.id === "paiements") loadPaiements(); if (tab.id === "fermetures") { loadFermetureHistorique(); loadFermetureData(); } }} style={{ flex: 1, background: "none", border: "none", padding: "0.7rem 0", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: "0.15rem" }}>
           <span style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
             {tab.icon === "stock" && <Package size={20} color={page === tab.id ? "#e8213a" : "#c8a878"} />}
             {tab.icon === "horaires" && <Calendar size={20} color={page === tab.id ? "#e8213a" : "#c8a878"} />}
             {tab.icon === "paiements" && <CreditCard size={20} color={page === tab.id ? "#e8213a" : "#c8a878"} />}
             {tab.icon === "comptes" && <Users size={20} color={page === tab.id ? "#e8213a" : "#c8a878"} />}
+            {tab.icon === "fermetures" && <Lock size={20} color={page === tab.id ? "#e8213a" : "#c8a878"} />}
             {tab.icon === "profil" && <UserCircle size={20} color={page === tab.id ? "#e8213a" : "#c8a878"} />}
           </span>
           <span style={{ fontSize: "0.65rem", color: page === tab.id ? "#f5c842" : "#444", fontFamily: "'Poppins', sans-serif" }}>{tab.label}</span>
@@ -833,6 +1062,106 @@ export default function App() {
       ))}
     </div>
   ) : null;
+
+  // ── TABLETTE FERMETURE PAGE ──────────────────────────────
+  if (currentUser && currentUser.role === "tablette") {
+    return (
+      <div style={{ ...s, minHeight: "100vh", background: "#faebd7", padding: "1rem", paddingBottom: "2rem" }}>
+        {toast && <div style={{ position: "fixed", top: "1rem", left: "50%", transform: "translateX(-50%)", background: "#faebd7", color: "#e8213a", padding: "0.55rem 1.4rem", borderRadius: "20px", fontSize: "0.88rem", zIndex: 999, border: "1.5px solid #f0d8b8" }}>{toast}</div>}
+        <div style={{ background: "#e8213a", borderRadius: "12px", padding: "1.2rem", marginBottom: "1rem", textAlign: "center" }}>
+          <h1 style={{ color: "#fff", fontSize: "1.4rem", margin: 0 }}>🌙 Fermeture du soir</h1>
+          <p style={{ color: "#ffffffcc", fontSize: "0.9rem", margin: "0.4rem 0 0", textTransform: "capitalize" }}>{getTodayStr()}</p>
+        </div>
+        {fermetureLoading ? (
+          <div style={{ textAlign: "center", padding: "3rem", color: "#e8213a" }}>
+            <div style={{ fontSize: "2rem" }}>⏳</div>
+            <p>Chargement...</p>
+          </div>
+        ) : (currentFermeture && currentFermeture.termine_at) ? (
+          <div style={{ background: "#fff8f0", border: "1.5px solid #4caf5033", borderRadius: "16px", padding: "2rem", textAlign: "center" }}>
+            <div style={{ fontSize: "4rem", marginBottom: "1rem" }}>✅</div>
+            <h2 style={{ color: "#4caf50", fontSize: "1.3rem", margin: "0 0 0.5rem" }}>Fermeture déjà faite</h2>
+            <p style={{ color: "#3d1a0a", fontSize: "1.1rem", margin: "0 0 0.5rem" }}>par <strong>{currentFermeture.nom_personne}</strong></p>
+            <p style={{ color: "#a07848", fontSize: "0.9rem", margin: "0 0 1.5rem" }}>à {new Date(currentFermeture.termine_at).toLocaleTimeString("fr-BE", { hour: "2-digit", minute: "2-digit" })}</p>
+            <p style={{ color: "#a07848", fontSize: "0.95rem", margin: "0 0 1.5rem" }}>Reviens demain 👋</p>
+            <button onClick={handleLogout} style={{ background: "#e8213a", color: "#fff", border: "none", padding: "0.9rem 2rem", borderRadius: "10px", fontSize: "1rem", fontWeight: "bold", cursor: "pointer", fontFamily: "'Poppins', sans-serif" }}>🚪 Déconnexion</button>
+          </div>
+        ) : !currentFermeture ? (
+          <div style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "16px", padding: "2rem", textAlign: "center" }}>
+            <h2 style={{ color: "#3d1a0a", fontSize: "1.2rem", margin: "0 0 1rem" }}>Qui fait la fermeture ce soir ?</h2>
+            <input value={fermetureNomInput} onChange={e => setFermetureNomInput(e.target.value)} placeholder="Ton prénom..." autoFocus
+              onKeyDown={e => e.key === "Enter" && handleStartFermeture()}
+              style={{ background: "#faebd7", border: "2px solid #f5c842", color: "#3d1a0a", padding: "1rem 1.2rem", borderRadius: "12px", fontSize: "1.1rem", width: "100%", maxWidth: "300px", fontFamily: "'Poppins', sans-serif", outline: "none", boxSizing: "border-box", textAlign: "center" }} />
+            <button onClick={handleStartFermeture} disabled={fermetureSubmitting || !fermetureNomInput.trim()}
+              style={{ display: "block", margin: "1rem auto 0", background: "#e8213a", color: "#fff", border: "none", padding: "0.9rem 2rem", borderRadius: "10px", fontSize: "1rem", fontWeight: "bold", cursor: "pointer", opacity: (fermetureSubmitting || !fermetureNomInput.trim()) ? 0.5 : 1, fontFamily: "'Poppins', sans-serif" }}>
+              {fermetureSubmitting ? "..." : "Commencer la checklist →"}
+            </button>
+            <button onClick={handleLogout} style={{ display: "block", margin: "1.5rem auto 0", background: "transparent", border: "none", color: "#a07848", fontSize: "0.85rem", cursor: "pointer", textDecoration: "underline" }}>Déconnexion</button>
+          </div>
+        ) : (() => {
+          const sectionsOrder = ["Équipement & Nettoyage", "Terrasse & salle", "Fermeture générale"];
+          const tachesParSection: any = {};
+          fermetureTaches.forEach(t => {
+            if (!tachesParSection[t.section]) tachesParSection[t.section] = [];
+            tachesParSection[t.section].push(t);
+          });
+          const tachesObligatoires = fermetureTaches.filter(t => !t.optionnelle);
+          const obligatoiresValidees = tachesObligatoires.filter(t => validations.find(v => v.tache_id === t.id));
+          const peutTerminer = tachesObligatoires.length > 0 && obligatoiresValidees.length === tachesObligatoires.length;
+          const restantes = tachesObligatoires.length - obligatoiresValidees.length;
+          const SECTION_COLORS: any = {
+            "Équipement & Nettoyage": { bg: "#fff5e6", border: "#f5a623", color: "#e8213a" },
+            "Terrasse & salle": { bg: "#f0f8ff", border: "#6ab0ff", color: "#1e6abf" },
+            "Fermeture générale": { bg: "#f5fff8", border: "#4caf50", color: "#2e7d32" }
+          };
+          return (
+            <div>
+              <div style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "12px", padding: "1rem", marginBottom: "1rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div>
+                  <div style={{ color: "#3d1a0a", fontSize: "0.95rem", fontWeight: "bold" }}>👤 {currentFermeture.nom_personne}</div>
+                  <div style={{ color: "#a07848", fontSize: "0.78rem" }}>Démarré à {new Date(currentFermeture.demarre_at).toLocaleTimeString("fr-BE", { hour: "2-digit", minute: "2-digit" })}</div>
+                </div>
+                <div style={{ color: peutTerminer ? "#4caf50" : "#e8213a", fontSize: "1.2rem", fontWeight: "bold" }}>{obligatoiresValidees.length}/{tachesObligatoires.length}</div>
+              </div>
+              {sectionsOrder.map(section => {
+                const taches = (tachesParSection[section] || []).slice().sort((a: any, b: any) => a.ordre - b.ordre);
+                if (taches.length === 0) return null;
+                const colors = SECTION_COLORS[section] || { bg: "#fff8f0", border: "#f0d8b8", color: "#3d1a0a" };
+                return (
+                  <div key={section} style={{ marginBottom: "1rem" }}>
+                    <div style={{ background: colors.bg, color: colors.color, border: "1.5px solid " + colors.border + "55", borderRadius: "12px 12px 0 0", padding: "0.7rem 1rem", fontSize: "0.85rem", fontWeight: "bold", textTransform: "uppercase", letterSpacing: "0.05em" }}>{section}</div>
+                    {taches.map((t: any) => {
+                      const v = validations.find(vv => vv.tache_id === t.id);
+                      const checked = !!v;
+                      return (
+                        <div key={t.id} onClick={() => handleToggleTache(t)} style={{ background: checked ? "#f5fff8" : "#fff8f0", border: "1.5px solid " + (checked ? "#4caf5055" : "#f0d8b8"), borderTop: "none", padding: "1rem 1.2rem", display: "flex", alignItems: "flex-start", gap: "0.9rem", cursor: "pointer" }}>
+                          <div style={{ width: "1.6rem", height: "1.6rem", borderRadius: "50%", border: "2.5px solid " + (checked ? "#4caf50" : "#c8a878"), background: checked ? "#4caf50" : "transparent", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: "0.1rem" }}>
+                            {checked && <span style={{ color: "#fff", fontSize: "1.1rem", fontWeight: "bold" }}>✓</span>}
+                          </div>
+                          <div style={{ flex: 1 }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
+                              <span style={{ color: checked ? "#4caf50" : "#3d1a0a", fontSize: "1rem", fontWeight: "bold", textDecoration: checked ? "line-through" : "none" }}>{t.label}</span>
+                              {t.optionnelle && <span style={{ background: "#e0e0e0", color: "#666", borderRadius: "8px", padding: "0.1rem 0.5rem", fontSize: "0.65rem", fontWeight: "bold" }}>OPTIONNELLE</span>}
+                            </div>
+                            {t.description && <div style={{ color: "#a07848", fontSize: "0.78rem", marginTop: "0.3rem" }}>{t.description}</div>}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })}
+              <button onClick={handleTerminerFermeture} disabled={!peutTerminer}
+                style={{ background: peutTerminer ? "#4caf50" : "#c8a878", color: "#fff", border: "none", padding: "1.2rem", borderRadius: "12px", fontSize: "1.1rem", fontWeight: "bold", cursor: peutTerminer ? "pointer" : "not-allowed", width: "100%", fontFamily: "'Poppins', sans-serif", marginTop: "1rem", opacity: peutTerminer ? 1 : 0.7 }}>
+                {peutTerminer ? "✅ Terminer la fermeture" : "Encore " + restantes + " tâche" + (restantes > 1 ? "s" : "") + " obligatoire" + (restantes > 1 ? "s" : "")}
+              </button>
+              <button onClick={handleLogout} style={{ display: "block", margin: "1rem auto 0", background: "transparent", border: "none", color: "#a07848", fontSize: "0.85rem", cursor: "pointer", textDecoration: "underline" }}>Déconnexion</button>
+            </div>
+          );
+        })()}
+      </div>
+    );
+  }
 
   // ── HORAIRES PAGE ─────────────────────────────────────────
   if (page === "horaires" && currentUser) {
@@ -1946,6 +2275,161 @@ export default function App() {
       <BottomNav />
     </div>
   );
+
+  // ── FERMETURES PAGE (admin) ──────────────────────────────
+  if (page === "fermetures" && isAdmin) {
+    const sectionsOrder = ["Équipement & Nettoyage", "Terrasse & salle", "Fermeture générale"];
+    return (
+      <div style={{ ...s, minHeight: "100vh", background: "#faebd7", paddingBottom: "6rem" }}>
+        {toast && <div style={{ position: "fixed", top: "1rem", left: "50%", transform: "translateX(-50%)", background: "#faebd7", color: "#e8213a", padding: "0.55rem 1.4rem", borderRadius: "20px", fontSize: "0.88rem", zIndex: 999, border: "1.5px solid #f0d8b8" }}>{toast}</div>}
+        <div style={{ background: "#fff8f0", padding: "1rem 1.2rem", borderBottom: "1.5px solid #f0d8b8", position: "sticky", top: 0, zIndex: 30 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
+            <h1 style={{ color: "#e8213a", fontSize: "1.1rem", margin: 0 }}>🔒 Fermetures</h1>
+            <button onClick={() => { loadFermetureHistorique(); loadFermetureData(); }}
+              style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#a07848", borderRadius: "8px", padding: "0.3rem 0.6rem", fontSize: "0.8rem", cursor: "pointer" }}><RefreshCw size={16} /></button>
+          </div>
+          <div style={{ display: "flex", gap: "0.4rem" }}>
+            {[{id:"historique",label:"Historique"},{id:"gerer",label:"Gérer la checklist"}].map(tab => (
+              <button key={tab.id} onClick={() => setFermetureAdminView(tab.id)}
+                style={{ background: fermetureAdminView === tab.id ? "#f5c842" : "#1e1e1e", color: fermetureAdminView === tab.id ? "#111" : "#555", border: "none", borderRadius: "8px", padding: "0.35rem 0.9rem", fontSize: "0.78rem", fontFamily: "'Poppins', sans-serif", fontWeight: fermetureAdminView === tab.id ? "bold" : "normal", cursor: "pointer" }}>
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div style={{ padding: "0.8rem 1.1rem" }}>
+          {fermetureAdminView === "historique" && (
+            <div>
+              {fermeturesHistorique.length === 0 && (
+                <div style={{ color: "#c8a878", fontSize: "0.82rem", textAlign: "center", padding: "2rem" }}>Aucune fermeture sur les 30 derniers jours</div>
+              )}
+              {fermeturesHistorique.map((f: any) => {
+                const totalTaches = fermetureTaches.filter(t => !t.optionnelle).length;
+                const validees = (f.fermeture_validations || []).length;
+                const isComplete = !!f.termine_at;
+                return (
+                  <div key={f.id} onClick={() => setSelectedFermetureId(selectedFermetureId === f.id ? null : f.id)}
+                    style={{ background: "#fff8f0", border: "1.5px solid " + (isComplete ? "#4caf5033" : "#f5a62355"), borderRadius: "12px", padding: "1rem", marginBottom: "0.5rem", cursor: "pointer" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <div>
+                        <div style={{ color: isComplete ? "#4caf50" : "#e8213a", fontSize: "0.95rem", fontWeight: "bold" }}>{isComplete ? "✅" : "⏳"} {new Date(f.date + "T12:00:00").toLocaleDateString("fr-BE", { weekday: "short", day: "numeric", month: "short" })}</div>
+                        <div style={{ color: "#a07848", fontSize: "0.78rem", marginTop: "0.2rem" }}>👤 {f.nom_personne}</div>
+                      </div>
+                      <div style={{ textAlign: "right" }}>
+                        <div style={{ color: "#3d1a0a", fontSize: "0.85rem", fontWeight: "bold" }}>{validees} validation{validees > 1 ? "s" : ""}</div>
+                        {f.termine_at && <div style={{ color: "#a07848", fontSize: "0.72rem" }}>Fini à {new Date(f.termine_at).toLocaleTimeString("fr-BE", { hour: "2-digit", minute: "2-digit" })}</div>}
+                      </div>
+                    </div>
+                    {selectedFermetureId === f.id && (
+                      <div style={{ marginTop: "0.75rem", borderTop: "1px solid #f0d8b8", paddingTop: "0.75rem" }}>
+                        {sectionsOrder.map(sec => {
+                          const inSec = (f.fermeture_validations || []).filter((v: any) => v.tache_section === sec);
+                          if (inSec.length === 0) return null;
+                          return (
+                            <div key={sec} style={{ marginBottom: "0.5rem" }}>
+                              <div style={{ color: "#a07848", fontSize: "0.72rem", fontWeight: "bold", marginBottom: "0.25rem" }}>{sec}</div>
+                              {inSec.map((v: any) => (
+                                <div key={v.id} style={{ color: "#3d1a0a", fontSize: "0.8rem", padding: "0.15rem 0" }}>✅ {v.tache_label} <span style={{ color: "#c8a878", fontSize: "0.7rem" }}>· {new Date(v.valide_at).toLocaleTimeString("fr-BE", { hour: "2-digit", minute: "2-digit" })}</span></div>
+                              ))}
+                            </div>
+                          );
+                        })}
+                        <div style={{ color: "#a07848", fontSize: "0.72rem", marginTop: "0.5rem" }}>Démarré à {new Date(f.demarre_at).toLocaleTimeString("fr-BE", { hour: "2-digit", minute: "2-digit" })}</div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+          {fermetureAdminView === "gerer" && (
+            <div>
+              <button onClick={() => { setNewTacheLabel(""); setNewTacheDescription(""); setNewTacheOptionnelle(false); setShowAddTache(true); }}
+                style={{ background: "#e8213a", color: "#fff", border: "none", padding: "0.7rem 1.2rem", borderRadius: "10px", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", fontSize: "0.85rem", cursor: "pointer", marginBottom: "1rem" }}><span style={{display:"flex",alignItems:"center",gap:"6px"}}><Plus size={14} /> Ajouter une tâche</span></button>
+              {sectionsOrder.map(sec => {
+                const taches = fermetureTaches.filter(t => t.section === sec).sort((a: any, b: any) => a.ordre - b.ordre);
+                if (taches.length === 0) return null;
+                return (
+                  <div key={sec} style={{ marginBottom: "1rem" }}>
+                    <div style={{ color: "#a07848", fontSize: "0.75rem", fontWeight: "bold", textTransform: "uppercase", marginBottom: "0.4rem" }}>{sec}</div>
+                    {taches.map((t: any, idx: number) => (
+                      <div key={t.id} style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "10px", padding: "0.8rem 1rem", marginBottom: "0.4rem", display: "flex", alignItems: "center", gap: "0.6rem" }}>
+                        <div style={{ display: "flex", flexDirection: "column", gap: "0.1rem" }}>
+                          <button onClick={() => handleMoveTache(t, "up")} disabled={idx === 0}
+                            style={{ background: idx === 0 ? "#faebd7" : "#fff8f0", border: "1px solid #f0d8b8", borderRadius: "4px", width: "1.5rem", height: "1rem", cursor: idx === 0 ? "default" : "pointer", color: idx === 0 ? "#c8a878" : "#3d1a0a", fontSize: "0.7rem", padding: 0, opacity: idx === 0 ? 0.4 : 1 }}>▲</button>
+                          <button onClick={() => handleMoveTache(t, "down")} disabled={idx === taches.length - 1}
+                            style={{ background: idx === taches.length - 1 ? "#faebd7" : "#fff8f0", border: "1px solid #f0d8b8", borderRadius: "4px", width: "1.5rem", height: "1rem", cursor: idx === taches.length - 1 ? "default" : "pointer", color: idx === taches.length - 1 ? "#c8a878" : "#3d1a0a", fontSize: "0.7rem", padding: 0, opacity: idx === taches.length - 1 ? 0.4 : 1 }}>▼</button>
+                        </div>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", flexWrap: "wrap" }}>
+                            <span style={{ color: "#3d1a0a", fontSize: "0.92rem", fontWeight: "bold" }}>{t.label}</span>
+                            {t.optionnelle && <span style={{ background: "#e0e0e0", color: "#666", borderRadius: "8px", padding: "0.1rem 0.4rem", fontSize: "0.6rem", fontWeight: "bold" }}>OPTIONNELLE</span>}
+                          </div>
+                          {t.description && <div style={{ color: "#a07848", fontSize: "0.72rem", marginTop: "0.2rem" }}>{t.description}</div>}
+                        </div>
+                        <div style={{ display: "flex", gap: "0.3rem" }}>
+                          <button onClick={() => setEditingTache({ ...t })}
+                            style={{ background: "#faebd7", border: "1px solid #f0d8b8", color: "#e8213a", borderRadius: "8px", padding: "0.4rem 0.6rem", cursor: "pointer", fontSize: "0.85rem" }}><Pencil size={14} /></button>
+                          <button onClick={() => handleDeleteTache(t.id)}
+                            style={{ background: "#fff5f5", border: "1px solid #e8213a33", color: "#e57373", borderRadius: "8px", padding: "0.4rem 0.6rem", cursor: "pointer", fontSize: "0.85rem" }}><Trash2 size={14} /></button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+        {showAddTache && (
+          <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", zIndex: 200, display: "flex", alignItems: "flex-end" }}>
+            <div style={{ background: "#fff8f0", borderRadius: "16px 16px 0 0", padding: "1.2rem", width: "100%", display: "flex", flexDirection: "column", gap: "0.7rem", maxHeight: "90vh", overflowY: "auto" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div style={{ color: "#e8213a", fontWeight: "bold", fontSize: "0.95rem" }}>➕ Nouvelle tâche</div>
+                <button onClick={() => setShowAddTache(false)} style={{ background: "#2a2a2a", border: "none", color: "#c8a878", borderRadius: "50%", width: "2rem", height: "2rem", cursor: "pointer" }}>✕</button>
+              </div>
+              <select value={newTacheSection} onChange={e => setNewTacheSection(e.target.value)} style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", fontFamily: "'Poppins', sans-serif", outline: "none", width: "100%" }}>
+                {sectionsOrder.map(sec => <option key={sec} value={sec}>{sec}</option>)}
+              </select>
+              <input value={newTacheLabel} onChange={e => setNewTacheLabel(e.target.value)} placeholder="Label de la tâche..."
+                style={{ background: "#faebd7", border: "1px solid #f5c842", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", fontFamily: "'Poppins', sans-serif", outline: "none", width: "100%", boxSizing: "border-box" }} />
+              <textarea value={newTacheDescription} onChange={e => setNewTacheDescription(e.target.value)} placeholder="Description (optionnel)..." rows={2}
+                style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.9rem", fontFamily: "'Poppins', sans-serif", outline: "none", width: "100%", boxSizing: "border-box", resize: "none" }} />
+              <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
+                <input type="checkbox" id="newOpt" checked={newTacheOptionnelle} onChange={e => setNewTacheOptionnelle(e.target.checked)} style={{ width: "1.1rem", height: "1.1rem", accentColor: "#f5c842", cursor: "pointer" }} />
+                <label htmlFor="newOpt" style={{ color: "#3d1a0a", fontSize: "0.85rem", cursor: "pointer" }}>Tâche optionnelle (ne bloque pas le bouton Terminer)</label>
+              </div>
+              <button onClick={handleCreateTache} style={{ background: "#e8213a", color: "#fff", border: "none", padding: "0.9rem", borderRadius: "10px", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", fontSize: "1rem", cursor: "pointer", width: "100%" }}>✅ Ajouter</button>
+            </div>
+          </div>
+        )}
+        {editingTache && (
+          <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", zIndex: 200, display: "flex", alignItems: "flex-end" }}>
+            <div style={{ background: "#fff8f0", borderRadius: "16px 16px 0 0", padding: "1.2rem", width: "100%", display: "flex", flexDirection: "column", gap: "0.7rem", maxHeight: "90vh", overflowY: "auto" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div style={{ color: "#e8213a", fontWeight: "bold", fontSize: "0.95rem" }}>✏️ Modifier la tâche</div>
+                <button onClick={() => setEditingTache(null)} style={{ background: "#2a2a2a", border: "none", color: "#c8a878", borderRadius: "50%", width: "2rem", height: "2rem", cursor: "pointer" }}>✕</button>
+              </div>
+              <select value={editingTache.section} onChange={e => setEditingTache((prev: any) => ({ ...prev, section: e.target.value }))}
+                style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", fontFamily: "'Poppins', sans-serif", outline: "none", width: "100%" }}>
+                {sectionsOrder.map(sec => <option key={sec} value={sec}>{sec}</option>)}
+              </select>
+              <input value={editingTache.label} onChange={e => setEditingTache((prev: any) => ({ ...prev, label: e.target.value }))}
+                style={{ background: "#faebd7", border: "1px solid #f5c842", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", fontFamily: "'Poppins', sans-serif", outline: "none", width: "100%", boxSizing: "border-box" }} />
+              <textarea value={editingTache.description || ""} onChange={e => setEditingTache((prev: any) => ({ ...prev, description: e.target.value }))} rows={2}
+                style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.9rem", fontFamily: "'Poppins', sans-serif", outline: "none", width: "100%", boxSizing: "border-box", resize: "none" }} />
+              <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
+                <input type="checkbox" id="editOpt" checked={!!editingTache.optionnelle} onChange={e => setEditingTache((prev: any) => ({ ...prev, optionnelle: e.target.checked }))} style={{ width: "1.1rem", height: "1.1rem", accentColor: "#f5c842", cursor: "pointer" }} />
+                <label htmlFor="editOpt" style={{ color: "#3d1a0a", fontSize: "0.85rem", cursor: "pointer" }}>Tâche optionnelle</label>
+              </div>
+              <button onClick={handleUpdateTache} style={{ background: "#e8213a", color: "#fff", border: "none", padding: "0.9rem", borderRadius: "10px", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", fontSize: "1rem", cursor: "pointer", width: "100%" }}>💾 Sauvegarder</button>
+            </div>
+          </div>
+        )}
+        <BottomNav />
+      </div>
+    );
+  }
 
   // ── STOCK ──────────────────────────────────────────────────
   const storeOrder = restaurant?.id === "rue-neuve" ? STORE_ORDER_RUE_NEUVE : STORE_ORDER_EVENT;
