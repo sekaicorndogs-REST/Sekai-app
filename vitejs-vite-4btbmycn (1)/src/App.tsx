@@ -471,6 +471,28 @@ export default function App() {
   useEffect(() => {
     if (editingId && inputRef.current) inputRef.current.focus();
   }, [editingId]);
+  // ⏰ Reset auto à minuit pour la tablette kiosque
+  // Si la date change pendant que la tablette est allumée, on relâche
+  // la session de la veille pour redemander un nouveau nom le matin.
+  useEffect(() => {
+    if (!currentUser || currentUser.role !== "tablette") return;
+    const getDateStr = () => {
+      const d = new Date();
+      return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+    };
+    let lastDate = getDateStr();
+    const interval = setInterval(() => {
+      const now = getDateStr();
+      if (now !== lastDate) {
+        lastDate = now;
+        setCurrentFermeture(null);
+        setValidations([]);
+        setFermetureNomInput("");
+        loadFermetureData();
+      }
+    }, 60000);
+    return () => clearInterval(interval);
+  }, [currentUser]);
 
   useEffect(() => {
     const saved = localStorage.getItem("sekai_user");
@@ -1093,7 +1115,7 @@ export default function App() {
               onKeyDown={e => e.key === "Enter" && handleStartFermeture()}
               style={{ background: "#faebd7", border: "2px solid #f5c842", color: "#3d1a0a", padding: "1rem 1.2rem", borderRadius: "12px", fontSize: "1.1rem", width: "100%", maxWidth: "300px", fontFamily: "'Poppins', sans-serif", outline: "none", boxSizing: "border-box", textAlign: "center" }} />
             <button onClick={handleStartFermeture} disabled={fermetureSubmitting || !fermetureNomInput.trim()}
-              style={{ display: "block", margin: "1rem auto 0", background: "#e8213a", color: "#fff", border: "none", padding: "0.9rem 2rem", borderRadius: "10px", fontSize: "1rem", fontWeight: "bold", cursor: "pointer", opacity: (fermetureSubmitting || !fermetureNomInput.trim()) ? 0.5 : 1, fontFamily: "'Poppins', sans-serif" }}>
+              style={{ display: "block", margin: "1rem auto 0", background: "#e8213a", color: "#fff", border: "none", padding: "0.9rem 2rem", borderRadius: "10px", fontSize: "1rem", fontWeight: "bold", cursor: "pointer", opacity: (fermetureSubmitting || !fermetureNomInput.trim()) ? 0.5 : 1, fontFamily: "'Poppins', sans-serif", touchAction: "manipulation", WebkitTapHighlightColor: "rgba(255,255,255,0.2)" }}>
               {fermetureSubmitting ? "..." : "Commencer la checklist →"}
             </button>
             <button onClick={handleLogout} style={{ display: "block", margin: "1.5rem auto 0", background: "transparent", border: "none", color: "#a07848", fontSize: "0.85rem", cursor: "pointer", textDecoration: "underline" }}>Déconnexion</button>
@@ -1134,7 +1156,7 @@ export default function App() {
                       const v = validations.find(vv => vv.tache_id === t.id);
                       const checked = !!v;
                       return (
-                        <div key={t.id} onClick={() => handleToggleTache(t)} style={{ background: checked ? "#f5fff8" : "#fff8f0", border: "1.5px solid " + (checked ? "#4caf5055" : "#f0d8b8"), borderTop: "none", padding: "1rem 1.2rem", display: "flex", alignItems: "flex-start", gap: "0.9rem", cursor: "pointer" }}>
+                        <button key={t.id} type="button" onClick={() => handleToggleTache(t)} style={{ background: checked ? "#f5fff8" : "#fff8f0", border: "1.5px solid " + (checked ? "#4caf5055" : "#f0d8b8"), borderTop: "none", padding: "1.2rem 1.2rem", display: "flex", alignItems: "flex-start", gap: "0.9rem", cursor: "pointer", width: "100%", textAlign: "left", fontFamily: "inherit", touchAction: "manipulation", WebkitTapHighlightColor: "rgba(232,33,58,0.15)" }}>
                           <div style={{ width: "1.6rem", height: "1.6rem", borderRadius: "50%", border: "2.5px solid " + (checked ? "#4caf50" : "#c8a878"), background: checked ? "#4caf50" : "transparent", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: "0.1rem" }}>
                             {checked && <span style={{ color: "#fff", fontSize: "1.1rem", fontWeight: "bold" }}>✓</span>}
                           </div>
@@ -1145,14 +1167,14 @@ export default function App() {
                             </div>
                             {t.description && <div style={{ color: "#a07848", fontSize: "0.78rem", marginTop: "0.3rem" }}>{t.description}</div>}
                           </div>
-                        </div>
+                        </button>
                       );
                     })}
                   </div>
                 );
               })}
               <button onClick={handleTerminerFermeture} disabled={!peutTerminer}
-                style={{ background: peutTerminer ? "#4caf50" : "#c8a878", color: "#fff", border: "none", padding: "1.2rem", borderRadius: "12px", fontSize: "1.1rem", fontWeight: "bold", cursor: peutTerminer ? "pointer" : "not-allowed", width: "100%", fontFamily: "'Poppins', sans-serif", marginTop: "1rem", opacity: peutTerminer ? 1 : 0.7 }}>
+                style={{ background: peutTerminer ? "#4caf50" : "#c8a878", color: "#fff", border: "none", padding: "1.2rem", borderRadius: "12px", fontSize: "1.1rem", fontWeight: "bold", cursor: peutTerminer ? "pointer" : "not-allowed", width: "100%", fontFamily: "'Poppins', sans-serif", marginTop: "1rem", opacity: peutTerminer ? 1 : 0.7, touchAction: "manipulation", WebkitTapHighlightColor: "rgba(255,255,255,0.2)" }}>
                 {peutTerminer ? "✅ Terminer la fermeture" : "Encore " + restantes + " tâche" + (restantes > 1 ? "s" : "") + " obligatoire" + (restantes > 1 ? "s" : "")}
               </button>
               <button onClick={handleLogout} style={{ display: "block", margin: "1rem auto 0", background: "transparent", border: "none", color: "#a07848", fontSize: "0.85rem", cursor: "pointer", textDecoration: "underline" }}>Déconnexion</button>
