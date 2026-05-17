@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Package, Calendar, CreditCard, Users, UserCircle, ArrowLeft, RefreshCw, AlertTriangle, AlertCircle, CheckCircle, Pencil, Save, Eye, EyeOff, Check, Lock, User, ArrowRight, Trash2, Plus, ChevronRight, Settings, LogOut, Shield, Star } from "lucide-react";
+import { Package, Calendar, CreditCard, Users, UserCircle, ArrowLeft, RefreshCw, AlertTriangle, AlertCircle, CheckCircle, Pencil, Save, Eye, EyeOff, Check, Lock, User, ArrowRight, Trash2, Plus, ChevronRight, Settings, LogOut, Shield, Star, ListChecks } from "lucide-react";
 
 const SUPABASE_URL = "https://ldpxgfgcnlzktaymtnwd.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkcHhnZmdjbmx6a3RheW10bndkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxOTgyMTAsImV4cCI6MjA5MTc3NDIxMH0.N_yUwjRvBM9rfxu0Xj-FCCGJ9eJ3UomPZdcUYAb8B8s";
@@ -1065,18 +1065,14 @@ export default function App() {
       {[
         { id: "stock", label: "Stock", icon: "stock", adminOnly: false },
         { id: "horaires", label: "Horaires", icon: "horaires", adminOnly: false },
-        { id: "paiements", label: "Paiements", icon: "paiements", adminOnly: true },
-        { id: "comptes", label: "Comptes", icon: "comptes", adminOnly: true },
-        { id: "fermetures", label: "Fermeture", icon: "fermetures", adminOnly: true },
+        { id: "paiements", label: "Tâches", icon: "taches", adminOnly: true },
         { id: "profil", label: "Profil", icon: "profil", adminOnly: false }
       ].filter(tab => !tab.adminOnly || isAdmin).map(tab => (
         <button key={tab.id} onClick={() => { setPage(tab.id); if (tab.id === "comptes") loadUsers(); if (tab.id === "horaires" && !horaires.length) fetchHoraires(horaireRestaurant); if (tab.id === "paiements") loadPaiements(); if (tab.id === "fermetures") { loadFermetureHistorique(); loadFermetureData(); } }} style={{ flex: 1, background: "none", border: "none", padding: "0.7rem 0", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: "0.15rem" }}>
           <span style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
             {tab.icon === "stock" && <Package size={20} color={page === tab.id ? "#e8213a" : "#c8a878"} />}
             {tab.icon === "horaires" && <Calendar size={20} color={page === tab.id ? "#e8213a" : "#c8a878"} />}
-            {tab.icon === "paiements" && <CreditCard size={20} color={page === tab.id ? "#e8213a" : "#c8a878"} />}
-            {tab.icon === "comptes" && <Users size={20} color={page === tab.id ? "#e8213a" : "#c8a878"} />}
-            {tab.icon === "fermetures" && <Lock size={20} color={page === tab.id ? "#e8213a" : "#c8a878"} />}
+            {tab.icon === "taches" && <ListChecks size={20} color={page === tab.id ? "#e8213a" : "#c8a878"} />}
             {tab.icon === "profil" && <UserCircle size={20} color={page === tab.id ? "#e8213a" : "#c8a878"} />}
           </span>
           <span style={{ fontSize: "0.65rem", color: page === tab.id ? "#f5c842" : "#444", fontFamily: "'Poppins', sans-serif" }}>{tab.label}</span>
@@ -1405,8 +1401,8 @@ export default function App() {
             </div>
           </div>
           <div style={{ display: "flex", gap: "0.4rem" }}>
-            {[{id:"week",label:"Semaine"},{id:"remplacements",label:"Remplacements"},{id:"events",label:"Events"},{id:"stats",label:"Stats"}].map(tab => (
-              <button key={tab.id} onClick={() => setHoraireView(tab.id)}
+            {[{id:"week",label:"Semaine"},{id:"remplacements",label:"Remplacements"},{id:"events",label:"Events"},{id:"stats",label:"Stats"},...(isAdmin?[{id:"fermeture",label:"🔒 Fermeture"}]:[])].map(tab => (
+              <button key={tab.id} onClick={() => { if (tab.id === "fermeture") { setPage("fermetures"); loadFermetureHistorique(); loadFermetureData(); } else { setHoraireView(tab.id); } }}
                 style={{ background: horaireView === tab.id ? "#f5c842" : "#1e1e1e", color: horaireView === tab.id ? "#111" : "#555", border: "none", borderRadius: "8px", padding: "0.35rem 0.9rem", fontSize: "0.78rem", fontFamily: "'Poppins', sans-serif", fontWeight: horaireView === tab.id ? "bold" : "normal", cursor: "pointer" }}>
                 {tab.label}
               </button>
@@ -1954,7 +1950,7 @@ export default function App() {
         {/* Header */}
         <div style={{ background: "#fff8f0", padding: "1rem 1.2rem", borderBottom: "1.5px solid #f0d8b8", position: "sticky", top: 0, zIndex: 30 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
-            <h1 style={{ color: "#ffffff", fontSize: "1.1rem", margin: 0 }}>💰 Paiements</h1>
+            <h1 style={{ color: "#ffffff", fontSize: "1.1rem", margin: 0 }}>📋 Tâches</h1>
             <div style={{ display: "flex", gap: "0.4rem" }}>
               <button onClick={loadPaiements} style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#a07848", borderRadius: "8px", padding: "0.3rem 0.6rem", fontSize: "0.8rem", cursor: "pointer" }}><RefreshCw size={16} /></button>
               <button onClick={() => { setPaiementTitre(""); setPaiementMontant(""); setPaiementDate(""); setPaiementNote(""); setPaiementRecurrent(false); setPaiementType("autre"); setShowAddPaiement(true); }}
@@ -2213,6 +2209,11 @@ export default function App() {
               <button onClick={() => { setShowChangePwd(false); setOldPwd(""); setNewPwd(""); setNewPwd2(""); setPwdMsg(""); }} style={{ background: "#faebd7", color: "#c8a878", border: "none", padding: "0.9rem 1rem", borderRadius: "10px", cursor: "pointer" }}>✕</button>
             </div>
           </div>
+        )}
+        {isAdmin && (
+          <button onClick={() => { setPage("comptes"); loadUsers(); }} style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", color: "#3d1a0a", borderRadius: "12px", padding: "1rem", fontFamily: "'Poppins', sans-serif", fontSize: "0.95rem", cursor: "pointer", textAlign: "left" }}>
+            🔑 Gestion des comptes
+          </button>
         )}
         <button onClick={handleLogout} style={{ background: "#fff5f5", border: "1px solid #3a1a1a", color: "#e57373", borderRadius: "12px", padding: "1rem", fontFamily: "'Poppins', sans-serif", fontSize: "0.95rem", cursor: "pointer" }}>
           🚪 Se déconnecter
