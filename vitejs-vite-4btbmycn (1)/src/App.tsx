@@ -462,6 +462,22 @@ export default function App() {
   const [selectedFermetureId, setSelectedFermetureId] = useState(null);
   const [editingTache, setEditingTache] = useState(null);
   const [showAddTache, setShowAddTache] = useState(false);
+  const [tacheView, setTacheView] = useState("paiements");
+  const [todoTaches, setTodoTaches] = useState([]);
+  const [showAddTodoTache, setShowAddTodoTache] = useState(false);
+  const [todoLabel, setTodoLabel] = useState("");
+  const [todoDeadline, setTodoDeadline] = useState("");
+  const [todoPoints, setTodoPoints] = useState("1");
+  const [todoRecurrente, setTodoRecurrente] = useState(false);
+  const [todoFrequence, setTodoFrequence] = useState("hebdo");
+  const [amendes, setAmendes] = useState([]);
+  const [amendeTypes, setAmendeTypes] = useState([]);
+  const [showAddAmende, setShowAddAmende] = useState(false);
+  const [amendeType, setAmendeType] = useState("Voiture");
+  const [amendeMontant, setAmendeMontant] = useState("");
+  const [amendeAttribueeA, setAmendeAttribueeA] = useState("");
+  const [amendeDateIncident, setAmendeDateIncident] = useState("");
+  const [amendeNote, setAmendeNote] = useState("");
   const [newTacheSection, setNewTacheSection] = useState("Équipement & Nettoyage");
   const [newTacheLabel, setNewTacheLabel] = useState("");
   const [newTacheDescription, setNewTacheDescription] = useState("");
@@ -952,6 +968,83 @@ export default function App() {
     finally { setFermetureLoading(false); }
   }
 
+  async function loadTodoTaches() {
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/taches?select=*&order=deadline.asc.nullslast,created_at.desc`, { headers: HEADERS });
+      if (res.ok) setTodoTaches(await res.json());
+    } catch { flash("❌ Erreur chargement tâches"); }
+  }
+  async function loadAmendes() {
+    try {
+      const [a, t] = await Promise.all([
+        fetch(`${SUPABASE_URL}/rest/v1/amendes?select=*&order=date_incident.desc`, { headers: HEADERS }).then(r => r.json()),
+        fetch(`${SUPABASE_URL}/rest/v1/amende_types?select=*&order=label.asc`, { headers: HEADERS }).then(r => r.json())
+      ]);
+      setAmendes(a); setAmendeTypes(t);
+    } catch { flash("❌ Erreur chargement amendes"); }
+  }
+  async function handleAddTodoTache() {
+    if (!todoLabel.trim()) { flash("❌ Titre requis"); return; }
+    try {
+      await fetch(`${SUPABASE_URL}/rest/v1/taches`, {
+        method: "POST", headers: HEADERS,
+        body: JSON.stringify({
+          label: todoLabel.trim(), deadline: todoDeadline || null,
+          points: parseInt(todoPoints) || 1, recurrente: todoRecurrente,
+          frequence: todoRecurrente ? todoFrequence : null,
+          statut: "a_faire", created_by: currentUser?.prenom
+        })
+      });
+      flash("✅ Tâche ajoutée !"); setShowAddTodoTache(false);
+      setTodoLabel(""); setTodoDeadline(""); setTodoPoints("1"); setTodoRecurrente(false);
+      loadTodoTaches();
+    } catch { flash("❌ Erreur"); }
+  }
+  async function handleCompleteTodoTache(t) {
+    try {
+      await fetch(`${SUPABASE_URL}/rest/v1/taches?id=eq.${t.id}`, {
+        method: "PATCH", headers: HEADERS,
+        body: JSON.stringify({ statut: "fait", completed_by: currentUser?.prenom, completed_at: new Date().toISOString() })
+      });
+      if (t.recurrente && t.frequence) {
+        const d = t.deadline ? new Date(t.deadline + "T12:00:00") : new Date();
+        if (t.frequence === "hebdo") d.setDate(d.getDate() + 7);
+        else if (t.frequence === "mensuel") d.setMonth(d.getMonth() + 1);
+        const nextDate = d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+        await fetch(`${SUPABASE_URL}/rest/v1/taches`, {
+          method: "POST", headers: HEADERS,
+          body: JSON.stringify({
+            label: t.label, description: t.description, deadline: nextDate, points: t.points,
+            recurrente: true, frequence: t.frequence, statut: "a_faire", created_by: t.created_by
+          })
+        });
+      }
+      flash("✅ Bien joué !"); loadTodoTaches();
+    } catch { flash("❌ Erreur"); }
+  }
+  async function handleAddAmende() {
+    if (!amendeType || !amendeMontant || !amendeAttribueeA || !amendeDateIncident) { flash("❌ Champs manquants"); return; }
+    try {
+      await fetch(`${SUPABASE_URL}/rest/v1/amendes`, {
+        method: "POST", headers: HEADERS,
+        body: JSON.stringify({
+          type: amendeType, montant: parseFloat(amendeMontant.replace(",",".")),
+          attribuee_a: amendeAttribueeA, date_incident: amendeDateIncident,
+          note: amendeNote.trim() || null, created_by: currentUser?.prenom
+        })
+      });
+      flash("✅ Amende ajoutée !"); setShowAddAmende(false);
+      setAmendeMontant(""); setAmendeAttribueeA(""); setAmendeDateIncident(""); setAmendeNote("");
+      loadAmendes();
+    } catch { flash("❌ Erreur"); }
+  }
+  async function handleDeleteAmende(id) {
+    if (!confirm("Supprimer cette amende ?")) return;
+    try {
+      await fetch(`${SUPABASE_URL}/rest/v1/amendes?id=eq.${id}`, { method: "DELETE", headers: HEADERS });
+      flash("🗑️ Supprimé !"); loadAmendes();
+    } catch { flash("❌ Erreur"); }
+  }
   async function loadFermetureHistorique() {
     try {
       const data = await fetchFermeturesHistorique("rue-neuve", 30);
@@ -1401,8 +1494,8 @@ export default function App() {
             </div>
           </div>
           <div style={{ display: "flex", gap: "0.4rem", overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
-            {[{id:"week",label:"Semaine"},{id:"remplacements",label:"Remplacements"},{id:"events",label:"Events"},{id:"stats",label:"Stats"},...(isAdmin?[{id:"fermeture",label:"🔒 Fermeture"}]:[])].map(tab => (
-              <button key={tab.id} onClick={() => { if (tab.id === "fermeture") { setPage("fermetures"); loadFermetureHistorique(); loadFermetureData(); } else { setHoraireView(tab.id); } }}
+            {[{id:"week",label:"Semaine"},{id:"remplacements",label:"Remplacements"},{id:"events",label:"Events"},{id:"stats",label:"Stats"},...(isAdmin?[{id:"suivi",label:"🏆 Suivi"},{id:"fermeture",label:"🔒 Fermeture"}]:[])].map(tab => (
+              <button key={tab.id} onClick={() => { if (tab.id === "fermeture") { setPage("fermetures"); loadFermetureHistorique(); loadFermetureData(); } else { setHoraireView(tab.id); if (tab.id === "suivi") loadAmendes(); } }}
                 style={{ background: horaireView === tab.id ? "#f5c842" : "#1e1e1e", color: horaireView === tab.id ? "#111" : "#555", border: "none", borderRadius: "8px", padding: "0.35rem 0.9rem", flexShrink: 0, whiteSpace: "nowrap", fontSize: "0.78rem", fontFamily: "'Poppins', sans-serif", fontWeight: horaireView === tab.id ? "bold" : "normal", cursor: "pointer" }}>
                 {tab.label}
               </button>
@@ -1910,6 +2003,80 @@ export default function App() {
             </div>
           )}
 
+          {horaireView === "suivi" && isAdmin && (
+            <div>
+              <div style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "12px", padding: "1rem", marginBottom: "0.75rem" }}>
+                <div style={{ color: "#e8213a", fontWeight: "bold", fontSize: "0.95rem", marginBottom: "0.5rem" }}>🏆 Classement points (all-time)</div>
+                {(() => {
+                  const pts: any = {};
+                  todoTaches.filter(t => t.statut === "fait" && t.completed_by).forEach(t => { pts[t.completed_by] = (pts[t.completed_by] || 0) + (t.points || 0); });
+                  const sorted: any = Object.entries(pts).sort((a: any, b: any) => b[1] - a[1]).slice(0, 3);
+                  if (sorted.length === 0) return <div style={{ color: "#c8a878", fontSize: "0.85rem" }}>Aucune tâche complétée</div>;
+                  const medals = ["🥇", "🥈", "🥉"];
+                  return sorted.map(([nom, p]: any, i: number) => (
+                    <div key={nom} style={{ display: "flex", justifyContent: "space-between", padding: "0.4rem 0", borderTop: i > 0 ? "1px solid #f0d8b8" : "none" }}>
+                      <div style={{ color: "#3d1a0a", fontSize: "0.95rem", fontWeight: "bold" }}>{medals[i]} {nom}</div>
+                      <div style={{ color: "#e8a623", fontSize: "0.95rem", fontWeight: "bold" }}>{p} pt{p > 1 ? "s" : ""}</div>
+                    </div>
+                  ));
+                })()}
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
+                <div style={{ color: "#e8213a", fontWeight: "bold", fontSize: "0.95rem" }}>💸 Amendes</div>
+                <button onClick={() => { setAmendeMontant(""); setAmendeAttribueeA(""); setAmendeDateIncident(getTodayDateStr()); setAmendeNote(""); setShowAddAmende(true); }} style={{ background: "#e8213a", color: "#fff", border: "none", borderRadius: "8px", padding: "0.35rem 0.8rem", fontSize: "0.78rem", fontWeight: "bold", cursor: "pointer", display: "flex", alignItems: "center", gap: "4px", fontFamily: "'Poppins', sans-serif" }}><Plus size={12} /> Amende</button>
+              </div>
+              {(() => {
+                const totals: any = {};
+                amendes.forEach(a => { totals[a.attribuee_a] = (totals[a.attribuee_a] || 0) + parseFloat(a.montant || 0); });
+                const entries: any = Object.entries(totals).sort((a: any, b: any) => b[1] - a[1]);
+                if (entries.length === 0) return null;
+                return (
+                  <div style={{ background: "#fff5f5", border: "1px solid #e8213a33", borderRadius: "10px", padding: "0.6rem 0.8rem", marginBottom: "0.5rem", display: "flex", flexWrap: "wrap", gap: "0.4rem" }}>
+                    {entries.map(([nom, tot]: any) => (
+                      <span key={nom} style={{ background: "#fff", color: "#e8213a", borderRadius: "8px", padding: "0.3rem 0.6rem", fontSize: "0.78rem", border: "1px solid #e8213a33", fontWeight: "bold" }}>{nom}: {tot.toFixed(2)}€</span>
+                    ))}
+                  </div>
+                );
+              })()}
+              {amendes.map(a => (
+                <div key={a.id} style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "12px", padding: "0.8rem 1rem", marginBottom: "0.4rem" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "0.5rem" }}>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ color: "#3d1a0a", fontSize: "0.9rem", fontWeight: "bold" }}>{a.type} · {a.attribuee_a}</div>
+                      <div style={{ color: "#a07848", fontSize: "0.72rem", marginTop: "0.2rem" }}>📅 {new Date(a.date_incident + "T12:00:00").toLocaleDateString("fr-BE", { day: "numeric", month: "short", year: "numeric" })}</div>
+                      {a.note && <div style={{ color: "#a07848", fontSize: "0.72rem", marginTop: "0.2rem" }}>📌 {a.note}</div>}
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "0.3rem" }}>
+                      <div style={{ color: "#e8213a", fontSize: "1rem", fontWeight: "bold" }}>{parseFloat(a.montant).toFixed(2)}€</div>
+                      {isSuperAdmin && <button onClick={() => handleDeleteAmende(a.id)} style={{ background: "#fff5f5", color: "#e57373", border: "none", borderRadius: "6px", padding: "0.2rem 0.4rem", cursor: "pointer" }}><Trash2 size={13} /></button>}
+                    </div>
+                  </div>
+                </div>
+              ))}
+              {amendes.length === 0 && <div style={{ color: "#c8a878", fontSize: "0.85rem", textAlign: "center", padding: "1.5rem" }}>Aucune amende</div>}
+              {showAddAmende && (
+                <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", zIndex: 200, display: "flex", alignItems: "flex-end" }}>
+                  <div style={{ background: "#fff8f0", borderRadius: "16px 16px 0 0", padding: "1.2rem", width: "100%", display: "flex", flexDirection: "column", gap: "0.7rem", maxHeight: "90vh", overflowY: "auto" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <div style={{ color: "#e8213a", fontWeight: "bold", fontSize: "0.95rem" }}>💸 Nouvelle amende</div>
+                      <button onClick={() => setShowAddAmende(false)} style={{ background: "#2a2a2a", border: "none", color: "#c8a878", borderRadius: "50%", width: "2rem", height: "2rem", cursor: "pointer" }}>✕</button>
+                    </div>
+                    <select value={amendeType} onChange={e => setAmendeType(e.target.value)} style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", outline: "none", width: "100%", fontFamily: "'Poppins', sans-serif" }}>
+                      {amendeTypes.map(t => <option key={t.id} value={t.label}>{t.label}</option>)}
+                    </select>
+                    <input value={amendeMontant} onChange={e => setAmendeMontant(e.target.value.replace(",","."))} placeholder="Montant en €" inputMode="decimal" style={{ background: "#faebd7", border: "1px solid #f5c842", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", outline: "none", width: "100%", boxSizing: "border-box", fontFamily: "'Poppins', sans-serif" }} />
+                    <select value={amendeAttribueeA} onChange={e => setAmendeAttribueeA(e.target.value)} style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", outline: "none", width: "100%", fontFamily: "'Poppins', sans-serif" }}>
+                      <option value="">Attribuer à...</option>
+                      {["Abdel","Nabil","Mohammed"].map(n => <option key={n} value={n}>{n}</option>)}
+                    </select>
+                    <input type="date" value={amendeDateIncident} onChange={e => setAmendeDateIncident(e.target.value)} style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", outline: "none", width: "100%", boxSizing: "border-box", fontFamily: "'Poppins', sans-serif" }} />
+                    <textarea value={amendeNote} onChange={e => setAmendeNote(e.target.value)} placeholder="Note (optionnel)..." rows={2} style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.9rem", outline: "none", width: "100%", boxSizing: "border-box", resize: "none", fontFamily: "'Poppins', sans-serif" }} />
+                    <button onClick={handleAddAmende} style={{ background: "#e8213a", color: "#fff", border: "none", padding: "0.9rem", borderRadius: "10px", fontWeight: "bold", fontSize: "1rem", cursor: "pointer", width: "100%", fontFamily: "'Poppins', sans-serif" }}>✅ Ajouter</button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
           </>}
         </div>
         <BottomNav />
@@ -1957,7 +2124,15 @@ export default function App() {
                 style={{ background: "#e8213a", color: "#ffffff", border: "none", borderRadius: "8px", padding: "0.3rem 0.9rem", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", fontSize: "0.8rem", cursor: "pointer" }}><span style={{display:"flex",alignItems:"center",gap:"6px"}}><Plus size={14} /> Ajouter</span></button>
             </div>
           </div>
-          <div style={{ display: "flex", gap: "0.4rem" }}>
+          <div style={{ display: "flex", gap: "0.4rem", marginBottom: "0.5rem", flexWrap: "wrap" }}>
+            {[{id:"paiements",label:"💰 Paiements"},{id:"a_faire",label:"✅ À faire"},{id:"historique",label:"📋 Historique"}].map(tab => (
+              <button key={tab.id} onClick={() => { setTacheView(tab.id); if (tab.id !== "paiements") loadTodoTaches(); }}
+                style={{ background: tacheView === tab.id ? "#e8213a" : "#1e1e1e", color: tacheView === tab.id ? "#fff" : "#555", border: "none", borderRadius: "8px", padding: "0.35rem 0.9rem", fontSize: "0.78rem", fontFamily: "'Poppins', sans-serif", fontWeight: tacheView === tab.id ? "bold" : "normal", cursor: "pointer" }}>
+                {tab.label}
+              </button>
+            ))}
+          </div>
+          <div style={{ display: tacheView === "paiements" ? "flex" : "none", gap: "0.4rem" }}>
             {[{id:"avenir",label:"À venir"},{id:"historique",label:"Historique"}].map(tab => (
               <button key={tab.id} onClick={() => setPaiementView(tab.id)}
                 style={{ background: paiementView === tab.id ? "#f5c842" : "#1e1e1e", color: paiementView === tab.id ? "#111" : "#555", border: "none", borderRadius: "8px", padding: "0.35rem 0.9rem", fontSize: "0.78rem", fontFamily: "'Poppins', sans-serif", fontWeight: paiementView === tab.id ? "bold" : "normal", cursor: "pointer" }}>
@@ -2014,7 +2189,73 @@ export default function App() {
           </div>
         )}
 
-        <div style={{ padding: "0.8rem 1.1rem" }}>
+        {tacheView === "a_faire" && (
+          <div style={{ padding: "0.8rem 1.1rem" }}>
+            <button onClick={() => { setTodoLabel(""); setTodoDeadline(""); setTodoPoints("1"); setTodoRecurrente(false); setShowAddTodoTache(true); }} style={{ background: "#e8213a", color: "#fff", border: "none", padding: "0.7rem 1.2rem", borderRadius: "10px", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", fontSize: "0.85rem", cursor: "pointer", marginBottom: "1rem", display: "flex", alignItems: "center", gap: "6px" }}><Plus size={14} /> Ajouter une tâche</button>
+            {todoTaches.filter(t => t.statut === "a_faire").length === 0 && (<div style={{ color: "#c8a878", fontSize: "0.85rem", textAlign: "center", padding: "2rem" }}>Aucune tâche en cours</div>)}
+            {todoTaches.filter(t => t.statut === "a_faire").sort((a,b) => (a.deadline||"9999").localeCompare(b.deadline||"9999")).map(t => {
+              const enRetard = t.deadline && t.deadline < new Date().toISOString().slice(0,10);
+              return (
+                <div key={t.id} style={{ background: "#fff8f0", border: "1.5px solid " + (enRetard ? "#e8213a55" : "#f0d8b8"), borderRadius: "12px", padding: "1rem", marginBottom: "0.5rem" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "0.5rem" }}>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ color: "#3d1a0a", fontSize: "0.95rem", fontWeight: "bold" }}>{t.label}</div>
+                      <div style={{ display: "flex", gap: "0.4rem", marginTop: "0.4rem", flexWrap: "wrap" }}>
+                        {t.deadline && <span style={{ background: enRetard ? "#fff0f0" : "#faebd7", color: enRetard ? "#e8213a" : "#a07848", fontSize: "0.72rem", borderRadius: "8px", padding: "0.2rem 0.5rem" }}>{enRetard ? "⚠️ " : "📅 "}{new Date(t.deadline + "T12:00:00").toLocaleDateString("fr-BE", { day: "numeric", month: "short" })}</span>}
+                        <span style={{ background: "#fff8e6", color: "#e8a623", fontSize: "0.72rem", borderRadius: "8px", padding: "0.2rem 0.5rem" }}>⭐ {t.points} pt{t.points > 1 ? "s" : ""}</span>
+                        {t.recurrente && <span style={{ background: "#e6f0ff", color: "#6ab0ff", fontSize: "0.72rem", borderRadius: "8px", padding: "0.2rem 0.5rem" }}>🔄 {t.frequence}</span>}
+                      </div>
+                    </div>
+                    <button onClick={() => handleCompleteTodoTache(t)} style={{ background: "#4caf50", color: "#fff", border: "none", padding: "0.5rem 0.8rem", borderRadius: "8px", fontSize: "0.85rem", fontWeight: "bold", cursor: "pointer", whiteSpace: "nowrap", fontFamily: "'Poppins', sans-serif" }}>✅ J'ai fait</button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+        {tacheView === "historique" && (
+          <div style={{ padding: "0.8rem 1.1rem" }}>
+            {todoTaches.filter(t => t.statut === "fait").length === 0 && (<div style={{ color: "#c8a878", fontSize: "0.85rem", textAlign: "center", padding: "2rem" }}>Aucune tâche complétée</div>)}
+            {todoTaches.filter(t => t.statut === "fait").sort((a,b) => (b.completed_at||"").localeCompare(a.completed_at||"")).map(t => (
+              <div key={t.id} style={{ background: "#f5fff8", border: "1.5px solid #4caf5033", borderRadius: "12px", padding: "0.8rem 1rem", marginBottom: "0.4rem" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div>
+                    <div style={{ color: "#3d1a0a", fontSize: "0.9rem", fontWeight: "bold" }}>✅ {t.label}</div>
+                    <div style={{ color: "#a07848", fontSize: "0.72rem", marginTop: "0.2rem" }}>{t.completed_by} · {t.completed_at ? new Date(t.completed_at).toLocaleDateString("fr-BE", { day: "numeric", month: "short" }) : ""}</div>
+                  </div>
+                  <span style={{ background: "#fff8e6", color: "#e8a623", fontSize: "0.78rem", borderRadius: "8px", padding: "0.2rem 0.5rem", fontWeight: "bold" }}>+{t.points} pt{t.points > 1 ? "s" : ""}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+        {showAddTodoTache && (
+          <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", zIndex: 200, display: "flex", alignItems: "flex-end" }}>
+            <div style={{ background: "#fff8f0", borderRadius: "16px 16px 0 0", padding: "1.2rem", width: "100%", display: "flex", flexDirection: "column", gap: "0.7rem", maxHeight: "90vh", overflowY: "auto" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div style={{ color: "#e8213a", fontWeight: "bold", fontSize: "0.95rem" }}>➕ Nouvelle tâche</div>
+                <button onClick={() => setShowAddTodoTache(false)} style={{ background: "#2a2a2a", border: "none", color: "#c8a878", borderRadius: "50%", width: "2rem", height: "2rem", cursor: "pointer" }}>✕</button>
+              </div>
+              <input value={todoLabel} onChange={e => setTodoLabel(e.target.value)} placeholder="Titre de la tâche..." style={{ background: "#faebd7", border: "1px solid #f5c842", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", outline: "none", width: "100%", boxSizing: "border-box", fontFamily: "'Poppins', sans-serif" }} />
+              <div style={{ display: "flex", gap: "0.5rem" }}>
+                <input type="date" value={todoDeadline} onChange={e => setTodoDeadline(e.target.value)} style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", outline: "none", flex: 1, boxSizing: "border-box", fontFamily: "'Poppins', sans-serif" }} />
+                <input value={todoPoints} onChange={e => setTodoPoints(e.target.value.replace(/[^0-9]/g, ""))} placeholder="Pts" inputMode="numeric" style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", outline: "none", width: "5rem", boxSizing: "border-box", fontFamily: "'Poppins', sans-serif" }} />
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
+                <input type="checkbox" id="todoRec" checked={todoRecurrente} onChange={e => setTodoRecurrente(e.target.checked)} style={{ width: "1.1rem", height: "1.1rem", accentColor: "#f5c842", cursor: "pointer" }} />
+                <label htmlFor="todoRec" style={{ color: "#3d1a0a", fontSize: "0.85rem", cursor: "pointer" }}>Tâche récurrente</label>
+              </div>
+              {todoRecurrente && (
+                <select value={todoFrequence} onChange={e => setTodoFrequence(e.target.value)} style={{ background: "#faebd7", border: "1px solid #f5c842", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", outline: "none", width: "100%", fontFamily: "'Poppins', sans-serif" }}>
+                  <option value="hebdo">📅 Hebdomadaire</option>
+                  <option value="mensuel">📅 Mensuel</option>
+                </select>
+              )}
+              <button onClick={handleAddTodoTache} style={{ background: "#e8213a", color: "#fff", border: "none", padding: "0.9rem", borderRadius: "10px", fontWeight: "bold", fontSize: "1rem", cursor: "pointer", width: "100%", fontFamily: "'Poppins', sans-serif" }}>✅ Ajouter</button>
+            </div>
+          </div>
+        )}
+        <div style={{ padding: "0.8rem 1.1rem", display: tacheView === "paiements" ? "block" : "none" }}>
           {paiementsLoading && <div style={{ textAlign: "center", padding: "3rem", color: "#e8213a" }}><div style={{ fontSize: "1.5rem" }}>⏳</div><div style={{ fontSize: "0.85rem", marginTop: "0.5rem" }}>Chargement...</div></div>}
 
           {!paiementsLoading && paiementView === "avenir" && (
@@ -2306,6 +2547,11 @@ export default function App() {
       <div style={{ ...s, minHeight: "100vh", background: "#faebd7", paddingBottom: "6rem" }}>
         {toast && <div style={{ position: "fixed", top: "1rem", left: "50%", transform: "translateX(-50%)", background: "#faebd7", color: "#e8213a", padding: "0.55rem 1.4rem", borderRadius: "20px", fontSize: "0.88rem", zIndex: 999, border: "1.5px solid #f0d8b8" }}>{toast}</div>}
         <div style={{ background: "#fff8f0", padding: "1rem 1.2rem", borderBottom: "1.5px solid #f0d8b8", position: "sticky", top: 0, zIndex: 30 }}>
+          <div style={{ display: "flex", gap: "0.4rem", overflowX: "auto", WebkitOverflowScrolling: "touch", marginBottom: "0.5rem" }}>
+            {[{id:"week",label:"Semaine"},{id:"remplacements",label:"Remplacements"},{id:"events",label:"Events"},{id:"stats",label:"Stats"},{id:"suivi",label:"🏆 Suivi"},{id:"fermeture",label:"🔒 Fermeture"}].map(tab => (
+              <button key={tab.id} onClick={() => { if (tab.id === "fermeture") return; setPage("horaires"); setHoraireView(tab.id); if (tab.id === "suivi") loadAmendes(); }} style={{ background: tab.id === "fermeture" ? "#f5c842" : "#1e1e1e", color: tab.id === "fermeture" ? "#111" : "#555", border: "none", borderRadius: "8px", padding: "0.35rem 0.9rem", fontSize: "0.78rem", fontFamily: "'Poppins', sans-serif", fontWeight: tab.id === "fermeture" ? "bold" : "normal", cursor: "pointer", flexShrink: 0, whiteSpace: "nowrap" }}>{tab.label}</button>
+            ))}
+          </div>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
             <h1 style={{ color: "#e8213a", fontSize: "1.1rem", margin: 0 }}>🔒 Fermetures</h1>
             <button onClick={() => { loadFermetureHistorique(); loadFermetureData(); }}
