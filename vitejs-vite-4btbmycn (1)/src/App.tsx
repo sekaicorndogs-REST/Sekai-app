@@ -580,7 +580,7 @@ export default function App() {
   const [editVal, setEditVal] = useState("");
   const [saving, setSaving] = useState(false);
   const [lastSave, setLastSave] = useState<{time: string; who: string} | null>(null);
-  const [toast, setToast] = useState(null);
+  const [toast, setToast] = useState<{msg: string; type: "success"|"error"|"warn"} | null>(null);
   const [addMode, setAddMode] = useState(false);
   const [newName, setNewName] = useState("");
   const [newQty, setNewQty] = useState("");
@@ -794,7 +794,10 @@ export default function App() {
     finally { setLoading(false); }
   }
 
-  function flash(msg) { setToast(msg); setTimeout(() => setToast(null), 2500); }
+  function flash(msg: string, type: "success"|"error"|"warn" = msg.startsWith("✅") ? "success" : msg.startsWith("⚠️") ? "warn" : "error") {
+    setToast({ msg, type });
+    setTimeout(() => setToast(null), 3500);
+  }
 
   async function saveQty(id) {
     setSaving(true);
@@ -1483,7 +1486,7 @@ export default function App() {
   if (currentUser && currentUser.role === "tablette") {
     return (
       <div style={{ ...s, minHeight: "100vh", background: "#faebd7", padding: "1rem", paddingBottom: "2rem" }}>
-        {toast && <div style={{ position: "fixed", top: "1rem", left: "50%", transform: "translateX(-50%)", background: "#faebd7", color: "#e8213a", padding: "0.55rem 1.4rem", borderRadius: "20px", fontSize: "0.88rem", zIndex: 999, border: "1.5px solid #f0d8b8" }}>{toast}</div>}
+        {toast && <div style={{ position: "fixed", top: "1rem", left: "50%", transform: "translateX(-50%)", background: toast.type === "success" ? "#f0fff4" : toast.type === "warn" ? "#fffbe6" : "#fff0f0", color: toast.type === "success" ? "#2e7d32" : toast.type === "warn" ? "#b45309" : "#e8213a", padding: "0.6rem 1.4rem", borderRadius: "20px", fontSize: "0.88rem", zIndex: 999, border: `1.5px solid ${toast.type === "success" ? "#a5d6a7" : toast.type === "warn" ? "#fde68a" : "#f5c8c8"}`, whiteSpace: "nowrap", pointerEvents: "none", fontWeight: "600", boxShadow: "0 2px 12px rgba(0,0,0,0.12)" }}>{toast.msg}</div>}
         <div style={{ background: "#e8213a", borderRadius: "12px", padding: "1.2rem", marginBottom: "1rem", textAlign: "center" }}>
           <h1 style={{ color: "#fff", fontSize: "1.4rem", margin: 0 }}>🌙 Fermeture du soir</h1>
           <p style={{ color: "#ffffffcc", fontSize: "0.9rem", margin: "0.4rem 0 0", textTransform: "capitalize" }}>{getTodayStr()}</p>
@@ -1771,7 +1774,7 @@ export default function App() {
 
     return (
       <div style={{ ...s, minHeight: "100vh", background: "#faebd7", paddingBottom: "6rem" }}>
-        {toast && <div style={{ position: "fixed", top: "1rem", left: "50%", transform: "translateX(-50%)", background: "#faebd7", color: "#e8213a", padding: "0.55rem 1.4rem", borderRadius: "20px", fontSize: "0.88rem", zIndex: 999, border: "1.5px solid #f0d8b8", whiteSpace: "nowrap" }}>{toast}</div>}
+        {toast && <div style={{ position: "fixed", top: "1rem", left: "50%", transform: "translateX(-50%)", background: toast.type === "success" ? "#f0fff4" : toast.type === "warn" ? "#fffbe6" : "#fff0f0", color: toast.type === "success" ? "#2e7d32" : toast.type === "warn" ? "#b45309" : "#e8213a", padding: "0.6rem 1.4rem", borderRadius: "20px", fontSize: "0.88rem", zIndex: 999, border: `1.5px solid ${toast.type === "success" ? "#a5d6a7" : toast.type === "warn" ? "#fde68a" : "#f5c8c8"}`, whiteSpace: "nowrap", pointerEvents: "none", fontWeight: "600", boxShadow: "0 2px 12px rgba(0,0,0,0.12)" }}>{toast.msg}</div>}
         <AddModal />
 
         {/* Header */}
@@ -2417,7 +2420,7 @@ export default function App() {
 
     return (
       <div style={{ ...s, minHeight: "100vh", background: "#faebd7", paddingBottom: "6rem" }}>
-        {toast && <div style={{ position: "fixed", top: "1rem", left: "50%", transform: "translateX(-50%)", background: "#faebd7", color: "#e8213a", padding: "0.55rem 1.4rem", borderRadius: "20px", fontSize: "0.88rem", zIndex: 999, border: "1.5px solid #f0d8b8", whiteSpace: "nowrap" }}>{toast}</div>}
+        {toast && <div style={{ position: "fixed", top: "1rem", left: "50%", transform: "translateX(-50%)", background: toast.type === "success" ? "#f0fff4" : toast.type === "warn" ? "#fffbe6" : "#fff0f0", color: toast.type === "success" ? "#2e7d32" : toast.type === "warn" ? "#b45309" : "#e8213a", padding: "0.6rem 1.4rem", borderRadius: "20px", fontSize: "0.88rem", zIndex: 999, border: `1.5px solid ${toast.type === "success" ? "#a5d6a7" : toast.type === "warn" ? "#fde68a" : "#f5c8c8"}`, whiteSpace: "nowrap", pointerEvents: "none", fontWeight: "600", boxShadow: "0 2px 12px rgba(0,0,0,0.12)" }}>{toast.msg}</div>}
 
         {/* Header */}
         <div style={{ background: "#fff8f0", padding: "1rem 1.2rem", borderBottom: "1.5px solid #f0d8b8", position: "sticky", top: 0, zIndex: 30 }}>
@@ -2724,7 +2727,7 @@ export default function App() {
     const previewCalc = previewEmploye && paieHeures ? calculerPaieEmploye(previewEmploye, parseFloat(paieHeures) || 0) : null;
     return (
       <div style={{ ...s, minHeight: "100vh", background: "#faebd7", paddingBottom: "6rem" }}>
-        {toast && <div style={{ position: "fixed", top: "1rem", left: "50%", transform: "translateX(-50%)", background: "#faebd7", color: "#e8213a", padding: "0.55rem 1.4rem", borderRadius: "20px", fontSize: "0.88rem", zIndex: 999, border: "1.5px solid #f0d8b8" }}>{toast}</div>}
+        {toast && <div style={{ position: "fixed", top: "1rem", left: "50%", transform: "translateX(-50%)", background: toast.type === "success" ? "#f0fff4" : toast.type === "warn" ? "#fffbe6" : "#fff0f0", color: toast.type === "success" ? "#2e7d32" : toast.type === "warn" ? "#b45309" : "#e8213a", padding: "0.6rem 1.4rem", borderRadius: "20px", fontSize: "0.88rem", zIndex: 999, border: `1.5px solid ${toast.type === "success" ? "#a5d6a7" : toast.type === "warn" ? "#fde68a" : "#f5c8c8"}`, whiteSpace: "nowrap", pointerEvents: "none", fontWeight: "600", boxShadow: "0 2px 12px rgba(0,0,0,0.12)" }}>{toast.msg}</div>}
         {/* Header */}
         <div style={{ background: "#e8213a", padding: "1rem 1.2rem", position: "sticky", top: 0, zIndex: 30 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.6rem" }}>
@@ -3082,7 +3085,7 @@ export default function App() {
   // ── PROFIL ─────────────────────────────────────────────────
   if (page === "profil") return (
     <div style={{ ...s, minHeight: "100vh", background: "#faebd7", paddingBottom: "5rem" }}>
-      {toast && <div style={{ position: "fixed", top: "1rem", left: "50%", transform: "translateX(-50%)", background: "#faebd7", color: "#e8213a", padding: "0.55rem 1.4rem", borderRadius: "20px", fontSize: "0.88rem", zIndex: 999, border: "1.5px solid #f0d8b8", whiteSpace: "nowrap" }}>{toast}</div>}
+      {toast && <div style={{ position: "fixed", top: "1rem", left: "50%", transform: "translateX(-50%)", background: toast.type === "success" ? "#f0fff4" : toast.type === "warn" ? "#fffbe6" : "#fff0f0", color: toast.type === "success" ? "#2e7d32" : toast.type === "warn" ? "#b45309" : "#e8213a", padding: "0.6rem 1.4rem", borderRadius: "20px", fontSize: "0.88rem", zIndex: 999, border: `1.5px solid ${toast.type === "success" ? "#a5d6a7" : toast.type === "warn" ? "#fde68a" : "#f5c8c8"}`, whiteSpace: "nowrap", pointerEvents: "none", fontWeight: "600", boxShadow: "0 2px 12px rgba(0,0,0,0.12)" }}>{toast.msg}</div>}
       <div style={{ background: "#e8213a", padding: "1.2rem", borderBottom: "none" }}>
         <h1 style={{ color: "#ffffff", fontSize: "1.1rem", margin: 0 }}>👤 Mon profil</h1>
       </div>
@@ -3135,7 +3138,7 @@ export default function App() {
   // ── COMPTES ────────────────────────────────────────────────
   if (page === "comptes" && isAdmin) return (
     <div style={{ ...s, minHeight: "100vh", background: "#faebd7", paddingBottom: "5rem" }}>
-      {toast && <div style={{ position: "fixed", top: "1rem", left: "50%", transform: "translateX(-50%)", background: "#faebd7", color: "#e8213a", padding: "0.55rem 1.4rem", borderRadius: "20px", fontSize: "0.88rem", zIndex: 999, border: "1.5px solid #f0d8b8", whiteSpace: "nowrap" }}>{toast}</div>}
+      {toast && <div style={{ position: "fixed", top: "1rem", left: "50%", transform: "translateX(-50%)", background: toast.type === "success" ? "#f0fff4" : toast.type === "warn" ? "#fffbe6" : "#fff0f0", color: toast.type === "success" ? "#2e7d32" : toast.type === "warn" ? "#b45309" : "#e8213a", padding: "0.6rem 1.4rem", borderRadius: "20px", fontSize: "0.88rem", zIndex: 999, border: `1.5px solid ${toast.type === "success" ? "#a5d6a7" : toast.type === "warn" ? "#fde68a" : "#f5c8c8"}`, whiteSpace: "nowrap", pointerEvents: "none", fontWeight: "600", boxShadow: "0 2px 12px rgba(0,0,0,0.12)" }}>{toast.msg}</div>}
       <div style={{ background: "#e8213a", padding: "1.2rem", borderBottom: "none", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <h1 style={{ color: "#ffffff", fontSize: "1.1rem", margin: 0 }}>👥 Gestion des comptes</h1>
         <button onClick={() => setShowNewUser(true)} style={{ background: "#e8213a", color: "#ffffff", border: "none", borderRadius: "8px", padding: "0.5rem 0.9rem", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", fontSize: "0.85rem", cursor: "pointer" }}><span style={{display:"flex",alignItems:"center",gap:"6px"}}><Plus size={14} /> Nouveau</span></button>
@@ -3213,7 +3216,7 @@ export default function App() {
     const sectionsOrder = ["Équipement & Nettoyage", "Terrasse & salle", "Fermeture générale"];
     return (
       <div style={{ ...s, minHeight: "100vh", background: "#faebd7", paddingBottom: "6rem" }}>
-        {toast && <div style={{ position: "fixed", top: "1rem", left: "50%", transform: "translateX(-50%)", background: "#faebd7", color: "#e8213a", padding: "0.55rem 1.4rem", borderRadius: "20px", fontSize: "0.88rem", zIndex: 999, border: "1.5px solid #f0d8b8" }}>{toast}</div>}
+        {toast && <div style={{ position: "fixed", top: "1rem", left: "50%", transform: "translateX(-50%)", background: toast.type === "success" ? "#f0fff4" : toast.type === "warn" ? "#fffbe6" : "#fff0f0", color: toast.type === "success" ? "#2e7d32" : toast.type === "warn" ? "#b45309" : "#e8213a", padding: "0.6rem 1.4rem", borderRadius: "20px", fontSize: "0.88rem", zIndex: 999, border: `1.5px solid ${toast.type === "success" ? "#a5d6a7" : toast.type === "warn" ? "#fde68a" : "#f5c8c8"}`, whiteSpace: "nowrap", pointerEvents: "none", fontWeight: "600", boxShadow: "0 2px 12px rgba(0,0,0,0.12)" }}>{toast.msg}</div>}
         <div style={{ background: "#fff8f0", padding: "1rem 1.2rem", borderBottom: "1.5px solid #f0d8b8", position: "sticky", top: 0, zIndex: 30 }}>
           <div style={{ display: "flex", gap: "0.4rem", overflowX: "auto", WebkitOverflowScrolling: "touch", marginBottom: "0.5rem" }}>
             {[{id:"week",label:"Semaine"},{id:"remplacements",label:"Remplacements"},{id:"events",label:"Events"},{id:"stats",label:"Stats"},{id:"suivi",label:"🏆 Suivi"},{id:"fermeture",label:"🔒 Fermeture"}].map(tab => (
@@ -3502,7 +3505,7 @@ export default function App() {
   const storeItems = stock[activeStore] || [];
   return (
     <div style={{ ...s, minHeight: "100vh", background: "#faebd7", paddingBottom: isAdmin ? "8rem" : "5rem" }}>
-      {toast && <div style={{ position: "fixed", top: "1rem", left: "50%", transform: "translateX(-50%)", background: "#faebd7", color: "#e8213a", padding: "0.55rem 1.4rem", borderRadius: "20px", fontSize: "0.88rem", zIndex: 999, border: "1.5px solid #f0d8b8", whiteSpace: "nowrap", pointerEvents: "none" }}>{toast}</div>}
+      {toast && <div style={{ position: "fixed", top: "1rem", left: "50%", transform: "translateX(-50%)", background: toast.type === "success" ? "#f0fff4" : toast.type === "warn" ? "#fffbe6" : "#fff0f0", color: toast.type === "success" ? "#2e7d32" : toast.type === "warn" ? "#b45309" : "#e8213a", padding: "0.6rem 1.4rem", borderRadius: "20px", fontSize: "0.88rem", zIndex: 999, border: `1.5px solid ${toast.type === "success" ? "#a5d6a7" : toast.type === "warn" ? "#fde68a" : "#f5c8c8"}`, whiteSpace: "nowrap", pointerEvents: "none", fontWeight: "600", boxShadow: "0 2px 12px rgba(0,0,0,0.12)" }}>{toast.msg}</div>}
       <div style={{ background: "#e8213a", padding: "1rem 1.2rem", borderBottom: "none", position: "sticky", top: 0, zIndex: 10 }}>
         <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
           <button onClick={() => { setActiveStore(null); setEditingId(null); setAddMode(false); }} style={{ background: "none", border: "none", color: "#ffffff", fontSize: "1.6rem", cursor: "pointer", padding: 0, lineHeight: 1 }}><ArrowLeft size={20} /></button>
