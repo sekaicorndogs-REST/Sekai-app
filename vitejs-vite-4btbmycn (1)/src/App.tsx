@@ -418,12 +418,13 @@ function getFacteurAge(age, type) {
   if (age === 16) return 0.8;
   return 0.7;
 }
+const FLEXI_TAUX_MIN = 12.78; // flexi-salaire (11,87) + pécule vacances (0,91) — CP302 depuis 01/03/2026
 function calculerPaieEmploye(employe, heures) {
-  const tauxBase = employe.salaire_horaire || getTauxCP302(employe.anciennete_ans || 0);
+  const type = employe.type_contrat || "etudiant";
+  const tauxBase = employe.salaire_horaire || (type === "flexi" ? FLEXI_TAUX_MIN : getTauxCP302(employe.anciennete_ans || 0));
   const facteur = getFacteurAge(employe.age_employe, employe.type_contrat || "etudiant");
   const tauxEffectif = Math.round(tauxBase * facteur * 10000) / 10000;
   const brut = Math.round(heures * tauxEffectif * 100) / 100;
-  const type = employe.type_contrat || "etudiant";
   let cotisationOnss = 0, cotisationSol = 0, chargesPatronales = 0;
   if (type === "etudiant") {
     cotisationSol = Math.round(brut * 0.0271 * 100) / 100;
