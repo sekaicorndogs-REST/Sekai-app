@@ -455,7 +455,7 @@ function genererPDFFiche(fiche, employe, dateDoc?: string) {
     lignesOnss = `<tr><td colspan="6">ONSS TRAVAILLEUR (DÉDUCTION): (Base calcul: ${fmt(fiche.salaire_brut)})</td><td style="text-align:right">0,00</td></tr>
     <tr><td colspan="6">Cotisation solidarité étudiants</td><td style="text-align:right;color:#c00">-${fmt(fiche.cotisation_onss)}</td></tr>`;
   } else if (estFlexi) {
-    lignesOnss = `<tr><td colspan="6">ONSS TRAVAILLEUR (DÉDUCTION):</td><td style="text-align:right">0,00</td></tr>`;
+    lignesOnss = `<tr><td colspan="6">Flexi-job — Pas de cotisation ONSS travailleur</td><td style="text-align:right">0,00</td></tr>`;
   } else {
     lignesOnss = `<tr><td colspan="6">ONSS TRAVAILLEUR (DÉDUCTION): (Base calcul: ${fmt(fiche.salaire_brut)})</td><td style="text-align:right;color:#c00">-${fmt(fiche.cotisation_onss)}</td></tr>`;
   }
@@ -809,7 +809,9 @@ export default function App() {
 
   async function addItem(store) {
     if (!newName.trim()) return;
-    const newItem = { store, name: newName.trim(), qty: newQty, unit: "", threshold: parseFloat(newThreshold) || 1, threshold_label: `< ${newThreshold || 1}`, restaurant_id: restaurant.id, updated_by: currentUser.prenom };
+    const thresholdNum = parseFloat(newThreshold.replace(",", "."));
+    if (newThreshold && isNaN(thresholdNum)) { flash("❌ Seuil invalide — entre un nombre"); return; }
+    const newItem = { store, name: newName.trim(), qty: newQty, unit: "", threshold: thresholdNum || 1, threshold_label: `< ${newThreshold || 1}`, restaurant_id: restaurant.id, updated_by: currentUser.prenom };
     setSaving(true);
     try {
       const [created] = await insertItem(newItem);
@@ -960,6 +962,7 @@ export default function App() {
     if (!employe) { flash("❌ Employé introuvable"); return; }
     const heures = parseFloat(paieHeures);
     if (isNaN(heures) || heures <= 0) { flash("❌ Heures invalides"); return; }
+    if (!employe.iban) { flash("⚠️ IBAN manquant — configure le profil paie de cet employé"); return; }
     const c = calculerPaieEmploye(employe, heures);
     const type = employe.type_contrat || "etudiant";
     try {
@@ -1387,6 +1390,8 @@ export default function App() {
       await terminerFermeture(currentFermeture.id);
       setCurrentFermeture(prev => ({ ...prev, termine_at: new Date().toISOString() }));
       flash("✅ Fermeture terminée !");
+      // Reload historique pour refléter la fermeture terminée
+      loadFermetureHistorique();
     } catch { flash("❌ Erreur"); }
   }
 
