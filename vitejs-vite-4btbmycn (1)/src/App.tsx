@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Package, Calendar, CreditCard, Users, UserCircle, ArrowLeft, RefreshCw, AlertTriangle, AlertCircle, CheckCircle, Pencil, Save, Eye, EyeOff, Check, Lock, User, ArrowRight, Trash2, Plus, ChevronRight, Settings, LogOut, Shield, Star, ListChecks } from "lucide-react";
+import { Package, Calendar, CreditCard, Users, UserCircle, ArrowLeft, RefreshCw, AlertTriangle, AlertCircle, CheckCircle, Pencil, Save, Eye, EyeOff, Check, Lock, User, ArrowRight, Trash2, Plus, ChevronRight, Settings, LogOut, Shield, Star, ListChecks, FileText } from "lucide-react";
 
 const SUPABASE_URL = "https://ldpxgfgcnlzktaymtnwd.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkcHhnZmdjbmx6a3RheW10bndkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxOTgyMTAsImV4cCI6MjA5MTc3NDIxMH0.N_yUwjRvBM9rfxu0Xj-FCCGJ9eJ3UomPZdcUYAb8B8s";
@@ -122,8 +122,8 @@ function isLow(item) {
   return false;
 }
 
-function groupByStore(items) {
-  const map = {};
+function groupByStore(items: any[]): Record<string, any[]> {
+  const map: Record<string, any[]> = {};
   items.forEach(item => {
     if (!map[item.store]) map[item.store] = [];
     map[item.store].push(item);
@@ -283,6 +283,33 @@ async function deleteEventWorker(id) {
   if (!res.ok) throw new Error("Delete event_worker failed");
 }
 
+// ── PAIE API ──────────────────────────────────────────────
+async function fetchFichesPaie() {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/fiches_paie?select=*&order=generated_at.desc`, { headers: HEADERS });
+  if (!res.ok) throw new Error("Fetch fiches_paie failed");
+  return res.json();
+}
+async function createFichePaie(data) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/fiches_paie`, {
+    method: "POST", headers: HEADERS, body: JSON.stringify(data)
+  });
+  if (!res.ok) throw new Error("Create fiche_paie failed");
+  return res.json();
+}
+async function deleteFichePaie(id) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/fiches_paie?id=eq.${id}`, {
+    method: "DELETE", headers: HEADERS
+  });
+  if (!res.ok) throw new Error("Delete fiche_paie failed");
+}
+async function updateFichePaie(id, data) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/fiches_paie?id=eq.${id}`, {
+    method: "PATCH", headers: HEADERS, body: JSON.stringify(data)
+  });
+  if (!res.ok) throw new Error("Update fiche_paie failed");
+  return res.json();
+}
+
 // ── FERMETURE API ──────────────────────────────────────────
 async function fetchFermetureTaches() {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/fermeture_taches?select=*&active=eq.true&order=ordre.asc`, { headers: HEADERS });
@@ -369,6 +396,168 @@ async function fetchFermeturesHistorique(restaurantId, days = 30) {
   return res.json();
 }
 
+// ── CP 302 BARÈME & CALCUL PAIE ───────────────────────────
+const CP302_CAT12 = [
+  { max: 0, rate: 15.2097 }, { max: 1, rate: 15.8915 }, { max: 2, rate: 16.2059 },
+  { max: 3, rate: 16.5019 }, { max: 8, rate: 16.7139 }, { max: 13, rate: 16.8646 },
+  { max: 18, rate: 17.0152 }, { max: 23, rate: 17.1660 }, { max: 28, rate: 17.3157 },
+  { max: 33, rate: 17.4669 }, { max: 38, rate: 17.6175 }, { max: 43, rate: 17.7677 },
+  { max: 999, rate: 17.9181 },
+];
+function getTauxCP302(anciennete) {
+  const ans = anciennete || 0;
+  for (const { max, rate } of CP302_CAT12) { if (ans <= max) return rate; }
+  return 17.9181;
+}
+function getFacteurAge(age, type) {
+  if (type !== "etudiant" || !age || age >= 18) return 1;
+  if (age === 17) return 0.9;
+  if (age === 16) return 0.8;
+  return 0.7;
+}
+function calculerPaieEmploye(employe, heures) {
+  const tauxBase = employe.salaire_horaire || getTauxCP302(employe.anciennete_ans || 0);
+  const facteur = getFacteurAge(employe.age_employe, employe.type_contrat || "etudiant");
+  const tauxEffectif = Math.round(tauxBase * facteur * 10000) / 10000;
+  const brut = Math.round(heures * tauxEffectif * 100) / 100;
+  const type = employe.type_contrat || "etudiant";
+  let cotisationOnss = 0, cotisationSol = 0, chargesPatronales = 0;
+  if (type === "etudiant") {
+    cotisationSol = Math.round(brut * 0.0271 * 100) / 100;
+    chargesPatronales = Math.round(brut * 0.0542 * 100) / 100;
+  } else if (type === "flexi") {
+    chargesPatronales = Math.round(brut * 0.28 * 100) / 100;
+  } else {
+    cotisationOnss = Math.round(brut * 0.1307 * 100) / 100;
+    chargesPatronales = Math.round(brut * 0.25 * 100) / 100;
+  }
+  const cotisationTotal = cotisationOnss + cotisationSol;
+  const net = Math.round((brut - cotisationTotal) * 100) / 100;
+  const coutEmployeur = Math.round((brut + chargesPatronales) * 100) / 100;
+  return { tauxEffectif, brut, cotisationOnss, cotisationSol, cotisationTotal, net, chargesPatronales, coutEmployeur };
+}
+function fmt(val) { return Number(val || 0).toFixed(2).replace(".", ","); }
+function genererPDFFiche(fiche, employe) {
+  const type = fiche.type_contrat;
+  const estFlexi = type === "flexi";
+  const estCdi = type === "cdi";
+  const dateDebut = fiche.date_debut ? new Date(fiche.date_debut).toLocaleDateString("fr-BE") : "—";
+  const dateFin = fiche.date_fin ? new Date(fiche.date_fin).toLocaleDateString("fr-BE") : "—";
+  const jours = Math.round((fiche.heures_total || 0) / 8);
+  const statut = type === "etudiant" ? "Etudiant(e)" : type === "flexi" ? "Flexi-job" : "Ouvrier(e)";
+  const charges = Number(fiche.cout_employeur || 0) - Number(fiche.salaire_brut || 0);
+  let lignesOnss = "";
+  if (!estFlexi && !estCdi) {
+    lignesOnss = `<tr><td colspan="6">ONSS TRAVAILLEUR (DÉDUCTION): (Base calcul: ${fmt(fiche.salaire_brut)})</td><td style="text-align:right">0,00</td></tr>
+    <tr><td colspan="6">Cotisation solidarité étudiants</td><td style="text-align:right;color:#c00">-${fmt(fiche.cotisation_onss)}</td></tr>`;
+  } else if (estFlexi) {
+    lignesOnss = `<tr><td colspan="6">ONSS TRAVAILLEUR (DÉDUCTION):</td><td style="text-align:right">0,00</td></tr>`;
+  } else {
+    lignesOnss = `<tr><td colspan="6">ONSS TRAVAILLEUR (DÉDUCTION): (Base calcul: ${fmt(fiche.salaire_brut)})</td><td style="text-align:right;color:#c00">-${fmt(fiche.cotisation_onss)}</td></tr>`;
+  }
+  const imposable = Number(fiche.salaire_brut || 0) - Number(fiche.cotisation_onss || 0);
+  const html = `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>Feuille de paie - ${fiche.employe_nom} - ${fiche.periode}</title>
+<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,sans-serif;font-size:11px;color:#000;padding:15px}
+.hdr{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #333;padding-bottom:10px;margin-bottom:10px}
+.emp{font-size:10px;line-height:1.6}.empname{font-weight:bold;font-size:13px}
+.tbox{border:1px solid #333;padding:8px 20px;text-align:center}.tbox h1{font-size:16px;font-weight:bold;margin-bottom:4px}
+.irow{display:flex;gap:10px;margin:8px 0}.ileft{border:1px solid #999;padding:6px 8px;flex:1.2;font-size:9.5px;line-height:1.65}
+.iright{flex:1;padding:8px}.ename{font-size:15px;font-weight:bold;margin-bottom:8px}
+.note{font-size:8px;font-style:italic;border-top:1px solid #ccc;padding-top:4px;margin-top:4px}
+table{width:100%;border-collapse:collapse;font-size:10px;margin:8px 0}
+th{border-bottom:1px solid #333;padding:3px 4px;text-align:left;font-size:9.5px}
+td{padding:2px 4px}.rt{text-align:right}
+.br td{border-top:1px solid #ccc;font-weight:bold;padding-top:4px}
+.nr td{border-top:2px solid #333;font-weight:bold;font-size:11px}
+.ftr{display:flex;gap:10px;margin-top:8px}
+.fl{border:1px solid #999;padding:8px;flex:1;font-size:9.5px}
+.fr{border:1px solid #999;padding:8px;width:210px;font-size:10px}
+.dr{display:flex;justify-content:space-between;margin:2px 0}
+.pay{border:1px solid #999;padding:6px 8px;margin-top:6px;font-size:9.5px}
+.red{text-align:center;font-size:8.5px;margin-top:6px;color:#555;font-style:italic}
+@media print{body{padding:8px}@page{margin:1cm;size:A4}}</style></head><body>
+<div class="hdr"><div class="emp"><div>Employeur: BE0641.660.146</div><div class="empname">CHERRY FOOD SRL</div><div>Rue de Malines 50</div><div>1000 BRUXELLES</div><div>N° ONSS: 1411286-94</div></div>
+<div class="tbox"><h1>FEUILLE DE PAIE</h1><div style="font-size:10px">Période: ${dateDebut} - ${dateFin}</div></div></div>
+<div class="irow"><div class="ileft">
+<div>Travailleur: ${employe?.id ? String(employe.id).padStart(6,"0") : "—"}</div>
+<div>Statut/Profession: ${statut} / Commis polyvalent</div>
+<div>Salaire de base: ${fmt(fiche.salaire_horaire)}/heure</div>
+<div>Heures: ${fmt(fiche.heures_total)}/${fmt(fiche.heures_total)}</div>
+<div>Commission Paritaire: 302</div>
+${employe?.nrn ? `<div>No.Rég.Nat.: ${employe.nrn}</div>` : ""}
+<div>Catégorie prof.: Cat 1/2</div>
+<div>Date d'entrée: ${dateDebut} &nbsp; Anc.: ${employe?.anciennete_ans || 0}a</div>
+<div>Sortie de service: ${dateFin}</div>
+<div>Etat civil: ${employe?.etat_civil || "Célibataire"}</div>
+<div class="note">A conserver, cette fiche de rémunération fait partie de votre compte individuel.</div>
+</div>
+<div class="iright"><div class="ename">${fiche.employe_nom}</div>${employe?.adresse_employe ? `<div style="font-size:10px;margin-top:6px">${employe.adresse_employe.replace(/\n/g,"<br>")}</div>` : ""}</div></div>
+<table><thead><tr><th style="width:42%">ÉLÉMENTS DES SALAIRES</th><th>BASE</th><th>SUPPL.</th><th>%</th><th>JOURS</th><th>HEURES</th><th style="text-align:right">MONTANT</th></tr></thead>
+<tbody>
+<tr><td>Prestation (jour-heures)</td><td>${fmt(fiche.salaire_horaire)}</td><td></td><td></td><td>${jours}</td><td>${fmt(fiche.heures_total)}</td><td class="rt">${fmt(fiche.salaire_brut)}</td></tr>
+<tr class="br"><td colspan="6"><em>BRUT SOUMIS À L'ONSS:</em></td><td class="rt">EUR ${fmt(fiche.salaire_brut)}</td></tr>
+${lignesOnss}
+<tr class="br"><td colspan="6"><em>IMPOSABLE:</em></td><td class="rt">EUR ${fmt(imposable)}</td></tr>
+<tr><td colspan="6">PRÉCOMPTE PROFESSIONNEL (DÉDUCTION): (Imposable normal: ${fmt(imposable)})</td><td class="rt">0,00</td></tr>
+<tr class="nr"><td colspan="6">Salaire net</td><td class="rt">EUR ${fmt(fiche.salaire_net)}</td></tr>
+<tr><td colspan="5" style="color:#555;font-style:italic">INFORMATION:</td><td style="color:#555;font-style:italic">Charges patronales</td><td class="rt">${fmt(charges)}</td></tr>
+</tbody></table>
+<div class="ftr">
+<div class="fl"><strong>COMMUNICATION:</strong><br>Un compte individuel peut être imprimé sur demande !${fiche.notes ? `<br><em>Note: ${fiche.notes}</em>` : ""}</div>
+<div class="fr"><div><strong>DÉCOMPTE:</strong></div><div class="dr"><span>Salaire net</span><span>EUR ${fmt(fiche.salaire_net)}</span></div><div class="dr"><strong><span>A payer</span><span>EUR ${fmt(fiche.salaire_net)}</span></strong></div></div>
+</div>
+${employe?.iban ? `<div class="pay"><strong>FORMULE DE PAIEMENT</strong><br>${fmt(fiche.salaire_net)} EUR par paiement électronique sur compte bancaire ${employe.iban} de ${fiche.employe_nom}</div>` : ""}
+<div class="red">Rédigé par: CHERRY FOOD SRL — N° entreprise: BE0641.660.146 — N° ONSS: 1411286-94 — CP 302</div>
+<script>window.onload=function(){window.print()}</script></body></html>`;
+  const win = window.open("","_blank");
+  if (win) { win.document.write(html); win.document.close(); }
+}
+function genererPDFComptable(fiches, periode) {
+  const totalBrut = fiches.reduce((s,f) => s + Number(f.salaire_brut||0), 0);
+  const totalOnss = fiches.reduce((s,f) => s + Number(f.cotisation_onss||0), 0);
+  const totalNet = fiches.reduce((s,f) => s + Number(f.salaire_net||0), 0);
+  const totalCharges = fiches.reduce((s,f) => s + (Number(f.cout_employeur||0) - Number(f.salaire_brut||0)), 0);
+  const rows = fiches.map(f => {
+    const ch = Number(f.cout_employeur||0) - Number(f.salaire_brut||0);
+    const onss = Number(f.cotisation_onss||0);
+    const debit = Number(f.salaire_brut||0) + ch;
+    const credit = onss + Number(f.salaire_net||0);
+    const label = f.type_contrat === "etudiant" ? "Etudiant" : f.type_contrat === "flexi" ? "Flexi-job" : "CDI";
+    return `<div style="margin-bottom:18px"><div style="font-weight:bold;margin-bottom:5px;font-size:11px">${f.employe_nom} <span style="font-weight:normal;font-size:10px">— ${label} — ${f.date_debut||""} → ${f.date_fin||""} — ${fmt(f.heures_total||0)}h prestées</span></div>
+<table style="width:100%;border-collapse:collapse;font-size:10px">
+<tr style="border-bottom:1px solid #333"><th style="text-align:left;padding:3px;text-decoration:underline">Salaires</th><th style="text-align:right;padding:3px;text-decoration:underline">Débit</th><th style="text-align:right;padding:3px;text-decoration:underline">Crédit</th></tr>
+<tr><td style="padding:2px 4px">454.000 &nbsp; ONSS à payer</td><td></td><td style="text-align:right;padding:2px 4px">${fmt(onss)}</td></tr>
+<tr><td style="padding:2px 4px">455.000 &nbsp; Rémunérations à payer</td><td></td><td style="text-align:right;padding:2px 4px">${fmt(f.salaire_net||0)}</td></tr>
+<tr><td style="padding:2px 4px">620.300 &nbsp; Salaires ouvriers</td><td style="text-align:right;padding:2px 4px">${fmt(f.salaire_brut||0)}</td><td></td></tr>
+<tr><td style="padding:2px 4px">621.300 &nbsp; Charges patron. ouvriers</td><td style="text-align:right;padding:2px 4px">${fmt(ch)}</td><td></td></tr>
+<tr style="border-top:2px solid #333;font-weight:bold"><td style="padding:3px 4px;background:#eee">Total</td><td style="text-align:right;padding:3px 4px;background:#eee">${fmt(debit)}</td><td style="text-align:right;padding:3px 4px;background:#eee">${fmt(credit)}</td></tr>
+</table></div>`;
+  }).join("");
+  const html = `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>Récapitulatif paie ${periode}</title>
+<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,sans-serif;font-size:11px;color:#000;padding:20px}
+@media print{@page{margin:1.5cm;size:A4}}</style></head><body>
+<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px">
+<div style="font-style:italic;font-size:20px;font-weight:bold;border:2px solid #333;padding:8px 18px">Récapitulatif de paie</div>
+<div style="font-size:10px;text-align:right">Date: ${new Date().toLocaleDateString("fr-BE")}<br>Période: <strong>${periode}</strong></div>
+</div>
+<div style="margin-bottom:20px;font-size:10px"><strong>Employeur: &nbsp; BE0641.660.146 &nbsp; CHERRY FOOD SRL</strong><br>Rue de Malines 50, 1000 BRUXELLES &nbsp;|&nbsp; N° ONSS: 1411286-94 &nbsp;|&nbsp; CP 302</div>
+${rows}
+<div style="margin-top:20px;border-top:3px double #333;padding-top:10px">
+<table style="width:100%;border-collapse:collapse;font-size:11px">
+<tr style="font-weight:bold"><td style="padding:4px;background:#ddd">Total général</td><td style="text-align:right;padding:4px;background:#ddd">${fmt(totalBrut + totalCharges)}</td><td style="text-align:right;padding:4px;background:#ddd">${fmt(totalOnss + totalNet)}</td></tr>
+</table>
+<div style="margin-top:10px;font-size:10px">
+Total brut: <strong>${fmt(totalBrut)} EUR</strong> &nbsp;|&nbsp;
+Total net à payer aux employés: <strong>${fmt(totalNet)} EUR</strong> &nbsp;|&nbsp;
+Charges patronales: <strong>${fmt(totalCharges)} EUR</strong><br>
+<strong>💰 Coût total employeur: ${fmt(totalBrut + totalCharges)} EUR</strong>
+</div></div>
+<div style="margin-top:18px;font-size:8.5px;color:#777;border-top:1px solid #ccc;padding-top:6px">Document généré par Sekai Corndogs — CHERRY FOOD SRL — BE0641.660.146 — Pour transmission au secrétariat social Xeriuis.</div>
+<script>window.onload=function(){window.print()}</script></body></html>`;
+  const win = window.open("","_blank");
+  if (win) { win.document.write(html); win.document.close(); }
+}
+
 export default function App() {
   const [currentUser, setCurrentUser] = useState(null);
   const [loginPrenom, setLoginPrenom] = useState("");
@@ -384,7 +573,7 @@ export default function App() {
   const [editingId, setEditingId] = useState(null);
   const [editVal, setEditVal] = useState("");
   const [saving, setSaving] = useState(false);
-  const [lastSave, setLastSave] = useState(null);
+  const [lastSave, setLastSave] = useState<{time: string; who: string} | null>(null);
   const [toast, setToast] = useState(null);
   const [addMode, setAddMode] = useState(false);
   const [newName, setNewName] = useState("");
@@ -450,6 +639,23 @@ export default function App() {
   const [newEventEmployes, setNewEventEmployes] = useState([]);
   const [newEventNote, setNewEventNote] = useState("");
   const [eventMois, setEventMois] = useState(getCurrentMois());
+  // ── Paie ──
+  const [fichesPaie, setFichesPaie] = useState([]);
+  const [paieLoading, setPaieLoading] = useState(false);
+  const [paieView, setPaieView] = useState("fiches"); // fiches | employes | comptable
+  const [showNouvelleFiche, setShowNouvelleFiche] = useState(false);
+  const [paieEmployeId, setPaieEmployeId] = useState("");
+  const [paieHeures, setPaieHeures] = useState("");
+  const [paieDebut, setPaieDebut] = useState("");
+  const [paieFin, setPaieFin] = useState("");
+  const [paiePeriode, setPaiePeriode] = useState(getCurrentMois());
+  const [paieNote, setPaieNote] = useState("");
+  const [paieComptableMois, setPaieComptableMois] = useState(getCurrentMois());
+  const [editingFicheId, setEditingFicheId] = useState(null);
+  const [editingFicheHeures, setEditingFicheHeures] = useState("");
+  const [editingFicheDebut, setEditingFicheDebut] = useState("");
+  const [editingFicheFin, setEditingFicheFin] = useState("");
+  const [editingPaieUser, setEditingPaieUser] = useState(null);
   // ── Fermeture (closing checklist) ──
   const [fermetureTaches, setFermetureTaches] = useState([]);
   const [currentFermeture, setCurrentFermeture] = useState(null);
@@ -717,8 +923,91 @@ export default function App() {
   async function handleUpdateUser() {
     if (!editingUser) return;
     try {
-      await updateUser(editingUser.id, { prenom: editingUser.prenom, role: editingUser.role, restaurant_id: editingUser.restaurant_id || null });
+      await updateUser(editingUser.id, {
+        prenom: editingUser.prenom, role: editingUser.role, restaurant_id: editingUser.restaurant_id || null,
+        type_contrat: editingUser.type_contrat || "etudiant",
+        age_employe: editingUser.age_employe ? parseInt(editingUser.age_employe) : null,
+        anciennete_ans: editingUser.anciennete_ans ? parseInt(editingUser.anciennete_ans) : 0,
+        salaire_horaire: editingUser.salaire_horaire ? parseFloat(editingUser.salaire_horaire) : null,
+        adresse_employe: editingUser.adresse_employe || null,
+        nrn: editingUser.nrn || null,
+        iban: editingUser.iban || null,
+        etat_civil: editingUser.etat_civil || "Célibataire",
+      });
       flash("✅ Modifié !"); setEditingUser(null); loadUsers();
+    } catch { flash("❌ Erreur"); }
+  }
+
+  // ── Paie handlers ──────────────────────────────────────────
+  async function loadFichesPaie() {
+    setPaieLoading(true);
+    try { const d = await fetchFichesPaie(); setFichesPaie(d); }
+    catch { flash("❌ Erreur chargement fiches paie"); }
+    finally { setPaieLoading(false); }
+  }
+  async function handleGenererFiche() {
+    if (!paieEmployeId || !paieHeures || !paieDebut || !paieFin) { flash("❌ Remplis tous les champs"); return; }
+    const employe = allUsers.find(u => u.id === parseInt(paieEmployeId));
+    if (!employe) { flash("❌ Employé introuvable"); return; }
+    const heures = parseFloat(paieHeures);
+    if (isNaN(heures) || heures <= 0) { flash("❌ Heures invalides"); return; }
+    const c = calculerPaieEmploye(employe, heures);
+    const type = employe.type_contrat || "etudiant";
+    try {
+      const data = {
+        employe_id: employe.id, employe_nom: employe.prenom,
+        type_contrat: type, periode: paiePeriode,
+        date_debut: paieDebut, date_fin: paieFin, heures_total: heures,
+        salaire_horaire: c.tauxEffectif, salaire_brut: c.brut,
+        cotisation_onss: type === "etudiant" ? c.cotisationSol : c.cotisationOnss,
+        salaire_net: c.net, cout_employeur: c.coutEmployeur,
+        notes: paieNote || null, generated_by: currentUser?.prenom
+      };
+      const saved = await createFichePaie(data);
+      flash("✅ Fiche générée !");
+      setShowNouvelleFiche(false);
+      setPaieEmployeId(""); setPaieHeures(""); setPaieDebut(""); setPaieFin(""); setPaieNote("");
+      await loadFichesPaie();
+      genererPDFFiche(Array.isArray(saved) ? saved[0] : saved, employe);
+    } catch { flash("❌ Erreur génération"); }
+  }
+  async function handleDeleteFiche(id) {
+    if (!confirm("Supprimer cette fiche de paie ?")) return;
+    try { await deleteFichePaie(id); flash("🗑️ Supprimée"); loadFichesPaie(); }
+    catch { flash("❌ Erreur"); }
+  }
+  async function handleUpdateFiche(id) {
+    if (!editingFicheHeures || !editingFicheDebut || !editingFicheFin) { flash("❌ Champs manquants"); return; }
+    const fiche = fichesPaie.find(f => f.id === id);
+    if (!fiche) return;
+    const employe = allUsers.find(u => u.id === fiche.employe_id);
+    const heures = parseFloat(editingFicheHeures);
+    const c = calculerPaieEmploye(employe || { type_contrat: fiche.type_contrat, salaire_horaire: fiche.salaire_horaire }, heures);
+    const type = fiche.type_contrat;
+    try {
+      await updateFichePaie(id, {
+        heures_total: heures, date_debut: editingFicheDebut, date_fin: editingFicheFin,
+        salaire_horaire: c.tauxEffectif, salaire_brut: c.brut,
+        cotisation_onss: type === "etudiant" ? c.cotisationSol : c.cotisationOnss,
+        salaire_net: c.net, cout_employeur: c.coutEmployeur,
+      });
+      flash("✅ Fiche mise à jour !"); setEditingFicheId(null); loadFichesPaie();
+    } catch { flash("❌ Erreur mise à jour"); }
+  }
+  async function handleSavePaieUser() {
+    if (!editingPaieUser) return;
+    try {
+      await updateUser(editingPaieUser.id, {
+        type_contrat: editingPaieUser.type_contrat || "etudiant",
+        age_employe: editingPaieUser.age_employe ? parseInt(editingPaieUser.age_employe) : null,
+        anciennete_ans: editingPaieUser.anciennete_ans ? parseInt(editingPaieUser.anciennete_ans) : 0,
+        salaire_horaire: editingPaieUser.salaire_horaire ? parseFloat(editingPaieUser.salaire_horaire) : null,
+        adresse_employe: editingPaieUser.adresse_employe || null,
+        nrn: editingPaieUser.nrn || null,
+        iban: editingPaieUser.iban || null,
+        etat_civil: editingPaieUser.etat_civil || "Célibataire",
+      });
+      flash("✅ Profil paie sauvegardé !"); setEditingPaieUser(null); loadUsers();
     } catch { flash("❌ Erreur"); }
   }
 
@@ -777,7 +1066,7 @@ export default function App() {
   function getWeekInCycle(dateStr) {
     const start = new Date(CYCLE_START_DATE + "T12:00:00");
     const d = new Date(dateStr + "T12:00:00");
-    const diffDays = Math.round((d - start) / 86400000);
+    const diffDays = Math.round((d.getTime() - start.getTime()) / 86400000);
     const diffWeeks = Math.floor(diffDays / 7);
     return ((CYCLE_START_WEEK_INDEX + diffWeeks) % 3 + 3) % 3;
   }
@@ -1159,13 +1448,15 @@ export default function App() {
         { id: "stock", label: "Stock", icon: "stock", adminOnly: false },
         { id: "horaires", label: "Horaires", icon: "horaires", adminOnly: false },
         { id: "paiements", label: "Tâches", icon: "taches", adminOnly: true },
+        { id: "paie", label: "Paie", icon: "paie", adminOnly: true },
         { id: "profil", label: "Profil", icon: "profil", adminOnly: false }
       ].filter(tab => !tab.adminOnly || isAdmin).map(tab => (
-        <button key={tab.id} onClick={() => { setPage(tab.id); if (tab.id === "comptes") loadUsers(); if (tab.id === "horaires" && !horaires.length) fetchHoraires(horaireRestaurant); if (tab.id === "paiements") loadPaiements(); if (tab.id === "fermetures") { loadFermetureHistorique(); loadFermetureData(); } }} style={{ flex: 1, background: "none", border: "none", padding: "0.7rem 0", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: "0.15rem" }}>
+        <button key={tab.id} onClick={() => { setPage(tab.id); if (tab.id === "comptes") loadUsers(); if (tab.id === "horaires" && !horaires.length) fetchHoraires(horaireRestaurant); if (tab.id === "paiements") loadPaiements(); if (tab.id === "fermetures") { loadFermetureHistorique(); loadFermetureData(); } if (tab.id === "paie") { loadFichesPaie(); loadUsers(); } }} style={{ flex: 1, background: "none", border: "none", padding: "0.7rem 0", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: "0.15rem" }}>
           <span style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
             {tab.icon === "stock" && <Package size={20} color={page === tab.id ? "#e8213a" : "#c8a878"} />}
             {tab.icon === "horaires" && <Calendar size={20} color={page === tab.id ? "#e8213a" : "#c8a878"} />}
             {tab.icon === "taches" && <ListChecks size={20} color={page === tab.id ? "#e8213a" : "#c8a878"} />}
+            {tab.icon === "paie" && <FileText size={20} color={page === tab.id ? "#e8213a" : "#c8a878"} />}
             {tab.icon === "profil" && <UserCircle size={20} color={page === tab.id ? "#e8213a" : "#c8a878"} />}
           </span>
           <span style={{ fontSize: "0.65rem", color: page === tab.id ? "#f5c842" : "#444", fontFamily: "'Poppins', sans-serif" }}>{tab.label}</span>
@@ -2401,7 +2692,7 @@ export default function App() {
         <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
           <input type="checkbox" id="rememberMe" checked={rememberMe} onChange={e => setRememberMe(e.target.checked)}
             style={{ width: "1.1rem", height: "1.1rem", accentColor: "#f5c842", cursor: "pointer" }} />
-          <label htmlFor="rememberMe" style={{ color: "#c8a878", fontSize: "0.85rem", cursor: "pointer" }} style={{display:"flex",alignItems:"center",gap:"6px"}}>Se souvenir de moi</label>
+          <label htmlFor="rememberMe" style={{ color: "#c8a878", fontSize: "0.85rem", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px" }}>Se souvenir de moi</label>
         </div>
         {loginError && <p style={{ color: "#e57373", fontSize: "0.85rem", margin: 0, textAlign: "center" }}>{loginError}</p>}
         <button onClick={handleLogin} disabled={loginLoading} style={{ ...btnPrimary, opacity: loginLoading ? 0.7 : 1, marginTop: "0.5rem" }}>
@@ -2410,6 +2701,243 @@ export default function App() {
       </div>
     </div>
   );
+
+  // ── PAIE PAGE ──────────────────────────────────────────────
+  if (page === "paie" && isAdmin) {
+    const inpS: React.CSSProperties = { background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.75rem 1rem", borderRadius: "8px", fontSize: "0.9rem", width: "100%", fontFamily: "'Poppins', sans-serif", outline: "none", boxSizing: "border-box" };
+    const fichesMois = fichesPaie.filter(f => (f.periode || "").startsWith(paieComptableMois));
+    const previewEmploye = paieEmployeId ? allUsers.find(u => u.id === parseInt(paieEmployeId)) : null;
+    const previewCalc = previewEmploye && paieHeures ? calculerPaieEmploye(previewEmploye, parseFloat(paieHeures) || 0) : null;
+    return (
+      <div style={{ ...s, minHeight: "100vh", background: "#faebd7", paddingBottom: "6rem" }}>
+        {toast && <div style={{ position: "fixed", top: "1rem", left: "50%", transform: "translateX(-50%)", background: "#faebd7", color: "#e8213a", padding: "0.55rem 1.4rem", borderRadius: "20px", fontSize: "0.88rem", zIndex: 999, border: "1.5px solid #f0d8b8" }}>{toast}</div>}
+        {/* Header */}
+        <div style={{ background: "#e8213a", padding: "1rem 1.2rem", position: "sticky", top: 0, zIndex: 30 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.6rem" }}>
+            <h1 style={{ color: "#fff", fontSize: "1.1rem", margin: 0 }}>💶 Paie — Cherry Food</h1>
+            <button onClick={() => { loadFichesPaie(); loadUsers(); }} style={{ background: "rgba(255,255,255,0.15)", border: "none", color: "#fff", borderRadius: "8px", padding: "0.3rem 0.6rem", cursor: "pointer" }}><RefreshCw size={16} /></button>
+          </div>
+          <div style={{ display: "flex", gap: "0.4rem" }}>
+            {[{ id: "fiches", label: "📄 Fiches" }, { id: "employes", label: "👥 Employés" }, { id: "comptable", label: "📊 Comptable" }].map(t => (
+              <button key={t.id} onClick={() => setPaieView(t.id)} style={{ background: paieView === t.id ? "#f5c842" : "rgba(255,255,255,0.15)", color: paieView === t.id ? "#111" : "#fff", border: "none", borderRadius: "8px", padding: "0.35rem 0.8rem", fontSize: "0.78rem", fontFamily: "'Poppins', sans-serif", fontWeight: paieView === t.id ? "bold" : "normal", cursor: "pointer", flexShrink: 0 }}>{t.label}</button>
+            ))}
+          </div>
+        </div>
+
+        <div style={{ padding: "0.9rem 1.1rem" }}>
+
+          {/* ── VUE FICHES ── */}
+          {paieView === "fiches" && (
+            <div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
+                <div style={{ color: "#a07848", fontSize: "0.78rem", fontWeight: "bold" }}>Fiches de paie générées</div>
+                <button onClick={() => { setPaieEmployeId(""); setPaieHeures(""); const now = new Date(); const y = now.getFullYear(); const m = String(now.getMonth()+1).padStart(2,"0"); const firstDay = `${y}-${m}-01`; const lastDay = new Date(y, now.getMonth()+1, 0).toISOString().slice(0,10); setPaieDebut(firstDay); setPaieFin(lastDay); setPaiePeriode(`${y}-${m}`); setPaieNote(""); setShowNouvelleFiche(true); }}
+                  style={{ background: "#e8213a", border: "none", color: "#fff", borderRadius: "8px", padding: "0.4rem 0.9rem", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", fontSize: "0.82rem", cursor: "pointer" }}>+ Nouvelle fiche</button>
+              </div>
+              {paieLoading && <div style={{ textAlign: "center", padding: "2rem", color: "#e8213a" }}>⏳ Chargement...</div>}
+              {!paieLoading && fichesPaie.length === 0 && <div style={{ textAlign: "center", padding: "2rem", color: "#c8a878", fontSize: "0.85rem" }}>Aucune fiche générée</div>}
+              {fichesPaie.map(f => (
+                <div key={f.id} style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "12px", padding: "1rem", marginBottom: "0.6rem" }}>
+                  {editingFicheId === f.id ? (
+                    <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                      <div style={{ color: "#e8213a", fontWeight: "bold", fontSize: "0.9rem" }}>✏️ Modifier — {f.employe_nom}</div>
+                      <div style={{ display: "flex", gap: "0.5rem" }}>
+                        <input type="date" value={editingFicheDebut} onChange={e => setEditingFicheDebut(e.target.value)} style={{ ...inpS, flex: 1 }} />
+                        <input type="date" value={editingFicheFin} onChange={e => setEditingFicheFin(e.target.value)} style={{ ...inpS, flex: 1 }} />
+                      </div>
+                      <input value={editingFicheHeures} onChange={e => setEditingFicheHeures(e.target.value)} placeholder="Heures totales (ex: 76)" inputMode="decimal" style={inpS} />
+                      <div style={{ display: "flex", gap: "0.5rem" }}>
+                        <button onClick={() => handleUpdateFiche(f.id)} style={{ flex: 1, background: "#e8213a", color: "#fff", border: "none", padding: "0.8rem", borderRadius: "8px", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", cursor: "pointer" }}>💾 Sauvegarder</button>
+                        <button onClick={() => setEditingFicheId(null)} style={{ background: "#faebd7", color: "#a07848", border: "none", padding: "0.8rem 1rem", borderRadius: "8px", cursor: "pointer" }}>✕</button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                        <div>
+                          <div style={{ color: "#3d1a0a", fontSize: "0.95rem", fontWeight: "bold" }}>{f.employe_nom}</div>
+                          <div style={{ color: "#a07848", fontSize: "0.75rem", marginTop: "0.15rem" }}>
+                            {f.type_contrat === "etudiant" ? "🎓 Étudiant" : f.type_contrat === "flexi" ? "⚡ Flexi" : "📋 CDI"} · {f.periode} · {f.heures_total}h
+                          </div>
+                          <div style={{ color: "#a07848", fontSize: "0.72rem" }}>
+                            {f.date_debut ? new Date(f.date_debut).toLocaleDateString("fr-BE") : ""} → {f.date_fin ? new Date(f.date_fin).toLocaleDateString("fr-BE") : ""}
+                          </div>
+                        </div>
+                        <div style={{ textAlign: "right" }}>
+                          <div style={{ color: "#e8213a", fontSize: "1.1rem", fontWeight: "bold" }}>{fmt(f.salaire_net)} €</div>
+                          <div style={{ color: "#a07848", fontSize: "0.7rem" }}>net</div>
+                        </div>
+                      </div>
+                      <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap", marginTop: "0.6rem" }}>
+                        <span style={{ background: "#faebd7", color: "#a07848", borderRadius: "6px", padding: "0.2rem 0.5rem", fontSize: "0.72rem" }}>Brut: {fmt(f.salaire_brut)}€</span>
+                        <span style={{ background: "#fff0f0", color: "#e8213a", borderRadius: "6px", padding: "0.2rem 0.5rem", fontSize: "0.72rem" }}>Cotis.: -{fmt(f.cotisation_onss)}€</span>
+                        <span style={{ background: "#f0fff4", color: "#4caf50", borderRadius: "6px", padding: "0.2rem 0.5rem", fontSize: "0.72rem" }}>Coût emp.: {fmt(f.cout_employeur)}€</span>
+                      </div>
+                      <div style={{ display: "flex", gap: "0.4rem", marginTop: "0.6rem" }}>
+                        <button onClick={() => genererPDFFiche(f, allUsers.find(u => u.id === f.employe_id))} style={{ flex: 1, background: "#e8213a", color: "#fff", border: "none", padding: "0.5rem", borderRadius: "8px", fontSize: "0.8rem", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", cursor: "pointer" }}>📄 Télécharger fiche</button>
+                        <button onClick={() => { setEditingFicheId(f.id); setEditingFicheHeures(String(f.heures_total)); setEditingFicheDebut(f.date_debut || ""); setEditingFicheFin(f.date_fin || ""); }} style={{ background: "#faebd7", border: "none", color: "#a07848", borderRadius: "8px", padding: "0.5rem 0.7rem", cursor: "pointer", fontSize: "0.85rem" }}>✏️</button>
+                        <button onClick={() => handleDeleteFiche(f.id)} style={{ background: "#fff5f5", border: "none", color: "#e57373", borderRadius: "8px", padding: "0.5rem 0.7rem", cursor: "pointer" }}><Trash2 size={15} /></button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* ── VUE EMPLOYÉS (profils paie) ── */}
+          {paieView === "employes" && (
+            <div>
+              <div style={{ color: "#a07848", fontSize: "0.78rem", fontWeight: "bold", marginBottom: "0.75rem" }}>Profils paie des employés</div>
+              {allUsers.filter(u => u.role === "employe" || u.role === "admin").map(u => (
+                <div key={u.id} style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "12px", padding: "1rem", marginBottom: "0.6rem" }}>
+                  {editingPaieUser?.id === u.id ? (
+                    <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                      <div style={{ color: "#e8213a", fontWeight: "bold", fontSize: "0.9rem" }}>✏️ {u.prenom} — Infos paie</div>
+                      <select value={editingPaieUser.type_contrat || "etudiant"} onChange={e => setEditingPaieUser(p => ({ ...p, type_contrat: e.target.value }))} style={inpS}>
+                        <option value="etudiant">🎓 Étudiant (cotis. solidarité 2,71%)</option>
+                        <option value="flexi">⚡ Flexi-job (brut = net)</option>
+                        <option value="cdi">📋 CDI (ONSS 13,07%)</option>
+                      </select>
+                      <div style={{ display: "flex", gap: "0.5rem" }}>
+                        <input value={editingPaieUser.age_employe || ""} onChange={e => setEditingPaieUser(p => ({ ...p, age_employe: e.target.value }))} placeholder="Âge (ex: 19)" inputMode="numeric" style={{ ...inpS, flex: 1 }} />
+                        <input value={editingPaieUser.anciennete_ans || ""} onChange={e => setEditingPaieUser(p => ({ ...p, anciennete_ans: e.target.value }))} placeholder="Ancienneté (années)" inputMode="numeric" style={{ ...inpS, flex: 1 }} />
+                      </div>
+                      <div style={{ color: "#a07848", fontSize: "0.72rem", marginTop: "-0.2rem" }}>
+                        Taux CP302 auto: {fmt(getTauxCP302(parseInt(editingPaieUser.anciennete_ans || "0") || 0))}€/h · Facteur âge: {getFacteurAge(parseInt(editingPaieUser.age_employe || "18") || 18, editingPaieUser.type_contrat || "etudiant") * 100}%
+                        → Taux effectif: {fmt(getTauxCP302(parseInt(editingPaieUser.anciennete_ans || "0") || 0) * getFacteurAge(parseInt(editingPaieUser.age_employe || "18") || 18, editingPaieUser.type_contrat || "etudiant"))}€/h
+                      </div>
+                      <input value={editingPaieUser.salaire_horaire || ""} onChange={e => setEditingPaieUser(p => ({ ...p, salaire_horaire: e.target.value }))} placeholder={`Taux horaire manuel (laisser vide = CP302 auto)`} inputMode="decimal" style={inpS} />
+                      <select value={editingPaieUser.etat_civil || "Célibataire"} onChange={e => setEditingPaieUser(p => ({ ...p, etat_civil: e.target.value }))} style={inpS}>
+                        <option value="Célibataire">Célibataire</option>
+                        <option value="Marié(e)">Marié(e)</option>
+                        <option value="Cohabitant légal">Cohabitant légal</option>
+                      </select>
+                      <input value={editingPaieUser.nrn || ""} onChange={e => setEditingPaieUser(p => ({ ...p, nrn: e.target.value }))} placeholder="No. Registre National (XX.XX.XX XXX-XX)" style={inpS} />
+                      <input value={editingPaieUser.iban || ""} onChange={e => setEditingPaieUser(p => ({ ...p, iban: e.target.value }))} placeholder="IBAN (BE...)" style={inpS} />
+                      <textarea value={editingPaieUser.adresse_employe || ""} onChange={e => setEditingPaieUser(p => ({ ...p, adresse_employe: e.target.value }))} placeholder={"Adresse (Rue...\nCode postal Ville)"} rows={2} style={{ ...inpS, resize: "none" }} />
+                      <div style={{ display: "flex", gap: "0.5rem" }}>
+                        <button onClick={handleSavePaieUser} style={{ flex: 1, background: "#e8213a", color: "#fff", border: "none", padding: "0.8rem", borderRadius: "8px", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", cursor: "pointer" }}>💾 Sauvegarder</button>
+                        <button onClick={() => setEditingPaieUser(null)} style={{ background: "#faebd7", color: "#a07848", border: "none", padding: "0.8rem 1rem", borderRadius: "8px", cursor: "pointer" }}>✕</button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                      <div>
+                        <div style={{ color: "#3d1a0a", fontWeight: "bold", fontSize: "0.95rem" }}>{u.prenom}</div>
+                        <div style={{ color: "#a07848", fontSize: "0.75rem", marginTop: "0.2rem" }}>
+                          {u.type_contrat === "flexi" ? "⚡ Flexi" : u.type_contrat === "cdi" ? "📋 CDI" : "🎓 Étudiant"}
+                          {u.age_employe ? ` · ${u.age_employe} ans` : ""}
+                          {u.anciennete_ans ? ` · Anc. ${u.anciennete_ans}a` : ""}
+                        </div>
+                        <div style={{ color: "#a07848", fontSize: "0.72rem" }}>
+                          Taux: {fmt(u.salaire_horaire || getTauxCP302(u.anciennete_ans || 0) * getFacteurAge(u.age_employe, u.type_contrat || "etudiant"))}€/h
+                          {u.iban ? ` · ${u.iban.slice(0, 12)}...` : " · ⚠️ Pas d'IBAN"}
+                        </div>
+                      </div>
+                      <button onClick={() => setEditingPaieUser({ ...u })} style={{ background: "#faebd7", border: "none", color: "#e8213a", borderRadius: "8px", padding: "0.4rem 0.7rem", cursor: "pointer", fontSize: "0.85rem" }}>✏️</button>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* ── VUE COMPTABLE ── */}
+          {paieView === "comptable" && (
+            <div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
+                <div style={{ color: "#a07848", fontSize: "0.78rem", fontWeight: "bold" }}>Document comptable (Xeriuis)</div>
+                <input type="month" value={paieComptableMois} onChange={e => setPaieComptableMois(e.target.value)}
+                  style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#e8213a", borderRadius: "8px", padding: "0.3rem 0.5rem", fontSize: "0.75rem", fontFamily: "'Poppins', sans-serif", outline: "none" }} />
+              </div>
+              {fichesMois.length === 0 ? (
+                <div style={{ textAlign: "center", padding: "2rem", color: "#c8a878", fontSize: "0.85rem" }}>Aucune fiche pour ce mois</div>
+              ) : (
+                <>
+                  <div style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "12px", padding: "1rem", marginBottom: "0.75rem" }}>
+                    <div style={{ color: "#a07848", fontSize: "0.75rem", fontWeight: "bold", marginBottom: "0.6rem" }}>Récapitulatif {paieComptableMois}</div>
+                    {fichesMois.map(f => (
+                      <div key={f.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0.4rem 0", borderBottom: "1px solid #f0d8b8" }}>
+                        <div>
+                          <div style={{ color: "#3d1a0a", fontSize: "0.88rem", fontWeight: "bold" }}>{f.employe_nom}</div>
+                          <div style={{ color: "#a07848", fontSize: "0.7rem" }}>{f.heures_total}h · {f.type_contrat}</div>
+                        </div>
+                        <div style={{ textAlign: "right" }}>
+                          <div style={{ color: "#e8213a", fontWeight: "bold", fontSize: "0.9rem" }}>net: {fmt(f.salaire_net)}€</div>
+                          <div style={{ color: "#a07848", fontSize: "0.7rem" }}>coût emp.: {fmt(f.cout_employeur)}€</div>
+                        </div>
+                      </div>
+                    ))}
+                    <div style={{ display: "flex", justifyContent: "space-between", marginTop: "0.6rem", paddingTop: "0.4rem" }}>
+                      <div style={{ color: "#3d1a0a", fontWeight: "bold", fontSize: "0.88rem" }}>TOTAL à payer</div>
+                      <div style={{ color: "#e8213a", fontWeight: "bold", fontSize: "1rem" }}>{fmt(fichesMois.reduce((s, f) => s + Number(f.salaire_net || 0), 0))}€</div>
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "space-between" }}>
+                      <div style={{ color: "#a07848", fontSize: "0.8rem" }}>Coût total employeur</div>
+                      <div style={{ color: "#a07848", fontWeight: "bold", fontSize: "0.88rem" }}>{fmt(fichesMois.reduce((s, f) => s + Number(f.cout_employeur || 0), 0))}€</div>
+                    </div>
+                  </div>
+                  <button onClick={() => genererPDFComptable(fichesMois, paieComptableMois)} style={{ background: "#e8213a", color: "#fff", border: "none", padding: "0.9rem", borderRadius: "10px", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", fontSize: "0.95rem", cursor: "pointer", width: "100%" }}>
+                    📊 Générer document Xeriuis (PDF)
+                  </button>
+                </>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* ── MODAL NOUVELLE FICHE ── */}
+        {showNouvelleFiche && (
+          <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", zIndex: 200, display: "flex", alignItems: "flex-end" }}>
+            <div style={{ background: "#fff8f0", borderRadius: "16px 16px 0 0", padding: "1.2rem", width: "100%", display: "flex", flexDirection: "column", gap: "0.7rem", maxHeight: "92vh", overflowY: "auto" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div style={{ color: "#e8213a", fontWeight: "bold", fontSize: "0.95rem" }}>💶 Nouvelle fiche de paie</div>
+                <button onClick={() => setShowNouvelleFiche(false)} style={{ background: "#2a2a2a", border: "none", color: "#c8a878", borderRadius: "50%", width: "2rem", height: "2rem", cursor: "pointer" }}>✕</button>
+              </div>
+              <select value={paieEmployeId} onChange={e => { setPaieEmployeId(e.target.value); }} style={inpS}>
+                <option value="">— Sélectionner un employé —</option>
+                {allUsers.filter(u => u.role !== "tablette").map(u => (
+                  <option key={u.id} value={u.id}>{u.prenom} ({u.type_contrat === "flexi" ? "Flexi" : u.type_contrat === "cdi" ? "CDI" : "Étudiant"})</option>
+                ))}
+              </select>
+              {previewCalc && previewEmploye && (
+                <div style={{ background: "#faebd7", border: "1px solid #f0d8b8", borderRadius: "8px", padding: "0.6rem 0.8rem", fontSize: "0.78rem", color: "#3d1a0a" }}>
+                  Taux: <strong>{fmt(previewCalc.tauxEffectif)}€/h</strong>
+                  {previewEmploye.age_employe && previewEmploye.age_employe < 18 && <span style={{ color: "#e8213a" }}> (×{getFacteurAge(previewEmploye.age_employe, previewEmploye.type_contrat || "etudiant") * 100}% âge)</span>}
+                  {" · "}Brut: <strong>{fmt(previewCalc.brut)}€</strong>
+                  {" · "}Net: <strong style={{ color: "#e8213a" }}>{fmt(previewCalc.net)}€</strong>
+                  {" · "}Coût emp.: <strong>{fmt(previewCalc.coutEmployeur)}€</strong>
+                </div>
+              )}
+              <input value={paieHeures} onChange={e => setPaieHeures(e.target.value)} placeholder="Heures prestées ce mois (ex: 76)" inputMode="decimal" style={inpS} />
+              <div style={{ color: "#a07848", fontSize: "0.75rem", fontWeight: "bold" }}>Période</div>
+              <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+                <input type="month" value={paiePeriode} onChange={e => { setPaiePeriode(e.target.value); const [y,m] = e.target.value.split("-"); const last = new Date(parseInt(y), parseInt(m), 0).toISOString().slice(0,10); setPaieDebut(`${y}-${m}-01`); setPaieFin(last); }} style={{ ...inpS, flex: 1, color: "#e8213a" }} />
+              </div>
+              <div style={{ display: "flex", gap: "0.5rem" }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ color: "#a07848", fontSize: "0.72rem", marginBottom: "0.2rem" }}>Date début</div>
+                  <input type="date" value={paieDebut} onChange={e => setPaieDebut(e.target.value)} style={inpS} />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ color: "#a07848", fontSize: "0.72rem", marginBottom: "0.2rem" }}>Date fin</div>
+                  <input type="date" value={paieFin} onChange={e => setPaieFin(e.target.value)} style={inpS} />
+                </div>
+              </div>
+              <textarea value={paieNote} onChange={e => setPaieNote(e.target.value)} placeholder="Note (optionnel)..." rows={2} style={{ ...inpS, resize: "none" }} />
+              <button onClick={handleGenererFiche}
+                disabled={!paieEmployeId || !paieHeures || !paieDebut || !paieFin}
+                style={{ background: "#e8213a", color: "#fff", border: "none", padding: "0.9rem", borderRadius: "10px", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", fontSize: "1rem", cursor: "pointer", width: "100%", opacity: (!paieEmployeId || !paieHeures || !paieDebut || !paieFin) ? 0.5 : 1 }}>
+                💶 Générer la fiche de paie
+              </button>
+            </div>
+          </div>
+        )}
+        <BottomNav />
+      </div>
+    );
+  }
 
   // ── PROFIL ─────────────────────────────────────────────────
   if (page === "profil") return (
@@ -2862,7 +3390,7 @@ export default function App() {
                     ))}
                   </div>
                   <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.75rem" }}>
-                    <button onClick={() => saveQty(item.id)} disabled={saving} style={{ flex: 1, background: saving ? "#c8a878" : "#e8213a", color: "#ffffff", border: "none", padding: "0.8rem", borderRadius: "8px", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", fontSize: "0.95rem", cursor: "pointer" }} style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}>{saving ? "⏳..." : <><Save size={15} /> Enregistrer</>}</button>
+                    <button onClick={() => saveQty(item.id)} disabled={saving} style={{ flex: 1, background: saving ? "#c8a878" : "#e8213a", color: "#ffffff", border: "none", padding: "0.8rem", borderRadius: "8px", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", fontSize: "0.95rem", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}>{saving ? "⏳..." : <><Save size={15} /> Enregistrer</>}</button>
                     <button onClick={() => setEditingId(null)} style={{ background: "#faebd7", color: "#c8a878", border: "none", padding: "0.8rem 1rem", borderRadius: "8px", cursor: "pointer" }}>✕</button>
                   </div>
                 </div>
