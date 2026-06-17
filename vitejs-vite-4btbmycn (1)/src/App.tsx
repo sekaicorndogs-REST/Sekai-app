@@ -659,6 +659,8 @@ export default function App() {
   const [editingFicheDebut, setEditingFicheDebut] = useState("");
   const [editingFicheFin, setEditingFicheFin] = useState("");
   const [editingPaieUser, setEditingPaieUser] = useState(null);
+  const [cotisPeriodeType, setCotisPeriodeType] = useState<"mois"|"trimestre">("mois");
+  const [cotisMois, setCotisMois] = useState(getCurrentMois());
   // ── Fermeture (closing checklist) ──
   const [fermetureTaches, setFermetureTaches] = useState([]);
   const [currentFermeture, setCurrentFermeture] = useState(null);
@@ -2721,7 +2723,7 @@ export default function App() {
             <button onClick={() => { loadFichesPaie(); loadUsers(); }} style={{ background: "rgba(255,255,255,0.15)", border: "none", color: "#fff", borderRadius: "8px", padding: "0.3rem 0.6rem", cursor: "pointer" }}><RefreshCw size={16} /></button>
           </div>
           <div style={{ display: "flex", gap: "0.4rem" }}>
-            {[{ id: "fiches", label: "📄 Fiches" }, { id: "employes", label: "👥 Employés" }, { id: "comptable", label: "📊 Comptable" }].map(t => (
+            {[{ id: "fiches", label: "📄 Fiches" }, { id: "employes", label: "👥 Employés" }, { id: "comptable", label: "📊 Comptable" }, { id: "cotisations", label: "🏦 Cotis." }].map(t => (
               <button key={t.id} onClick={() => setPaieView(t.id)} style={{ background: paieView === t.id ? "#f5c842" : "rgba(255,255,255,0.15)", color: paieView === t.id ? "#111" : "#fff", border: "none", borderRadius: "8px", padding: "0.35rem 0.8rem", fontSize: "0.78rem", fontFamily: "'Poppins', sans-serif", fontWeight: paieView === t.id ? "bold" : "normal", cursor: "pointer", flexShrink: 0 }}>{t.label}</button>
             ))}
           </div>
@@ -2845,6 +2847,128 @@ export default function App() {
               ))}
             </div>
           )}
+
+          {/* ── VUE COTISATIONS ── */}
+          {paieView === "cotisations" && (() => {
+            const now2 = new Date();
+            const currentYear2 = now2.getFullYear();
+            const currentQ2 = Math.floor(now2.getMonth() / 3) + 1;
+
+            let fichesFiltered: any[];
+            let periodeLabel = "";
+
+            if (cotisPeriodeType === "mois") {
+              fichesFiltered = fichesPaie.filter(f => (f.periode || "").startsWith(cotisMois));
+              periodeLabel = cotisMois;
+            } else {
+              // trimestre en cours basé sur cotisMois
+              const [y, m] = cotisMois.split("-").map(Number);
+              const q = Math.floor((m - 1) / 3);
+              const moisQ = [`${y}-${String(q*3+1).padStart(2,"0")}`, `${y}-${String(q*3+2).padStart(2,"0")}`, `${y}-${String(q*3+3).padStart(2,"0")}`];
+              fichesFiltered = fichesPaie.filter(f => moisQ.some(mo => (f.periode || "").startsWith(mo)));
+              periodeLabel = `T${q+1} ${y}`;
+            }
+
+            const totalBrut = fichesFiltered.reduce((s, f) => s + Number(f.salaire_brut || 0), 0);
+            const totalNet = fichesFiltered.reduce((s, f) => s + Number(f.salaire_net || 0), 0);
+            const totalCotisWorker = fichesFiltered.reduce((s, f) => s + Number(f.cotisation_onss || 0), 0);
+            const totalCoutEmp = fichesFiltered.reduce((s, f) => s + Number(f.cout_employeur || 0), 0);
+            const totalChargesPatron = totalCoutEmp - totalBrut;
+            const totalONSS = totalCotisWorker + totalChargesPatron;
+
+            const etudFiches = fichesFiltered.filter(f => f.type_contrat === "etudiant");
+            const flexiFiches = fichesFiltered.filter(f => f.type_contrat === "flexi");
+            const cdiFiches = fichesFiltered.filter(f => f.type_contrat === "cdi");
+
+            return (
+              <div>
+                {/* Sélecteur période */}
+                <div style={{ display: "flex", gap: "0.4rem", marginBottom: "0.75rem", alignItems: "center" }}>
+                  <button onClick={() => setCotisPeriodeType("mois")} style={{ flex: 1, background: cotisPeriodeType === "mois" ? "#e8213a" : "#fff8f0", color: cotisPeriodeType === "mois" ? "#fff" : "#a07848", border: "1.5px solid #f0d8b8", borderRadius: "8px", padding: "0.5rem", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", fontSize: "0.82rem", cursor: "pointer" }}>Par mois</button>
+                  <button onClick={() => setCotisPeriodeType("trimestre")} style={{ flex: 1, background: cotisPeriodeType === "trimestre" ? "#e8213a" : "#fff8f0", color: cotisPeriodeType === "trimestre" ? "#fff" : "#a07848", border: "1.5px solid #f0d8b8", borderRadius: "8px", padding: "0.5rem", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", fontSize: "0.82rem", cursor: "pointer" }}>Par trimestre</button>
+                  <input type="month" value={cotisMois} onChange={e => setCotisMois(e.target.value)}
+                    style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#e8213a", borderRadius: "8px", padding: "0.3rem 0.5rem", fontSize: "0.75rem", fontFamily: "'Poppins', sans-serif", outline: "none" }} />
+                </div>
+
+                <div style={{ color: "#a07848", fontSize: "0.78rem", fontWeight: "bold", marginBottom: "0.5rem" }}>
+                  Période : <span style={{ color: "#e8213a" }}>{periodeLabel}</span> · {fichesFiltered.length} fiche{fichesFiltered.length > 1 ? "s" : ""}
+                </div>
+
+                {fichesFiltered.length === 0 ? (
+                  <div style={{ textAlign: "center", padding: "2rem", color: "#c8a878", fontSize: "0.85rem" }}>Aucune fiche pour cette période</div>
+                ) : (<>
+                  {/* Bloc ONSS à verser */}
+                  <div style={{ background: "#fff0f0", border: "1.5px solid #f5c8c8", borderRadius: "12px", padding: "1rem", marginBottom: "0.6rem" }}>
+                    <div style={{ color: "#e8213a", fontWeight: "bold", fontSize: "0.88rem", marginBottom: "0.6rem" }}>🏦 ONSS à verser à l'ONSS</div>
+                    <div style={{ display: "flex", justifyContent: "space-between", padding: "0.3rem 0", borderBottom: "1px solid #f5c8c8" }}>
+                      <span style={{ color: "#3d1a0a", fontSize: "0.82rem" }}>Cotisations ouvrières (CDI)</span>
+                      <span style={{ color: "#e8213a", fontWeight: "bold", fontSize: "0.82rem" }}>{fmt(totalCotisWorker)} €</span>
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "space-between", padding: "0.3rem 0", borderBottom: "1px solid #f5c8c8" }}>
+                      <span style={{ color: "#3d1a0a", fontSize: "0.82rem" }}>Charges patronales</span>
+                      <span style={{ color: "#e8213a", fontWeight: "bold", fontSize: "0.82rem" }}>{fmt(totalChargesPatron)} €</span>
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "space-between", padding: "0.5rem 0 0" }}>
+                      <span style={{ color: "#3d1a0a", fontWeight: "bold", fontSize: "0.9rem" }}>TOTAL ONSS</span>
+                      <span style={{ color: "#e8213a", fontWeight: "bold", fontSize: "1.1rem" }}>{fmt(totalONSS)} €</span>
+                    </div>
+                  </div>
+
+                  {/* Bloc salaires à payer */}
+                  <div style={{ background: "#f0fff4", border: "1.5px solid #c8e6c9", borderRadius: "12px", padding: "1rem", marginBottom: "0.6rem" }}>
+                    <div style={{ color: "#388e3c", fontWeight: "bold", fontSize: "0.88rem", marginBottom: "0.6rem" }}>💳 Salaires à virer aux employés</div>
+                    {fichesFiltered.map(f => (
+                      <div key={f.id} style={{ display: "flex", justifyContent: "space-between", padding: "0.25rem 0", borderBottom: "1px solid #c8e6c9" }}>
+                        <span style={{ color: "#3d1a0a", fontSize: "0.82rem" }}>{f.employe_nom}</span>
+                        <span style={{ color: "#388e3c", fontWeight: "bold", fontSize: "0.82rem" }}>{fmt(f.salaire_net)} €</span>
+                      </div>
+                    ))}
+                    <div style={{ display: "flex", justifyContent: "space-between", paddingTop: "0.5rem" }}>
+                      <span style={{ color: "#3d1a0a", fontWeight: "bold", fontSize: "0.9rem" }}>TOTAL à virer</span>
+                      <span style={{ color: "#388e3c", fontWeight: "bold", fontSize: "1.1rem" }}>{fmt(totalNet)} €</span>
+                    </div>
+                  </div>
+
+                  {/* Récap par type */}
+                  <div style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "12px", padding: "1rem", marginBottom: "0.6rem" }}>
+                    <div style={{ color: "#a07848", fontWeight: "bold", fontSize: "0.88rem", marginBottom: "0.6rem" }}>📋 Détail par type de contrat</div>
+                    {etudFiches.length > 0 && (
+                      <div style={{ marginBottom: "0.4rem" }}>
+                        <div style={{ color: "#3d1a0a", fontSize: "0.8rem", fontWeight: "bold" }}>🎓 Étudiants ({etudFiches.length})</div>
+                        <div style={{ color: "#a07848", fontSize: "0.75rem" }}>
+                          Cotis. solidarité (2,71%): {fmt(etudFiches.reduce((s,f) => s + Number(f.cotisation_onss||0), 0))} €
+                          · Charges patron (5,42%): {fmt(etudFiches.reduce((s,f) => s + Number(f.cout_employeur||0) - Number(f.salaire_brut||0), 0))} €
+                        </div>
+                      </div>
+                    )}
+                    {flexiFiches.length > 0 && (
+                      <div style={{ marginBottom: "0.4rem" }}>
+                        <div style={{ color: "#3d1a0a", fontSize: "0.8rem", fontWeight: "bold" }}>⚡ Flexi ({flexiFiches.length})</div>
+                        <div style={{ color: "#a07848", fontSize: "0.75rem" }}>
+                          Charges patron (28%): {fmt(flexiFiches.reduce((s,f) => s + Number(f.cout_employeur||0) - Number(f.salaire_brut||0), 0))} €
+                        </div>
+                      </div>
+                    )}
+                    {cdiFiches.length > 0 && (
+                      <div>
+                        <div style={{ color: "#3d1a0a", fontSize: "0.8rem", fontWeight: "bold" }}>📋 CDI ({cdiFiches.length})</div>
+                        <div style={{ color: "#a07848", fontSize: "0.75rem" }}>
+                          ONSS ouvrier (13,07%): {fmt(cdiFiches.reduce((s,f) => s + Number(f.cotisation_onss||0), 0))} €
+                          · Charges patron (25%): {fmt(cdiFiches.reduce((s,f) => s + Number(f.cout_employeur||0) - Number(f.salaire_brut||0), 0))} €
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Coût total employeur */}
+                  <div style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", borderRadius: "12px", padding: "0.75rem 1rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <span style={{ color: "#a07848", fontSize: "0.85rem", fontWeight: "bold" }}>Coût total employeur</span>
+                    <span style={{ color: "#3d1a0a", fontWeight: "bold", fontSize: "1rem" }}>{fmt(totalCoutEmp)} €</span>
+                  </div>
+                </>)}
+              </div>
+            );
+          })()}
 
           {/* ── VUE COMPTABLE ── */}
           {paieView === "comptable" && (
