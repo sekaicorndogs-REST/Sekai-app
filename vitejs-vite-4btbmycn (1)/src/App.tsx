@@ -440,7 +440,7 @@ function calculerPaieEmploye(employe, heures) {
   return { tauxEffectif, brut, cotisationOnss, cotisationSol, cotisationTotal, net, chargesPatronales, coutEmployeur };
 }
 function fmt(val) { return Number(val || 0).toFixed(2).replace(".", ","); }
-function genererPDFFiche(fiche, employe) {
+function genererPDFFiche(fiche, employe, dateDoc?: string) {
   const type = fiche.type_contrat;
   const estFlexi = type === "flexi";
   const estCdi = type === "cdi";
@@ -459,6 +459,7 @@ function genererPDFFiche(fiche, employe) {
     lignesOnss = `<tr><td colspan="6">ONSS TRAVAILLEUR (DÉDUCTION): (Base calcul: ${fmt(fiche.salaire_brut)})</td><td style="text-align:right;color:#c00">-${fmt(fiche.cotisation_onss)}</td></tr>`;
   }
   const imposable = Number(fiche.salaire_brut || 0) - Number(fiche.cotisation_onss || 0);
+  const dateDocument = dateDoc ? new Date(dateDoc).toLocaleDateString("fr-BE") : new Date().toLocaleDateString("fr-BE");
   const html = `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>Feuille de paie - ${fiche.employe_nom} - ${fiche.periode}</title>
 <style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,sans-serif;font-size:11px;color:#000;padding:15px}
 .hdr{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #333;padding-bottom:10px;margin-bottom:10px}
@@ -480,7 +481,7 @@ td{padding:2px 4px}.rt{text-align:right}
 .red{text-align:center;font-size:8.5px;margin-top:6px;color:#555;font-style:italic}
 @media print{body{padding:8px}@page{margin:1cm;size:A4}}</style></head><body>
 <div class="hdr"><div class="emp"><div>Employeur: BE0641.660.146</div><div class="empname">CHERRY FOOD SRL</div><div>Rue de Malines 50</div><div>1000 BRUXELLES</div><div>N° ONSS: 1411286-94</div></div>
-<div class="tbox"><h1>FEUILLE DE PAIE</h1><div style="font-size:10px">Période: ${dateDebut} - ${dateFin}</div></div></div>
+<div class="tbox"><h1>FEUILLE DE PAIE</h1><div style="font-size:10px">Période: ${dateDebut} - ${dateFin}</div><div style="font-size:9px;color:#555;margin-top:2px">Établi le ${dateDocument}</div></div></div>
 <div class="irow"><div class="ileft">
 <div>Travailleur: ${employe?.id ? String(employe.id).padStart(6,"0") : "—"}</div>
 <div>Statut/Profession: ${statut} / Commis polyvalent</div>
@@ -510,12 +511,12 @@ ${lignesOnss}
 <div class="fr"><div><strong>DÉCOMPTE:</strong></div><div class="dr"><span>Salaire net</span><span>EUR ${fmt(fiche.salaire_net)}</span></div><div class="dr"><strong><span>A payer</span><span>EUR ${fmt(fiche.salaire_net)}</span></strong></div></div>
 </div>
 ${employe?.iban ? `<div class="pay"><strong>FORMULE DE PAIEMENT</strong><br>${fmt(fiche.salaire_net)} EUR par paiement électronique sur compte bancaire ${employe.iban} de ${fiche.employe_nom}</div>` : ""}
-<div class="red">Rédigé par: CHERRY FOOD SRL — N° entreprise: BE0641.660.146 — N° ONSS: 1411286-94 — CP 302</div>
+<div class="red">Rédigé par: CHERRY FOOD SRL — N° entreprise: BE0641.660.146 — N° ONSS: 1411286-94 — CP 302 — Établi le ${dateDocument}</div>
 <script>window.onload=function(){window.print()}</script></body></html>`;
   const win = window.open("","_blank");
   if (win) { win.document.write(html); win.document.close(); }
 }
-function genererPDFComptable(fiches, periode) {
+function genererPDFComptable(fiches, periode, dateDoc?: string) {
   const totalBrut = fiches.reduce((s,f) => s + Number(f.salaire_brut||0), 0);
   const totalOnss = fiches.reduce((s,f) => s + Number(f.cotisation_onss||0), 0);
   const totalNet = fiches.reduce((s,f) => s + Number(f.salaire_net||0), 0);
@@ -536,12 +537,13 @@ function genererPDFComptable(fiches, periode) {
 <tr style="border-top:2px solid #333;font-weight:bold"><td style="padding:3px 4px;background:#eee">Total</td><td style="text-align:right;padding:3px 4px;background:#eee">${fmt(debit)}</td><td style="text-align:right;padding:3px 4px;background:#eee">${fmt(credit)}</td></tr>
 </table></div>`;
   }).join("");
+  const dateDocument2 = dateDoc ? new Date(dateDoc).toLocaleDateString("fr-BE") : new Date().toLocaleDateString("fr-BE");
   const html = `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>Récapitulatif paie ${periode}</title>
 <style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,sans-serif;font-size:11px;color:#000;padding:20px}
 @media print{@page{margin:1.5cm;size:A4}}</style></head><body>
 <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px">
 <div style="font-style:italic;font-size:20px;font-weight:bold;border:2px solid #333;padding:8px 18px">Récapitulatif de paie</div>
-<div style="font-size:10px;text-align:right">Date: ${new Date().toLocaleDateString("fr-BE")}<br>Période: <strong>${periode}</strong></div>
+<div style="font-size:10px;text-align:right">Établi le: <strong>${dateDocument2}</strong><br>Période: <strong>${periode}</strong></div>
 </div>
 <div style="margin-bottom:20px;font-size:10px"><strong>Employeur: &nbsp; BE0641.660.146 &nbsp; CHERRY FOOD SRL</strong><br>Rue de Malines 50, 1000 BRUXELLES &nbsp;|&nbsp; N° ONSS: 1411286-94 &nbsp;|&nbsp; CP 302</div>
 ${rows}
@@ -555,7 +557,7 @@ Total net à payer aux employés: <strong>${fmt(totalNet)} EUR</strong> &nbsp;|&
 Charges patronales: <strong>${fmt(totalCharges)} EUR</strong><br>
 <strong>💰 Coût total employeur: ${fmt(totalBrut + totalCharges)} EUR</strong>
 </div></div>
-<div style="margin-top:18px;font-size:8.5px;color:#777;border-top:1px solid #ccc;padding-top:6px">Document généré par Sekai Corndogs — CHERRY FOOD SRL — BE0641.660.146 — Pour transmission au secrétariat social Xeriuis.</div>
+<div style="margin-top:18px;font-size:8.5px;color:#777;border-top:1px solid #ccc;padding-top:6px">Document établi le ${dateDocument2} par CHERRY FOOD SRL — BE0641.660.146 — Pour transmission au bureau comptable.</div>
 <script>window.onload=function(){window.print()}</script></body></html>`;
   const win = window.open("","_blank");
   if (win) { win.document.write(html); win.document.close(); }
@@ -661,6 +663,7 @@ export default function App() {
   const [editingPaieUser, setEditingPaieUser] = useState(null);
   const [cotisPeriodeType, setCotisPeriodeType] = useState<"mois"|"trimestre">("mois");
   const [cotisMois, setCotisMois] = useState(getCurrentMois());
+  const [paieDocDate, setPaieDocDate] = useState(new Date().toISOString().slice(0,10));
   // ── Fermeture (closing checklist) ──
   const [fermetureTaches, setFermetureTaches] = useState([]);
   const [currentFermeture, setCurrentFermeture] = useState(null);
@@ -2734,6 +2737,10 @@ export default function App() {
           {/* ── VUE FICHES ── */}
           {paieView === "fiches" && (
             <div>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.6rem", background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "8px", padding: "0.5rem 0.75rem" }}>
+                <span style={{ color: "#a07848", fontSize: "0.78rem", whiteSpace: "nowrap" }}>📅 Date du document</span>
+                <input type="date" value={paieDocDate} onChange={e => setPaieDocDate(e.target.value)} style={{ background: "transparent", border: "none", color: "#e8213a", fontFamily: "'Poppins', sans-serif", fontSize: "0.82rem", fontWeight: "bold", outline: "none", flex: 1 }} />
+              </div>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
                 <div style={{ color: "#a07848", fontSize: "0.78rem", fontWeight: "bold" }}>Fiches de paie générées</div>
                 <button onClick={() => { setPaieEmployeId(""); setPaieHeures(""); const now = new Date(); const y = now.getFullYear(); const m = String(now.getMonth()+1).padStart(2,"0"); const firstDay = `${y}-${m}-01`; const lastDay = new Date(y, now.getMonth()+1, 0).toISOString().slice(0,10); setPaieDebut(firstDay); setPaieFin(lastDay); setPaiePeriode(`${y}-${m}`); setPaieNote(""); setShowNouvelleFiche(true); }}
@@ -2779,7 +2786,7 @@ export default function App() {
                         <span style={{ background: "#f0fff4", color: "#4caf50", borderRadius: "6px", padding: "0.2rem 0.5rem", fontSize: "0.72rem" }}>Coût emp.: {fmt(f.cout_employeur)}€</span>
                       </div>
                       <div style={{ display: "flex", gap: "0.4rem", marginTop: "0.6rem" }}>
-                        <button onClick={() => genererPDFFiche(f, allUsers.find(u => u.id === f.employe_id))} style={{ flex: 1, background: "#e8213a", color: "#fff", border: "none", padding: "0.5rem", borderRadius: "8px", fontSize: "0.8rem", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", cursor: "pointer" }}>📄 Télécharger fiche</button>
+                        <button onClick={() => genererPDFFiche(f, allUsers.find(u => u.id === f.employe_id), paieDocDate)} style={{ flex: 1, background: "#e8213a", color: "#fff", border: "none", padding: "0.5rem", borderRadius: "8px", fontSize: "0.8rem", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", cursor: "pointer" }}>📄 Télécharger fiche</button>
                         <button onClick={() => { setEditingFicheId(f.id); setEditingFicheHeures(String(f.heures_total)); setEditingFicheDebut(f.date_debut || ""); setEditingFicheFin(f.date_fin || ""); }} style={{ background: "#faebd7", border: "none", color: "#a07848", borderRadius: "8px", padding: "0.5rem 0.7rem", cursor: "pointer", fontSize: "0.85rem" }}>✏️</button>
                         <button onClick={() => handleDeleteFiche(f.id)} style={{ background: "#fff5f5", border: "none", color: "#e57373", borderRadius: "8px", padding: "0.5rem 0.7rem", cursor: "pointer" }}><Trash2 size={15} /></button>
                       </div>
@@ -2974,7 +2981,7 @@ export default function App() {
           {paieView === "comptable" && (
             <div>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
-                <div style={{ color: "#a07848", fontSize: "0.78rem", fontWeight: "bold" }}>Document comptable (Xeriuis)</div>
+                <div style={{ color: "#a07848", fontSize: "0.78rem", fontWeight: "bold" }}>Document — Transmission bureau comptable</div>
                 <input type="month" value={paieComptableMois} onChange={e => setPaieComptableMois(e.target.value)}
                   style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#e8213a", borderRadius: "8px", padding: "0.3rem 0.5rem", fontSize: "0.75rem", fontFamily: "'Poppins', sans-serif", outline: "none" }} />
               </div>
@@ -3005,8 +3012,8 @@ export default function App() {
                       <div style={{ color: "#a07848", fontWeight: "bold", fontSize: "0.88rem" }}>{fmt(fichesMois.reduce((s, f) => s + Number(f.cout_employeur || 0), 0))}€</div>
                     </div>
                   </div>
-                  <button onClick={() => genererPDFComptable(fichesMois, paieComptableMois)} style={{ background: "#e8213a", color: "#fff", border: "none", padding: "0.9rem", borderRadius: "10px", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", fontSize: "0.95rem", cursor: "pointer", width: "100%" }}>
-                    📊 Générer document Xeriuis (PDF)
+                  <button onClick={() => genererPDFComptable(fichesMois, paieComptableMois, paieDocDate)} style={{ background: "#e8213a", color: "#fff", border: "none", padding: "0.9rem", borderRadius: "10px", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", fontSize: "0.95rem", cursor: "pointer", width: "100%" }}>
+                    📊 Générer document comptable (PDF)
                   </button>
                 </>
               )}
