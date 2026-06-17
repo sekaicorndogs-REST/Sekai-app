@@ -293,7 +293,10 @@ async function createFichePaie(data) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/fiches_paie`, {
     method: "POST", headers: HEADERS, body: JSON.stringify(data)
   });
-  if (!res.ok) throw new Error("Create fiche_paie failed");
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`Create fiche_paie failed: ${res.status} ${err}`);
+  }
   return res.json();
 }
 async function deleteFichePaie(id) {
@@ -969,7 +972,7 @@ export default function App() {
       setPaieEmployeId(""); setPaieHeures(""); setPaieDebut(""); setPaieFin(""); setPaieNote("");
       await loadFichesPaie();
       genererPDFFiche(Array.isArray(saved) ? saved[0] : saved, employe);
-    } catch { flash("❌ Erreur génération"); }
+    } catch (e: any) { flash("❌ " + (e?.message || "Erreur génération")); }
   }
   async function handleDeleteFiche(id) {
     if (!confirm("Supprimer cette fiche de paie ?")) return;
