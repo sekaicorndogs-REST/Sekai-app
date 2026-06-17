@@ -513,9 +513,8 @@ ${lignesOnss}
 </div>
 ${employe?.iban ? `<div class="pay"><strong>FORMULE DE PAIEMENT</strong><br>${fmt(fiche.salaire_net)} EUR par paiement électronique sur compte bancaire ${employe.iban} de ${fiche.employe_nom}</div>` : ""}
 <div class="red">Rédigé par: CHERRY FOOD SRL — N° entreprise: BE0641.660.146 — N° ONSS: 1411286-94 — CP 302 — Établi le ${dateDocument}</div>
-<script>window.onload=function(){window.print()}</script></body></html>`;
-  const win = window.open("","_blank");
-  if (win) { win.document.write(html); win.document.close(); }
+</body></html>`;
+  return html;
 }
 function genererPDFComptable(fiches, periode, dateDoc?: string) {
   const totalBrut = fiches.reduce((s,f) => s + Number(f.salaire_brut||0), 0);
@@ -559,9 +558,8 @@ Charges patronales: <strong>${fmt(totalCharges)} EUR</strong><br>
 <strong>💰 Coût total employeur: ${fmt(totalBrut + totalCharges)} EUR</strong>
 </div></div>
 <div style="margin-top:18px;font-size:8.5px;color:#777;border-top:1px solid #ccc;padding-top:6px">Document établi le ${dateDocument2} par CHERRY FOOD SRL — BE0641.660.146 — Pour transmission au bureau comptable.</div>
-<script>window.onload=function(){window.print()}</script></body></html>`;
-  const win = window.open("","_blank");
-  if (win) { win.document.write(html); win.document.close(); }
+</body></html>`;
+  return html;
 }
 
 export default function App() {
@@ -665,6 +663,8 @@ export default function App() {
   const [cotisPeriodeType, setCotisPeriodeType] = useState<"mois"|"trimestre">("mois");
   const [cotisMois, setCotisMois] = useState(getCurrentMois());
   const [paieDocDate, setPaieDocDate] = useState(new Date().toISOString().slice(0,10));
+  const [pdfModal, setPdfModal] = useState<string | null>(null);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
   // ── Fermeture (closing checklist) ──
   const [fermetureTaches, setFermetureTaches] = useState([]);
   const [currentFermeture, setCurrentFermeture] = useState(null);
@@ -983,7 +983,7 @@ export default function App() {
       setShowNouvelleFiche(false);
       setPaieEmployeId(""); setPaieHeures(""); setPaieDebut(""); setPaieFin(""); setPaieNote("");
       await loadFichesPaie();
-      genererPDFFiche(Array.isArray(saved) ? saved[0] : saved, employe);
+      setPdfModal(genererPDFFiche(Array.isArray(saved) ? saved[0] : saved, employe, paieDocDate));
     } catch (e: any) { flash("❌ " + (e?.message || "Erreur génération")); }
   }
   async function handleDeleteFiche(id) {
@@ -2690,6 +2690,18 @@ export default function App() {
   }
 
   // ── LOGIN ──────────────────────────────────────────────────
+  // ── MODAL PDF (reste dans l'app sur iPhone PWA) ──────────
+  if (pdfModal) return (
+    <div style={{ position: "fixed", inset: 0, background: "#fff", zIndex: 9999, display: "flex", flexDirection: "column" }}>
+      <div style={{ background: "#e8213a", padding: "0.75rem 1rem", display: "flex", alignItems: "center", gap: "0.75rem", flexShrink: 0 }}>
+        <button onClick={() => setPdfModal(null)} style={{ background: "rgba(255,255,255,0.2)", border: "none", color: "#fff", borderRadius: "8px", padding: "0.4rem 0.75rem", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", fontSize: "0.9rem", cursor: "pointer" }}>← Retour</button>
+        <span style={{ color: "#fff", fontWeight: "bold", fontSize: "0.9rem", flex: 1 }}>Document PDF</span>
+        <button onClick={() => { if (iframeRef.current?.contentWindow) iframeRef.current.contentWindow.print(); }} style={{ background: "#f5c842", border: "none", color: "#111", borderRadius: "8px", padding: "0.4rem 0.9rem", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", fontSize: "0.9rem", cursor: "pointer" }}>🖨️ Imprimer</button>
+      </div>
+      <iframe ref={iframeRef} srcDoc={pdfModal} style={{ flex: 1, border: "none", width: "100%" }} title="Document PDF" />
+    </div>
+  );
+
   if (!currentUser) return (
     <div style={{ ...s, minHeight: "100vh", background: "#faebd7", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "2rem" }}>
       <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -2795,7 +2807,7 @@ export default function App() {
                         <span style={{ background: "#f0fff4", color: "#4caf50", borderRadius: "6px", padding: "0.2rem 0.5rem", fontSize: "0.72rem" }}>Coût emp.: {fmt(f.cout_employeur)}€</span>
                       </div>
                       <div style={{ display: "flex", gap: "0.4rem", marginTop: "0.6rem" }}>
-                        <button onClick={() => genererPDFFiche(f, allUsers.find(u => u.id === f.employe_id), paieDocDate)} style={{ flex: 1, background: "#e8213a", color: "#fff", border: "none", padding: "0.5rem", borderRadius: "8px", fontSize: "0.8rem", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", cursor: "pointer" }}>📄 Télécharger fiche</button>
+                        <button onClick={() => setPdfModal(genererPDFFiche(f, allUsers.find(u => u.id === f.employe_id), paieDocDate))} style={{ flex: 1, background: "#e8213a", color: "#fff", border: "none", padding: "0.5rem", borderRadius: "8px", fontSize: "0.8rem", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", cursor: "pointer" }}>📄 Voir fiche</button>
                         <button onClick={() => { setEditingFicheId(f.id); setEditingFicheHeures(String(f.heures_total)); setEditingFicheDebut(f.date_debut || ""); setEditingFicheFin(f.date_fin || ""); }} style={{ background: "#faebd7", border: "none", color: "#a07848", borderRadius: "8px", padding: "0.5rem 0.7rem", cursor: "pointer", fontSize: "0.85rem" }}>✏️</button>
                         <button onClick={() => handleDeleteFiche(f.id)} style={{ background: "#fff5f5", border: "none", color: "#e57373", borderRadius: "8px", padding: "0.5rem 0.7rem", cursor: "pointer" }}><Trash2 size={15} /></button>
                       </div>
@@ -3021,7 +3033,7 @@ export default function App() {
                       <div style={{ color: "#a07848", fontWeight: "bold", fontSize: "0.88rem" }}>{fmt(fichesMois.reduce((s, f) => s + Number(f.cout_employeur || 0), 0))}€</div>
                     </div>
                   </div>
-                  <button onClick={() => genererPDFComptable(fichesMois, paieComptableMois, paieDocDate)} style={{ background: "#e8213a", color: "#fff", border: "none", padding: "0.9rem", borderRadius: "10px", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", fontSize: "0.95rem", cursor: "pointer", width: "100%" }}>
+                  <button onClick={() => setPdfModal(genererPDFComptable(fichesMois, paieComptableMois, paieDocDate))} style={{ background: "#e8213a", color: "#fff", border: "none", padding: "0.9rem", borderRadius: "10px", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", fontSize: "0.95rem", cursor: "pointer", width: "100%" }}>
                     📊 Générer document comptable (PDF)
                   </button>
                 </>
