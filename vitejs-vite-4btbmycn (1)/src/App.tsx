@@ -734,6 +734,9 @@ export default function App() {
   const [eventTauxIngredients, setEventTauxIngredients] = useState("18");
   const [eventFoodCostMode, setEventFoodCostMode] = useState<"pct"|"eur">("pct");
   const [eventFoodCostEur, setEventFoodCostEur] = useState("");
+  const [eventHotel, setEventHotel] = useState("");
+  const [eventLocationMateriel, setEventLocationMateriel] = useState("");
+  const [eventEssence, setEventEssence] = useState("");
   const [eventCaRealise, setEventCaRealise] = useState("");
   const [eventResultat, setEventResultat] = useState<any>(null);
   const [events, setEvents] = useState<any[]>([]);
@@ -1129,6 +1132,7 @@ export default function App() {
   function resetEventForm() {
     setEventNom(""); setEventDate(""); setEventLocation(""); setEventPersonnel("");
     setEventTransport(""); setEventMateriel(""); setEventAutres("");
+    setEventHotel(""); setEventLocationMateriel(""); setEventEssence("");
     setEventTauxIngredients("18"); setEventFoodCostMode("pct"); setEventFoodCostEur("");
     setEventCaRealise(""); setEventResultat(null);
   }
@@ -1137,11 +1141,13 @@ export default function App() {
     setEventLocation(String(ev.cout_location || "")); setEventPersonnel(String(ev.cout_personnel || ""));
     setEventTransport(String(ev.cout_transport || "")); setEventMateriel(String(ev.cout_materiel || ""));
     setEventAutres(String(ev.cout_autres || "")); setEventTauxIngredients(String(ev.taux_ingredients || "18"));
+    setEventHotel(String(ev.cout_hotel || "")); setEventLocationMateriel(String(ev.cout_location_materiel || ""));
+    setEventEssence(String(ev.cout_essence || ""));
     setEventCaRealise(String(ev.ca_realise || "")); setEventResultat(null);
     setEventView("form"); setShowEventForm(true);
   }
   function calculerEvent() {
-    const coutsFixes = (parseFloat(eventLocation)||0)+(parseFloat(eventPersonnel)||0)+(parseFloat(eventTransport)||0)+(parseFloat(eventMateriel)||0)+(parseFloat(eventAutres)||0);
+    const coutsFixes = (parseFloat(eventLocation)||0)+(parseFloat(eventPersonnel)||0)+(parseFloat(eventTransport)||0)+(parseFloat(eventMateriel)||0)+(parseFloat(eventAutres)||0)+(parseFloat(eventHotel)||0)+(parseFloat(eventLocationMateriel)||0)+(parseFloat(eventEssence)||0);
     const ca = parseFloat(eventCaRealise) || 0;
     let taux: number;
     let foodCostEur: number | null = null;
@@ -1163,7 +1169,9 @@ export default function App() {
       nom: eventNom.trim(), date_event: eventDate || null,
       cout_location: parseFloat(eventLocation)||0, cout_personnel: parseFloat(eventPersonnel)||0,
       cout_transport: parseFloat(eventTransport)||0, cout_materiel: parseFloat(eventMateriel)||0,
-      cout_autres: parseFloat(eventAutres)||0, taux_ingredients: parseFloat(eventTauxIngredients)||18,
+      cout_autres: parseFloat(eventAutres)||0, cout_hotel: parseFloat(eventHotel)||0,
+      cout_location_materiel: parseFloat(eventLocationMateriel)||0, cout_essence: parseFloat(eventEssence)||0,
+      taux_ingredients: parseFloat(eventTauxIngredients)||18,
       ca_realise: parseFloat(eventCaRealise)||null
     };
     try {
@@ -2818,6 +2826,9 @@ export default function App() {
                     { label: "🚗 Transport", val: eventTransport, set: setEventTransport },
                     { label: "🔧 Matériel", val: eventMateriel, set: setEventMateriel },
                     { label: "📦 Autres frais", val: eventAutres, set: setEventAutres },
+                    { label: "🏨 Hôtel", val: eventHotel, set: setEventHotel },
+                    { label: "🔩 Location matériel", val: eventLocationMateriel, set: setEventLocationMateriel },
+                    { label: "⛽ Essence", val: eventEssence, set: setEventEssence },
                   ].map(({ label, val, set }) => (
                     <div key={label} style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.45rem" }}>
                       <div style={{ color: "#3d1a0a", fontSize: "0.82rem", flex: 1 }}>{label}</div>
