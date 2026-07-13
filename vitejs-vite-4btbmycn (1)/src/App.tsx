@@ -732,6 +732,8 @@ export default function App() {
   const [eventMateriel, setEventMateriel] = useState("");
   const [eventAutres, setEventAutres] = useState("");
   const [eventTauxIngredients, setEventTauxIngredients] = useState("18");
+  const [eventFoodCostMode, setEventFoodCostMode] = useState<"pct"|"eur">("pct");
+  const [eventFoodCostEur, setEventFoodCostEur] = useState("");
   const [eventCaRealise, setEventCaRealise] = useState("");
   const [eventResultat, setEventResultat] = useState<any>(null);
   const [events, setEvents] = useState<any[]>([]);
@@ -1127,7 +1129,8 @@ export default function App() {
   function resetEventForm() {
     setEventNom(""); setEventDate(""); setEventLocation(""); setEventPersonnel("");
     setEventTransport(""); setEventMateriel(""); setEventAutres("");
-    setEventTauxIngredients("18"); setEventCaRealise(""); setEventResultat(null);
+    setEventTauxIngredients("18"); setEventFoodCostMode("pct"); setEventFoodCostEur("");
+    setEventCaRealise(""); setEventResultat(null);
   }
   function loadEventForm(ev: any) {
     setEventNom(ev.nom || ""); setEventDate(ev.date_event || "");
@@ -1139,11 +1142,20 @@ export default function App() {
   }
   function calculerEvent() {
     const coutsFixes = (parseFloat(eventLocation)||0)+(parseFloat(eventPersonnel)||0)+(parseFloat(eventTransport)||0)+(parseFloat(eventMateriel)||0)+(parseFloat(eventAutres)||0);
-    const taux = (parseFloat(eventTauxIngredients)||18)/100;
-    const seuilMin = coutsFixes / (1 - taux);
     const ca = parseFloat(eventCaRealise) || 0;
-    const profitRealise = ca > 0 ? ca - ca*taux - coutsFixes : null;
-    setEventResultat({ coutsFixes, taux, seuilMin, profitRealise, ca });
+    let taux: number;
+    let foodCostEur: number | null = null;
+    if (eventFoodCostMode === "eur") {
+      foodCostEur = parseFloat(eventFoodCostEur) || 0;
+      taux = ca > 0 ? foodCostEur / ca : (parseFloat(eventTauxIngredients)||18)/100;
+    } else {
+      taux = (parseFloat(eventTauxIngredients)||18)/100;
+    }
+    const seuilMin = eventFoodCostMode === "eur" && foodCostEur != null
+      ? coutsFixes + foodCostEur
+      : coutsFixes / (1 - taux);
+    const profitRealise = ca > 0 ? (eventFoodCostMode === "eur" ? ca - (foodCostEur||0) - coutsFixes : ca - ca*taux - coutsFixes) : null;
+    setEventResultat({ coutsFixes, taux, seuilMin, profitRealise, ca, foodCostEur, mode: eventFoodCostMode });
   }
   async function handleSaveEvent() {
     if (!eventNom.trim()) { flash("❌ Donne un nom à l'event"); return; }
@@ -2816,13 +2828,27 @@ export default function App() {
                       </div>
                     </div>
                   ))}
-                  <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", margin: "0.6rem 0" }}>
-                    <div style={{ color: "#3d1a0a", fontSize: "0.82rem", flex: 1 }}>🧾 Taux ingrédients</div>
-                    <div style={{ display: "flex", alignItems: "center", background: "#faebd7", border: "1.5px solid #f5c842", borderRadius: "8px", overflow: "hidden" }}>
-                      <input value={eventTauxIngredients} onChange={e => setEventTauxIngredients(e.target.value.replace(",", "."))} inputMode="decimal" type="text"
-                        style={{ background: "transparent", border: "none", color: "#3d1a0a", padding: "0.55rem 0.5rem", fontSize: "0.9rem", outline: "none", width: "55px", fontFamily: "'Poppins', sans-serif", textAlign: "right" }} />
-                      <span style={{ color: "#a07848", paddingRight: "0.5rem", fontSize: "0.85rem" }}>%</span>
+                  <div style={{ margin: "0.6rem 0" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.4rem" }}>
+                      <div style={{ color: "#3d1a0a", fontSize: "0.82rem", flex: 1 }}>🧾 Food cost</div>
+                      <div style={{ display: "flex", background: "#faebd7", border: "1.5px solid #f0d8b8", borderRadius: "8px", overflow: "hidden" }}>
+                        <button onClick={() => setEventFoodCostMode("pct")} style={{ background: eventFoodCostMode==="pct" ? "#f5c842" : "transparent", color: "#3d1a0a", border: "none", padding: "0.3rem 0.7rem", fontSize: "0.75rem", fontWeight: "bold", cursor: "pointer", fontFamily: "'Poppins', sans-serif" }}>%</button>
+                        <button onClick={() => setEventFoodCostMode("eur")} style={{ background: eventFoodCostMode==="eur" ? "#f5c842" : "transparent", color: "#3d1a0a", border: "none", padding: "0.3rem 0.7rem", fontSize: "0.75rem", fontWeight: "bold", cursor: "pointer", fontFamily: "'Poppins', sans-serif" }}>€</button>
+                      </div>
                     </div>
+                    {eventFoodCostMode === "pct" ? (
+                      <div style={{ display: "flex", alignItems: "center", background: "#faebd7", border: "1.5px solid #f5c842", borderRadius: "8px", overflow: "hidden" }}>
+                        <input value={eventTauxIngredients} onChange={e => setEventTauxIngredients(e.target.value.replace(",", "."))} inputMode="decimal" type="text" placeholder="18"
+                          style={{ background: "transparent", border: "none", color: "#3d1a0a", padding: "0.6rem 1rem", fontSize: "0.95rem", outline: "none", flex: 1, fontFamily: "'Poppins', sans-serif" }} />
+                        <span style={{ color: "#a07848", paddingRight: "0.8rem", fontSize: "0.9rem" }}>%</span>
+                      </div>
+                    ) : (
+                      <div style={{ display: "flex", alignItems: "center", background: "#faebd7", border: "1.5px solid #f5c842", borderRadius: "8px", overflow: "hidden" }}>
+                        <input value={eventFoodCostEur} onChange={e => setEventFoodCostEur(e.target.value.replace(",", "."))} inputMode="decimal" type="text" placeholder="Montant ingrédients (€)"
+                          style={{ background: "transparent", border: "none", color: "#3d1a0a", padding: "0.6rem 1rem", fontSize: "0.95rem", outline: "none", flex: 1, fontFamily: "'Poppins', sans-serif" }} />
+                        <span style={{ color: "#a07848", paddingRight: "0.8rem", fontSize: "0.9rem" }}>€</span>
+                      </div>
+                    )}
                   </div>
                   <div style={{ color: "#a07848", fontSize: "0.72rem", fontWeight: "600", margin: "0.6rem 0 0.4rem" }}>CA RÉALISÉ (optionnel — après l'event)</div>
                   <div style={{ display: "flex", alignItems: "center", background: "#faebd7", border: "1.5px solid #4caf5044", borderRadius: "8px", overflow: "hidden", marginBottom: "0.8rem" }}>
