@@ -703,7 +703,15 @@ export default function App() {
   // Finances
   const [dettes, setDettes] = useState<any[]>([]);
   const [charges, setCharges] = useState<any[]>([]);
-  const [financesView, setFinancesView] = useState<"dettes"|"charges"|"resume"|"taches">("dettes");
+  const [financesView, setFinancesView] = useState<"dettes"|"charges"|"resume"|"taches"|"event">("dettes");
+  const [eventNom, setEventNom] = useState("");
+  const [eventLocation, setEventLocation] = useState("");
+  const [eventPersonnel, setEventPersonnel] = useState("");
+  const [eventTransport, setEventTransport] = useState("");
+  const [eventMateriel, setEventMateriel] = useState("");
+  const [eventAutres, setEventAutres] = useState("");
+  const [eventTauxIngredients, setEventTauxIngredients] = useState("18");
+  const [eventResultat, setEventResultat] = useState<any>(null);
   const [financesLoading, setFinancesLoading] = useState(false);
   const [showAddDette, setShowAddDette] = useState(false);
   const [showAddCharge, setShowAddCharge] = useState(false);
@@ -2519,7 +2527,7 @@ export default function App() {
             <button onClick={() => { loadFinances(); loadTodoTaches(); }} style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#a07848", borderRadius: "8px", padding: "0.3rem 0.6rem", fontSize: "0.8rem", cursor: "pointer" }}><RefreshCw size={16} /></button>
           </div>
           <div style={{ display: "flex", gap: "0.4rem", overflowX: "auto", paddingBottom: "0.5rem" }}>
-            {[{id:"dettes",label:"💳 Dettes"},{id:"charges",label:"💸 Charges"},{id:"resume",label:"📊 Résumé"},{id:"taches",label:"✅ Tâches"}].map(tab => (
+            {[{id:"dettes",label:"💳 Dettes"},{id:"charges",label:"💸 Charges"},{id:"resume",label:"📊 Résumé"},{id:"event",label:"🎪 Event"},{id:"taches",label:"✅ Tâches"}].map(tab => (
               <button key={tab.id} onClick={() => setFinancesView(tab.id as any)}
                 style={{ background: financesView === tab.id ? "#e8213a" : "#1e1e1e", color: financesView === tab.id ? "#fff" : "#888", border: "none", borderRadius: "8px", padding: "0.35rem 0.9rem", fontSize: "0.78rem", fontFamily: "'Poppins', sans-serif", fontWeight: financesView === tab.id ? "bold" : "normal", cursor: "pointer", whiteSpace: "nowrap" }}>
                 {tab.label}
@@ -2655,6 +2663,92 @@ export default function App() {
               ))}
               {dettes.filter(d => d.avec_plan && d.mensualite).length === 0 && <div style={{ color: "#c8a878", fontSize: "0.82rem" }}>Aucun plan de paiement actif</div>}
             </div>
+          </div>
+        )}
+
+        {/* ── EVENT ── */}
+        {financesView === "event" && (
+          <div style={{ padding: "0.8rem 1.1rem" }}>
+            <div style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "14px", padding: "1rem", marginBottom: "1rem" }}>
+              <div style={{ color: "#e8213a", fontWeight: "bold", fontSize: "0.95rem", marginBottom: "0.8rem" }}>🎪 Calculateur de rentabilité event</div>
+              <input value={eventNom} onChange={e => setEventNom(e.target.value)} placeholder="Nom de l'event (optionnel)"
+                style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.7rem 1rem", borderRadius: "8px", fontSize: "0.9rem", outline: "none", width: "100%", boxSizing: "border-box" as const, fontFamily: "'Poppins', sans-serif", marginBottom: "0.5rem" }} />
+              <div style={{ color: "#a07848", fontSize: "0.72rem", fontWeight: "600", margin: "0.6rem 0 0.4rem" }}>COÛTS DE L'EVENT</div>
+              {[
+                { label: "📍 Location / place", val: eventLocation, set: setEventLocation },
+                { label: "👥 Personnel (salaires)", val: eventPersonnel, set: setEventPersonnel },
+                { label: "🚗 Transport / déplacement", val: eventTransport, set: setEventTransport },
+                { label: "🔧 Matériel / équipement", val: eventMateriel, set: setEventMateriel },
+                { label: "📦 Autres frais", val: eventAutres, set: setEventAutres },
+              ].map(({ label, val, set }) => (
+                <div key={label} style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.5rem" }}>
+                  <div style={{ color: "#3d1a0a", fontSize: "0.82rem", flex: 1, minWidth: "160px" }}>{label}</div>
+                  <div style={{ display: "flex", alignItems: "center", background: "#faebd7", border: "1.5px solid #f0d8b8", borderRadius: "8px", overflow: "hidden" }}>
+                    <input value={val} onChange={e => set(e.target.value.replace(",", "."))} inputMode="decimal" type="text" placeholder="0"
+                      style={{ background: "transparent", border: "none", color: "#3d1a0a", padding: "0.6rem 0.5rem", fontSize: "0.9rem", outline: "none", width: "90px", fontFamily: "'Poppins', sans-serif", textAlign: "right" }} />
+                    <span style={{ color: "#a07848", paddingRight: "0.5rem", fontSize: "0.85rem" }}>€</span>
+                  </div>
+                </div>
+              ))}
+              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.8rem" }}>
+                <div style={{ color: "#3d1a0a", fontSize: "0.82rem", flex: 1 }}>🧾 Taux ingrédients (% du CA)</div>
+                <div style={{ display: "flex", alignItems: "center", background: "#faebd7", border: "1.5px solid #f5c842", borderRadius: "8px", overflow: "hidden" }}>
+                  <input value={eventTauxIngredients} onChange={e => setEventTauxIngredients(e.target.value.replace(",", "."))} inputMode="decimal" type="text"
+                    style={{ background: "transparent", border: "none", color: "#3d1a0a", padding: "0.6rem 0.5rem", fontSize: "0.9rem", outline: "none", width: "60px", fontFamily: "'Poppins', sans-serif", textAlign: "right" }} />
+                  <span style={{ color: "#a07848", paddingRight: "0.5rem", fontSize: "0.85rem" }}>%</span>
+                </div>
+              </div>
+              <button onClick={() => {
+                const location = parseFloat(eventLocation) || 0;
+                const personnel = parseFloat(eventPersonnel) || 0;
+                const transport = parseFloat(eventTransport) || 0;
+                const materiel = parseFloat(eventMateriel) || 0;
+                const autres = parseFloat(eventAutres) || 0;
+                const taux = (parseFloat(eventTauxIngredients) || 18) / 100;
+                const coutsFixes = location + personnel + transport + materiel + autres;
+                const seuilMin = coutsFixes / (1 - taux);
+                const niveaux = [seuilMin, seuilMin * 1.25, seuilMin * 1.5, seuilMin * 2];
+                setEventResultat({ coutsFixes, taux, seuilMin, niveaux });
+              }} style={{ background: "#e8213a", color: "#fff", border: "none", padding: "0.85rem", borderRadius: "10px", fontWeight: "bold", fontSize: "1rem", cursor: "pointer", width: "100%", fontFamily: "'Poppins', sans-serif" }}>
+                📊 Calculer
+              </button>
+            </div>
+
+            {eventResultat && (
+              <div>
+                <div style={{ background: "#fff5f5", border: "1.5px solid #e8213a44", borderRadius: "14px", padding: "1.2rem", marginBottom: "0.8rem", textAlign: "center" }}>
+                  <div style={{ color: "#e8213a", fontSize: "0.75rem", fontWeight: "600" }}>COÛTS FIXES TOTAUX</div>
+                  <div style={{ color: "#e8213a", fontSize: "1.8rem", fontWeight: "900" }}>{eventResultat.coutsFixes.toLocaleString("fr-BE", { minimumFractionDigits: 2 })} €</div>
+                  <div style={{ width: "1px", height: "1rem" }} />
+                  <div style={{ color: "#a07848", fontSize: "0.75rem", fontWeight: "600" }}>CA MINIMUM POUR ÊTRE RENTABLE</div>
+                  <div style={{ color: "#3d1a0a", fontSize: "2.2rem", fontWeight: "900" }}>{Math.ceil(eventResultat.seuilMin).toLocaleString("fr-BE")} €</div>
+                  <div style={{ color: "#a07848", fontSize: "0.72rem", marginTop: "0.3rem" }}>({(eventResultat.taux * 100).toFixed(0)}% ingrédients déduits)</div>
+                </div>
+
+                <div style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "12px", padding: "1rem" }}>
+                  <div style={{ color: "#a07848", fontSize: "0.75rem", fontWeight: "bold", marginBottom: "0.7rem" }}>PROJECTION PROFIT</div>
+                  {eventResultat.niveaux.map((ca: number, i: number) => {
+                    const ingredients = ca * eventResultat.taux;
+                    const profit = ca - ingredients - eventResultat.coutsFixes;
+                    const isMin = i === 0;
+                    return (
+                      <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0.5rem 0.6rem", borderRadius: "8px", marginBottom: "0.3rem", background: isMin ? "#fff5f5" : profit > 0 ? "#f5fff8" : "#fff5f5", border: `1px solid ${isMin ? "#e8213a33" : profit > 0 ? "#4caf5033" : "#e8213a33"}` }}>
+                        <div>
+                          <div style={{ color: "#3d1a0a", fontSize: "0.85rem", fontWeight: "bold" }}>{Math.ceil(ca).toLocaleString("fr-BE")} € CA</div>
+                          <div style={{ color: "#a07848", fontSize: "0.68rem" }}>Ingrédients : -{Math.ceil(ingredients).toLocaleString("fr-BE")} €</div>
+                        </div>
+                        <div style={{ textAlign: "right" }}>
+                          <div style={{ color: isMin ? "#e8213a" : profit > 0 ? "#4caf50" : "#e8213a", fontSize: "1rem", fontWeight: "900" }}>
+                            {isMin ? "⚖️ 0 €" : (profit > 0 ? "+" : "") + Math.round(profit).toLocaleString("fr-BE") + " €"}
+                          </div>
+                          <div style={{ color: "#c8a878", fontSize: "0.68rem" }}>{isMin ? "seuil" : "bénéfice"}</div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
