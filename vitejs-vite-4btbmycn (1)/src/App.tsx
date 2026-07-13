@@ -2506,9 +2506,7 @@ export default function App() {
     const totalDettes = dettes.reduce((s, d) => s + (parseFloat(d.montant_restant) || 0), 0);
     const totalMensualites = dettes.filter(d => d.avec_plan && d.mensualite).reduce((s, d) => s + (parseFloat(d.mensualite) || 0), 0);
     const totalChargesFixes = charges.reduce((s, c) => s + (parseFloat(c.montant) || 0), 0);
-    const coursesJour = charges.find(c => c.nom === "Courses") ? (parseFloat(charges.find(c => c.nom === "Courses")!.montant) || 0) : 0;
-    const chargesSansCourses = totalChargesFixes - coursesJour;
-    const caMinParJour = ((chargesSansCourses + totalMensualites) / 30 + coursesJour).toFixed(0);
+    const caMinParJour = ((totalChargesFixes + totalMensualites) / 30).toFixed(0);
 
     return (
       <div style={{ ...s, minHeight: "100vh", background: "#faebd7", paddingBottom: "6rem" }}>
