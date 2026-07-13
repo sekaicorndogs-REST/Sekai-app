@@ -283,6 +283,44 @@ async function deleteEventWorker(id) {
   if (!res.ok) throw new Error("Delete event_worker failed");
 }
 
+// ── FINANCES API ──────────────────────────────────────────
+async function fetchDettes() {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/finances_dettes?select=*&order=categorie.asc`, { headers: HEADERS });
+  if (!res.ok) throw new Error("Fetch dettes failed");
+  return res.json();
+}
+async function createDette(data) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/finances_dettes`, { method: "POST", headers: HEADERS, body: JSON.stringify(data) });
+  if (!res.ok) { const e = await res.text(); throw new Error(e); }
+  return res.json();
+}
+async function updateDette(id, data) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/finances_dettes?id=eq.${id}`, { method: "PATCH", headers: HEADERS, body: JSON.stringify(data) });
+  if (!res.ok) throw new Error("Update dette failed");
+}
+async function deleteDette(id) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/finances_dettes?id=eq.${id}`, { method: "DELETE", headers: HEADERS });
+  if (!res.ok) throw new Error("Delete dette failed");
+}
+async function fetchCharges() {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/finances_charges?select=*&order=categorie.asc`, { headers: HEADERS });
+  if (!res.ok) throw new Error("Fetch charges failed");
+  return res.json();
+}
+async function createCharge(data) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/finances_charges`, { method: "POST", headers: HEADERS, body: JSON.stringify(data) });
+  if (!res.ok) { const e = await res.text(); throw new Error(e); }
+  return res.json();
+}
+async function updateCharge(id, data) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/finances_charges?id=eq.${id}`, { method: "PATCH", headers: HEADERS, body: JSON.stringify(data) });
+  if (!res.ok) throw new Error("Update charge failed");
+}
+async function deleteCharge(id) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/finances_charges?id=eq.${id}`, { method: "DELETE", headers: HEADERS });
+  if (!res.ok) throw new Error("Delete charge failed");
+}
+
 // ── PAIE API ──────────────────────────────────────────────
 async function fetchFichesPaie() {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/fiches_paie?select=*&order=generated_at.desc`, { headers: HEADERS });
@@ -662,6 +700,24 @@ export default function App() {
   const [editingPaieUser, setEditingPaieUser] = useState(null);
   const [cotisPeriodeType, setCotisPeriodeType] = useState<"mois"|"trimestre">("mois");
   const [cotisMois, setCotisMois] = useState(getCurrentMois());
+  // Finances
+  const [dettes, setDettes] = useState<any[]>([]);
+  const [charges, setCharges] = useState<any[]>([]);
+  const [financesView, setFinancesView] = useState<"dettes"|"charges"|"resume"|"taches">("dettes");
+  const [financesLoading, setFinancesLoading] = useState(false);
+  const [showAddDette, setShowAddDette] = useState(false);
+  const [showAddCharge, setShowAddCharge] = useState(false);
+  const [editingDette, setEditingDette] = useState<any>(null);
+  const [editingCharge, setEditingCharge] = useState<any>(null);
+  const [newDetteNom, setNewDetteNom] = useState("");
+  const [newDetteMontant, setNewDetteMontant] = useState("");
+  const [newDetteCategorie, setNewDetteCategorie] = useState("Autre");
+  const [newDetteAvecPlan, setNewDetteAvecPlan] = useState(false);
+  const [newDetteMensualite, setNewDetteMensualite] = useState("");
+  const [newChargeNom, setNewChargeNom] = useState("");
+  const [newChargeMontant, setNewChargeMontant] = useState("");
+  const [newChargeCategorie, setNewChargeCategorie] = useState("Autre");
+  const [paiementPartiel, setPaiementPartiel] = useState("");
   const [paieDocDate, setPaieDocDate] = useState(new Date().toISOString().slice(0,10));
   const [pdfModal, setPdfModal] = useState<string | null>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -1024,6 +1080,59 @@ export default function App() {
       });
       flash("✅ Profil paie sauvegardé !"); setEditingPaieUser(null); loadUsers();
     } catch { flash("❌ Erreur"); }
+  }
+
+  async function loadFinances() {
+    setFinancesLoading(true);
+    try {
+      const [d, c] = await Promise.all([fetchDettes(), fetchCharges()]);
+      setDettes(d); setCharges(c);
+    } catch { flash("❌ Erreur chargement finances"); }
+    finally { setFinancesLoading(false); }
+  }
+  async function handleAddDette() {
+    if (!newDetteNom.trim() || !newDetteMontant) { flash("❌ Nom et montant requis"); return; }
+    const montant = parseFloat(newDetteMontant.replace(",", "."));
+    try {
+      await createDette({ nom: newDetteNom.trim(), categorie: newDetteCategorie, montant_initial: montant, montant_restant: montant, avec_plan: newDetteAvecPlan, mensualite: newDetteAvecPlan && newDetteMensualite ? parseFloat(newDetteMensualite) : null, statut: "en_cours" });
+      flash("✅ Dette ajoutée"); setShowAddDette(false); setNewDetteNom(""); setNewDetteMontant(""); setNewDetteAvecPlan(false); setNewDetteMensualite(""); loadFinances();
+    } catch (e: any) { flash("❌ " + e.message); }
+  }
+  async function handlePayerPartielDette(dette: any) {
+    const montant = parseFloat(paiementPartiel.replace(",", "."));
+    if (isNaN(montant) || montant <= 0) { flash("❌ Montant invalide"); return; }
+    const restant = Math.max(0, Number(dette.montant_restant) - montant);
+    try {
+      await updateDette(dette.id, { montant_restant: restant, statut: restant === 0 ? "regle" : "en_cours" });
+      flash(restant === 0 ? "✅ Dette réglée !" : `✅ -${montant}€ appliqué`);
+      setPaiementPartiel(""); setEditingDette(null); loadFinances();
+    } catch { flash("❌ Erreur"); }
+  }
+  async function handleReglerDette(id: number) {
+    if (!confirm("Marquer cette dette comme réglée ?")) return;
+    try { await updateDette(id, { montant_restant: 0, statut: "regle" }); flash("✅ Réglée !"); loadFinances(); }
+    catch { flash("❌ Erreur"); }
+  }
+  async function handleDeleteDette(id: number) {
+    if (!confirm("Supprimer cette dette ?")) return;
+    try { await deleteDette(id); flash("✅ Supprimée"); loadFinances(); }
+    catch { flash("❌ Erreur"); }
+  }
+  async function handleAddCharge() {
+    if (!newChargeNom.trim() || !newChargeMontant) { flash("❌ Nom et montant requis"); return; }
+    try {
+      await createCharge({ nom: newChargeNom.trim(), categorie: newChargeCategorie, montant: parseFloat(newChargeMontant.replace(",", ".")), actif: true });
+      flash("✅ Charge ajoutée"); setShowAddCharge(false); setNewChargeNom(""); setNewChargeMontant(""); loadFinances();
+    } catch (e: any) { flash("❌ " + e.message); }
+  }
+  async function handleUpdateCharge(charge: any) {
+    try { await updateCharge(charge.id, { nom: charge.nom, montant: parseFloat(String(charge.montant).replace(",",".")), categorie: charge.categorie }); flash("✅ Mis à jour"); setEditingCharge(null); loadFinances(); }
+    catch { flash("❌ Erreur"); }
+  }
+  async function handleDeleteCharge(id: number) {
+    if (!confirm("Supprimer cette charge ?")) return;
+    try { await deleteCharge(id); flash("✅ Supprimée"); loadFinances(); }
+    catch { flash("❌ Erreur"); }
   }
 
   async function handleChangePwd() {
@@ -1464,15 +1573,15 @@ export default function App() {
       {[
         { id: "stock", label: "Stock", icon: "stock", adminOnly: false },
         { id: "horaires", label: "Horaires", icon: "horaires", adminOnly: false },
-        { id: "paiements", label: "Tâches", icon: "taches", adminOnly: true },
+        { id: "finances", label: "Finances", icon: "finances", adminOnly: true },
         { id: "paie", label: "Paie", icon: "paie", adminOnly: true },
         { id: "profil", label: "Profil", icon: "profil", adminOnly: false }
       ].filter(tab => !tab.adminOnly || isAdmin).map(tab => (
-        <button key={tab.id} onClick={() => { setPage(tab.id); if (tab.id === "comptes") loadUsers(); if (tab.id === "horaires" && !horaires.length) fetchHoraires(horaireRestaurant); if (tab.id === "paiements") loadPaiements(); if (tab.id === "fermetures") { loadFermetureHistorique(); loadFermetureData(); } if (tab.id === "paie") { loadFichesPaie(); loadUsers(); } }} style={{ flex: 1, background: "none", border: "none", padding: "0.7rem 0", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: "0.15rem" }}>
+        <button key={tab.id} onClick={() => { setPage(tab.id); if (tab.id === "comptes") loadUsers(); if (tab.id === "horaires" && !horaires.length) fetchHoraires(horaireRestaurant); if (tab.id === "finances") { loadFinances(); loadTodoTaches(); } if (tab.id === "fermetures") { loadFermetureHistorique(); loadFermetureData(); } if (tab.id === "paie") { loadFichesPaie(); loadUsers(); } }} style={{ flex: 1, background: "none", border: "none", padding: "0.7rem 0", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: "0.15rem" }}>
           <span style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
             {tab.icon === "stock" && <Package size={20} color={page === tab.id ? "#e8213a" : "#c8a878"} />}
             {tab.icon === "horaires" && <Calendar size={20} color={page === tab.id ? "#e8213a" : "#c8a878"} />}
-            {tab.icon === "taches" && <ListChecks size={20} color={page === tab.id ? "#e8213a" : "#c8a878"} />}
+            {tab.icon === "finances" && <CreditCard size={20} color={page === tab.id ? "#e8213a" : "#c8a878"} />}
             {tab.icon === "paie" && <FileText size={20} color={page === tab.id ? "#e8213a" : "#c8a878"} />}
             {tab.icon === "profil" && <UserCircle size={20} color={page === tab.id ? "#e8213a" : "#c8a878"} />}
           </span>
@@ -2392,115 +2501,171 @@ export default function App() {
     );
   }
 
-    // ── PAIEMENTS PAGE ────────────────────────────────────────
-  if (page === "paiements" && isAdmin) {
-    const today = new Date();
-    const todayStr = today.getFullYear() + "-" + String(today.getMonth()+1).padStart(2,"0") + "-" + String(today.getDate()).padStart(2,"0");
-    const in3days = new Date(today); in3days.setDate(today.getDate() + 3);
-    const in3Str = in3days.getFullYear() + "-" + String(in3days.getMonth()+1).padStart(2,"0") + "-" + String(in3days.getDate()).padStart(2,"0");
-    const in3months = new Date(today); in3months.setMonth(today.getMonth() + 3);
-    const in3mStr = in3months.getFullYear() + "-" + String(in3months.getMonth()+1).padStart(2,"0") + "-" + String(in3months.getDate()).padStart(2,"0");
-
-    const paiementsAvenir = paiements.filter(p => p.statut === "en_attente" && p.date_echeance >= todayStr && p.date_echeance <= in3mStr);
-    const paiementsEnRetard = paiements.filter(p => p.statut === "en_attente" && p.date_echeance < todayStr);
-    const paiementsHistorique = paiements.filter(p => p.statut === "paye" || (p.statut === "en_attente" && p.date_echeance < todayStr));
-    const urgents = getPaiementsUrgents();
-
-    const totalAvenir = paiementsAvenir.reduce((s, p) => s + (parseFloat(p.montant) || 0), 0);
-    const totalRetard = paiementsEnRetard.reduce((s, p) => s + (parseFloat(p.montant) || 0), 0);
-
-    const TYPE_ICONS = { fournisseur: "🏪", salaire: "👤", loyer: "🏠", autre: "📦" };
-    const TYPE_LABELS = { fournisseur: "Fournisseur", salaire: "Salaire", loyer: "Loyer", autre: "Autre" };
-
-    function getStatutStyle(p) {
-      if (p.date_echeance < todayStr) return { border: "#e8213a55", bg: "#fff5f5", color: "#e57373", label: "⚠️ En retard" };
-      if (p.date_echeance <= in3Str) return { border: "#f5a62355", bg: "#fff8f0", color: "#e8213a", label: "🔔 Urgent" };
-      return { border: "#f0d8b8", bg: "#ffffff", color: "#3d1a0a", label: "" };
-    }
+    // ── FINANCES PAGE ────────────────────────────────────────
+  if (page === "finances" && isAdmin) {
+    const totalDettes = dettes.reduce((s, d) => s + (parseFloat(d.montant_restant) || 0), 0);
+    const totalMensualites = dettes.filter(d => d.avec_plan && d.mensualite).reduce((s, d) => s + (parseFloat(d.mensualite) || 0), 0);
+    const totalChargesFixes = charges.reduce((s, c) => s + (parseFloat(c.montant) || 0), 0);
+    const coursesJour = charges.find(c => c.nom === "Courses") ? (parseFloat(charges.find(c => c.nom === "Courses")!.montant) || 0) : 0;
+    const chargesSansCourses = totalChargesFixes - coursesJour;
+    const caMinParJour = ((chargesSansCourses + totalMensualites) / 30 + coursesJour).toFixed(0);
 
     return (
       <div style={{ ...s, minHeight: "100vh", background: "#faebd7", paddingBottom: "6rem" }}>
         {toast && <div style={{ position: "fixed", top: "1rem", left: "50%", transform: "translateX(-50%)", background: toast.type === "success" ? "#f0fff4" : toast.type === "warn" ? "#fffbe6" : "#fff0f0", color: toast.type === "success" ? "#2e7d32" : toast.type === "warn" ? "#b45309" : "#e8213a", padding: "0.6rem 1.4rem", borderRadius: "20px", fontSize: "0.88rem", zIndex: 999, border: `1.5px solid ${toast.type === "success" ? "#a5d6a7" : toast.type === "warn" ? "#fde68a" : "#f5c8c8"}`, whiteSpace: "nowrap", pointerEvents: "none", fontWeight: "600", boxShadow: "0 2px 12px rgba(0,0,0,0.12)" }}>{toast.msg}</div>}
 
         {/* Header */}
-        <div style={{ background: "#fff8f0", padding: "1rem 1.2rem", borderBottom: "1.5px solid #f0d8b8", position: "sticky", top: 0, zIndex: 30 }}>
+        <div style={{ background: "#fff8f0", padding: "1rem 1.2rem 0.5rem", borderBottom: "1.5px solid #f0d8b8", position: "sticky", top: 0, zIndex: 30 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
-            <h1 style={{ color: "#ffffff", fontSize: "1.1rem", margin: 0 }}>📋 Tâches</h1>
-            <div style={{ display: "flex", gap: "0.4rem" }}>
-              <button onClick={loadPaiements} style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#a07848", borderRadius: "8px", padding: "0.3rem 0.6rem", fontSize: "0.8rem", cursor: "pointer" }}><RefreshCw size={16} /></button>
-              <button onClick={() => { setPaiementTitre(""); setPaiementMontant(""); setPaiementDate(""); setPaiementNote(""); setPaiementRecurrent(false); setPaiementType("autre"); setShowAddPaiement(true); }}
-                style={{ background: "#e8213a", color: "#ffffff", border: "none", borderRadius: "8px", padding: "0.3rem 0.9rem", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", fontSize: "0.8rem", cursor: "pointer" }}><span style={{display:"flex",alignItems:"center",gap:"6px"}}><Plus size={14} /> Ajouter</span></button>
-            </div>
+            <h1 style={{ color: "#e8213a", fontSize: "1.1rem", margin: 0, fontWeight: "bold" }}>💳 Finances</h1>
+            <button onClick={() => { loadFinances(); loadTodoTaches(); }} style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#a07848", borderRadius: "8px", padding: "0.3rem 0.6rem", fontSize: "0.8rem", cursor: "pointer" }}><RefreshCw size={16} /></button>
           </div>
-          <div style={{ display: "flex", gap: "0.4rem", marginBottom: "0.5rem", flexWrap: "wrap" }}>
-            {[{id:"paiements",label:"💰 Paiements"},{id:"a_faire",label:"✅ À faire"},{id:"historique",label:"📋 Historique"}].map(tab => (
-              <button key={tab.id} onClick={() => { setTacheView(tab.id); if (tab.id !== "paiements") loadTodoTaches(); }}
-                style={{ background: tacheView === tab.id ? "#e8213a" : "#1e1e1e", color: tacheView === tab.id ? "#fff" : "#555", border: "none", borderRadius: "8px", padding: "0.35rem 0.9rem", fontSize: "0.78rem", fontFamily: "'Poppins', sans-serif", fontWeight: tacheView === tab.id ? "bold" : "normal", cursor: "pointer" }}>
+          <div style={{ display: "flex", gap: "0.4rem", overflowX: "auto", paddingBottom: "0.5rem" }}>
+            {[{id:"dettes",label:"💳 Dettes"},{id:"charges",label:"💸 Charges"},{id:"resume",label:"📊 Résumé"},{id:"taches",label:"✅ Tâches"}].map(tab => (
+              <button key={tab.id} onClick={() => setFinancesView(tab.id as any)}
+                style={{ background: financesView === tab.id ? "#e8213a" : "#1e1e1e", color: financesView === tab.id ? "#fff" : "#888", border: "none", borderRadius: "8px", padding: "0.35rem 0.9rem", fontSize: "0.78rem", fontFamily: "'Poppins', sans-serif", fontWeight: financesView === tab.id ? "bold" : "normal", cursor: "pointer", whiteSpace: "nowrap" }}>
                 {tab.label}
-              </button>
-            ))}
-          </div>
-          <div style={{ display: tacheView === "paiements" ? "flex" : "none", gap: "0.4rem" }}>
-            {[{id:"avenir",label:"À venir"},{id:"historique",label:"Historique"}].map(tab => (
-              <button key={tab.id} onClick={() => setPaiementView(tab.id)}
-                style={{ background: paiementView === tab.id ? "#f5c842" : "#1e1e1e", color: paiementView === tab.id ? "#111" : "#555", border: "none", borderRadius: "8px", padding: "0.35rem 0.9rem", fontSize: "0.78rem", fontFamily: "'Poppins', sans-serif", fontWeight: paiementView === tab.id ? "bold" : "normal", cursor: "pointer" }}>
-                {tab.label}
-                {tab.id === "avenir" && urgents.length > 0 && <span style={{ background: "#e57373", color: "#3d1a0a", borderRadius: "10px", padding: "0.1rem 0.4rem", fontSize: "0.65rem", marginLeft: "0.4rem" }}>{urgents.length}</span>}
               </button>
             ))}
           </div>
         </div>
 
-        {/* Add modal */}
-        {showAddPaiement && (
-          <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", zIndex: 200, display: "flex", alignItems: "flex-end" }}>
-            <div style={{ background: "#fff8f0", borderRadius: "16px 16px 0 0", padding: "1.2rem", width: "100%", display: "flex", flexDirection: "column", gap: "0.7rem", maxHeight: "90vh", overflowY: "auto" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <div style={{ color: "#e8213a", fontWeight: "bold", fontSize: "0.95rem" }}>➕ Nouveau paiement</div>
-                <button onClick={() => setShowAddPaiement(false)} style={{ background: "#2a2a2a", border: "none", color: "#c8a878", borderRadius: "50%", width: "2rem", height: "2rem", cursor: "pointer" }}>✕</button>
+        {/* ── DETTES ── */}
+        {financesView === "dettes" && (
+          <div style={{ padding: "0.8rem 1.1rem" }}>
+            {financesLoading && <div style={{ textAlign: "center", padding: "2rem", color: "#e8213a" }}>⏳ Chargement...</div>}
+            {!financesLoading && (
+              <>
+                <div style={{ background: "#fff5f5", border: "1.5px solid #e8213a44", borderRadius: "12px", padding: "0.9rem 1rem", marginBottom: "1rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div>
+                    <div style={{ color: "#e8213a", fontSize: "0.72rem", fontWeight: "600" }}>TOTAL DETTES RESTANTES</div>
+                    <div style={{ color: "#e8213a", fontSize: "1.5rem", fontWeight: "bold" }}>{totalDettes.toLocaleString("fr-BE", { minimumFractionDigits: 2 })} €</div>
+                  </div>
+                  <button onClick={() => { setNewDetteNom(""); setNewDetteMontant(""); setNewDetteCategorie("autre"); setNewDetteAvecPlan(false); setNewDetteMensualite(""); setShowAddDette(true); }}
+                    style={{ background: "#e8213a", color: "#fff", border: "none", borderRadius: "8px", padding: "0.5rem 0.9rem", fontSize: "0.82rem", fontWeight: "bold", cursor: "pointer", fontFamily: "'Poppins', sans-serif", display: "flex", alignItems: "center", gap: "4px" }}>
+                    <Plus size={14} /> Ajouter
+                  </button>
+                </div>
+
+                {dettes.length === 0 && <div style={{ color: "#c8a878", textAlign: "center", padding: "2rem" }}>Aucune dette enregistrée</div>}
+                {dettes.map(d => {
+                  const montant = parseFloat(d.montant_initial) || 0;
+                  const restant = parseFloat(d.montant_restant) || 0;
+                  const pct = montant > 0 ? Math.max(0, Math.min(100, (restant / montant) * 100)) : 0;
+                  return (
+                    <div key={d.id} style={{ background: "#fff8f0", border: `1.5px solid ${d.avec_plan ? "#4caf5033" : "#f0d8b8"}`, borderRadius: "12px", padding: "1rem", marginBottom: "0.6rem" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "0.5rem" }}>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ color: "#3d1a0a", fontSize: "0.95rem", fontWeight: "bold" }}>{d.nom}</div>
+                          <div style={{ color: "#a07848", fontSize: "0.72rem", marginTop: "0.2rem" }}>
+                            {d.categorie} {d.avec_plan && d.mensualite && <span style={{ color: "#4caf50" }}>· Plan {parseFloat(d.mensualite).toFixed(0)}€/mois</span>}
+                            {!d.avec_plan && <span style={{ color: "#e8213a" }}> · Pas de plan</span>}
+                          </div>
+                        </div>
+                        <div style={{ textAlign: "right" }}>
+                          <div style={{ color: "#e8213a", fontSize: "1rem", fontWeight: "bold" }}>{restant.toLocaleString("fr-BE", { minimumFractionDigits: 2 })} €</div>
+                          <div style={{ color: "#c8a878", fontSize: "0.68rem" }}>/ {montant.toLocaleString("fr-BE")} €</div>
+                        </div>
+                      </div>
+                      <div style={{ background: "#f0d8b8", borderRadius: "4px", height: "6px", marginBottom: "0.6rem" }}>
+                        <div style={{ background: pct > 50 ? "#e8213a" : pct > 20 ? "#f5a623" : "#4caf50", height: "6px", borderRadius: "4px", width: `${pct}%`, transition: "width 0.4s" }} />
+                      </div>
+                      <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap" }}>
+                        <button onClick={() => { setPaiementPartiel(""); setEditingDette(d); }}
+                          style={{ background: "#faebd7", color: "#a07848", border: "1.5px solid #f0d8b8", borderRadius: "8px", padding: "0.35rem 0.7rem", fontSize: "0.75rem", cursor: "pointer", fontFamily: "'Poppins', sans-serif', fontWeight: 'bold" }}>
+                          💶 Payer partiel
+                        </button>
+                        <button onClick={() => handleReglerDette(d.id)}
+                          style={{ background: "#4caf50", color: "#fff", border: "none", borderRadius: "8px", padding: "0.35rem 0.7rem", fontSize: "0.75rem", cursor: "pointer", fontFamily: "'Poppins', sans-serif", fontWeight: "bold" }}>
+                          ✅ Réglé
+                        </button>
+                        <button onClick={() => handleDeleteDette(d.id)}
+                          style={{ background: "#fff5f5", color: "#e57373", border: "none", borderRadius: "8px", padding: "0.35rem 0.5rem", fontSize: "0.75rem", cursor: "pointer" }}>
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </>
+            )}
+          </div>
+        )}
+
+        {/* ── CHARGES ── */}
+        {financesView === "charges" && (
+          <div style={{ padding: "0.8rem 1.1rem" }}>
+            <div style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "12px", padding: "0.9rem 1rem", marginBottom: "1rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div>
+                <div style={{ color: "#a07848", fontSize: "0.72rem", fontWeight: "600" }}>CHARGES FIXES / MOIS</div>
+                <div style={{ color: "#3d1a0a", fontSize: "1.4rem", fontWeight: "bold" }}>{totalChargesFixes.toLocaleString("fr-BE", { minimumFractionDigits: 2 })} €</div>
               </div>
-              <input value={paiementTitre} onChange={e => setPaiementTitre(e.target.value)} placeholder="Titre (ex: Facture OZ Food)..."
-                style={{ background: "#faebd7", border: "1px solid #f5c842", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", fontFamily: "'Poppins', sans-serif", outline: "none", width: "100%", boxSizing: "border-box" as const }} />
-              <div style={{ display: "flex", gap: "0.5rem" }}>
-                <input value={paiementMontant} onChange={e => setPaiementMontant(e.target.value.replace(",", "."))} placeholder="Montant ex: 374.55" inputMode="decimal" type="text"
-                  style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", fontFamily: "'Poppins', sans-serif", outline: "none", flex: 1, boxSizing: "border-box" as const }} />
-                <input type="date" value={paiementDate} onChange={e => setPaiementDate(e.target.value)}
-                  style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", fontFamily: "'Poppins', sans-serif", outline: "none", flex: 1, boxSizing: "border-box" as const }} />
-              </div>
-              <select value={paiementType} onChange={e => setPaiementType(e.target.value)}
-                style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", fontFamily: "'Poppins', sans-serif", outline: "none", width: "100%" }}>
-                <option value="fournisseur">🏪 Fournisseur</option>
-                <option value="salaire">👤 Salaire</option>
-                <option value="loyer">🏠 Loyer</option>
-                <option value="autre">📦 Autre</option>
-              </select>
-              <textarea value={paiementNote} onChange={e => setPaiementNote(e.target.value)} placeholder="Note (optionnel)..." rows={2}
-                style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.9rem", fontFamily: "'Poppins', sans-serif", outline: "none", width: "100%", boxSizing: "border-box" as const, resize: "none" }} />
-              <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
-                <input type="checkbox" id="recurrent" checked={paiementRecurrent} onChange={e => setPaiementRecurrent(e.target.checked)}
-                  style={{ width: "1.1rem", height: "1.1rem", accentColor: "#f5c842", cursor: "pointer" }} />
-                <label htmlFor="recurrent" style={{ color: "#c8a878", fontSize: "0.85rem", cursor: "pointer" }}>Paiement récurrent</label>
-              </div>
-              {paiementRecurrent && (
-                <select value={paiementFrequence} onChange={e => setPaiementFrequence(e.target.value)}
-                  style={{ background: "#faebd7", border: "1px solid #f5c842", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", fontFamily: "'Poppins', sans-serif", outline: "none", width: "100%" }}>
-                  <option value="hebdo">📅 Hebdomadaire</option>
-                  <option value="mensuel">📅 Mensuel</option>
-                  <option value="trimestriel">📅 Trimestriel</option>
-                  <option value="annuel">📅 Annuel</option>
-                </select>
-              )}
-              <button onClick={handleAddPaiement} style={{ background: "#e8213a", color: "#ffffff", border: "none", padding: "0.9rem", borderRadius: "10px", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", fontSize: "1rem", cursor: "pointer", width: "100%" }}>
-                ✅ Ajouter
+              <button onClick={() => { setNewChargeNom(""); setNewChargeMontant(""); setNewChargeCategorie("autre"); setShowAddCharge(true); }}
+                style={{ background: "#e8213a", color: "#fff", border: "none", borderRadius: "8px", padding: "0.5rem 0.9rem", fontSize: "0.82rem", fontWeight: "bold", cursor: "pointer", fontFamily: "'Poppins', sans-serif", display: "flex", alignItems: "center", gap: "4px" }}>
+                <Plus size={14} /> Ajouter
               </button>
+            </div>
+            {charges.length === 0 && <div style={{ color: "#c8a878", textAlign: "center", padding: "2rem" }}>Aucune charge enregistrée</div>}
+            {charges.map(c => (
+              <div key={c.id} style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "12px", padding: "0.8rem 1rem", marginBottom: "0.5rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div>
+                  <div style={{ color: "#3d1a0a", fontSize: "0.9rem", fontWeight: "600" }}>{c.nom}</div>
+                  <div style={{ color: "#a07848", fontSize: "0.7rem" }}>{c.categorie}</div>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                  <div style={{ color: "#e8213a", fontSize: "0.95rem", fontWeight: "bold" }}>{parseFloat(c.montant).toLocaleString("fr-BE", { minimumFractionDigits: 2 })} €</div>
+                  <button onClick={() => handleDeleteCharge(c.id)} style={{ background: "none", color: "#c8a878", border: "none", cursor: "pointer" }}><Trash2 size={15} /></button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* ── RÉSUMÉ ── */}
+        {financesView === "resume" && (
+          <div style={{ padding: "0.8rem 1.1rem" }}>
+            <div style={{ background: "#fff5f5", border: "1.5px solid #e8213a44", borderRadius: "14px", padding: "1.2rem", marginBottom: "0.8rem", textAlign: "center" }}>
+              <div style={{ color: "#e8213a", fontSize: "0.75rem", fontWeight: "600", marginBottom: "0.3rem" }}>CA MINIMUM PAR JOUR</div>
+              <div style={{ color: "#e8213a", fontSize: "2.5rem", fontWeight: "900" }}>{caMinParJour} €</div>
+              <div style={{ color: "#a07848", fontSize: "0.72rem", marginTop: "0.3rem" }}>Pour couvrir charges + mensualités</div>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.6rem", marginBottom: "0.8rem" }}>
+              <div style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "12px", padding: "0.9rem", textAlign: "center" }}>
+                <div style={{ color: "#a07848", fontSize: "0.7rem", fontWeight: "600" }}>DETTES TOTALES</div>
+                <div style={{ color: "#e8213a", fontSize: "1.3rem", fontWeight: "bold" }}>{totalDettes.toLocaleString("fr-BE", { minimumFractionDigits: 0 })} €</div>
+              </div>
+              <div style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "12px", padding: "0.9rem", textAlign: "center" }}>
+                <div style={{ color: "#a07848", fontSize: "0.7rem", fontWeight: "600" }}>MENSUALITÉS/MOIS</div>
+                <div style={{ color: "#f5a623", fontSize: "1.3rem", fontWeight: "bold" }}>{totalMensualites.toLocaleString("fr-BE", { minimumFractionDigits: 0 })} €</div>
+              </div>
+              <div style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "12px", padding: "0.9rem", textAlign: "center" }}>
+                <div style={{ color: "#a07848", fontSize: "0.7rem", fontWeight: "600" }}>CHARGES FIXES/MOIS</div>
+                <div style={{ color: "#3d1a0a", fontSize: "1.3rem", fontWeight: "bold" }}>{totalChargesFixes.toLocaleString("fr-BE", { minimumFractionDigits: 0 })} €</div>
+              </div>
+              <div style={{ background: "#f5fff8", border: "1.5px solid #4caf5033", borderRadius: "12px", padding: "0.9rem", textAlign: "center" }}>
+                <div style={{ color: "#4caf50", fontSize: "0.7rem", fontWeight: "600" }}>DETTES AVEC PLAN</div>
+                <div style={{ color: "#4caf50", fontSize: "1.3rem", fontWeight: "bold" }}>{dettes.filter(d => d.avec_plan).length} / {dettes.length}</div>
+              </div>
+            </div>
+            <div style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "12px", padding: "1rem" }}>
+              <div style={{ color: "#a07848", fontSize: "0.75rem", fontWeight: "bold", marginBottom: "0.7rem" }}>DÉTAIL MENSUALITÉS</div>
+              {dettes.filter(d => d.avec_plan && d.mensualite).map(d => (
+                <div key={d.id} style={{ display: "flex", justifyContent: "space-between", padding: "0.35rem 0", borderTop: "1px solid #f0d8b8" }}>
+                  <div style={{ color: "#3d1a0a", fontSize: "0.85rem" }}>{d.nom}</div>
+                  <div style={{ color: "#4caf50", fontSize: "0.85rem", fontWeight: "bold" }}>{parseFloat(d.mensualite).toFixed(0)} €/mois</div>
+                </div>
+              ))}
+              {dettes.filter(d => d.avec_plan && d.mensualite).length === 0 && <div style={{ color: "#c8a878", fontSize: "0.82rem" }}>Aucun plan de paiement actif</div>}
             </div>
           </div>
         )}
 
-        {tacheView === "a_faire" && (
+        {/* ── TÂCHES ── */}
+        {financesView === "taches" && (
           <div style={{ padding: "0.8rem 1.1rem" }}>
             <button onClick={() => { setTodoLabel(""); setTodoDeadline(""); setTodoPoints("1"); setTodoRecurrente(false); setShowAddTodoTache(true); }} style={{ background: "#e8213a", color: "#fff", border: "none", padding: "0.7rem 1.2rem", borderRadius: "10px", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", fontSize: "0.85rem", cursor: "pointer", marginBottom: "1rem", display: "flex", alignItems: "center", gap: "6px" }}><Plus size={14} /> Ajouter une tâche</button>
-            {todoTaches.filter(t => t.statut === "a_faire").length === 0 && (<div style={{ color: "#c8a878", fontSize: "0.85rem", textAlign: "center", padding: "2rem" }}>Aucune tâche en cours</div>)}
+            <div style={{ color: "#a07848", fontSize: "0.75rem", fontWeight: "bold", marginBottom: "0.5rem" }}>À FAIRE</div>
+            {todoTaches.filter(t => t.statut === "a_faire").length === 0 && (<div style={{ color: "#c8a878", fontSize: "0.85rem", textAlign: "center", padding: "1.5rem" }}>Aucune tâche en cours</div>)}
             {todoTaches.filter(t => t.statut === "a_faire").sort((a,b) => (a.deadline||"9999").localeCompare(b.deadline||"9999")).map(t => {
               const enRetard = t.deadline && t.deadline < new Date().toISOString().slice(0,10);
               return (
@@ -2519,12 +2684,9 @@ export default function App() {
                 </div>
               );
             })}
-          </div>
-        )}
-        {tacheView === "historique" && (
-          <div style={{ padding: "0.8rem 1.1rem" }}>
-            {todoTaches.filter(t => t.statut === "fait").length === 0 && (<div style={{ color: "#c8a878", fontSize: "0.85rem", textAlign: "center", padding: "2rem" }}>Aucune tâche complétée</div>)}
-            {todoTaches.filter(t => t.statut === "fait").sort((a,b) => (b.completed_at||"").localeCompare(a.completed_at||"")).map(t => (
+            <div style={{ color: "#a07848", fontSize: "0.75rem", fontWeight: "bold", margin: "1rem 0 0.5rem" }}>HISTORIQUE</div>
+            {todoTaches.filter(t => t.statut === "fait").length === 0 && (<div style={{ color: "#c8a878", fontSize: "0.85rem", textAlign: "center", padding: "1rem" }}>Aucune tâche complétée</div>)}
+            {todoTaches.filter(t => t.statut === "fait").sort((a,b) => (b.completed_at||"").localeCompare(a.completed_at||"")).slice(0, 10).map(t => (
               <div key={t.id} style={{ background: "#f5fff8", border: "1.5px solid #4caf5033", borderRadius: "12px", padding: "0.8rem 1rem", marginBottom: "0.4rem" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <div>
@@ -2537,6 +2699,8 @@ export default function App() {
             ))}
           </div>
         )}
+
+        {/* Modals */}
         {showAddTodoTache && (
           <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", zIndex: 200, display: "flex", alignItems: "flex-end" }}>
             <div style={{ background: "#fff8f0", borderRadius: "16px 16px 0 0", padding: "1.2rem", width: "100%", display: "flex", flexDirection: "column", gap: "0.7rem", maxHeight: "90vh", overflowY: "auto" }}>
@@ -2544,14 +2708,14 @@ export default function App() {
                 <div style={{ color: "#e8213a", fontWeight: "bold", fontSize: "0.95rem" }}>➕ Nouvelle tâche</div>
                 <button onClick={() => setShowAddTodoTache(false)} style={{ background: "#2a2a2a", border: "none", color: "#c8a878", borderRadius: "50%", width: "2rem", height: "2rem", cursor: "pointer" }}>✕</button>
               </div>
-              <input value={todoLabel} onChange={e => setTodoLabel(e.target.value)} placeholder="Titre de la tâche..." style={{ background: "#faebd7", border: "1px solid #f5c842", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", outline: "none", width: "100%", boxSizing: "border-box", fontFamily: "'Poppins', sans-serif" }} />
+              <input value={todoLabel} onChange={e => setTodoLabel(e.target.value)} placeholder="Titre de la tâche..." style={{ background: "#faebd7", border: "1px solid #f5c842", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", outline: "none", width: "100%", boxSizing: "border-box" as const, fontFamily: "'Poppins', sans-serif" }} />
               <div style={{ display: "flex", gap: "0.5rem" }}>
-                <input type="date" value={todoDeadline} onChange={e => setTodoDeadline(e.target.value)} style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", outline: "none", flex: 1, boxSizing: "border-box", fontFamily: "'Poppins', sans-serif" }} />
-                <input value={todoPoints} onChange={e => setTodoPoints(e.target.value.replace(/[^0-9]/g, ""))} placeholder="Pts" inputMode="numeric" style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", outline: "none", width: "5rem", boxSizing: "border-box", fontFamily: "'Poppins', sans-serif" }} />
+                <input type="date" value={todoDeadline} onChange={e => setTodoDeadline(e.target.value)} style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", outline: "none", flex: 1, boxSizing: "border-box" as const, fontFamily: "'Poppins', sans-serif" }} />
+                <input value={todoPoints} onChange={e => setTodoPoints(e.target.value.replace(/[^0-9]/g, ""))} placeholder="Pts" inputMode="numeric" style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", outline: "none", width: "5rem", boxSizing: "border-box" as const, fontFamily: "'Poppins', sans-serif" }} />
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
-                <input type="checkbox" id="todoRec" checked={todoRecurrente} onChange={e => setTodoRecurrente(e.target.checked)} style={{ width: "1.1rem", height: "1.1rem", accentColor: "#f5c842", cursor: "pointer" }} />
-                <label htmlFor="todoRec" style={{ color: "#3d1a0a", fontSize: "0.85rem", cursor: "pointer" }}>Tâche récurrente</label>
+                <input type="checkbox" id="todoRec2" checked={todoRecurrente} onChange={e => setTodoRecurrente(e.target.checked)} style={{ width: "1.1rem", height: "1.1rem", accentColor: "#f5c842", cursor: "pointer" }} />
+                <label htmlFor="todoRec2" style={{ color: "#3d1a0a", fontSize: "0.85rem", cursor: "pointer" }}>Tâche récurrente</label>
               </div>
               {todoRecurrente && (
                 <select value={todoFrequence} onChange={e => setTodoFrequence(e.target.value)} style={{ background: "#faebd7", border: "1px solid #f5c842", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", outline: "none", width: "100%", fontFamily: "'Poppins', sans-serif" }}>
@@ -2563,124 +2727,75 @@ export default function App() {
             </div>
           </div>
         )}
-        <div style={{ padding: "0.8rem 1.1rem", display: tacheView === "paiements" ? "block" : "none" }}>
-          {paiementsLoading && <div style={{ textAlign: "center", padding: "3rem", color: "#e8213a" }}><div style={{ fontSize: "1.5rem" }}>⏳</div><div style={{ fontSize: "0.85rem", marginTop: "0.5rem" }}>Chargement...</div></div>}
 
-          {!paiementsLoading && paiementView === "avenir" && (
-            <div>
-              {/* Résumé */}
-              <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1rem" }}>
-                {totalRetard > 0 && (
-                  <div style={{ flex: 1, background: "#fff5f5", border: "1px solid #3a1a1a", borderRadius: "10px", padding: "0.75rem" }}>
-                    <div style={{ color: "#e57373", fontSize: "0.7rem" }}>⚠️ En retard</div>
-                    <div style={{ color: "#e57373", fontSize: "1.1rem", fontWeight: "bold" }}>{totalRetard.toFixed(2)}€</div>
-                  </div>
-                )}
-                <div style={{ flex: 1, background: "#f5fff8", border: "1.5px solid #4caf5033", borderRadius: "10px", padding: "0.75rem" }}>
-                  <div style={{ color: "#4caf50", fontSize: "0.7rem" }}>📅 3 prochains mois</div>
-                  <div style={{ color: "#4caf50", fontSize: "1.1rem", fontWeight: "bold" }}>{totalAvenir.toFixed(2)}€</div>
-                </div>
+        {showAddDette && (
+          <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", zIndex: 200, display: "flex", alignItems: "flex-end" }}>
+            <div style={{ background: "#fff8f0", borderRadius: "16px 16px 0 0", padding: "1.2rem", width: "100%", display: "flex", flexDirection: "column", gap: "0.7rem", maxHeight: "90vh", overflowY: "auto" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div style={{ color: "#e8213a", fontWeight: "bold", fontSize: "0.95rem" }}>➕ Nouvelle dette</div>
+                <button onClick={() => setShowAddDette(false)} style={{ background: "#2a2a2a", border: "none", color: "#c8a878", borderRadius: "50%", width: "2rem", height: "2rem", cursor: "pointer" }}>✕</button>
               </div>
-
-              {/* En retard */}
-              {paiementsEnRetard.length > 0 && (
-                <div style={{ marginBottom: "1rem" }}>
-                  <div style={{ color: "#e57373", fontSize: "0.75rem", fontWeight: "bold", marginBottom: "0.5rem" }}>⚠️ EN RETARD</div>
-                  {paiementsEnRetard.map(p => {
-                    const st = getStatutStyle(p);
-                    return (
-                      <div key={p.id} style={{ background: st.bg, border: `1px solid ${st.border}`, borderRadius: "12px", padding: "1rem", marginBottom: "0.5rem" }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                          <div style={{ flex: 1 }}>
-                            <div style={{ color: st.color, fontSize: "0.95rem", fontWeight: "bold" }}>{TYPE_ICONS[p.type]} {p.titre}</div>
-                            <div style={{ color: "#a07848", fontSize: "0.75rem", marginTop: "0.2rem" }}>
-                              📅 {new Date(p.date_echeance + "T12:00:00").toLocaleDateString("fr-BE", { day: "numeric", month: "long" })}
-                              {p.recurrent && <span style={{ marginLeft: "0.5rem" }}>🔄 {p.frequence}</span>}
-                            </div>
-                            {p.note && <div style={{ color: "#a07848", fontSize: "0.72rem", marginTop: "0.2rem" }}>📌 {p.note}</div>}
-                          </div>
-                          <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "0.4rem" }}>
-                            {p.montant && <div style={{ color: "#3d1a0a", fontSize: "1rem", fontWeight: "700" }}>{parseFloat(p.montant).toFixed(2)}€</div>}
-                            <div style={{ display: "flex", gap: "0.3rem" }}>
-                              <button onClick={() => handlePayerPaiement(p.id, p.recurrent, p.frequence, p.date_echeance)}
-                                style={{ background: "#5cb85c", color: "#3d1a0a", border: "none", borderRadius: "8px", padding: "0.4rem 0.7rem", fontSize: "0.78rem", cursor: "pointer", fontFamily: "'Poppins', sans-serif", fontWeight: "bold" }}>✅ Payé</button>
-                              <button onClick={() => handleDeletePaiement(p.id)}
-                                style={{ background: "#fff5f5", color: "#e57373", border: "none", borderRadius: "8px", padding: "0.4rem 0.6rem", fontSize: "0.78rem", cursor: "pointer" }}><Trash2 size={15} /></button>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
+              <input value={newDetteNom} onChange={e => setNewDetteNom(e.target.value)} placeholder="Nom (ex: TVA Monab)" style={{ background: "#faebd7", border: "1px solid #f5c842", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", outline: "none", width: "100%", boxSizing: "border-box" as const, fontFamily: "'Poppins', sans-serif" }} />
+              <input value={newDetteMontant} onChange={e => setNewDetteMontant(e.target.value.replace(",", "."))} placeholder="Montant total dû (€)" inputMode="decimal" type="text" style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", outline: "none", width: "100%", boxSizing: "border-box" as const, fontFamily: "'Poppins', sans-serif" }} />
+              <select value={newDetteCategorie} onChange={e => setNewDetteCategorie(e.target.value)} style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", fontFamily: "'Poppins', sans-serif", outline: "none", width: "100%" }}>
+                <option value="cotisation">ONSS / Cotisations</option>
+                <option value="impots">Impôts</option>
+                <option value="tva">TVA</option>
+                <option value="fournisseur">Fournisseur</option>
+                <option value="prive">Privé</option>
+                <option value="autre">Autre</option>
+              </select>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
+                <input type="checkbox" id="avecPlan" checked={newDetteAvecPlan} onChange={e => setNewDetteAvecPlan(e.target.checked)} style={{ width: "1.1rem", height: "1.1rem", accentColor: "#4caf50", cursor: "pointer" }} />
+                <label htmlFor="avecPlan" style={{ color: "#3d1a0a", fontSize: "0.85rem", cursor: "pointer" }}>Plan de paiement</label>
+              </div>
+              {newDetteAvecPlan && (
+                <input value={newDetteMensualite} onChange={e => setNewDetteMensualite(e.target.value.replace(",", "."))} placeholder="Mensualité (€/mois)" inputMode="decimal" type="text" style={{ background: "#faebd7", border: "1px solid #4caf5088", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", outline: "none", width: "100%", boxSizing: "border-box" as const, fontFamily: "'Poppins', sans-serif" }} />
               )}
-
-              {/* À venir */}
-              <div style={{ color: "#a07848", fontSize: "0.75rem", fontWeight: "bold", marginBottom: "0.5rem" }}>📅 À VENIR — 3 MOIS</div>
-              {paiementsAvenir.length === 0 && <div style={{ color: "#c8a878", fontSize: "0.82rem", textAlign: "center", padding: "2rem" }}>Aucun paiement à venir</div>}
-              {paiementsAvenir.map(p => {
-                const st = getStatutStyle(p);
-                return (
-                  <div key={p.id} style={{ background: st.bg, border: `1px solid ${st.border}`, borderRadius: "12px", padding: "1rem", marginBottom: "0.5rem" }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
-                          <span style={{ color: st.color, fontSize: "0.95rem", fontWeight: "bold" }}>{TYPE_ICONS[p.type]} {p.titre}</span>
-                          {st.label && <span style={{ background: p.date_echeance < todayStr ? "#3a1a1a" : "#3a3a1a", color: st.color, fontSize: "0.65rem", borderRadius: "6px", padding: "0.1rem 0.4rem" }}>{st.label}</span>}
-                        </div>
-                        <div style={{ color: "#a07848", fontSize: "0.75rem", marginTop: "0.2rem" }}>
-                          📅 {new Date(p.date_echeance + "T12:00:00").toLocaleDateString("fr-BE", { weekday: "short", day: "numeric", month: "long" })}
-                          {p.recurrent && <span style={{ marginLeft: "0.5rem", color: "#4a4a6a" }}>🔄 {p.frequence}</span>}
-                        </div>
-                        {p.note && <div style={{ color: "#a07848", fontSize: "0.72rem", marginTop: "0.2rem" }}>📌 {p.note}</div>}
-                      </div>
-                      <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "0.4rem" }}>
-                        {p.montant && <div style={{ color: "#3d1a0a", fontSize: "1rem", fontWeight: "700" }}>{parseFloat(p.montant).toFixed(2)}€</div>}
-                        <div style={{ display: "flex", gap: "0.3rem" }}>
-                          <button onClick={() => handlePayerPaiement(p.id, p.recurrent, p.frequence, p.date_echeance)}
-                            style={{ background: "#1a2a1a", color: "#4caf50", border: "1px solid #2a4a2a", borderRadius: "8px", padding: "0.4rem 0.7rem", fontSize: "0.78rem", cursor: "pointer", fontFamily: "'Poppins', sans-serif", fontWeight: "bold" }}>✅ Payé</button>
-                          <button onClick={() => handleDeletePaiement(p.id)}
-                            style={{ background: "#fff5f5", color: "#e57373", border: "none", borderRadius: "8px", padding: "0.4rem 0.6rem", fontSize: "0.78rem", cursor: "pointer" }}><Trash2 size={15} /></button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+              <button onClick={handleAddDette} style={{ background: "#e8213a", color: "#fff", border: "none", padding: "0.9rem", borderRadius: "10px", fontWeight: "bold", fontSize: "1rem", cursor: "pointer", width: "100%", fontFamily: "'Poppins', sans-serif" }}>✅ Enregistrer</button>
             </div>
-          )}
+          </div>
+        )}
 
-          {!paiementsLoading && paiementView === "historique" && (
-            <div>
-              <div style={{ color: "#a07848", fontSize: "0.75rem", fontWeight: "bold", marginBottom: "0.75rem" }}>📋 HISTORIQUE</div>
-              {paiementsHistorique.length === 0 && <div style={{ color: "#c8a878", fontSize: "0.82rem", textAlign: "center", padding: "2rem" }}>Aucun historique</div>}
-              {paiementsHistorique.sort((a,b) => b.date_echeance.localeCompare(a.date_echeance)).map(p => (
-                <div key={p.id} style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "12px", padding: "1rem", marginBottom: "0.5rem", opacity: p.statut === "paye" ? 0.7 : 1 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ color: p.statut === "paye" ? "#4caf50" : "#e8213a", fontSize: "0.9rem", fontWeight: "bold" }}>
-                        {p.statut === "paye" ? "✅" : "⚠️"} {TYPE_ICONS[p.type]} {p.titre}
-                      </div>
-                      <div style={{ color: "#a07848", fontSize: "0.75rem", marginTop: "0.2rem" }}>
-                        {new Date(p.date_echeance + "T12:00:00").toLocaleDateString("fr-BE", { day: "numeric", month: "long", year: "numeric" })}
-                      </div>
-                    </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                      {p.montant && <div style={{ color: "#a07848", fontSize: "0.9rem" }}>{parseFloat(p.montant).toFixed(2)}€</div>}
-                      <button onClick={() => handleDeletePaiement(p.id)}
-                        style={{ background: "none", color: "#c8a878", border: "none", cursor: "pointer", fontSize: "0.85rem" }}><Trash2 size={15} /></button>
-                    </div>
-                  </div>
-                </div>
-              ))}
+        {showAddCharge && (
+          <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", zIndex: 200, display: "flex", alignItems: "flex-end" }}>
+            <div style={{ background: "#fff8f0", borderRadius: "16px 16px 0 0", padding: "1.2rem", width: "100%", display: "flex", flexDirection: "column", gap: "0.7rem", maxHeight: "90vh", overflowY: "auto" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div style={{ color: "#e8213a", fontWeight: "bold", fontSize: "0.95rem" }}>➕ Nouvelle charge fixe</div>
+                <button onClick={() => setShowAddCharge(false)} style={{ background: "#2a2a2a", border: "none", color: "#c8a878", borderRadius: "50%", width: "2rem", height: "2rem", cursor: "pointer" }}>✕</button>
+              </div>
+              <input value={newChargeNom} onChange={e => setNewChargeNom(e.target.value)} placeholder="Nom (ex: Loyer)" style={{ background: "#faebd7", border: "1px solid #f5c842", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", outline: "none", width: "100%", boxSizing: "border-box" as const, fontFamily: "'Poppins', sans-serif" }} />
+              <input value={newChargeMontant} onChange={e => setNewChargeMontant(e.target.value.replace(",", "."))} placeholder="Montant mensuel (€)" inputMode="decimal" type="text" style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", outline: "none", width: "100%", boxSizing: "border-box" as const, fontFamily: "'Poppins', sans-serif" }} />
+              <select value={newChargeCategorie} onChange={e => setNewChargeCategorie(e.target.value)} style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", fontFamily: "'Poppins', sans-serif", outline: "none", width: "100%" }}>
+                <option value="loyer">🏠 Loyer</option>
+                <option value="energie">⚡ Énergie</option>
+                <option value="telecom">📡 Télécom</option>
+                <option value="voiture">🚗 Voiture</option>
+                <option value="salaire">👤 Salaire gérant</option>
+                <option value="comptable">📊 Comptable</option>
+                <option value="cotisation">💼 Cotisation</option>
+                <option value="marketing">📣 Marketing</option>
+                <option value="personnel">👥 Personnel</option>
+                <option value="autre">📦 Autre</option>
+              </select>
+              <button onClick={handleAddCharge} style={{ background: "#e8213a", color: "#fff", border: "none", padding: "0.9rem", borderRadius: "10px", fontWeight: "bold", fontSize: "1rem", cursor: "pointer", width: "100%", fontFamily: "'Poppins', sans-serif" }}>✅ Enregistrer</button>
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
-        {/* Notification badge dans l'app */}
-        {isAdmin && urgents.length > 0 && page !== "paiements" && (
-          <div onClick={() => { setPage("paiements"); loadPaiements(); }} style={{ position: "fixed", top: "1rem", right: "1rem", background: "#e57373", color: "#3d1a0a", borderRadius: "20px", padding: "0.4rem 0.8rem", fontSize: "0.78rem", fontWeight: "bold", cursor: "pointer", zIndex: 100, boxShadow: "0 2px 8px rgba(0,0,0,0.5)" }}>
-            🔔 {urgents.length} paiement{urgents.length > 1 ? "s" : ""} urgent{urgents.length > 1 ? "s" : ""}
+        {/* Modal paiement partiel */}
+        {editingDette && (
+          <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: "1rem" }}>
+            <div style={{ background: "#fff8f0", borderRadius: "16px", padding: "1.4rem", width: "100%", maxWidth: "380px", display: "flex", flexDirection: "column", gap: "0.8rem" }}>
+              <div style={{ color: "#e8213a", fontWeight: "bold", fontSize: "0.95rem" }}>💶 Paiement partiel — {editingDette.nom}</div>
+              <div style={{ color: "#a07848", fontSize: "0.82rem" }}>Restant: <strong>{parseFloat(editingDette.montant_restant).toLocaleString("fr-BE", { minimumFractionDigits: 2 })} €</strong></div>
+              <input value={paiementPartiel} onChange={e => setPaiementPartiel(e.target.value.replace(",", "."))} placeholder="Montant payé (€)" inputMode="decimal" type="text"
+                style={{ background: "#faebd7", border: "1.5px solid #f5c842", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "1rem", outline: "none", width: "100%", boxSizing: "border-box" as const, fontFamily: "'Poppins', sans-serif" }} />
+              <div style={{ display: "flex", gap: "0.6rem" }}>
+                <button onClick={() => setEditingDette(null)} style={{ flex: 1, background: "#faebd7", color: "#a07848", border: "1.5px solid #f0d8b8", padding: "0.8rem", borderRadius: "10px", fontWeight: "bold", cursor: "pointer", fontFamily: "'Poppins', sans-serif" }}>Annuler</button>
+                <button onClick={() => handlePayerPartielDette(editingDette)} style={{ flex: 2, background: "#e8213a", color: "#fff", border: "none", padding: "0.8rem", borderRadius: "10px", fontWeight: "bold", cursor: "pointer", fontFamily: "'Poppins', sans-serif" }}>✅ Confirmer</button>
+              </div>
+            </div>
           </div>
         )}
 
