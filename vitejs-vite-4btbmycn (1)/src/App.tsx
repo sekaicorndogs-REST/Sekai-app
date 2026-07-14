@@ -2644,46 +2644,60 @@ export default function App() {
                   </button>
                 </div>
 
-                {dettes.length === 0 && <div style={{ color: "#c8a878", textAlign: "center", padding: "2rem" }}>Aucune dette enregistrée</div>}
-                {dettes.map(d => {
-                  const montant = parseFloat(d.montant_initial) || 0;
-                  const restant = parseFloat(d.montant_restant) || 0;
-                  const pct = montant > 0 ? Math.max(0, Math.min(100, (restant / montant) * 100)) : 0;
+                {(() => {
+                  const actives = dettes.filter(d => d.statut !== "regle" && parseFloat(d.montant_restant) > 0);
+                  const reglees = dettes.filter(d => d.statut === "regle" || parseFloat(d.montant_restant) <= 0);
                   return (
-                    <div key={d.id} style={{ background: "#fff8f0", border: `1.5px solid ${d.avec_plan ? "#4caf5033" : "#f0d8b8"}`, borderRadius: "12px", padding: "1rem", marginBottom: "0.6rem" }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "0.5rem" }}>
-                        <div style={{ flex: 1 }}>
-                          <div style={{ color: "#3d1a0a", fontSize: "0.95rem", fontWeight: "bold" }}>{d.nom}</div>
-                          <div style={{ color: "#a07848", fontSize: "0.72rem", marginTop: "0.2rem" }}>
-                            {d.categorie} {d.avec_plan && d.mensualite && <span style={{ color: "#4caf50" }}>· Plan {parseFloat(d.mensualite).toFixed(0)}€/mois</span>}
-                            {!d.avec_plan && <span style={{ color: "#e8213a" }}> · Pas de plan</span>}
+                    <>
+                      {actives.length === 0 && <div style={{ color: "#4caf50", textAlign: "center", padding: "2rem", fontSize: "0.9rem", fontWeight: "bold" }}>✅ Aucune dette en cours !</div>}
+                      {actives.map(d => {
+                        const montant = parseFloat(d.montant_initial) || 0;
+                        const restant = parseFloat(d.montant_restant) || 0;
+                        const pct = montant > 0 ? Math.max(0, Math.min(100, (restant / montant) * 100)) : 0;
+                        return (
+                          <div key={d.id} style={{ background: "#fff8f0", border: `1.5px solid ${d.avec_plan ? "#4caf5033" : "#f0d8b8"}`, borderRadius: "12px", padding: "1rem", marginBottom: "0.6rem" }}>
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "0.5rem" }}>
+                              <div style={{ flex: 1 }}>
+                                <div style={{ color: "#3d1a0a", fontSize: "0.95rem", fontWeight: "bold" }}>{d.nom}</div>
+                                <div style={{ color: "#a07848", fontSize: "0.72rem", marginTop: "0.2rem" }}>
+                                  {d.categorie} {d.avec_plan && d.mensualite && <span style={{ color: "#4caf50" }}>· Plan {parseFloat(d.mensualite).toFixed(0)}€/mois</span>}
+                                  {!d.avec_plan && <span style={{ color: "#e8213a" }}> · Pas de plan</span>}
+                                </div>
+                              </div>
+                              <div style={{ textAlign: "right" }}>
+                                <div style={{ color: "#e8213a", fontSize: "1rem", fontWeight: "bold" }}>{restant.toLocaleString("fr-BE", { minimumFractionDigits: 2 })} €</div>
+                                <div style={{ color: "#c8a878", fontSize: "0.68rem" }}>/ {montant.toLocaleString("fr-BE")} €</div>
+                              </div>
+                            </div>
+                            <div style={{ background: "#f0d8b8", borderRadius: "4px", height: "6px", marginBottom: "0.6rem" }}>
+                              <div style={{ background: pct > 50 ? "#e8213a" : pct > 20 ? "#f5a623" : "#4caf50", height: "6px", borderRadius: "4px", width: `${pct}%`, transition: "width 0.4s" }} />
+                            </div>
+                            <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap" }}>
+                              <button onClick={() => { setPaiementPartiel(""); setEditingDette(d); }}
+                                style={{ background: "#faebd7", color: "#a07848", border: "1.5px solid #f0d8b8", borderRadius: "8px", padding: "0.35rem 0.7rem", fontSize: "0.75rem", cursor: "pointer", fontFamily: "'Poppins', sans-serif", fontWeight: "bold" }}>
+                                💶 Payer partiel
+                              </button>
+                              <button onClick={() => handleReglerDette(d.id)}
+                                style={{ background: "#4caf50", color: "#fff", border: "none", borderRadius: "8px", padding: "0.35rem 0.7rem", fontSize: "0.75rem", cursor: "pointer", fontFamily: "'Poppins', sans-serif", fontWeight: "bold" }}>
+                                ✅ Réglé
+                              </button>
+                              <button onClick={() => handleDeleteDette(d.id)}
+                                style={{ background: "#fff5f5", color: "#e57373", border: "none", borderRadius: "8px", padding: "0.35rem 0.5rem", fontSize: "0.75rem", cursor: "pointer" }}>
+                                <Trash2 size={13} />
+                              </button>
+                            </div>
                           </div>
+                        );
+                      })}
+                      {reglees.length > 0 && (
+                        <div style={{ background: "#f5fff8", border: "1.5px solid #4caf5033", borderRadius: "10px", padding: "0.7rem 1rem", marginTop: "0.5rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                          <div style={{ color: "#4caf50", fontSize: "0.85rem", fontWeight: "bold" }}>✅ {reglees.length} dette{reglees.length > 1 ? "s" : ""} réglée{reglees.length > 1 ? "s" : ""}</div>
+                          <button onClick={() => reglees.forEach(d => handleDeleteDette(d.id))} style={{ background: "none", color: "#c8a878", border: "none", fontSize: "0.72rem", cursor: "pointer" }}>Supprimer</button>
                         </div>
-                        <div style={{ textAlign: "right" }}>
-                          <div style={{ color: "#e8213a", fontSize: "1rem", fontWeight: "bold" }}>{restant.toLocaleString("fr-BE", { minimumFractionDigits: 2 })} €</div>
-                          <div style={{ color: "#c8a878", fontSize: "0.68rem" }}>/ {montant.toLocaleString("fr-BE")} €</div>
-                        </div>
-                      </div>
-                      <div style={{ background: "#f0d8b8", borderRadius: "4px", height: "6px", marginBottom: "0.6rem" }}>
-                        <div style={{ background: pct > 50 ? "#e8213a" : pct > 20 ? "#f5a623" : "#4caf50", height: "6px", borderRadius: "4px", width: `${pct}%`, transition: "width 0.4s" }} />
-                      </div>
-                      <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap" }}>
-                        <button onClick={() => { setPaiementPartiel(""); setEditingDette(d); }}
-                          style={{ background: "#faebd7", color: "#a07848", border: "1.5px solid #f0d8b8", borderRadius: "8px", padding: "0.35rem 0.7rem", fontSize: "0.75rem", cursor: "pointer", fontFamily: "'Poppins', sans-serif', fontWeight: 'bold" }}>
-                          💶 Payer partiel
-                        </button>
-                        <button onClick={() => handleReglerDette(d.id)}
-                          style={{ background: "#4caf50", color: "#fff", border: "none", borderRadius: "8px", padding: "0.35rem 0.7rem", fontSize: "0.75rem", cursor: "pointer", fontFamily: "'Poppins', sans-serif", fontWeight: "bold" }}>
-                          ✅ Réglé
-                        </button>
-                        <button onClick={() => handleDeleteDette(d.id)}
-                          style={{ background: "#fff5f5", color: "#e57373", border: "none", borderRadius: "8px", padding: "0.35rem 0.5rem", fontSize: "0.75rem", cursor: "pointer" }}>
-                          <Trash2 size={13} />
-                        </button>
-                      </div>
-                    </div>
+                      )}
+                    </>
                   );
-                })}
+                })()}
               </>
             )}
           </div>
