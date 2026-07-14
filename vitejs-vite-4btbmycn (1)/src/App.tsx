@@ -2822,12 +2822,52 @@ export default function App() {
                           <button onClick={() => deleteEvent(ev.id).then(() => loadEvents())} style={{ background: "none", color: "#c8a878", border: "none", cursor: "pointer" }}><Trash2 size={15} /></button>
                         </div>
                       </div>
-                      <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
-                        <span style={{ background: "#faebd7", color: "#a07848", fontSize: "0.7rem", borderRadius: "6px", padding: "0.2rem 0.5rem" }}>Coûts : {coutsFixes.toLocaleString("fr-BE")} €</span>
-                        <span style={{ background: "#faebd7", color: "#a07848", fontSize: "0.7rem", borderRadius: "6px", padding: "0.2rem 0.5rem" }}>Seuil : {Math.ceil(seuilMin).toLocaleString("fr-BE")} €</span>
+                      {/* Tags résumé */}
+                      <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap", marginBottom: ca == null ? "0.7rem" : "0" }}>
+                        <span style={{ background: "#faebd7", color: "#a07848", fontSize: "0.7rem", borderRadius: "6px", padding: "0.2rem 0.5rem" }}>💸 Coûts : {coutsFixes.toLocaleString("fr-BE")} €</span>
+                        <span style={{ background: "#faebd7", color: "#a07848", fontSize: "0.7rem", borderRadius: "6px", padding: "0.2rem 0.5rem" }}>🧾 Food cost : {(taux*100).toFixed(0)}%</span>
                         {ca != null && <span style={{ background: ca >= seuilMin ? "#f5fff8" : "#fff5f5", color: ca >= seuilMin ? "#4caf50" : "#e8213a", fontSize: "0.7rem", borderRadius: "6px", padding: "0.2rem 0.5rem", fontWeight: "bold" }}>CA réel : {ca.toLocaleString("fr-BE")} €</span>}
                         {profit != null && <span style={{ background: profit >= 0 ? "#f5fff8" : "#fff5f5", color: profit >= 0 ? "#4caf50" : "#e8213a", fontSize: "0.75rem", borderRadius: "6px", padding: "0.2rem 0.5rem", fontWeight: "900" }}>{profit >= 0 ? "+" : ""}{Math.round(profit).toLocaleString("fr-BE")} €</span>}
                       </div>
+
+                      {/* Event pas encore eu lieu → projection */}
+                      {ca == null && (
+                        <div style={{ background: "#faebd7", borderRadius: "10px", padding: "0.7rem 0.8rem" }}>
+                          <div style={{ color: "#a07848", fontSize: "0.68rem", fontWeight: "600", marginBottom: "0.5rem" }}>🎯 OBJECTIFS CA POUR ÊTRE RENTABLE</div>
+                          {[
+                            { label: "Seuil minimum", mult: 1, color: "#e8213a" },
+                            { label: "+25% marge", mult: 1.25, color: "#f5a623" },
+                            { label: "+50% marge", mult: 1.5, color: "#4caf50" },
+                          ].map(({ label, mult, color }) => {
+                            const caObj = seuilMin * mult;
+                            const foodCost = caObj * taux;
+                            const profitObj = caObj - foodCost - coutsFixes;
+                            return (
+                              <div key={label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0.3rem 0", borderTop: "1px solid #f0d8b8" }}>
+                                <div>
+                                  <div style={{ color: "#3d1a0a", fontSize: "0.78rem", fontWeight: "bold" }}>{Math.ceil(caObj).toLocaleString("fr-BE")} € CA</div>
+                                  <div style={{ color: "#a07848", fontSize: "0.65rem" }}>Food cost : {Math.ceil(foodCost).toLocaleString("fr-BE")} €</div>
+                                </div>
+                                <div style={{ color, fontSize: "0.85rem", fontWeight: "900" }}>
+                                  {mult === 1 ? "⚖️ 0 €" : `+${Math.round(profitObj).toLocaleString("fr-BE")} €`}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                      {/* Event eu lieu avec CA → barre de progression vs seuil */}
+                      {ca != null && (
+                        <div style={{ marginTop: "0.5rem" }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.65rem", color: "#a07848", marginBottom: "0.2rem" }}>
+                            <span>0 €</span><span>Seuil {Math.ceil(seuilMin).toLocaleString("fr-BE")} €</span>
+                          </div>
+                          <div style={{ background: "#f0d8b8", borderRadius: "4px", height: "8px" }}>
+                            <div style={{ background: profit! >= 0 ? "#4caf50" : "#e8213a", height: "8px", borderRadius: "4px", width: `${Math.min(100, (ca / seuilMin) * 100).toFixed(0)}%`, transition: "width 0.4s" }} />
+                          </div>
+                          <div style={{ color: "#a07848", fontSize: "0.65rem", marginTop: "0.2rem" }}>Food cost réel : {Math.ceil(ca * taux).toLocaleString("fr-BE")} €</div>
+                        </div>
+                      )}
                     </div>
                   );
                 })}
