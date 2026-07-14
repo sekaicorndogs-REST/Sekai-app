@@ -1214,8 +1214,12 @@ export default function App() {
   }
   async function handleDeleteDette(id: number) {
     if (!confirm("Supprimer cette dette ?")) return;
-    try { await deleteDette(id); flash("✅ Supprimée"); loadFinances(); }
-    catch { flash("❌ Erreur"); }
+    try {
+      await deleteDette(id);
+      const updated = await fetchDettes();
+      setDettes(updated);
+      flash("✅ Supprimée");
+    } catch { flash("❌ Erreur"); }
   }
   async function handleAddCharge() {
     if (!newChargeNom.trim() || !newChargeMontant) { flash("❌ Nom et montant requis"); return; }
