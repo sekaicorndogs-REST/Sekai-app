@@ -1224,7 +1224,7 @@ export default function App() {
   async function handleAddCharge() {
     if (!newChargeNom.trim() || !newChargeMontant) { flash("❌ Nom et montant requis"); return; }
     try {
-      await createCharge({ nom: newChargeNom.trim(), categorie: newChargeCategorie, montant: parseFloat(newChargeMontant.replace(",", ".")), actif: true });
+      await createCharge({ nom: newChargeNom.trim(), categorie: newChargeCategorie, montant: parseFloat(newChargeMontant.replace(",", ".")) });
       flash("✅ Charge ajoutée"); setShowAddCharge(false); setNewChargeNom(""); setNewChargeMontant(""); loadFinances();
     } catch (e: any) { flash("❌ " + e.message); }
   }
