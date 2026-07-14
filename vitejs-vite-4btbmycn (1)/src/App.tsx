@@ -3033,14 +3033,14 @@ export default function App() {
         )}
 
         {showAddCharge && (
-          <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", zIndex: 200, display: "flex", alignItems: "flex-end" }}>
-            <div style={{ background: "#fff8f0", borderRadius: "16px 16px 0 0", padding: "1.2rem", width: "100%", display: "flex", flexDirection: "column", gap: "0.7rem", maxHeight: "90vh", overflowY: "auto" }}>
+          <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", zIndex: 200, display: "flex", alignItems: "flex-start", paddingTop: "10vh", justifyContent: "center" }} onClick={() => setShowAddCharge(false)}>
+            <div style={{ background: "#fff8f0", borderRadius: "16px", padding: "1.2rem", width: "calc(100% - 2rem)", maxWidth: "420px", display: "flex", flexDirection: "column", gap: "0.7rem", maxHeight: "80vh", overflowY: "auto" }} onClick={e => e.stopPropagation()}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <div style={{ color: "#e8213a", fontWeight: "bold", fontSize: "0.95rem" }}>➕ Nouvelle charge fixe</div>
                 <button onClick={() => setShowAddCharge(false)} style={{ background: "#2a2a2a", border: "none", color: "#c8a878", borderRadius: "50%", width: "2rem", height: "2rem", cursor: "pointer" }}>✕</button>
               </div>
-              <input value={newChargeNom} onChange={e => setNewChargeNom(e.target.value)} placeholder="Nom (ex: Loyer)" style={{ background: "#faebd7", border: "1px solid #f5c842", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", outline: "none", width: "100%", boxSizing: "border-box" as const, fontFamily: "'Poppins', sans-serif" }} />
-              <input value={newChargeMontant} onChange={e => setNewChargeMontant(e.target.value.replace(",", "."))} placeholder="Montant mensuel (€)" inputMode="decimal" type="text" style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", outline: "none", width: "100%", boxSizing: "border-box" as const, fontFamily: "'Poppins', sans-serif" }} />
+              <input autoFocus value={newChargeNom} onChange={e => setNewChargeNom(e.target.value)} placeholder="Nom (ex: Loyer)" style={{ background: "#faebd7", border: "1px solid #f5c842", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "1rem", outline: "none", width: "100%", boxSizing: "border-box" as const, fontFamily: "'Poppins', sans-serif" }} />
+              <input value={newChargeMontant} onChange={e => setNewChargeMontant(e.target.value.replace(",", "."))} placeholder="Montant mensuel (€)" inputMode="decimal" type="text" style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "1rem", outline: "none", width: "100%", boxSizing: "border-box" as const, fontFamily: "'Poppins', sans-serif" }} />
               <select value={newChargeCategorie} onChange={e => setNewChargeCategorie(e.target.value)} style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", fontFamily: "'Poppins', sans-serif", outline: "none", width: "100%" }}>
                 <option value="loyer">🏠 Loyer</option>
                 <option value="energie">⚡ Énergie</option>
