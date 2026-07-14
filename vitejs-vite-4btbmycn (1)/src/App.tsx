@@ -743,6 +743,7 @@ export default function App() {
   const [eventsLoading, setEventsLoading] = useState(false);
   const [eventView, setEventView] = useState<"form"|"historique">("form");
   const [showEventForm, setShowEventForm] = useState(false);
+  const [editingEventId, setEditingEventId] = useState<number|null>(null);
   const [financesLoading, setFinancesLoading] = useState(false);
   const [showAddDette, setShowAddDette] = useState(false);
   const [showAddCharge, setShowAddCharge] = useState(false);
@@ -1136,7 +1137,7 @@ export default function App() {
     setEventTauxIngredients("18"); setEventFoodCostMode("pct"); setEventFoodCostEur("");
     setEventCaRealise(""); setEventResultat(null);
   }
-  function loadEventForm(ev: any) {
+  function loadEventForm(ev: any, editMode = false) {
     setEventNom(ev.nom || ""); setEventDate(ev.date_event || "");
     setEventLocation(String(ev.cout_location || "")); setEventPersonnel(String(ev.cout_personnel || ""));
     setEventTransport(String(ev.cout_transport || "")); setEventMateriel(String(ev.cout_materiel || ""));
@@ -1144,6 +1145,7 @@ export default function App() {
     setEventHotel(String(ev.cout_hotel || "")); setEventLocationMateriel(String(ev.cout_location_materiel || ""));
     setEventEssence(String(ev.cout_essence || ""));
     setEventCaRealise(String(ev.ca_realise || "")); setEventResultat(null);
+    setEditingEventId(editMode ? ev.id : null);
     setEventView("form"); setShowEventForm(true);
   }
   function calculerEvent() {
@@ -1175,9 +1177,14 @@ export default function App() {
       ca_realise: parseFloat(eventCaRealise)||null
     };
     try {
-      await createEvent(data);
-      flash("✅ Event sauvegardé");
-      resetEventForm(); setShowEventForm(false);
+      if (editingEventId) {
+        await updateEvent(editingEventId, data);
+        flash("✅ Event modifié");
+      } else {
+        await createEvent(data);
+        flash("✅ Event sauvegardé");
+      }
+      resetEventForm(); setShowEventForm(false); setEditingEventId(null);
       const evs = await fetchEvents(); setEvents(evs);
       setEventView("historique");
     } catch(e: any) { flash("❌ " + e.message); }
@@ -2810,7 +2817,8 @@ export default function App() {
                           {ev.date_event && <div style={{ color: "#a07848", fontSize: "0.72rem" }}>{new Date(ev.date_event+"T12:00:00").toLocaleDateString("fr-BE", { day:"numeric", month:"long", year:"numeric" })}</div>}
                         </div>
                         <div style={{ display: "flex", gap: "0.3rem" }}>
-                          <button onClick={() => loadEventForm(ev)} style={{ background: "#faebd7", color: "#a07848", border: "1.5px solid #f0d8b8", borderRadius: "8px", padding: "0.3rem 0.6rem", fontSize: "0.72rem", cursor: "pointer", fontFamily: "'Poppins', sans-serif", fontWeight: "bold" }}>📋 Copier</button>
+                          <button onClick={() => loadEventForm(ev, true)} style={{ background: "#faebd7", color: "#a07848", border: "1.5px solid #f5c842", borderRadius: "8px", padding: "0.3rem 0.6rem", fontSize: "0.72rem", cursor: "pointer", fontFamily: "'Poppins', sans-serif", fontWeight: "bold" }}>✏️ Modifier</button>
+                          <button onClick={() => loadEventForm(ev, false)} style={{ background: "#faebd7", color: "#a07848", border: "1.5px solid #f0d8b8", borderRadius: "8px", padding: "0.3rem 0.6rem", fontSize: "0.72rem", cursor: "pointer", fontFamily: "'Poppins', sans-serif", fontWeight: "bold" }}>📋 Copier</button>
                           <button onClick={() => deleteEvent(ev.id).then(() => loadEvents())} style={{ background: "none", color: "#c8a878", border: "none", cursor: "pointer" }}><Trash2 size={15} /></button>
                         </div>
                       </div>
@@ -2830,7 +2838,7 @@ export default function App() {
             {eventView === "form" && showEventForm && (
               <div>
                 <div style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "14px", padding: "1rem", marginBottom: "1rem" }}>
-                  <div style={{ color: "#e8213a", fontWeight: "bold", fontSize: "0.95rem", marginBottom: "0.8rem" }}>🎪 Détails de l'event</div>
+                  <div style={{ color: "#e8213a", fontWeight: "bold", fontSize: "0.95rem", marginBottom: "0.8rem" }}>{editingEventId ? "✏️ Modifier l'event" : "🎪 Nouvel event"}</div>
                   <div style={{ display: "flex", gap: "0.5rem", marginBottom: "0.5rem" }}>
                     <input value={eventNom} onChange={e => setEventNom(e.target.value)} placeholder="Nom de l'event *"
                       style={{ background: "#faebd7", border: "1.5px solid #f5c842", color: "#3d1a0a", padding: "0.7rem 1rem", borderRadius: "8px", fontSize: "0.9rem", outline: "none", flex: 2, fontFamily: "'Poppins', sans-serif" }} />
