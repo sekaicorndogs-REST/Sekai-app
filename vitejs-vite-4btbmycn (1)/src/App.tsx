@@ -2658,7 +2658,7 @@ export default function App() {
             <button onClick={() => { loadFinances(); loadTodoTaches(); }} style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#a07848", borderRadius: "8px", padding: "0.3rem 0.6rem", fontSize: "0.8rem", cursor: "pointer" }}><RefreshCw size={16} /></button>
           </div>
           <div style={{ display: "flex", gap: "0.4rem", overflowX: "auto", paddingBottom: "0.5rem" }}>
-            {[{id:"dettes",label:"💳 Dettes"},{id:"charges",label:"💸 Charges"},{id:"sante",label:"❤️ Santé"},{id:"event",label:"🎪 Event"},{id:"resume",label:"📊 Résumé"},{id:"carte",label:"🍽️ Carte"},{id:"taches",label:"✅ Tâches"}].map(tab => (
+            {[{id:"dettes",label:"💳 Dettes"},{id:"charges",label:"💸 Charges"},{id:"resume",label:"❤️ Résumé"},{id:"event",label:"🎪 Event"},{id:"carte",label:"🍽️ Carte"},{id:"taches",label:"✅ Tâches"}].map(tab => (
               <button key={tab.id} onClick={() => { setFinancesView(tab.id as any); if(tab.id==="carte") loadMenu(); if(tab.id==="sante"||tab.id==="resume") loadFinances(); }}
                 style={{ background: financesView === tab.id ? "#e8213a" : "#1e1e1e", color: financesView === tab.id ? "#fff" : "#888", border: "none", borderRadius: "8px", padding: "0.35rem 0.9rem", fontSize: "0.78rem", fontFamily: "'Poppins', sans-serif", fontWeight: financesView === tab.id ? "bold" : "normal", cursor: "pointer", whiteSpace: "nowrap" }}>
                 {tab.label}
@@ -2772,47 +2772,8 @@ export default function App() {
           </div>
         )}
 
-        {/* ── RÉSUMÉ ── */}
-        {financesView === "resume" && (
-          <div style={{ padding: "0.8rem 1.1rem" }}>
-            <div style={{ background: "#fff5f5", border: "1.5px solid #e8213a44", borderRadius: "14px", padding: "1.2rem", marginBottom: "0.8rem", textAlign: "center" }}>
-              <div style={{ color: "#e8213a", fontSize: "0.75rem", fontWeight: "600", marginBottom: "0.3rem" }}>CA MINIMUM PAR JOUR</div>
-              <div style={{ color: "#e8213a", fontSize: "2.5rem", fontWeight: "900" }}>{caMinParJour} €</div>
-              <div style={{ color: "#a07848", fontSize: "0.72rem", marginTop: "0.3rem" }}>Pour couvrir charges + mensualités</div>
-            </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.6rem", marginBottom: "0.8rem" }}>
-              <div style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "12px", padding: "0.9rem", textAlign: "center" }}>
-                <div style={{ color: "#a07848", fontSize: "0.7rem", fontWeight: "600" }}>DETTES TOTALES</div>
-                <div style={{ color: "#e8213a", fontSize: "1.3rem", fontWeight: "bold" }}>{totalDettes.toLocaleString("fr-BE", { minimumFractionDigits: 0 })} €</div>
-              </div>
-              <div style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "12px", padding: "0.9rem", textAlign: "center" }}>
-                <div style={{ color: "#a07848", fontSize: "0.7rem", fontWeight: "600" }}>MENSUALITÉS/MOIS</div>
-                <div style={{ color: "#f5a623", fontSize: "1.3rem", fontWeight: "bold" }}>{totalMensualites.toLocaleString("fr-BE", { minimumFractionDigits: 0 })} €</div>
-              </div>
-              <div style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "12px", padding: "0.9rem", textAlign: "center" }}>
-                <div style={{ color: "#a07848", fontSize: "0.7rem", fontWeight: "600" }}>CHARGES FIXES/MOIS</div>
-                <div style={{ color: "#3d1a0a", fontSize: "1.3rem", fontWeight: "bold" }}>{totalChargesFixes.toLocaleString("fr-BE", { minimumFractionDigits: 0 })} €</div>
-              </div>
-              <div style={{ background: "#f5fff8", border: "1.5px solid #4caf5033", borderRadius: "12px", padding: "0.9rem", textAlign: "center" }}>
-                <div style={{ color: "#4caf50", fontSize: "0.7rem", fontWeight: "600" }}>DETTES AVEC PLAN</div>
-                <div style={{ color: "#4caf50", fontSize: "1.3rem", fontWeight: "bold" }}>{dettes.filter(d => d.avec_plan).length} / {dettes.length}</div>
-              </div>
-            </div>
-            <div style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "12px", padding: "1rem" }}>
-              <div style={{ color: "#a07848", fontSize: "0.75rem", fontWeight: "bold", marginBottom: "0.7rem" }}>DÉTAIL MENSUALITÉS</div>
-              {dettes.filter(d => d.avec_plan && d.mensualite).map(d => (
-                <div key={d.id} style={{ display: "flex", justifyContent: "space-between", padding: "0.35rem 0", borderTop: "1px solid #f0d8b8" }}>
-                  <div style={{ color: "#3d1a0a", fontSize: "0.85rem" }}>{d.nom}</div>
-                  <div style={{ color: "#4caf50", fontSize: "0.85rem", fontWeight: "bold" }}>{parseFloat(d.mensualite).toFixed(0)} €/mois</div>
-                </div>
-              ))}
-              {dettes.filter(d => d.avec_plan && d.mensualite).length === 0 && <div style={{ color: "#c8a878", fontSize: "0.82rem" }}>Aucun plan de paiement actif</div>}
-            </div>
-          </div>
-        )}
-
-        {/* ── SANTÉ FINANCIÈRE ── */}
-        {financesView === "sante" && (() => {
+        {/* ── RÉSUMÉ + SANTÉ FINANCIÈRE ── */}
+        {financesView === "resume" && (() => {
           const ca = parseFloat(caMoyen) || 0;
           const totalCharges = charges.reduce((s, c) => s + (parseFloat(c.montant) || 0), 0);
           const gerant = charges.filter(c => c.categorie === "salaire").reduce((s, c) => s + (parseFloat(c.montant) || 0), 0);
@@ -2906,12 +2867,50 @@ export default function App() {
               </div>
 
               {/* Règle simple */}
-              <div style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "12px", padding: "0.9rem" }}>
+              <div style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "12px", padding: "0.9rem", marginBottom: "1rem" }}>
                 <div style={{ color: "#a07848", fontSize: "0.72rem", fontWeight: "bold", marginBottom: "0.5rem" }}>📌 RÈGLE SIMPLE À RETENIR</div>
                 <div style={{ color: "#3d1a0a", fontSize: "0.82rem", lineHeight: 1.5 }}>
                   Chaque <strong>+1 000 € de CA/mois</strong> = <strong style={{ color: "#4caf50" }}>+150 €</strong> de budget employé possible.<br/>
                   Ne dépasse jamais <strong style={{ color: "#e8213a" }}>35% du CA</strong> en masse salariale totale (gérant + employés).
                 </div>
+              </div>
+
+              {/* ═══ RÉCAP DETTES ═══ */}
+              <div style={{ borderTop: "2px dashed #f0d8b8", margin: "0.5rem 0 1rem", paddingTop: "1rem" }}>
+                <div style={{ color: "#3d1a0a", fontSize: "0.95rem", fontWeight: "900", marginBottom: "0.8rem" }}>💳 RÉCAP DETTES & MENSUALITÉS</div>
+              </div>
+              <div style={{ background: "#fff5f5", border: "1.5px solid #e8213a44", borderRadius: "14px", padding: "1.2rem", marginBottom: "0.8rem", textAlign: "center" }}>
+                <div style={{ color: "#e8213a", fontSize: "0.75rem", fontWeight: "600", marginBottom: "0.3rem" }}>CA MINIMUM PAR JOUR</div>
+                <div style={{ color: "#e8213a", fontSize: "2.5rem", fontWeight: "900" }}>{caMinParJour} €</div>
+                <div style={{ color: "#a07848", fontSize: "0.72rem", marginTop: "0.3rem" }}>Pour couvrir charges + mensualités dettes</div>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.6rem", marginBottom: "0.8rem" }}>
+                <div style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "12px", padding: "0.9rem", textAlign: "center" }}>
+                  <div style={{ color: "#a07848", fontSize: "0.7rem", fontWeight: "600" }}>DETTES TOTALES</div>
+                  <div style={{ color: "#e8213a", fontSize: "1.3rem", fontWeight: "bold" }}>{totalDettes.toLocaleString("fr-BE", { minimumFractionDigits: 0 })} €</div>
+                </div>
+                <div style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "12px", padding: "0.9rem", textAlign: "center" }}>
+                  <div style={{ color: "#a07848", fontSize: "0.7rem", fontWeight: "600" }}>MENSUALITÉS/MOIS</div>
+                  <div style={{ color: "#f5a623", fontSize: "1.3rem", fontWeight: "bold" }}>{totalMensualites.toLocaleString("fr-BE", { minimumFractionDigits: 0 })} €</div>
+                </div>
+                <div style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "12px", padding: "0.9rem", textAlign: "center" }}>
+                  <div style={{ color: "#a07848", fontSize: "0.7rem", fontWeight: "600" }}>CHARGES FIXES/MOIS</div>
+                  <div style={{ color: "#3d1a0a", fontSize: "1.3rem", fontWeight: "bold" }}>{totalChargesFixes.toLocaleString("fr-BE", { minimumFractionDigits: 0 })} €</div>
+                </div>
+                <div style={{ background: "#f5fff8", border: "1.5px solid #4caf5033", borderRadius: "12px", padding: "0.9rem", textAlign: "center" }}>
+                  <div style={{ color: "#4caf50", fontSize: "0.7rem", fontWeight: "600" }}>DETTES AVEC PLAN</div>
+                  <div style={{ color: "#4caf50", fontSize: "1.3rem", fontWeight: "bold" }}>{dettes.filter(d => d.avec_plan).length} / {dettes.length}</div>
+                </div>
+              </div>
+              <div style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "12px", padding: "1rem" }}>
+                <div style={{ color: "#a07848", fontSize: "0.75rem", fontWeight: "bold", marginBottom: "0.7rem" }}>DÉTAIL MENSUALITÉS</div>
+                {dettes.filter(d => d.avec_plan && d.mensualite).map(d => (
+                  <div key={d.id} style={{ display: "flex", justifyContent: "space-between", padding: "0.35rem 0", borderTop: "1px solid #f0d8b8" }}>
+                    <div style={{ color: "#3d1a0a", fontSize: "0.85rem" }}>{d.nom}</div>
+                    <div style={{ color: "#4caf50", fontSize: "0.85rem", fontWeight: "bold" }}>{parseFloat(d.mensualite).toFixed(0)} €/mois</div>
+                  </div>
+                ))}
+                {dettes.filter(d => d.avec_plan && d.mensualite).length === 0 && <div style={{ color: "#c8a878", fontSize: "0.82rem" }}>Aucun plan de paiement actif</div>}
               </div>
             </div>
           );
