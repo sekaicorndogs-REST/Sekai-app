@@ -2659,7 +2659,7 @@ export default function App() {
           </div>
           <div style={{ display: "flex", gap: "0.4rem", overflowX: "auto", paddingBottom: "0.5rem" }}>
             {[{id:"dettes",label:"💳 Dettes"},{id:"charges",label:"💸 Charges"},{id:"sante",label:"❤️ Santé"},{id:"event",label:"🎪 Event"},{id:"resume",label:"📊 Résumé"},{id:"carte",label:"🍽️ Carte"},{id:"taches",label:"✅ Tâches"}].map(tab => (
-              <button key={tab.id} onClick={() => { setFinancesView(tab.id as any); if(tab.id==="carte") loadMenu(); }}
+              <button key={tab.id} onClick={() => { setFinancesView(tab.id as any); if(tab.id==="carte") loadMenu(); if(tab.id==="sante"||tab.id==="resume") loadFinances(); }}
                 style={{ background: financesView === tab.id ? "#e8213a" : "#1e1e1e", color: financesView === tab.id ? "#fff" : "#888", border: "none", borderRadius: "8px", padding: "0.35rem 0.9rem", fontSize: "0.78rem", fontFamily: "'Poppins', sans-serif", fontWeight: financesView === tab.id ? "bold" : "normal", cursor: "pointer", whiteSpace: "nowrap" }}>
                 {tab.label}
               </button>
@@ -2838,6 +2838,12 @@ export default function App() {
                 </div>
                 <div style={{ color: "#a07848", fontSize: "0.7rem", marginTop: "0.4rem" }}>≈ {fmt(ca/30)} €/jour · modifie pour recalculer</div>
               </div>
+
+              {/* Liaison avec les charges */}
+              <button onClick={() => setFinancesView("charges")} style={{ width: "100%", background: "#fff8f0", border: "1.5px dashed #f0d8b8", borderRadius: "10px", padding: "0.6rem 0.9rem", marginBottom: "0.8rem", display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer", fontFamily: "'Poppins', sans-serif" }}>
+                <span style={{ color: "#a07848", fontSize: "0.75rem" }}>🔗 Basé sur tes <strong style={{ color: "#3d1a0a" }}>{charges.length} charges</strong> = <strong style={{ color: "#e8213a" }}>{fmt(totalCharges)} €</strong></span>
+                <span style={{ color: "#e8213a", fontSize: "0.72rem", fontWeight: "bold" }}>Modifier ›</span>
+              </button>
 
               {/* Reste après charges */}
               <div style={{ background: reste >= 0 ? "#f5fff8" : "#fff5f5", border: `2px solid ${reste >= 0 ? "#4caf5044" : "#e8213a44"}`, borderRadius: "14px", padding: "1.2rem", marginBottom: "0.8rem", textAlign: "center" }}>
