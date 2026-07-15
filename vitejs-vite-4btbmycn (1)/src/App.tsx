@@ -735,7 +735,8 @@ export default function App() {
   // Finances
   const [dettes, setDettes] = useState<any[]>([]);
   const [charges, setCharges] = useState<any[]>([]);
-  const [financesView, setFinancesView] = useState<"dettes"|"charges"|"resume"|"taches"|"event"|"carte">("dettes");
+  const [financesView, setFinancesView] = useState<"dettes"|"charges"|"resume"|"taches"|"event"|"carte"|"sante">("dettes");
+  const [caMoyen, setCaMoyen] = useState(() => localStorage.getItem("sekai_ca_moyen") || "30000");
   const [menuProduits, setMenuProduits] = useState<any[]>([]);
   const [menuRecettes, setMenuRecettes] = useState<any[]>([]);
   const [menuLoading, setMenuLoading] = useState(false);
@@ -2657,7 +2658,7 @@ export default function App() {
             <button onClick={() => { loadFinances(); loadTodoTaches(); }} style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#a07848", borderRadius: "8px", padding: "0.3rem 0.6rem", fontSize: "0.8rem", cursor: "pointer" }}><RefreshCw size={16} /></button>
           </div>
           <div style={{ display: "flex", gap: "0.4rem", overflowX: "auto", paddingBottom: "0.5rem" }}>
-            {[{id:"dettes",label:"💳 Dettes"},{id:"charges",label:"💸 Charges"},{id:"event",label:"🎪 Event"},{id:"resume",label:"📊 Résumé"},{id:"carte",label:"🍽️ Carte"},{id:"taches",label:"✅ Tâches"}].map(tab => (
+            {[{id:"dettes",label:"💳 Dettes"},{id:"charges",label:"💸 Charges"},{id:"sante",label:"❤️ Santé"},{id:"event",label:"🎪 Event"},{id:"resume",label:"📊 Résumé"},{id:"carte",label:"🍽️ Carte"},{id:"taches",label:"✅ Tâches"}].map(tab => (
               <button key={tab.id} onClick={() => { setFinancesView(tab.id as any); if(tab.id==="carte") loadMenu(); }}
                 style={{ background: financesView === tab.id ? "#e8213a" : "#1e1e1e", color: financesView === tab.id ? "#fff" : "#888", border: "none", borderRadius: "8px", padding: "0.35rem 0.9rem", fontSize: "0.78rem", fontFamily: "'Poppins', sans-serif", fontWeight: financesView === tab.id ? "bold" : "normal", cursor: "pointer", whiteSpace: "nowrap" }}>
                 {tab.label}
@@ -2809,6 +2810,106 @@ export default function App() {
             </div>
           </div>
         )}
+
+        {/* ── SANTÉ FINANCIÈRE ── */}
+        {financesView === "sante" && (() => {
+          const ca = parseFloat(caMoyen) || 0;
+          const totalCharges = charges.reduce((s, c) => s + (parseFloat(c.montant) || 0), 0);
+          const gerant = charges.filter(c => c.categorie === "salaire").reduce((s, c) => s + (parseFloat(c.montant) || 0), 0);
+          const masseSalariale = charges.filter(c => c.categorie === "salaire" || c.categorie === "personnel").reduce((s, c) => s + (parseFloat(c.montant) || 0), 0);
+          const employesReels = masseSalariale - gerant;
+          const reste = ca - totalCharges;
+          const pctMasse = ca > 0 ? (masseSalariale / ca) * 100 : 0;
+          const budgetEmployeMax = Math.max(0, ca * 0.35 - gerant); // plafond 35% - gérant
+          const margeEmbauche = budgetEmployeMax - employesReels;
+          const masseColor = pctMasse < 30 ? "#4caf50" : pctMasse < 35 ? "#f5a623" : "#e8213a";
+          const masseLabel = pctMasse < 30 ? "🟢 Sain" : pctMasse < 35 ? "🟠 Limite" : "🔴 Trop élevé";
+          const fmt = (n: number) => n.toLocaleString("fr-BE", { maximumFractionDigits: 0 });
+
+          return (
+            <div style={{ padding: "0.8rem 1.1rem" }}>
+              {/* CA modifiable */}
+              <div style={{ background: "#fff5f5", border: "1.5px solid #e8213a44", borderRadius: "14px", padding: "1rem", marginBottom: "0.8rem" }}>
+                <div style={{ color: "#e8213a", fontSize: "0.72rem", fontWeight: "bold", marginBottom: "0.5rem" }}>💰 CHIFFRE D'AFFAIRES / MOIS</div>
+                <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                  <input value={caMoyen} onChange={e => { const v = e.target.value.replace(/[^0-9]/g, ""); setCaMoyen(v); localStorage.setItem("sekai_ca_moyen", v); }} inputMode="numeric"
+                    style={{ background: "#fff", border: "2px solid #e8213a", color: "#e8213a", padding: "0.6rem 0.9rem", borderRadius: "10px", fontSize: "1.6rem", fontWeight: "900", outline: "none", width: "100%", boxSizing: "border-box" as const, fontFamily: "'Poppins', sans-serif" }} />
+                  <span style={{ color: "#e8213a", fontSize: "1.6rem", fontWeight: "900" }}>€</span>
+                </div>
+                <div style={{ color: "#a07848", fontSize: "0.7rem", marginTop: "0.4rem" }}>≈ {fmt(ca/30)} €/jour · modifie pour recalculer</div>
+              </div>
+
+              {/* Reste après charges */}
+              <div style={{ background: reste >= 0 ? "#f5fff8" : "#fff5f5", border: `2px solid ${reste >= 0 ? "#4caf5044" : "#e8213a44"}`, borderRadius: "14px", padding: "1.2rem", marginBottom: "0.8rem", textAlign: "center" }}>
+                <div style={{ color: reste >= 0 ? "#4caf50" : "#e8213a", fontSize: "0.72rem", fontWeight: "bold" }}>RESTE APRÈS TOUTES LES CHARGES</div>
+                <div style={{ color: reste >= 0 ? "#4caf50" : "#e8213a", fontSize: "2.5rem", fontWeight: "900" }}>{fmt(reste)} €</div>
+                <div style={{ color: "#a07848", fontSize: "0.7rem" }}>CA {fmt(ca)} € − Charges {fmt(totalCharges)} € · (hors remboursement dettes)</div>
+              </div>
+
+              {/* Masse salariale gauge */}
+              <div style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "14px", padding: "1rem", marginBottom: "0.8rem" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
+                  <div style={{ color: "#a07848", fontSize: "0.72rem", fontWeight: "bold" }}>👥 MASSE SALARIALE TOTALE</div>
+                  <div style={{ color: masseColor, fontSize: "0.75rem", fontWeight: "bold" }}>{masseLabel}</div>
+                </div>
+                <div style={{ display: "flex", alignItems: "baseline", gap: "0.5rem", marginBottom: "0.6rem" }}>
+                  <span style={{ color: masseColor, fontSize: "2rem", fontWeight: "900" }}>{pctMasse.toFixed(1)}%</span>
+                  <span style={{ color: "#a07848", fontSize: "0.85rem" }}>du CA · {fmt(masseSalariale)} €</span>
+                </div>
+                {/* Barre avec seuils */}
+                <div style={{ position: "relative" as const, background: "#f0d8b8", borderRadius: "6px", height: "12px", marginBottom: "0.3rem" }}>
+                  <div style={{ background: masseColor, height: "12px", borderRadius: "6px", width: `${Math.min(pctMasse, 100)}%`, transition: "width 0.4s" }} />
+                  {/* Repère 35% */}
+                  <div style={{ position: "absolute" as const, left: "35%", top: "-3px", width: "2px", height: "18px", background: "#e8213a" }} />
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.65rem", color: "#c8a878" }}>
+                  <span>0%</span><span style={{ color: "#e8213a" }}>⬆ plafond 35%</span><span>100%</span>
+                </div>
+                <div style={{ borderTop: "1px solid #f0d8b8", marginTop: "0.6rem", paddingTop: "0.5rem" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.8rem", padding: "0.15rem 0" }}>
+                    <span style={{ color: "#6b4c2a" }}>👤 Salaire gérant</span>
+                    <span style={{ color: "#a07848", fontWeight: "600" }}>{fmt(gerant)} € <span style={{ color: "#c8a878", fontWeight: "normal" }}>({ca>0?((gerant/ca)*100).toFixed(1):0}%)</span></span>
+                  </div>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.8rem", padding: "0.15rem 0" }}>
+                    <span style={{ color: "#6b4c2a" }}>👥 Employés</span>
+                    <span style={{ color: "#a07848", fontWeight: "600" }}>{fmt(employesReels)} € <span style={{ color: "#c8a878", fontWeight: "normal" }}>({ca>0?((employesReels/ca)*100).toFixed(1):0}%)</span></span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Budget employé MAX — la carte clé */}
+              <div style={{ background: "linear-gradient(135deg, #3d1a0a, #5a2a12)", borderRadius: "16px", padding: "1.3rem", marginBottom: "0.8rem", color: "#fff" }}>
+                <div style={{ color: "#f5c842", fontSize: "0.72rem", fontWeight: "bold", marginBottom: "0.3rem" }}>🎯 BUDGET EMPLOYÉS MAX / MOIS</div>
+                <div style={{ fontSize: "2.5rem", fontWeight: "900", color: "#fff", lineHeight: 1 }}>{fmt(budgetEmployeMax)} €</div>
+                <div style={{ color: "#f0d8b8", fontSize: "0.72rem", marginTop: "0.3rem", marginBottom: "0.9rem" }}>Plafond sain = 35% du CA − salaire gérant</div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.6rem" }}>
+                  <div style={{ background: "rgba(255,255,255,0.1)", borderRadius: "10px", padding: "0.7rem", textAlign: "center" }}>
+                    <div style={{ color: "#f0d8b8", fontSize: "0.62rem" }}>TU UTILISES</div>
+                    <div style={{ color: "#fff", fontSize: "1.1rem", fontWeight: "bold" }}>{fmt(employesReels)} €</div>
+                  </div>
+                  <div style={{ background: margeEmbauche >= 0 ? "rgba(76,175,80,0.25)" : "rgba(232,33,58,0.3)", borderRadius: "10px", padding: "0.7rem", textAlign: "center" }}>
+                    <div style={{ color: "#f0d8b8", fontSize: "0.62rem" }}>{margeEmbauche >= 0 ? "TU PEUX AJOUTER" : "DÉPASSEMENT"}</div>
+                    <div style={{ color: margeEmbauche >= 0 ? "#8ff0a0" : "#ff9999", fontSize: "1.1rem", fontWeight: "bold" }}>{margeEmbauche >= 0 ? "+" : ""}{fmt(margeEmbauche)} €</div>
+                  </div>
+                </div>
+                {margeEmbauche >= 0 && (
+                  <div style={{ color: "#f0d8b8", fontSize: "0.72rem", marginTop: "0.8rem", textAlign: "center", background: "rgba(255,255,255,0.08)", borderRadius: "8px", padding: "0.5rem" }}>
+                    💡 ≈ {fmt(margeEmbauche / 16.4)} h/mois de flexi en plus (~{fmt(margeEmbauche / 16.4 / 4.3)} h/semaine)
+                  </div>
+                )}
+              </div>
+
+              {/* Règle simple */}
+              <div style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "12px", padding: "0.9rem" }}>
+                <div style={{ color: "#a07848", fontSize: "0.72rem", fontWeight: "bold", marginBottom: "0.5rem" }}>📌 RÈGLE SIMPLE À RETENIR</div>
+                <div style={{ color: "#3d1a0a", fontSize: "0.82rem", lineHeight: 1.5 }}>
+                  Chaque <strong>+1 000 € de CA/mois</strong> = <strong style={{ color: "#4caf50" }}>+150 €</strong> de budget employé possible.<br/>
+                  Ne dépasse jamais <strong style={{ color: "#e8213a" }}>35% du CA</strong> en masse salariale totale (gérant + employés).
+                </div>
+              </div>
+            </div>
+          );
+        })()}
 
         {/* ── CARTE / FOOD COST ── */}
         {financesView === "carte" && (
