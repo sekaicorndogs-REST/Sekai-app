@@ -341,6 +341,18 @@ async function deleteEvent(id: number) {
   if (!res.ok) throw new Error("Delete event failed");
 }
 
+// ── MENU/CARTE API ────────────────────────────────────────
+async function fetchMenuProduits() {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/menu_produits?select=*&order=categorie.asc,nom.asc`, { headers: HEADERS });
+  if (!res.ok) throw new Error("Fetch menu produits failed");
+  return res.json();
+}
+async function fetchMenuRecettes() {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/menu_recettes?select=quantite,produit_id,menu_ingredients(id,nom,cout_unitaire)`, { headers: HEADERS });
+  if (!res.ok) throw new Error("Fetch menu recettes failed");
+  return res.json();
+}
+
 // ── PAIE API ──────────────────────────────────────────────
 async function fetchFichesPaie() {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/fiches_paie?select=*&order=generated_at.desc`, { headers: HEADERS });
@@ -723,7 +735,14 @@ export default function App() {
   // Finances
   const [dettes, setDettes] = useState<any[]>([]);
   const [charges, setCharges] = useState<any[]>([]);
-  const [financesView, setFinancesView] = useState<"dettes"|"charges"|"resume"|"taches"|"event">("dettes");
+  const [financesView, setFinancesView] = useState<"dettes"|"charges"|"resume"|"taches"|"event"|"carte">("dettes");
+  const [menuProduits, setMenuProduits] = useState<any[]>([]);
+  const [menuRecettes, setMenuRecettes] = useState<any[]>([]);
+  const [menuLoading, setMenuLoading] = useState(false);
+  const [carteView, setCarteView] = useState<"analyse"|"simu">("simu");
+  const [simuProduitId, setSimuProduitId] = useState<number|null>(null);
+  const [simuChap, setSimuChap] = useState("Panko (simple)");
+  const [simuSauce, setSimuSauce] = useState("Ketchup");
   const [eventNom, setEventNom] = useState("");
   const [eventDate, setEventDate] = useState("");
   const [eventLocation, setEventLocation] = useState("");
@@ -1194,6 +1213,15 @@ export default function App() {
     try { const evs = await fetchEvents(); setEvents(evs); }
     catch { flash("❌ Erreur chargement events"); }
     finally { setEventsLoading(false); }
+  }
+  async function loadMenu() {
+    setMenuLoading(true);
+    try {
+      const [p, r] = await Promise.all([fetchMenuProduits(), fetchMenuRecettes()]);
+      setMenuProduits(p);
+      setMenuRecettes(r);
+    } catch { flash("❌ Erreur chargement carte"); }
+    finally { setMenuLoading(false); }
   }
 
   async function handleAddDette() {
@@ -2629,8 +2657,8 @@ export default function App() {
             <button onClick={() => { loadFinances(); loadTodoTaches(); }} style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#a07848", borderRadius: "8px", padding: "0.3rem 0.6rem", fontSize: "0.8rem", cursor: "pointer" }}><RefreshCw size={16} /></button>
           </div>
           <div style={{ display: "flex", gap: "0.4rem", overflowX: "auto", paddingBottom: "0.5rem" }}>
-            {[{id:"dettes",label:"💳 Dettes"},{id:"charges",label:"💸 Charges"},{id:"event",label:"🎪 Event"},{id:"resume",label:"📊 Résumé"},{id:"taches",label:"✅ Tâches"}].map(tab => (
-              <button key={tab.id} onClick={() => setFinancesView(tab.id as any)}
+            {[{id:"dettes",label:"💳 Dettes"},{id:"charges",label:"💸 Charges"},{id:"event",label:"🎪 Event"},{id:"resume",label:"📊 Résumé"},{id:"carte",label:"🍽️ Carte"},{id:"taches",label:"✅ Tâches"}].map(tab => (
+              <button key={tab.id} onClick={() => { setFinancesView(tab.id as any); if(tab.id==="carte") loadMenu(); }}
                 style={{ background: financesView === tab.id ? "#e8213a" : "#1e1e1e", color: financesView === tab.id ? "#fff" : "#888", border: "none", borderRadius: "8px", padding: "0.35rem 0.9rem", fontSize: "0.78rem", fontFamily: "'Poppins', sans-serif", fontWeight: financesView === tab.id ? "bold" : "normal", cursor: "pointer", whiteSpace: "nowrap" }}>
                 {tab.label}
               </button>
@@ -2779,6 +2807,194 @@ export default function App() {
               ))}
               {dettes.filter(d => d.avec_plan && d.mensualite).length === 0 && <div style={{ color: "#c8a878", fontSize: "0.82rem" }}>Aucun plan de paiement actif</div>}
             </div>
+          </div>
+        )}
+
+        {/* ── CARTE / FOOD COST ── */}
+        {financesView === "carte" && (
+          <div style={{ padding: "0.8rem 1.1rem" }}>
+            {/* Sub-tabs */}
+            <div style={{ display: "flex", gap: "0.4rem", marginBottom: "0.8rem" }}>
+              {([{id:"simu",label:"🧮 Simulateur"},{id:"analyse",label:"📊 Analyse"}] as const).map(t => (
+                <button key={t.id} onClick={() => setCarteView(t.id)}
+                  style={{ background: carteView===t.id ? "#e8213a" : "#1e1e1e", color: carteView===t.id ? "#fff" : "#888", border: "none", borderRadius: "8px", padding: "0.35rem 0.9rem", fontSize: "0.78rem", fontFamily: "'Poppins', sans-serif", fontWeight: carteView===t.id ? "bold" : "normal", cursor: "pointer" }}>
+                  {t.label}
+                </button>
+              ))}
+            </div>
+            {menuLoading && <div style={{ textAlign: "center", padding: "2rem", color: "#e8213a" }}>⏳ Chargement...</div>}
+            {!menuLoading && (() => {
+              // Chapelures connues (par nom)
+              const CHAPELURES: {nom: string, supplement: number, cout: number}[] = [
+                { nom: "Panko (simple)",  supplement: 0,   cout: 0.01 },
+                { nom: "Céréale",         supplement: 0,   cout: 0.05 },
+                { nom: "Spicy (Doritos)", supplement: 0.5, cout: 0.07 },
+                { nom: "Nouilles",        supplement: 0,   cout: 0.30 },
+                { nom: "Bleu",            supplement: 1,   cout: 0.30 },
+                { nom: "Patate",          supplement: 1,   cout: 0.35 },
+                { nom: "Ultra Spicy",     supplement: 1,   cout: 0.07 },
+              ];
+              const fcColor = (pct: number) => pct < 20 ? "#4caf50" : pct < 28 ? "#2196f3" : pct < 35 ? "#f5a623" : "#e8213a";
+              const fcLabel = (pct: number) => pct < 20 ? "🏆" : pct < 28 ? "✅" : pct < 35 ? "⚠️" : "❌";
+
+              // Calcul coût base pour un produit (sans chapelure)
+              const getCoutBase = (produitId: number) => {
+                const lignes = menuRecettes.filter(r => r.produit_id === produitId);
+                return lignes
+                  .filter(r => !CHAPELURES.map(c=>c.nom).includes(r.menu_ingredients?.nom))
+                  .reduce((s: number, r: any) => s + r.quantite * (r.menu_ingredients?.cout_unitaire || 0), 0);
+              };
+
+              // ── SIMULATEUR ──
+              if (carteView === "simu") {
+                const prodSelectionne = simuProduitId ? menuProduits.find(p => p.id === simuProduitId) : null;
+                const chapSelectionnee = CHAPELURES.find(c => c.nom === simuChap) || CHAPELURES[0];
+                const coutBase = prodSelectionne ? getCoutBase(prodSelectionne.id) : 0;
+                const totalCout = coutBase + chapSelectionnee.cout;
+                const prixVente = prodSelectionne ? prodSelectionne.prix_vente + chapSelectionnee.supplement : 0;
+                const pct = prixVente > 0 ? (totalCout / prixVente) * 100 : 0;
+                const marge = prixVente - totalCout;
+                const color = fcColor(pct);
+
+                return (
+                  <div>
+                    {/* Sélecteurs */}
+                    <div style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "14px", padding: "1rem", marginBottom: "0.8rem" }}>
+                      <div style={{ color: "#a07848", fontSize: "0.72rem", fontWeight: "bold", marginBottom: "0.6rem" }}>① 🌽 BASE</div>
+                      <div style={{ display: "flex", flexDirection: "column" as const, gap: "0.4rem", marginBottom: "1rem" }}>
+                        {menuProduits.map(p => (
+                          <button key={p.id} onClick={() => setSimuProduitId(p.id)}
+                            style={{ background: simuProduitId===p.id ? "#e8213a" : "#faebd7", color: simuProduitId===p.id ? "#fff" : "#3d1a0a", border: simuProduitId===p.id ? "none" : "1.5px solid #f0d8b8", borderRadius: "10px", padding: "0.7rem 1rem", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", fontSize: "0.88rem", cursor: "pointer", textAlign: "left" as const, display: "flex", justifyContent: "space-between" }}>
+                            <span>{p.nom}</span>
+                            <span style={{ opacity: 0.8 }}>{p.prix_vente.toFixed(2)} €</span>
+                          </button>
+                        ))}
+                      </div>
+
+                      <div style={{ color: "#a07848", fontSize: "0.72rem", fontWeight: "bold", marginBottom: "0.6rem" }}>② 🍞 CHAPELURE</div>
+                      <div style={{ display: "flex", flexWrap: "wrap" as const, gap: "0.4rem" }}>
+                        {CHAPELURES.map(chap => (
+                          <button key={chap.nom} onClick={() => setSimuChap(chap.nom)}
+                            style={{ background: simuChap===chap.nom ? "#3d1a0a" : "#faebd7", color: simuChap===chap.nom ? "#fff" : "#3d1a0a", border: simuChap===chap.nom ? "none" : "1.5px solid #f0d8b8", borderRadius: "8px", padding: "0.45rem 0.8rem", fontFamily: "'Poppins', sans-serif", fontWeight: "600", fontSize: "0.8rem", cursor: "pointer" }}>
+                            {chap.nom}{chap.supplement > 0 ? ` +${chap.supplement}€` : ""}
+                          </button>
+                        ))}
+                      </div>
+
+                      <div style={{ color: "#a07848", fontSize: "0.72rem", fontWeight: "bold", margin: "0.8rem 0 0.6rem" }}>③ 🥫 SAUCE <span style={{ color: "#c8a878", fontWeight: "normal" }}>(0.15€ moy.)</span></div>
+                      <div style={{ display: "flex", flexWrap: "wrap" as const, gap: "0.4rem" }}>
+                        {["Ketchup","Mayonnaise","Spicy Mayo","Sriracha","BBQ","Aigre douce","Samouraï","Andalouse","Sekai"].map(s => (
+                          <button key={s} onClick={() => setSimuSauce(s)}
+                            style={{ background: simuSauce===s ? "#e8213a" : "#faebd7", color: simuSauce===s ? "#fff" : "#3d1a0a", border: simuSauce===s ? "none" : "1.5px solid #f0d8b8", borderRadius: "8px", padding: "0.4rem 0.75rem", fontFamily: "'Poppins', sans-serif", fontWeight: "600", fontSize: "0.78rem", cursor: "pointer" }}>
+                            {s}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Résultat */}
+                    {prodSelectionne ? (
+                      <div style={{ background: color + "11", border: `2px solid ${color}44`, borderRadius: "16px", padding: "1.2rem" }}>
+                        <div style={{ color: "#3d1a0a", fontWeight: "bold", fontSize: "1rem", marginBottom: "0.3rem" }}>
+                          {prodSelectionne.nom} — {chapSelectionnee.nom} — {simuSauce}
+                        </div>
+                        <div style={{ color: "#888", fontSize: "0.75rem", marginBottom: "1rem" }}>
+                          Prix de vente : <strong style={{ color: "#3d1a0a" }}>{prixVente.toFixed(2)} €</strong>
+                          {chapSelectionnee.supplement > 0 && <span style={{ color: "#e8213a" }}> (base {prodSelectionne.prix_vente.toFixed(2)}€ + suppl. {chapSelectionnee.supplement}€)</span>}
+                        </div>
+                        {/* Big food cost */}
+                        <div style={{ textAlign: "center", marginBottom: "1rem" }}>
+                          <div style={{ color: color, fontSize: "3rem", fontWeight: "900", lineHeight: 1 }}>{pct.toFixed(1)}%</div>
+                          <div style={{ color: color, fontSize: "0.8rem", fontWeight: "bold" }}>{fcLabel(pct)} Food Cost</div>
+                        </div>
+                        {/* Barre */}
+                        <div style={{ background: "#f0d8b8", borderRadius: "6px", height: "8px", marginBottom: "1rem" }}>
+                          <div style={{ background: color, height: "8px", borderRadius: "6px", width: `${Math.min(pct, 100)}%` }} />
+                        </div>
+                        {/* Stats */}
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.6rem", marginBottom: "0.8rem" }}>
+                          <div style={{ background: "#fff8f0", borderRadius: "10px", padding: "0.7rem", textAlign: "center" }}>
+                            <div style={{ color: "#a07848", fontSize: "0.65rem", fontWeight: "600" }}>COÛT TOTAL</div>
+                            <div style={{ color: "#3d1a0a", fontSize: "1.1rem", fontWeight: "bold" }}>{totalCout.toFixed(3)} €</div>
+                          </div>
+                          <div style={{ background: "#f0fff4", borderRadius: "10px", padding: "0.7rem", textAlign: "center" }}>
+                            <div style={{ color: "#4caf50", fontSize: "0.65rem", fontWeight: "600" }}>MARGE NETTE</div>
+                            <div style={{ color: "#4caf50", fontSize: "1.1rem", fontWeight: "bold" }}>{marge.toFixed(2)} €</div>
+                          </div>
+                        </div>
+                        {/* Détail ingrédients */}
+                        <div style={{ background: "#faebd7", borderRadius: "10px", padding: "0.7rem" }}>
+                          <div style={{ color: "#a07848", fontSize: "0.68rem", fontWeight: "bold", marginBottom: "0.4rem" }}>DÉTAIL COÛT</div>
+                          {menuRecettes.filter(r => r.produit_id === prodSelectionne.id && !CHAPELURES.map(c=>c.nom).includes(r.menu_ingredients?.nom)).map((r: any, i: number) => (
+                            <div key={i} style={{ display: "flex", justifyContent: "space-between", fontSize: "0.78rem", padding: "0.1rem 0" }}>
+                              <span style={{ color: "#6b4c2a" }}>{r.quantite !== 1 ? `×${r.quantite} ` : ""}{r.menu_ingredients?.nom}</span>
+                              <span style={{ color: "#a07848" }}>{(r.quantite * (r.menu_ingredients?.cout_unitaire || 0)).toFixed(3)} €</span>
+                            </div>
+                          ))}
+                          <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.78rem", padding: "0.1rem 0", borderTop: "1px dashed #f0d8b8", marginTop: "0.3rem" }}>
+                            <span style={{ color: "#6b4c2a", fontWeight: "600" }}>🍞 {chapSelectionnee.nom}</span>
+                            <span style={{ color: "#a07848", fontWeight: "600" }}>{chapSelectionnee.cout.toFixed(3)} €</span>
+                          </div>
+                          <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.78rem", padding: "0.1rem 0" }}>
+                            <span style={{ color: "#6b4c2a" }}>🥫 {simuSauce}</span>
+                            <span style={{ color: "#a07848" }}>inclus (moy.)</span>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div style={{ color: "#c8a878", textAlign: "center", padding: "2rem", fontSize: "0.85rem" }}>👆 Sélectionne une base pour voir le calcul</div>
+                    )}
+                  </div>
+                );
+              }
+
+              // ── ANALYSE ──
+              return (
+                <div>
+                  {menuProduits.map(p => {
+                    const coutBase = getCoutBase(p.id);
+                    const lignesBase = menuRecettes.filter(r => r.produit_id === p.id && !CHAPELURES.map(c=>c.nom).includes(r.menu_ingredients?.nom));
+                    return (
+                      <div key={p.id} style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "14px", padding: "1rem", marginBottom: "0.8rem" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.7rem" }}>
+                          <div style={{ color: "#3d1a0a", fontWeight: "bold", fontSize: "1rem" }}>{p.nom}</div>
+                          <div style={{ color: "#e8213a", fontWeight: "bold" }}>{p.prix_vente.toFixed(2)} €</div>
+                        </div>
+                        <div style={{ background: "#faebd7", borderRadius: "8px", padding: "0.5rem 0.8rem", marginBottom: "0.6rem" }}>
+                          <div style={{ color: "#a07848", fontSize: "0.68rem", fontWeight: "bold", marginBottom: "0.3rem" }}>BASE — {coutBase.toFixed(3)} €</div>
+                          {lignesBase.map((r: any, i: number) => (
+                            <div key={i} style={{ display: "flex", justifyContent: "space-between", fontSize: "0.73rem" }}>
+                              <span style={{ color: "#6b4c2a" }}>{r.quantite !== 1 ? `×${r.quantite} ` : ""}{r.menu_ingredients?.nom}</span>
+                              <span style={{ color: "#a07848" }}>{(r.quantite * (r.menu_ingredients?.cout_unitaire || 0)).toFixed(3)} €</span>
+                            </div>
+                          ))}
+                        </div>
+                        <div style={{ color: "#a07848", fontSize: "0.68rem", fontWeight: "bold", marginBottom: "0.3rem" }}>🍞 PAR CHAPELURE</div>
+                        {CHAPELURES.map(chap => {
+                          const totalCout = coutBase + chap.cout;
+                          const prixVente = p.prix_vente + chap.supplement;
+                          const pct = prixVente > 0 ? (totalCout / prixVente) * 100 : 0;
+                          const marge = prixVente - totalCout;
+                          const color = fcColor(pct);
+                          return (
+                            <div key={chap.nom} style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.3rem 0.5rem", borderRadius: "7px", marginBottom: "0.2rem", background: color + "11", border: `1px solid ${color}22` }}>
+                              <span style={{ fontSize: "0.78rem" }}>{fcLabel(pct)}</span>
+                              <span style={{ color: "#3d1a0a", fontSize: "0.8rem", fontWeight: "600", flex: 1 }}>
+                                {chap.nom}{chap.supplement > 0 && <span style={{ color: "#e8213a", fontSize: "0.68rem" }}> +{chap.supplement}€</span>}
+                              </span>
+                              <span style={{ color: "#888", fontSize: "0.68rem" }}>{prixVente.toFixed(2)}€</span>
+                              <span style={{ color: color, fontSize: "0.8rem", fontWeight: "bold", minWidth: "3.2rem", textAlign: "right" }}>{pct.toFixed(1)}%</span>
+                              <span style={{ color: "#4caf50", fontSize: "0.7rem", minWidth: "3.2rem", textAlign: "right" }}>{marge.toFixed(2)} €</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    );
+                  })}
+                  {menuProduits.length === 0 && <div style={{ color: "#c8a878", textAlign: "center", padding: "3rem" }}>Aucun produit dans la carte</div>}
+                </div>
+              );
+            })()}
           </div>
         )}
 
