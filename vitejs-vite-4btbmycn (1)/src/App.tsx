@@ -702,6 +702,14 @@ export default function App() {
   const [addHoraireRemplaceNom, setAddHoraireRemplaceNom] = useState("");
   const [horaireRestaurant, setHoraireRestaurant] = useState("rue-neuve");
   const [horaireLoading, setHoraireLoading] = useState(false);
+  // Heures déclarées par les employés
+  const [heuresJours, setHeuresJours] = useState<any[]>([]);
+  const [heuresMois, setHeuresMois] = useState(() => new Date().toISOString().slice(0, 7)); // YYYY-MM
+  const [heuresEmployeFilter, setHeuresEmployeFilter] = useState<string>(""); // admin: "" = tous
+  const [showHeuresModal, setShowHeuresModal] = useState(false);
+  const [heuresModalDate, setHeuresModalDate] = useState("");
+  const [heuresModalValue, setHeuresModalValue] = useState("");
+  const [heuresModalExisting, setHeuresModalExisting] = useState<any>(null);
   const [remplacementMois, setRemplacementMois] = useState(getCurrentMois());
   // ── Events team ──
   const [eventWorkers, setEventWorkers] = useState([]);
@@ -1419,6 +1427,45 @@ export default function App() {
     if (!res.ok) throw new Error("Delete horaire failed");
   }
 
+  // ── HEURES JOURS (déclarées par employés) ──
+  async function fetchHeuresJours(restoId: string) {
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/heures_jours?select=*&restaurant_id=eq.${restoId}&order=date.asc`, { headers: HEADERS });
+      if (!res.ok) throw new Error("fetch");
+      setHeuresJours(await res.json());
+    } catch { flash("❌ Erreur chargement heures"); }
+  }
+  async function saveHeuresJour() {
+    const heures = parseFloat(heuresModalValue.replace(",", "."));
+    if (isNaN(heures) || heures < 0) { flash("❌ Nombre d'heures invalide"); return; }
+    const nom = (isAdmin && heuresEmployeFilter) ? heuresEmployeFilter : currentUser?.prenom;
+    try {
+      if (heuresModalExisting) {
+        // update
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/heures_jours?id=eq.${heuresModalExisting.id}`, {
+          method: "PATCH", headers: HEADERS, body: JSON.stringify({ heures })
+        });
+        if (!res.ok) throw new Error("update");
+      } else {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/heures_jours`, {
+          method: "POST", headers: HEADERS, body: JSON.stringify({ employe_nom: nom, date: heuresModalDate, heures, restaurant_id: horaireRestaurant })
+        });
+        if (!res.ok) throw new Error("insert");
+      }
+      flash("✅ Heures enregistrées");
+      setShowHeuresModal(false); setHeuresModalValue(""); setHeuresModalExisting(null);
+      fetchHeuresJours(horaireRestaurant);
+    } catch { flash("❌ Erreur enregistrement"); }
+  }
+  async function deleteHeuresJour(id: number) {
+    try {
+      await fetch(`${SUPABASE_URL}/rest/v1/heures_jours?id=eq.${id}`, { method: "DELETE", headers: HEADERS });
+      flash("✅ Supprimé");
+      setShowHeuresModal(false); setHeuresModalExisting(null); setHeuresModalValue("");
+      fetchHeuresJours(horaireRestaurant);
+    } catch { flash("❌ Erreur"); }
+  }
+
   async function handleAddHoraire() {
     if (!addHoraireDate) return;
     const employes = addHoraireExtra
@@ -2025,6 +2072,38 @@ export default function App() {
         {toast && <div style={{ position: "fixed", top: "1rem", left: "50%", transform: "translateX(-50%)", background: toast.type === "success" ? "#f0fff4" : toast.type === "warn" ? "#fffbe6" : "#fff0f0", color: toast.type === "success" ? "#2e7d32" : toast.type === "warn" ? "#b45309" : "#e8213a", padding: "0.6rem 1.4rem", borderRadius: "20px", fontSize: "0.88rem", zIndex: 999, border: `1.5px solid ${toast.type === "success" ? "#a5d6a7" : toast.type === "warn" ? "#fde68a" : "#f5c8c8"}`, whiteSpace: "nowrap", pointerEvents: "none", fontWeight: "600", boxShadow: "0 2px 12px rgba(0,0,0,0.12)" }}>{toast.msg}</div>}
         <AddModal />
 
+        {/* Modal heures */}
+        {showHeuresModal && (
+          <div onClick={() => setShowHeuresModal(false)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", zIndex: 200, display: "flex", alignItems: "flex-start", justifyContent: "center", paddingTop: "12vh" }}>
+            <div onClick={e => e.stopPropagation()} style={{ background: "#fff8f0", borderRadius: "16px", padding: "1.3rem", width: "88%", maxWidth: "360px", display: "flex", flexDirection: "column", gap: "0.9rem" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div style={{ color: "#e8213a", fontWeight: "bold", fontSize: "0.95rem" }}>
+                  ⏱️ {heuresModalDate && new Date(heuresModalDate + "T12:00:00").toLocaleDateString("fr-BE", { weekday: "long", day: "numeric", month: "long" })}
+                </div>
+                <button onClick={() => setShowHeuresModal(false)} style={{ background: "#2a2a2a", border: "none", color: "#c8a878", borderRadius: "50%", width: "2rem", height: "2rem", cursor: "pointer" }}>✕</button>
+              </div>
+              <div style={{ color: "#a07848", fontSize: "0.78rem" }}>
+                {(isAdmin && heuresEmployeFilter) ? `Employé : ${heuresEmployeFilter}` : `Tes heures — ${currentUser?.prenom}`}
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
+                <input value={heuresModalValue} onChange={e => setHeuresModalValue(e.target.value.replace(",", "."))} inputMode="decimal" autoFocus placeholder="Ex: 8"
+                  style={{ background: "#faebd7", border: "2px solid #f5c842", color: "#3d1a0a", padding: "0.9rem 1rem", borderRadius: "10px", fontSize: "1.6rem", fontWeight: "900", outline: "none", flex: 1, textAlign: "center", boxSizing: "border-box" as const, fontFamily: "'Poppins', sans-serif" }} />
+                <span style={{ color: "#e8213a", fontSize: "1.4rem", fontWeight: "900" }}>heures</span>
+              </div>
+              {/* Boutons rapides */}
+              <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap" as const }}>
+                {["4","6","8","9","10"].map(h => (
+                  <button key={h} onClick={() => setHeuresModalValue(h)} style={{ flex: 1, background: heuresModalValue === h ? "#e8213a" : "#faebd7", color: heuresModalValue === h ? "#fff" : "#3d1a0a", border: "1.5px solid #f0d8b8", borderRadius: "8px", padding: "0.5rem", fontSize: "0.9rem", fontWeight: "bold", cursor: "pointer", fontFamily: "'Poppins', sans-serif" }}>{h}h</button>
+                ))}
+              </div>
+              <button onClick={saveHeuresJour} style={{ background: "#e8213a", color: "#fff", border: "none", padding: "0.9rem", borderRadius: "10px", fontWeight: "bold", fontSize: "1rem", cursor: "pointer", fontFamily: "'Poppins', sans-serif" }}>✅ Enregistrer</button>
+              {heuresModalExisting && (
+                <button onClick={() => deleteHeuresJour(heuresModalExisting.id)} style={{ background: "none", color: "#e8213a", border: "1.5px solid #e8213a44", padding: "0.6rem", borderRadius: "10px", fontWeight: "600", fontSize: "0.85rem", cursor: "pointer", fontFamily: "'Poppins', sans-serif" }}>🗑️ Supprimer ce jour</button>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Header */}
         <div style={{ background: "#fff8f0", padding: "1rem 1.2rem", borderBottom: "1.5px solid #f0d8b8", position: "sticky", top: 0, zIndex: 30 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
@@ -2050,8 +2129,8 @@ export default function App() {
             </div>
           </div>
           <div style={{ display: "flex", gap: "0.4rem", overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
-            {[{id:"week",label:"Semaine"},{id:"remplacements",label:"Remplacements"},{id:"events",label:"Events"},{id:"stats",label:"Stats"},...(isAdmin?[{id:"suivi",label:"🏆 Suivi"},{id:"fermeture",label:"🔒 Fermeture"}]:[])].map(tab => (
-              <button key={tab.id} onClick={() => { if (tab.id === "fermeture") { setPage("fermetures"); loadFermetureHistorique(); loadFermetureData(); } else { setHoraireView(tab.id); if (tab.id === "suivi") loadAmendes(); } }}
+            {[{id:"week",label:"Semaine"},{id:"heures",label:"⏱️ Heures"},{id:"remplacements",label:"Remplacements"},{id:"events",label:"Events"},{id:"stats",label:"Stats"},...(isAdmin?[{id:"suivi",label:"🏆 Suivi"},{id:"fermeture",label:"🔒 Fermeture"}]:[])].map(tab => (
+              <button key={tab.id} onClick={() => { if (tab.id === "fermeture") { setPage("fermetures"); loadFermetureHistorique(); loadFermetureData(); } else { setHoraireView(tab.id); if (tab.id === "suivi") loadAmendes(); if (tab.id === "heures") { fetchHeuresJours(horaireRestaurant); if (isAdmin && !allUsers.length) loadUsers(); } } }}
                 style={{ background: horaireView === tab.id ? "#f5c842" : "#1e1e1e", color: horaireView === tab.id ? "#111" : "#555", border: "none", borderRadius: "8px", padding: "0.35rem 0.9rem", flexShrink: 0, whiteSpace: "nowrap", fontSize: "0.78rem", fontFamily: "'Poppins', sans-serif", fontWeight: horaireView === tab.id ? "bold" : "normal", cursor: "pointer" }}>
                 {tab.label}
               </button>
@@ -2069,6 +2148,115 @@ export default function App() {
           )}
 
           {!horaireLoading && <>
+
+          {/* ── HEURES (calendrier simple) ── */}
+          {horaireView === "heures" && (() => {
+            // Employé regardé : admin choisit, sinon soi-même
+            const employeVu = (isAdmin && heuresEmployeFilter) ? heuresEmployeFilter : (isAdmin ? "" : currentUser?.prenom);
+            const [an, moisNum] = heuresMois.split("-").map(Number);
+            const premierJour = new Date(an, moisNum - 1, 1);
+            const nbJours = new Date(an, moisNum, 0).getDate();
+            // getDay: 0=dim..6=sam → on veut lundi=0
+            const offset = (premierJour.getDay() + 6) % 7;
+            const moisLabel = premierJour.toLocaleDateString("fr-BE", { month: "long", year: "numeric" });
+            const changeMois = (delta: number) => {
+              const d = new Date(an, moisNum - 1 + delta, 1);
+              setHeuresMois(d.toISOString().slice(0, 7));
+            };
+            // Heures du mois pour l'employé vu
+            const heuresMoisData = heuresJours.filter(h => h.date.startsWith(heuresMois) && (employeVu === "" || h.employe_nom === employeVu));
+            const totalMois = heuresMoisData.reduce((s, h) => s + (parseFloat(h.heures) || 0), 0);
+            const heuresParJour = (jour: number) => {
+              const dateStr = `${heuresMois}-${String(jour).padStart(2, "0")}`;
+              return heuresJours.find(h => h.date === dateStr && h.employe_nom === employeVu);
+            };
+            // Liste employés pour le filtre admin
+            const nomsEmployes = Array.from(new Set([
+              ...allUsers.filter((u: any) => u.role === "employe" || u.role === "admin").map((u: any) => u.prenom),
+              ...heuresJours.map(h => h.employe_nom)
+            ])).sort();
+            // Vue admin "Tous" = récap par employé
+            const recapParEmploye = () => {
+              const map: Record<string, number> = {};
+              heuresJours.filter(h => h.date.startsWith(heuresMois)).forEach(h => {
+                map[h.employe_nom] = (map[h.employe_nom] || 0) + (parseFloat(h.heures) || 0);
+              });
+              return Object.entries(map).sort((a, b) => b[1] - a[1]);
+            };
+            const todayStr2 = getTodayDateStr();
+
+            return (
+              <div>
+                {/* Sélecteur employé (admin) */}
+                {isAdmin && (
+                  <select value={heuresEmployeFilter} onChange={e => setHeuresEmployeFilter(e.target.value)}
+                    style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", borderRadius: "10px", padding: "0.6rem 0.9rem", fontSize: "0.9rem", fontFamily: "'Poppins', sans-serif", width: "100%", marginBottom: "0.8rem", boxSizing: "border-box" as const }}>
+                    <option value="">👥 Tous les employés (récap)</option>
+                    {nomsEmployes.map(n => <option key={n} value={n}>{n}</option>)}
+                  </select>
+                )}
+
+                {/* Navigation mois */}
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.8rem" }}>
+                  <button onClick={() => changeMois(-1)} style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", borderRadius: "8px", padding: "0.4rem 0.8rem", cursor: "pointer", fontSize: "1rem", fontWeight: "bold" }}>‹</button>
+                  <div style={{ color: "#3d1a0a", fontWeight: "bold", fontSize: "1rem", textTransform: "capitalize" as const }}>{moisLabel}</div>
+                  <button onClick={() => changeMois(1)} style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", borderRadius: "8px", padding: "0.4rem 0.8rem", cursor: "pointer", fontSize: "1rem", fontWeight: "bold" }}>›</button>
+                </div>
+
+                {/* Total du mois */}
+                <div style={{ background: "#e8213a", borderRadius: "12px", padding: "0.9rem", marginBottom: "0.8rem", textAlign: "center" }}>
+                  <div style={{ color: "#fff", fontSize: "0.72rem", fontWeight: "600", opacity: 0.9 }}>
+                    {employeVu === "" ? "TOTAL ÉQUIPE CE MOIS" : `TOTAL — ${employeVu}`}
+                  </div>
+                  <div style={{ color: "#fff", fontSize: "2rem", fontWeight: "900" }}>{totalMois.toFixed(1).replace(".0", "")} h</div>
+                </div>
+
+                {/* Vue "Tous" pour admin = récap par employé */}
+                {employeVu === "" ? (
+                  <div>
+                    {recapParEmploye().length === 0 && <div style={{ color: "#c8a878", textAlign: "center", padding: "2rem", fontSize: "0.85rem" }}>Aucune heure déclarée ce mois</div>}
+                    {recapParEmploye().map(([nom, h]) => (
+                      <button key={nom} onClick={() => setHeuresEmployeFilter(nom)}
+                        style={{ width: "100%", background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "12px", padding: "0.9rem 1rem", marginBottom: "0.5rem", display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer", fontFamily: "'Poppins', sans-serif" }}>
+                        <span style={{ color: "#3d1a0a", fontWeight: "600", fontSize: "0.92rem" }}>👤 {nom}</span>
+                        <span style={{ color: "#e8213a", fontWeight: "bold", fontSize: "1rem" }}>{Number(h).toFixed(1).replace(".0", "")} h ›</span>
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <>
+                    {/* Calendrier */}
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: "0.25rem", marginBottom: "0.5rem" }}>
+                      {["L","M","M","J","V","S","D"].map((j, i) => (
+                        <div key={i} style={{ textAlign: "center", color: "#a07848", fontSize: "0.68rem", fontWeight: "bold", padding: "0.2rem 0" }}>{j}</div>
+                      ))}
+                      {Array.from({ length: offset }).map((_, i) => <div key={"e"+i} />)}
+                      {Array.from({ length: nbJours }).map((_, i) => {
+                        const jour = i + 1;
+                        const dateStr = `${heuresMois}-${String(jour).padStart(2, "0")}`;
+                        const entry = heuresParJour(jour);
+                        const isToday = dateStr === todayStr2;
+                        const hasHeures = !!entry;
+                        // Employé ne peut éditer que soi-même
+                        const canEdit = isAdmin || employeVu === currentUser?.prenom;
+                        return (
+                          <button key={jour} disabled={!canEdit}
+                            onClick={() => { setHeuresModalDate(dateStr); setHeuresModalExisting(entry || null); setHeuresModalValue(entry ? String(entry.heures) : ""); setShowHeuresModal(true); }}
+                            style={{ aspectRatio: "1", background: hasHeures ? "#4caf50" : "#fff8f0", border: `1.5px solid ${isToday ? "#e8213a" : hasHeures ? "#4caf50" : "#f0d8b8"}`, borderRadius: "8px", display: "flex", flexDirection: "column" as const, alignItems: "center", justifyContent: "center", cursor: canEdit ? "pointer" : "default", padding: "0.1rem", fontFamily: "'Poppins', sans-serif" }}>
+                            <span style={{ color: hasHeures ? "#fff" : isToday ? "#e8213a" : "#3d1a0a", fontSize: "0.8rem", fontWeight: isToday ? "bold" : "normal" }}>{jour}</span>
+                            {hasHeures && <span style={{ color: "#fff", fontSize: "0.62rem", fontWeight: "bold" }}>{Number(entry.heures).toFixed(1).replace(".0", "")}h</span>}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <div style={{ color: "#a07848", fontSize: "0.72rem", textAlign: "center", marginTop: "0.5rem" }}>
+                      👆 Touche un jour pour {isAdmin || employeVu === currentUser?.prenom ? "ajouter / modifier tes heures" : "voir"}
+                    </div>
+                  </>
+                )}
+              </div>
+            );
+          })()}
 
           {/* WEEK VIEW */}
           {horaireView === "week" && (
