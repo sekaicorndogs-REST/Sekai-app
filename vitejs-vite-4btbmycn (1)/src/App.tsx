@@ -704,7 +704,7 @@ export default function App() {
   const [horaireLoading, setHoraireLoading] = useState(false);
   // Heures déclarées par les employés
   const [heuresJours, setHeuresJours] = useState<any[]>([]);
-  const [heuresMois, setHeuresMois] = useState(() => new Date().toISOString().slice(0, 7)); // YYYY-MM
+  const [heuresMois, setHeuresMois] = useState(() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`; }); // YYYY-MM
   const [heuresEmployeFilter, setHeuresEmployeFilter] = useState<string>(""); // admin: "" = tous
   const [showHeuresModal, setShowHeuresModal] = useState(false);
   const [heuresModalDate, setHeuresModalDate] = useState("");
@@ -2215,7 +2215,7 @@ export default function App() {
             const moisLabel = premierJour.toLocaleDateString("fr-BE", { month: "long", year: "numeric" });
             const changeMois = (delta: number) => {
               const d = new Date(an, moisNum - 1 + delta, 1);
-              setHeuresMois(d.toISOString().slice(0, 7));
+              setHeuresMois(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`);
             };
             // Heures du mois pour l'employé vu
             const heuresMoisData = heuresJours.filter(h => h.date.startsWith(heuresMois) && (employeVu === "" || h.employe_nom === employeVu));
