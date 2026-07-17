@@ -690,7 +690,7 @@ export default function App() {
   const [rememberMe, setRememberMe] = useState(false);
   // Horaires
   const [horaires, setHoraires] = useState([]);
-  const [horaireView, setHoraireView] = useState("week"); // week | remplacements | stats
+  const [horaireView, setHoraireView] = useState("heures"); // heures | remplacements | stats
   const [showAddHoraire, setShowAddHoraire] = useState(false);
   const [addHoraireDate, setAddHoraireDate] = useState("");
   const [addHoraireEmploye, setAddHoraireEmploye] = useState("");
@@ -1764,7 +1764,7 @@ export default function App() {
         { id: "paie", label: "Paie", icon: "paie", adminOnly: true },
         { id: "profil", label: "Profil", icon: "profil", adminOnly: false }
       ].filter(tab => !tab.adminOnly || isAdmin).map(tab => (
-        <button key={tab.id} onClick={() => { setPage(tab.id); if (tab.id === "comptes") loadUsers(); if (tab.id === "horaires" && !horaires.length) fetchHoraires(horaireRestaurant); if (tab.id === "finances") { loadFinances(); loadTodoTaches(); loadEvents(); } if (tab.id === "fermetures") { loadFermetureHistorique(); loadFermetureData(); } if (tab.id === "paie") { loadFichesPaie(); loadUsers(); } }} style={{ flex: 1, background: "none", border: "none", padding: "0.7rem 0", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: "0.15rem" }}>
+        <button key={tab.id} onClick={() => { setPage(tab.id); if (tab.id === "comptes") loadUsers(); if (tab.id === "horaires") { if (!horaires.length) fetchHoraires(horaireRestaurant); fetchHeuresJours(horaireRestaurant); if (isAdmin && !allUsers.length) loadUsers(); } if (tab.id === "finances") { loadFinances(); loadTodoTaches(); loadEvents(); } if (tab.id === "fermetures") { loadFermetureHistorique(); loadFermetureData(); } if (tab.id === "paie") { loadFichesPaie(); loadUsers(); } }} style={{ flex: 1, background: "none", border: "none", padding: "0.7rem 0", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: "0.15rem" }}>
           <span style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
             {tab.icon === "stock" && <Package size={20} color={page === tab.id ? "#e8213a" : "#c8a878"} />}
             {tab.icon === "horaires" && <Calendar size={20} color={page === tab.id ? "#e8213a" : "#c8a878"} />}
@@ -2086,6 +2086,19 @@ export default function App() {
               <div style={{ color: "#a07848", fontSize: "0.78rem" }}>
                 {(isAdmin && heuresEmployeFilter) ? `Employé : ${heuresEmployeFilter}` : `Tes heures — ${currentUser?.prenom}`}
               </div>
+              {/* Qui travaille de base ce jour */}
+              {(() => {
+                const prevus = getAutoEmployes(heuresModalDate);
+                const autoH = getAutoHoraire(heuresModalDate);
+                return (
+                  <div style={{ background: "#fdf0d5", borderRadius: "10px", padding: "0.7rem 0.8rem" }}>
+                    <div style={{ color: "#a07848", fontSize: "0.66rem", fontWeight: "bold", marginBottom: "0.35rem" }}>📋 PRÉVU DE BASE ({autoH.debut}–{autoH.fin})</div>
+                    {prevus.length === 0
+                      ? <div style={{ color: "#c8a878", fontSize: "0.78rem" }}>Personne de prévu (jour off)</div>
+                      : <div style={{ color: "#3d1a0a", fontSize: "0.82rem" }}>👤 {prevus.join(", ")}</div>}
+                  </div>
+                );
+              })()}
               <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
                 <input value={heuresModalValue} onChange={e => setHeuresModalValue(e.target.value.replace(",", "."))} inputMode="decimal" autoFocus placeholder="Ex: 8"
                   style={{ background: "#faebd7", border: "2px solid #f5c842", color: "#3d1a0a", padding: "0.9rem 1rem", borderRadius: "10px", fontSize: "1.6rem", fontWeight: "900", outline: "none", flex: 1, textAlign: "center", boxSizing: "border-box" as const, fontFamily: "'Poppins', sans-serif" }} />
@@ -2170,7 +2183,7 @@ export default function App() {
             </div>
           </div>
           <div style={{ display: "flex", gap: "0.4rem", overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
-            {[{id:"week",label:"Semaine"},{id:"heures",label:"⏱️ Heures"},{id:"remplacements",label:"Remplacements"},{id:"events",label:"Events"},{id:"stats",label:"Stats"},...(isAdmin?[{id:"suivi",label:"🏆 Suivi"},{id:"fermeture",label:"🔒 Fermeture"}]:[])].map(tab => (
+            {[{id:"heures",label:"📅 Calendrier"},{id:"remplacements",label:"Remplacements"},{id:"events",label:"Events"},{id:"stats",label:"Stats"},...(isAdmin?[{id:"suivi",label:"🏆 Suivi"},{id:"fermeture",label:"🔒 Fermeture"}]:[])].map(tab => (
               <button key={tab.id} onClick={() => { if (tab.id === "fermeture") { setPage("fermetures"); loadFermetureHistorique(); loadFermetureData(); } else { setHoraireView(tab.id); if (tab.id === "suivi") loadAmendes(); if (tab.id === "heures") { fetchHeuresJours(horaireRestaurant); if (isAdmin && !allUsers.length) loadUsers(); } } }}
                 style={{ background: horaireView === tab.id ? "#f5c842" : "#1e1e1e", color: horaireView === tab.id ? "#111" : "#555", border: "none", borderRadius: "8px", padding: "0.35rem 0.9rem", flexShrink: 0, whiteSpace: "nowrap", fontSize: "0.78rem", fontFamily: "'Poppins', sans-serif", fontWeight: horaireView === tab.id ? "bold" : "normal", cursor: "pointer" }}>
                 {tab.label}
