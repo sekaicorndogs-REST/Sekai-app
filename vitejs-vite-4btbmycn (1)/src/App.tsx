@@ -710,6 +710,7 @@ export default function App() {
   const [heuresModalDate, setHeuresModalDate] = useState("");
   const [heuresModalValue, setHeuresModalValue] = useState("");
   const [heuresModalExisting, setHeuresModalExisting] = useState<any>(null);
+  const [heuresDayDetail, setHeuresDayDetail] = useState<string>(""); // admin: date pour voir le détail du jour
   const [remplacementMois, setRemplacementMois] = useState(getCurrentMois());
   // ── Events team ──
   const [eventWorkers, setEventWorkers] = useState([]);
@@ -2104,6 +2105,46 @@ export default function App() {
           </div>
         )}
 
+        {/* Modal détail jour (admin) : prévu de base vs qui a bossé */}
+        {heuresDayDetail && (() => {
+          const prevus = getAutoEmployes(heuresDayDetail);
+          const autoH = getAutoHoraire(heuresDayDetail);
+          const travailleurs = heuresJours.filter(h => h.date === heuresDayDetail);
+          return (
+            <div onClick={() => setHeuresDayDetail("")} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", zIndex: 200, display: "flex", alignItems: "flex-start", justifyContent: "center", paddingTop: "10vh" }}>
+              <div onClick={e => e.stopPropagation()} style={{ background: "#fff8f0", borderRadius: "16px", padding: "1.3rem", width: "88%", maxWidth: "380px", display: "flex", flexDirection: "column", gap: "0.9rem", maxHeight: "80vh", overflowY: "auto" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div style={{ color: "#e8213a", fontWeight: "bold", fontSize: "0.95rem", textTransform: "capitalize" as const }}>
+                    📅 {new Date(heuresDayDetail + "T12:00:00").toLocaleDateString("fr-BE", { weekday: "long", day: "numeric", month: "long" })}
+                  </div>
+                  <button onClick={() => setHeuresDayDetail("")} style={{ background: "#2a2a2a", border: "none", color: "#c8a878", borderRadius: "50%", width: "2rem", height: "2rem", cursor: "pointer" }}>✕</button>
+                </div>
+
+                {/* Prévu de base */}
+                <div style={{ background: "#fdf0d5", borderRadius: "10px", padding: "0.8rem" }}>
+                  <div style={{ color: "#a07848", fontSize: "0.68rem", fontWeight: "bold", marginBottom: "0.5rem" }}>📋 PRÉVU DE BASE ({autoH.debut}–{autoH.fin})</div>
+                  {prevus.length === 0 ? <div style={{ color: "#c8a878", fontSize: "0.8rem" }}>Personne de prévu (jour off)</div>
+                    : prevus.map((n: string) => (
+                      <div key={n} style={{ color: "#3d1a0a", fontSize: "0.85rem", padding: "0.15rem 0" }}>👤 {n}</div>
+                    ))}
+                </div>
+
+                {/* A réellement bossé */}
+                <div style={{ background: "#f0fff4", borderRadius: "10px", padding: "0.8rem" }}>
+                  <div style={{ color: "#4caf50", fontSize: "0.68rem", fontWeight: "bold", marginBottom: "0.5rem" }}>✅ A TRAVAILLÉ</div>
+                  {travailleurs.length === 0 ? <div style={{ color: "#c8a878", fontSize: "0.8rem" }}>Aucune heure déclarée</div>
+                    : travailleurs.map(h => (
+                      <div key={h.id} style={{ display: "flex", justifyContent: "space-between", padding: "0.2rem 0", fontSize: "0.85rem" }}>
+                        <span style={{ color: "#3d1a0a" }}>👤 {h.employe_nom}</span>
+                        <span style={{ color: "#4caf50", fontWeight: "bold" }}>{Number(h.heures).toFixed(1).replace(".0", "")} h</span>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            </div>
+          );
+        })()}
+
         {/* Header */}
         <div style={{ background: "#fff8f0", padding: "1rem 1.2rem", borderBottom: "1.5px solid #f0d8b8", position: "sticky", top: 0, zIndex: 30 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
@@ -2211,9 +2252,37 @@ export default function App() {
                   <div style={{ color: "#fff", fontSize: "2rem", fontWeight: "900" }}>{totalMois.toFixed(1).replace(".0", "")} h</div>
                 </div>
 
-                {/* Vue "Tous" pour admin = récap par employé */}
+                {/* Vue "Tous" pour admin = calendrier équipe + récap par employé */}
                 {employeVu === "" ? (
                   <div>
+                    {/* Calendrier équipe : qui a bossé chaque jour */}
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: "0.25rem", marginBottom: "0.4rem" }}>
+                      {["L","M","M","J","V","S","D"].map((j, i) => (
+                        <div key={i} style={{ textAlign: "center", color: "#a07848", fontSize: "0.68rem", fontWeight: "bold", padding: "0.2rem 0" }}>{j}</div>
+                      ))}
+                      {Array.from({ length: offset }).map((_, i) => <div key={"e"+i} />)}
+                      {Array.from({ length: nbJours }).map((_, i) => {
+                        const jour = i + 1;
+                        const dateStr = `${heuresMois}-${String(jour).padStart(2, "0")}`;
+                        const travailleurs = heuresJours.filter(h => h.date === dateStr);
+                        const prevus = getAutoEmployes(dateStr);
+                        const nb = travailleurs.length;
+                        const isToday = dateStr === todayStr2;
+                        return (
+                          <button key={jour} onClick={() => setHeuresDayDetail(dateStr)}
+                            style={{ aspectRatio: "1", background: nb > 0 ? "#4caf50" : prevus.length > 0 ? "#fdf0d5" : "#fff8f0", border: `1.5px solid ${isToday ? "#e8213a" : nb > 0 ? "#4caf50" : "#f0d8b8"}`, borderRadius: "8px", display: "flex", flexDirection: "column" as const, alignItems: "center", justifyContent: "center", cursor: "pointer", padding: "0.1rem", fontFamily: "'Poppins', sans-serif" }}>
+                            <span style={{ color: nb > 0 ? "#fff" : isToday ? "#e8213a" : "#3d1a0a", fontSize: "0.8rem", fontWeight: isToday ? "bold" : "normal" }}>{jour}</span>
+                            {nb > 0 ? <span style={{ color: "#fff", fontSize: "0.6rem", fontWeight: "bold" }}>👤{nb}</span>
+                              : prevus.length > 0 && <span style={{ color: "#c8a878", fontSize: "0.58rem" }}>{prevus.length}📋</span>}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <div style={{ display: "flex", gap: "0.8rem", justifyContent: "center", fontSize: "0.66rem", color: "#a07848", marginBottom: "1rem" }}>
+                      <span>🟢 a bossé</span><span>🟡 prévu de base</span>
+                    </div>
+
+                    <div style={{ color: "#a07848", fontSize: "0.72rem", fontWeight: "bold", marginBottom: "0.5rem" }}>👥 TOTAL PAR EMPLOYÉ</div>
                     {recapParEmploye().length === 0 && <div style={{ color: "#c8a878", textAlign: "center", padding: "2rem", fontSize: "0.85rem" }}>Aucune heure déclarée ce mois</div>}
                     {recapParEmploye().map(([nom, h]) => (
                       <button key={nom} onClick={() => setHeuresEmployeFilter(nom)}
@@ -2251,6 +2320,36 @@ export default function App() {
                     </div>
                     <div style={{ color: "#a07848", fontSize: "0.72rem", textAlign: "center", marginTop: "0.5rem" }}>
                       👆 Touche un jour pour {isAdmin || employeVu === currentUser?.prenom ? "ajouter / modifier tes heures" : "voir"}
+                    </div>
+
+                    {/* Résumé du mois en direct */}
+                    <div style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "12px", padding: "1rem", marginTop: "0.9rem" }}>
+                      <div style={{ color: "#a07848", fontSize: "0.72rem", fontWeight: "bold", marginBottom: "0.7rem", textTransform: "capitalize" as const }}>📊 RÉSUMÉ — {moisLabel}</div>
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "0.5rem", marginBottom: "0.8rem" }}>
+                        <div style={{ background: "#faebd7", borderRadius: "10px", padding: "0.6rem", textAlign: "center" }}>
+                          <div style={{ color: "#e8213a", fontSize: "1.3rem", fontWeight: "900" }}>{heuresMoisData.length}</div>
+                          <div style={{ color: "#a07848", fontSize: "0.62rem" }}>JOURS</div>
+                        </div>
+                        <div style={{ background: "#faebd7", borderRadius: "10px", padding: "0.6rem", textAlign: "center" }}>
+                          <div style={{ color: "#e8213a", fontSize: "1.3rem", fontWeight: "900" }}>{totalMois.toFixed(1).replace(".0", "")}</div>
+                          <div style={{ color: "#a07848", fontSize: "0.62rem" }}>HEURES</div>
+                        </div>
+                        <div style={{ background: "#faebd7", borderRadius: "10px", padding: "0.6rem", textAlign: "center" }}>
+                          <div style={{ color: "#e8213a", fontSize: "1.3rem", fontWeight: "900" }}>{heuresMoisData.length > 0 ? (totalMois / heuresMoisData.length).toFixed(1).replace(".0", "") : "0"}</div>
+                          <div style={{ color: "#a07848", fontSize: "0.62rem" }}>MOY/JOUR</div>
+                        </div>
+                      </div>
+                      {/* Liste des jours */}
+                      {heuresMoisData.length === 0 ? (
+                        <div style={{ color: "#c8a878", fontSize: "0.8rem", textAlign: "center", padding: "0.5rem" }}>Aucun jour déclaré ce mois</div>
+                      ) : (
+                        [...heuresMoisData].sort((a, b) => a.date.localeCompare(b.date)).map(h => (
+                          <div key={h.id} style={{ display: "flex", justifyContent: "space-between", padding: "0.35rem 0", borderTop: "1px solid #f0d8b8", fontSize: "0.82rem" }}>
+                            <span style={{ color: "#3d1a0a", textTransform: "capitalize" as const }}>{new Date(h.date + "T12:00:00").toLocaleDateString("fr-BE", { weekday: "short", day: "numeric", month: "short" })}</span>
+                            <span style={{ color: "#4caf50", fontWeight: "bold" }}>{Number(h.heures).toFixed(1).replace(".0", "")} h</span>
+                          </div>
+                        ))
+                      )}
                     </div>
                   </>
                 )}
