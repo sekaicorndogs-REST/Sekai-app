@@ -2183,7 +2183,7 @@ export default function App() {
             </div>
           </div>
           <div style={{ display: "flex", gap: "0.4rem", overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
-            {[{id:"heures",label:"📅 Calendrier"},{id:"remplacements",label:"Remplacements"},{id:"events",label:"Events"},{id:"stats",label:"Stats"},...(isAdmin?[{id:"suivi",label:"🏆 Suivi"},{id:"fermeture",label:"🔒 Fermeture"}]:[])].map(tab => (
+            {[{id:"heures",label:"📅 Calendrier"},{id:"events",label:"Events"},{id:"stats",label:"Stats"},...(isAdmin?[{id:"suivi",label:"🏆 Suivi"},{id:"fermeture",label:"🔒 Fermeture"}]:[])].map(tab => (
               <button key={tab.id} onClick={() => { if (tab.id === "fermeture") { setPage("fermetures"); loadFermetureHistorique(); loadFermetureData(); } else { setHoraireView(tab.id); if (tab.id === "suivi") loadAmendes(); if (tab.id === "heures") { fetchHeuresJours(horaireRestaurant); if (isAdmin && !allUsers.length) loadUsers(); } } }}
                 style={{ background: horaireView === tab.id ? "#f5c842" : "#1e1e1e", color: horaireView === tab.id ? "#111" : "#555", border: "none", borderRadius: "8px", padding: "0.35rem 0.9rem", flexShrink: 0, whiteSpace: "nowrap", fontSize: "0.78rem", fontFamily: "'Poppins', sans-serif", fontWeight: horaireView === tab.id ? "bold" : "normal", cursor: "pointer" }}>
                 {tab.label}
