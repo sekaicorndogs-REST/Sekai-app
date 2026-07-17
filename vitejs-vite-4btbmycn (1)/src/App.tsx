@@ -283,6 +283,26 @@ async function deleteEventWorker(id) {
   if (!res.ok) throw new Error("Delete event_worker failed");
 }
 
+// ── Events planning (créés par admin) ──
+async function fetchEventsPlanning() {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/events_planning?select=*&order=event_date.asc`, { headers: HEADERS });
+  if (!res.ok) throw new Error("Fetch events_planning failed");
+  return res.json();
+}
+async function createEventPlanning(data) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/events_planning`, {
+    method: "POST", headers: HEADERS, body: JSON.stringify(data)
+  });
+  if (!res.ok) throw new Error("Create event_planning failed");
+  return res.json();
+}
+async function deleteEventPlanning(id) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/events_planning?id=eq.${id}`, {
+    method: "DELETE", headers: HEADERS
+  });
+  if (!res.ok) throw new Error("Delete event_planning failed");
+}
+
 // ── FINANCES API ──────────────────────────────────────────
 async function fetchDettes() {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/finances_dettes?select=*&order=categorie.asc`, { headers: HEADERS });
@@ -715,6 +735,7 @@ export default function App() {
   // ── Events team ──
   const [eventWorkers, setEventWorkers] = useState([]);
   const [eventWorkersLoading, setEventWorkersLoading] = useState(false);
+  const [eventsPlanning, setEventsPlanning] = useState<any[]>([]);
   const [showAddEvent, setShowAddEvent] = useState(false);
   const [newEventLabel, setNewEventLabel] = useState("");
   const [newEventStand, setNewEventStand] = useState("");
@@ -1508,18 +1529,28 @@ export default function App() {
   async function loadEventWorkers() {
     setEventWorkersLoading(true);
     try {
-      const data = await fetchEventWorkers();
-      setEventWorkers(data);
+      const [workers, planning] = await Promise.all([fetchEventWorkers(), fetchEventsPlanning()]);
+      setEventWorkers(workers);
+      setEventsPlanning(planning);
     } catch { flash("❌ Erreur chargement events"); }
     finally { setEventWorkersLoading(false); }
   }
 
   async function handleAddEvent() {
-    if (!newEventLabel.trim() || !newEventDate || newEventEmployes.length === 0) {
-      flash("❌ Nom, date et au moins 1 personne requis");
+    if (!newEventLabel.trim() || !newEventDate) {
+      flash("❌ Nom et date requis");
       return;
     }
     try {
+      // Crée l'event (planning)
+      await createEventPlanning({
+        label: newEventLabel.trim(),
+        stand: newEventStand || null,
+        event_date: newEventDate,
+        note: newEventNote.trim() || null,
+        created_by: currentUser.prenom
+      });
+      // Pré-assigne les personnes sélectionnées (optionnel)
       for (const nom of newEventEmployes) {
         await createEventWorker({
           employe_nom: nom,
@@ -1530,12 +1561,45 @@ export default function App() {
           assigned_by: currentUser.prenom
         });
       }
-      flash(`✅ Event ajouté pour ${newEventEmployes.length} personne${newEventEmployes.length > 1 ? "s" : ""}`);
+      flash("✅ Event créé");
       setShowAddEvent(false);
       setNewEventLabel(""); setNewEventStand(""); setNewEventDate("");
       setNewEventEmployes([]); setNewEventNote("");
       loadEventWorkers();
     } catch { flash("❌ Erreur création event"); }
+  }
+
+  async function handleDeleteEventPlanning(ev) {
+    if (!confirm("Supprimer complètement cet event ?")) return;
+    try {
+      await deleteEventPlanning(ev.id);
+      // Supprime aussi les participations liées
+      const liens = eventWorkers.filter((w: any) => normalizeDate(w.event_date) === normalizeDate(ev.event_date) && w.event_label === ev.label && (w.event_stand || "") === (ev.stand || ""));
+      for (const l of liens) await deleteEventWorker(l.id);
+      flash("🗑️ Event supprimé");
+      loadEventWorkers();
+    } catch { flash("❌ Erreur"); }
+  }
+
+  // Un employé (ou admin) déclare / retire sa participation
+  async function toggleParticipation(ev, nom, existingId) {
+    try {
+      if (existingId) {
+        await deleteEventWorker(existingId);
+        flash("↩️ Participation retirée");
+      } else {
+        await createEventWorker({
+          employe_nom: nom,
+          event_label: ev.label,
+          event_stand: ev.stand || null,
+          event_date: normalizeDate(ev.event_date),
+          notes: null,
+          assigned_by: nom
+        });
+        flash("✅ Tu participes à cet event !");
+      }
+      loadEventWorkers();
+    } catch { flash("❌ Erreur"); }
   }
 
   async function handleDeleteEventWorker(id) {
@@ -2184,7 +2248,7 @@ export default function App() {
           </div>
           <div style={{ display: "flex", gap: "0.4rem", overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
             {[{id:"heures",label:"📅 Calendrier"},{id:"events",label:"Events"},{id:"stats",label:"Stats"},...(isAdmin?[{id:"suivi",label:"🏆 Suivi"},{id:"fermeture",label:"🔒 Fermeture"}]:[])].map(tab => (
-              <button key={tab.id} onClick={() => { if (tab.id === "fermeture") { setPage("fermetures"); loadFermetureHistorique(); loadFermetureData(); } else { setHoraireView(tab.id); if (tab.id === "suivi") loadAmendes(); if (tab.id === "heures") { fetchHeuresJours(horaireRestaurant); if (isAdmin && !allUsers.length) loadUsers(); } } }}
+              <button key={tab.id} onClick={() => { if (tab.id === "fermeture") { setPage("fermetures"); loadFermetureHistorique(); loadFermetureData(); } else { setHoraireView(tab.id); if (tab.id === "suivi") loadAmendes(); if (tab.id === "heures") { fetchHeuresJours(horaireRestaurant); if (isAdmin && !allUsers.length) loadUsers(); } if (tab.id === "events") loadEventWorkers(); } }}
                 style={{ background: horaireView === tab.id ? "#f5c842" : "#1e1e1e", color: horaireView === tab.id ? "#111" : "#555", border: "none", borderRadius: "8px", padding: "0.35rem 0.9rem", flexShrink: 0, whiteSpace: "nowrap", fontSize: "0.78rem", fontFamily: "'Poppins', sans-serif", fontWeight: horaireView === tab.id ? "bold" : "normal", cursor: "pointer" }}>
                 {tab.label}
               </button>
@@ -2486,53 +2550,65 @@ export default function App() {
               </div>
 
               {(() => {
-                const moisEvents = eventWorkers.filter(e => normalizeDate(e.event_date).startsWith(eventMois));
-                const visible = isAdmin ? moisEvents : moisEvents.filter(e => e.employe_nom === currentUser.prenom);
+                const moisPlanning = eventsPlanning.filter(ev => normalizeDate(ev.event_date).startsWith(eventMois))
+                  .sort((a, b) => normalizeDate(a.event_date).localeCompare(normalizeDate(b.event_date)));
 
-                const grouped = {};
-                visible.forEach(e => {
-                  const key = `${normalizeDate(e.event_date)}__${e.event_label}__${e.event_stand || ""}`;
-                  if (!grouped[key]) grouped[key] = { date: normalizeDate(e.event_date), label: e.event_label, stand: e.event_stand, items: [], note: e.notes };
-                  grouped[key].items.push(e);
-                });
-                const cards = Object.values(grouped).sort((a: any, b: any) => a.date.localeCompare(b.date));
-
-                if (cards.length === 0) {
+                if (moisPlanning.length === 0) {
                   return <div style={{ color: "#c8a878", fontSize: "0.82rem", textAlign: "center", padding: "2rem" }}>Aucun event ce mois-ci</div>;
                 }
 
-                return cards.map((card: any, idx: number) => (
-                  <div key={idx} style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "12px", padding: "1rem", marginBottom: "0.75rem" }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "0.5rem" }}>
-                      <div>
-                        <div style={{ color: "#e8213a", fontSize: "0.95rem", fontWeight: "bold" }}>🎪 {card.label}</div>
-                        <div style={{ color: "#a07848", fontSize: "0.78rem", marginTop: "0.2rem", textTransform: "capitalize" }}>
-                          📅 {formatDateShort(card.date)}
-                          {card.stand && <span style={{ marginLeft: "0.5rem" }}>· {card.stand === "event-1" ? "Event 1" : "Event 2"}</span>}
+                return moisPlanning.map((ev: any) => {
+                  const dateStr = normalizeDate(ev.event_date);
+                  const participants = eventWorkers.filter((w: any) => normalizeDate(w.event_date) === dateStr && w.event_label === ev.label && (w.event_stand || "") === (ev.stand || ""));
+                  const maParticipation = participants.find((w: any) => w.employe_nom === currentUser.prenom);
+                  return (
+                    <div key={ev.id} style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "12px", padding: "1rem", marginBottom: "0.75rem" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "0.5rem" }}>
+                        <div>
+                          <div style={{ color: "#e8213a", fontSize: "0.95rem", fontWeight: "bold" }}>🎪 {ev.label}</div>
+                          <div style={{ color: "#a07848", fontSize: "0.78rem", marginTop: "0.2rem", textTransform: "capitalize" }}>
+                            📅 {formatDateShort(dateStr)}
+                            {ev.stand && <span style={{ marginLeft: "0.5rem" }}>· {ev.stand === "event-1" ? "Event 1" : "Event 2"}</span>}
+                          </div>
+                        </div>
+                        <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                          <span style={{ background: "#fff0f0", color: "#e8213a", borderRadius: "10px", padding: "0.2rem 0.6rem", fontSize: "0.78rem", fontWeight: "bold" }}>
+                            {participants.length} pers.
+                          </span>
+                          {isAdmin && (
+                            <button onClick={() => handleDeleteEventPlanning(ev)}
+                              style={{ background: "none", border: "none", color: "#c8a878", cursor: "pointer", padding: 0 }}><Trash2 size={15} /></button>
+                          )}
                         </div>
                       </div>
-                      <span style={{ background: "#fff0f0", color: "#e8213a", borderRadius: "10px", padding: "0.2rem 0.6rem", fontSize: "0.78rem", fontWeight: "bold" }}>
-                        {card.items.length} pers.
-                      </span>
+
+                      {/* Bouton participation (employé + admin) */}
+                      <button onClick={() => toggleParticipation(ev, currentUser.prenom, maParticipation?.id)}
+                        style={{ width: "100%", background: maParticipation ? "#4caf50" : "#e8213a", color: "#fff", border: "none", borderRadius: "10px", padding: "0.7rem", fontSize: "0.9rem", fontWeight: "bold", cursor: "pointer", fontFamily: "'Poppins', sans-serif", marginBottom: participants.length ? "0.6rem" : 0 }}>
+                        {maParticipation ? "✅ Tu participes — clique pour retirer" : "🙋 J'ai participé / je participe"}
+                      </button>
+
+                      {participants.length > 0 && (
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem" }}>
+                          {participants.map((it: any) => (
+                            <span key={it.id} style={{ background: it.employe_nom === currentUser.prenom ? "#f0fff4" : "#faebd7", color: "#3d1a0a", borderRadius: "8px", padding: "0.3rem 0.7rem", fontSize: "0.82rem", border: `1px solid ${it.employe_nom === currentUser.prenom ? "#4caf5066" : "#f0d8b8"}`, display: "inline-flex", alignItems: "center", gap: "0.3rem" }}>
+                              👤 {it.employe_nom}
+                              {isAdmin && (
+                                <button onClick={() => handleDeleteEventWorker(it.id)}
+                                  style={{ background: "none", border: "none", color: "#e57373", cursor: "pointer", fontSize: "0.85rem", padding: 0, lineHeight: 1 }}>✕</button>
+                              )}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                      {ev.note && (
+                        <div style={{ color: "#a07848", fontSize: "0.72rem", marginTop: "0.5rem", borderTop: "1px solid #f0d8b8", paddingTop: "0.4rem" }}>
+                          📌 {ev.note}
+                        </div>
+                      )}
                     </div>
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem", marginTop: "0.5rem" }}>
-                      {card.items.map((it: any) => (
-                        <span key={it.id} style={{ background: "#faebd7", color: "#3d1a0a", borderRadius: "8px", padding: "0.3rem 0.7rem", fontSize: "0.82rem", border: "1px solid #f0d8b8", display: "inline-flex", alignItems: "center", gap: "0.3rem" }}>
-                          👤 {it.employe_nom}
-                          {isAdmin && (
-                            <button onClick={() => handleDeleteEventWorker(it.id)}
-                              style={{ background: "none", border: "none", color: "#e57373", cursor: "pointer", fontSize: "0.85rem", padding: 0, lineHeight: 1 }}>✕</button>
-                          )}
-                        </span>
-                      ))}
-                    </div>
-                    {card.note && (
-                      <div style={{ color: "#a07848", fontSize: "0.72rem", marginTop: "0.5rem", borderTop: "1px solid #f0d8b8", paddingTop: "0.4rem" }}>
-                        📌 {card.note}
-                      </div>
-                    )}
-                  </div>
-                ));
+                  );
+                });
               })()}
             </div>
           )}
@@ -2559,7 +2635,7 @@ export default function App() {
                   <option value="event-2">🎪 Event 2</option>
                 </select>
 
-                <div style={{ color: "#a07848", fontSize: "0.78rem", marginTop: "0.3rem" }}>👥 Qui travaille cet event ?</div>
+                <div style={{ color: "#a07848", fontSize: "0.78rem", marginTop: "0.3rem" }}>👥 Pré-assigner des personnes <span style={{ color: "#c8a878" }}>(optionnel — les employés peuvent s'ajouter eux-mêmes)</span></div>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem" }}>
                   {["Abdel","Nabil","Mohammed","Wassim","Rachid","Ali","Momo"].map(nom => {
                     const sel = newEventEmployes.includes(nom);
@@ -2576,9 +2652,9 @@ export default function App() {
                   style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.9rem", fontFamily: "'Poppins', sans-serif", outline: "none", width: "100%", boxSizing: "border-box", resize: "none" }} />
 
                 <button onClick={handleAddEvent}
-                  disabled={!newEventLabel.trim() || !newEventDate || newEventEmployes.length === 0}
-                  style={{ background: "#e8213a", color: "#ffffff", border: "none", padding: "0.9rem", borderRadius: "10px", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", fontSize: "1rem", cursor: "pointer", width: "100%", opacity: (!newEventLabel.trim() || !newEventDate || newEventEmployes.length === 0) ? 0.5 : 1 }}>
-                  ✅ Confirmer ({newEventEmployes.length} pers.)
+                  disabled={!newEventLabel.trim() || !newEventDate}
+                  style={{ background: "#e8213a", color: "#ffffff", border: "none", padding: "0.9rem", borderRadius: "10px", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", fontSize: "1rem", cursor: "pointer", width: "100%", opacity: (!newEventLabel.trim() || !newEventDate) ? 0.5 : 1 }}>
+                  ✅ Créer l'event{newEventEmployes.length > 0 ? ` (${newEventEmployes.length} pré-assigné${newEventEmployes.length > 1 ? "s" : ""})` : ""}
                 </button>
               </div>
             </div>
