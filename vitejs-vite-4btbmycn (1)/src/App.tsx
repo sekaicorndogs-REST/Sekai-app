@@ -1000,7 +1000,8 @@ export default function App() {
   }
 
   function flash(msg: string, type: "success"|"error"|"warn" = msg.startsWith("✅") ? "success" : msg.startsWith("⚠️") ? "warn" : "error") {
-    setToast({ msg, type });
+    const clean = msg.replace(/^[^A-Za-zÀ-ÿ0-9]+/, "").trim();
+    setToast({ msg: clean, type });
     setTimeout(() => setToast(null), 3500);
   }
 
