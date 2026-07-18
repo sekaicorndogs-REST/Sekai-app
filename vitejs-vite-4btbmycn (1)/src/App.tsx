@@ -1976,7 +1976,7 @@ export default function App() {
         { id: "paie", label: "Paie", icon: "paie", adminOnly: true },
         { id: "profil", label: "Profil", icon: "profil", adminOnly: false }
       ].filter(tab => !tab.adminOnly || isAdmin).map(tab => (
-        <button key={tab.id} onClick={() => { setPage(tab.id); if (tab.id === "profil") { loadDocuments(); if (isAdmin && !allUsers.length) loadUsers(); } if (tab.id === "comptes") loadUsers(); if (tab.id === "horaires") { if (!horaires.length) fetchHoraires(horaireRestaurant); fetchHeuresJours(horaireRestaurant); if (isAdmin && !allUsers.length) loadUsers(); } if (tab.id === "finances") { loadFinances(); loadTodoTaches(); loadEvents(); } if (tab.id === "fermetures") { loadFermetureHistorique(); loadFermetureData(); } if (tab.id === "paie") { loadFichesPaie(); loadUsers(); } }} style={{ flex: 1, background: "none", border: "none", padding: "0.7rem 0", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: "0.15rem" }}>
+        <button key={tab.id} onClick={() => { setPage(tab.id); if (tab.id === "profil") { loadDocuments(); loadFichesPaie(); if (isAdmin && !allUsers.length) loadUsers(); } if (tab.id === "comptes") loadUsers(); if (tab.id === "horaires") { if (!horaires.length) fetchHoraires(horaireRestaurant); fetchHeuresJours(horaireRestaurant); if (isAdmin && !allUsers.length) loadUsers(); } if (tab.id === "finances") { loadFinances(); loadTodoTaches(); loadEvents(); } if (tab.id === "fermetures") { loadFermetureHistorique(); loadFermetureData(); } if (tab.id === "paie") { loadFichesPaie(); loadUsers(); } }} style={{ flex: 1, background: "none", border: "none", padding: "0.7rem 0", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: "0.15rem" }}>
           <span style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
             {tab.icon === "stock" && <Package size={20} color={page === tab.id ? "#e8213a" : "#c8a878"} />}
             {tab.icon === "horaires" && <Calendar size={20} color={page === tab.id ? "#e8213a" : "#c8a878"} />}
@@ -4526,6 +4526,28 @@ export default function App() {
                 )}
               </div>
             ));
+          })()}
+
+          {/* Fiches de salaire */}
+          {(() => {
+            const mesFiches = isAdmin ? fichesPaie : fichesPaie.filter((f: any) => f.employe_nom === currentUser.prenom);
+            if (mesFiches.length === 0) return null;
+            return (
+              <>
+                <div style={{ color: "#a07848", fontSize: "0.72rem", fontWeight: "bold", marginTop: "0.9rem", marginBottom: "0.2rem", borderTop: "1.5px dashed #f0d8b8", paddingTop: "0.7rem" }}>💶 FICHES DE SALAIRE</div>
+                {mesFiches.map((f: any) => (
+                  <div key={f.id} style={{ display: "flex", alignItems: "center", gap: "0.6rem", padding: "0.6rem 0", borderTop: "1px solid #f0d8b8" }}>
+                    <button onClick={() => setPdfModal(genererPDFFiche(f, isAdmin ? allUsers.find((u: any) => u.id === f.employe_id) : currentUser, paieDocDate))} style={{ flex: 1, background: "none", border: "none", textAlign: "left", cursor: "pointer", display: "flex", alignItems: "center", gap: "0.6rem", padding: 0, fontFamily: "'Poppins', sans-serif" }}>
+                      <FileText size={20} color="#4caf50" />
+                      <div>
+                        <div style={{ color: "#3d1a0a", fontSize: "0.88rem", fontWeight: "600" }}>Fiche de paie {f.periode || ""}</div>
+                        <div style={{ color: "#a07848", fontSize: "0.7rem" }}>{isAdmin && <span>👤 {f.employe_nom} · </span>}{f.heures_total}h · Net {fmt(f.salaire_net)} €</div>
+                      </div>
+                    </button>
+                  </div>
+                ))}
+              </>
+            );
           })()}
         </div>
 
