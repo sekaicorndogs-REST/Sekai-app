@@ -3401,65 +3401,69 @@ export default function App() {
           const masseLabel = pctMasse < 30 ? "🟢 Sain" : pctMasse < 35 ? "🟠 Limite" : "🔴 Trop élevé";
           const fmt = (n: number) => n.toLocaleString("fr-BE", { maximumFractionDigits: 0 });
 
+          const CARD = { background: "#ffffff", border: "1px solid #efe0c9", borderRadius: "16px", boxShadow: "0 1px 3px rgba(61,26,10,0.05)" } as const;
+          const LBL = { color: "#a07848", fontSize: "0.68rem", fontWeight: 600, letterSpacing: "0.4px", textTransform: "uppercase" as const };
           return (
-            <div style={{ padding: "0.8rem 1.1rem" }}>
+            <div style={{ padding: "0.9rem 1rem", display: "flex", flexDirection: "column", gap: "0.7rem" }}>
               {/* CA modifiable */}
-              <div style={{ background: "#fff5f5", border: "1.5px solid #e8213a44", borderRadius: "14px", padding: "1rem", marginBottom: "0.8rem" }}>
-                <div style={{ color: "#e8213a", fontSize: "0.72rem", fontWeight: "bold", marginBottom: "0.5rem" }}>💰 CHIFFRE D'AFFAIRES / MOIS</div>
-                <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+              <div style={{ ...CARD, padding: "1.1rem" }}>
+                <div style={{ ...LBL, marginBottom: "0.6rem" }}>💰 Chiffre d'affaires / mois</div>
+                <div style={{ display: "flex", alignItems: "center", background: "#faf3e8", border: "1.5px solid #efe0c9", borderRadius: "12px", padding: "0.2rem 0.9rem" }}>
                   <input value={caMoyen} onChange={e => { const v = e.target.value.replace(/[^0-9]/g, ""); setCaMoyen(v); localStorage.setItem("sekai_ca_moyen", v); }} inputMode="numeric"
-                    style={{ background: "#fff", border: "2px solid #e8213a", color: "#e8213a", padding: "0.6rem 0.9rem", borderRadius: "10px", fontSize: "1.6rem", fontWeight: "900", outline: "none", width: "100%", boxSizing: "border-box" as const, fontFamily: "'Poppins', sans-serif" }} />
-                  <span style={{ color: "#e8213a", fontSize: "1.6rem", fontWeight: "900" }}>€</span>
+                    style={{ background: "transparent", border: "none", color: "#e8213a", padding: "0.5rem 0", fontSize: "1.7rem", fontWeight: "800", outline: "none", width: "100%", boxSizing: "border-box" as const, fontFamily: "'Poppins', sans-serif" }} />
+                  <span style={{ color: "#e8213a", fontSize: "1.5rem", fontWeight: "800" }}>€</span>
                 </div>
-                <div style={{ color: "#a07848", fontSize: "0.7rem", marginTop: "0.4rem" }}>≈ {fmt(ca/30)} €/jour · modifie pour recalculer</div>
+                <div style={{ color: "#c8a878", fontSize: "0.7rem", marginTop: "0.5rem" }}>≈ {fmt(ca/30)} €/jour · modifie pour tout recalculer</div>
+              </div>
+
+              {/* Reste après charges — HERO */}
+              <div style={{ background: reste >= 0 ? "#1f6e42" : "#e8213a", borderRadius: "18px", padding: "1.3rem", color: "#fff", boxShadow: `0 6px 18px ${reste >= 0 ? "rgba(31,110,66,0.28)" : "rgba(232,33,58,0.28)"}` }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                  <div style={{ fontSize: "0.72rem", fontWeight: 600, opacity: 0.9, letterSpacing: "0.3px" }}>RESTE APRÈS CHARGES</div>
+                  <span style={{ background: "rgba(255,255,255,0.18)", fontSize: "0.68rem", fontWeight: 600, padding: "0.2rem 0.6rem", borderRadius: "20px" }}>{ca > 0 ? ((reste/ca)*100).toFixed(0) : 0} % du CA</span>
+                </div>
+                <div style={{ fontSize: "2.6rem", fontWeight: "800", lineHeight: 1.1, marginTop: "0.2rem" }}>{fmt(reste)} €</div>
+                <div style={{ fontSize: "0.7rem", opacity: 0.85, marginTop: "0.2rem" }}>CA {fmt(ca)} € − charges {fmt(totalCharges)} € · hors dettes</div>
               </div>
 
               {/* Liaison avec les charges */}
-              <button onClick={() => setFinancesView("charges")} style={{ width: "100%", background: "#fff8f0", border: "1.5px dashed #f0d8b8", borderRadius: "10px", padding: "0.6rem 0.9rem", marginBottom: "0.8rem", display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer", fontFamily: "'Poppins', sans-serif" }}>
-                <span style={{ color: "#a07848", fontSize: "0.75rem" }}>🔗 Basé sur tes <strong style={{ color: "#3d1a0a" }}>{charges.length} charges</strong> = <strong style={{ color: "#e8213a" }}>{fmt(totalCharges)} €</strong></span>
-                <span style={{ color: "#e8213a", fontSize: "0.72rem", fontWeight: "bold" }}>Modifier ›</span>
+              <button onClick={() => setFinancesView("charges")} style={{ ...CARD, width: "100%", padding: "0.7rem 0.9rem", display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer", fontFamily: "'Poppins', sans-serif" }}>
+                <span style={{ color: "#a07848", fontSize: "0.78rem", display: "flex", alignItems: "center", gap: "6px" }}><CreditCard size={15} color="#e8213a" /> {charges.length} charges = <strong style={{ color: "#3d1a0a" }}>{fmt(totalCharges)} €</strong></span>
+                <span style={{ color: "#e8213a", fontSize: "0.75rem", fontWeight: 600, display: "flex", alignItems: "center" }}>Modifier <ChevronRight size={15} /></span>
               </button>
 
-              {/* Reste après charges */}
-              <div style={{ background: reste >= 0 ? "#f5fff8" : "#fff5f5", border: `2px solid ${reste >= 0 ? "#4caf5044" : "#e8213a44"}`, borderRadius: "14px", padding: "1.2rem", marginBottom: "0.8rem", textAlign: "center" }}>
-                <div style={{ color: reste >= 0 ? "#4caf50" : "#e8213a", fontSize: "0.72rem", fontWeight: "bold" }}>RESTE APRÈS TOUTES LES CHARGES</div>
-                <div style={{ color: reste >= 0 ? "#4caf50" : "#e8213a", fontSize: "2.5rem", fontWeight: "900" }}>{fmt(reste)} €</div>
-                <div style={{ color: "#a07848", fontSize: "0.7rem" }}>CA {fmt(ca)} € − Charges {fmt(totalCharges)} € · (hors remboursement dettes)</div>
-              </div>
-
               {/* Masse salariale gauge */}
-              <div style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "14px", padding: "1rem", marginBottom: "0.8rem" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
-                  <div style={{ color: "#a07848", fontSize: "0.72rem", fontWeight: "bold" }}>👥 MASSE SALARIALE TOTALE</div>
-                  <div style={{ color: masseColor, fontSize: "0.75rem", fontWeight: "bold" }}>{masseLabel}</div>
+              <div style={{ ...CARD, padding: "1.1rem" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.6rem" }}>
+                  <div style={LBL}>👥 Masse salariale</div>
+                  <span style={{ background: masseColor + "1a", color: masseColor, fontSize: "0.7rem", fontWeight: 600, padding: "0.2rem 0.6rem", borderRadius: "20px" }}>{masseLabel}</span>
                 </div>
-                <div style={{ display: "flex", alignItems: "baseline", gap: "0.5rem", marginBottom: "0.6rem" }}>
-                  <span style={{ color: masseColor, fontSize: "2rem", fontWeight: "900" }}>{pctMasse.toFixed(1)}%</span>
+                <div style={{ display: "flex", alignItems: "baseline", gap: "0.5rem", marginBottom: "0.7rem" }}>
+                  <span style={{ color: masseColor, fontSize: "2rem", fontWeight: "800" }}>{pctMasse.toFixed(1)}%</span>
                   <span style={{ color: "#a07848", fontSize: "0.85rem" }}>du CA · {fmt(masseSalariale)} €</span>
                 </div>
                 {/* Barre avec seuils */}
-                <div style={{ position: "relative" as const, background: "#f0d8b8", borderRadius: "6px", height: "12px", marginBottom: "0.3rem" }}>
-                  <div style={{ background: masseColor, height: "12px", borderRadius: "6px", width: `${Math.min(pctMasse, 100)}%`, transition: "width 0.4s" }} />
-                  {/* Repère 35% */}
-                  <div style={{ position: "absolute" as const, left: "35%", top: "-3px", width: "2px", height: "18px", background: "#e8213a" }} />
+                <div style={{ position: "relative" as const, background: "#f2e6d2", borderRadius: "20px", height: "10px", marginBottom: "0.35rem" }}>
+                  <div style={{ background: masseColor, height: "10px", borderRadius: "20px", width: `${Math.min(pctMasse, 100)}%`, transition: "width 0.4s" }} />
+                  <div style={{ position: "absolute" as const, left: "35%", top: "-3px", width: "2px", height: "16px", background: "#e8213a", borderRadius: "2px" }} />
                 </div>
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.65rem", color: "#c8a878" }}>
-                  <span>0%</span><span style={{ color: "#e8213a" }}>⬆ plafond 35%</span><span>100%</span>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.64rem", color: "#c8a878" }}>
+                  <span>0%</span><span style={{ color: "#e8213a" }}>plafond 35%</span><span>100%</span>
                 </div>
-                <div style={{ borderTop: "1px solid #f0d8b8", marginTop: "0.6rem", paddingTop: "0.5rem" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.8rem", padding: "0.15rem 0" }}>
+                <div style={{ borderTop: "1px solid #f4e8d6", marginTop: "0.7rem", paddingTop: "0.5rem" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.82rem", padding: "0.18rem 0" }}>
                     <span style={{ color: "#6b4c2a" }}>👤 Salaire gérant</span>
-                    <span style={{ color: "#a07848", fontWeight: "600" }}>{fmt(gerant)} € <span style={{ color: "#c8a878", fontWeight: "normal" }}>({ca>0?((gerant/ca)*100).toFixed(1):0}%)</span></span>
+                    <span style={{ color: "#3d1a0a", fontWeight: 600 }}>{fmt(gerant)} € <span style={{ color: "#c8a878", fontWeight: "normal" }}>({ca>0?((gerant/ca)*100).toFixed(1):0}%)</span></span>
                   </div>
-                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.8rem", padding: "0.15rem 0" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.82rem", padding: "0.18rem 0" }}>
                     <span style={{ color: "#6b4c2a" }}>👥 Employés</span>
-                    <span style={{ color: "#a07848", fontWeight: "600" }}>{fmt(employesReels)} € <span style={{ color: "#c8a878", fontWeight: "normal" }}>({ca>0?((employesReels/ca)*100).toFixed(1):0}%)</span></span>
+                    <span style={{ color: "#3d1a0a", fontWeight: 600 }}>{fmt(employesReels)} € <span style={{ color: "#c8a878", fontWeight: "normal" }}>({ca>0?((employesReels/ca)*100).toFixed(1):0}%)</span></span>
                   </div>
                 </div>
               </div>
 
               {/* Budget employé MAX — la carte clé */}
-              <div style={{ background: "linear-gradient(135deg, #3d1a0a, #5a2a12)", borderRadius: "16px", padding: "1.3rem", marginBottom: "0.8rem", color: "#fff" }}>
+              <div style={{ background: "linear-gradient(135deg, #3d1a0a, #5a2a12)", borderRadius: "18px", padding: "1.3rem", color: "#fff", boxShadow: "0 6px 18px rgba(61,26,10,0.25)" }}>
                 <div style={{ color: "#f5c842", fontSize: "0.72rem", fontWeight: "bold", marginBottom: "0.3rem" }}>🎯 BUDGET EMPLOYÉS MAX / MOIS</div>
                 <div style={{ fontSize: "2.5rem", fontWeight: "900", color: "#fff", lineHeight: 1 }}>{fmt(budgetEmployeMax)} €</div>
                 <div style={{ color: "#f0d8b8", fontSize: "0.72rem", marginTop: "0.3rem", marginBottom: "0.9rem" }}>Plafond sain = 35% du CA − salaire gérant</div>
@@ -3481,43 +3485,41 @@ export default function App() {
               </div>
 
               {/* Règle simple */}
-              <div style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "12px", padding: "0.9rem", marginBottom: "1rem" }}>
-                <div style={{ color: "#a07848", fontSize: "0.72rem", fontWeight: "bold", marginBottom: "0.5rem" }}>📌 RÈGLE SIMPLE À RETENIR</div>
-                <div style={{ color: "#3d1a0a", fontSize: "0.82rem", lineHeight: 1.5 }}>
-                  Chaque <strong>+1 000 € de CA/mois</strong> = <strong style={{ color: "#4caf50" }}>+150 €</strong> de budget employé possible.<br/>
-                  Ne dépasse jamais <strong style={{ color: "#e8213a" }}>35% du CA</strong> en masse salariale totale (gérant + employés).
+              <div style={{ background: "#fdf6e9", border: "1px solid #efe0c9", borderRadius: "16px", padding: "1rem" }}>
+                <div style={{ ...LBL, marginBottom: "0.5rem" }}>📌 Règle simple à retenir</div>
+                <div style={{ color: "#3d1a0a", fontSize: "0.83rem", lineHeight: 1.55 }}>
+                  Chaque <strong>+1 000 € de CA/mois</strong> = <strong style={{ color: "#1f6e42" }}>+150 €</strong> de budget employé possible.<br/>
+                  Ne dépasse jamais <strong style={{ color: "#e8213a" }}>35 % du CA</strong> en masse salariale (gérant + employés).
                 </div>
               </div>
 
               {/* ═══ RÉCAP DETTES ═══ */}
-              <div style={{ borderTop: "2px dashed #f0d8b8", margin: "0.5rem 0 1rem", paddingTop: "1rem" }}>
-                <div style={{ color: "#3d1a0a", fontSize: "0.95rem", fontWeight: "900", marginBottom: "0.8rem" }}>💳 RÉCAP DETTES & MENSUALITÉS</div>
+              <div style={{ color: "#3d1a0a", fontSize: "0.92rem", fontWeight: 700, margin: "0.6rem 0 0.1rem", display: "flex", alignItems: "center", gap: "6px" }}><CreditCard size={17} color="#e8213a" /> Récap dettes & mensualités</div>
+              <div style={{ background: "#3d1a0a", borderRadius: "18px", padding: "1.3rem", color: "#fff", textAlign: "center", boxShadow: "0 6px 18px rgba(61,26,10,0.25)" }}>
+                <div style={{ color: "#f5c842", fontSize: "0.72rem", fontWeight: 600, letterSpacing: "0.3px" }}>CA MINIMUM PAR JOUR</div>
+                <div style={{ fontSize: "2.6rem", fontWeight: "800", lineHeight: 1.1 }}>{caMinParJour} €</div>
+                <div style={{ color: "#e6d3b6", fontSize: "0.72rem" }}>pour couvrir charges + mensualités dettes</div>
               </div>
-              <div style={{ background: "#fff5f5", border: "1.5px solid #e8213a44", borderRadius: "14px", padding: "1.2rem", marginBottom: "0.8rem", textAlign: "center" }}>
-                <div style={{ color: "#e8213a", fontSize: "0.75rem", fontWeight: "600", marginBottom: "0.3rem" }}>CA MINIMUM PAR JOUR</div>
-                <div style={{ color: "#e8213a", fontSize: "2.5rem", fontWeight: "900" }}>{caMinParJour} €</div>
-                <div style={{ color: "#a07848", fontSize: "0.72rem", marginTop: "0.3rem" }}>Pour couvrir charges + mensualités dettes</div>
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.6rem", marginBottom: "0.8rem" }}>
-                <div style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "12px", padding: "0.9rem", textAlign: "center" }}>
-                  <div style={{ color: "#a07848", fontSize: "0.7rem", fontWeight: "600" }}>DETTES TOTALES</div>
-                  <div style={{ color: "#e8213a", fontSize: "1.3rem", fontWeight: "bold" }}>{totalDettes.toLocaleString("fr-BE", { minimumFractionDigits: 0 })} €</div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.6rem" }}>
+                <div style={{ ...CARD, padding: "0.9rem", textAlign: "center" }}>
+                  <div style={LBL}>Dettes totales</div>
+                  <div style={{ color: "#e8213a", fontSize: "1.35rem", fontWeight: "800", marginTop: "0.15rem" }}>{totalDettes.toLocaleString("fr-BE", { minimumFractionDigits: 0 })} €</div>
                 </div>
-                <div style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "12px", padding: "0.9rem", textAlign: "center" }}>
-                  <div style={{ color: "#a07848", fontSize: "0.7rem", fontWeight: "600" }}>MENSUALITÉS/MOIS</div>
-                  <div style={{ color: "#f5a623", fontSize: "1.3rem", fontWeight: "bold" }}>{totalMensualites.toLocaleString("fr-BE", { minimumFractionDigits: 0 })} €</div>
+                <div style={{ ...CARD, padding: "0.9rem", textAlign: "center" }}>
+                  <div style={LBL}>Mensualités/mois</div>
+                  <div style={{ color: "#c98a17", fontSize: "1.35rem", fontWeight: "800", marginTop: "0.15rem" }}>{totalMensualites.toLocaleString("fr-BE", { minimumFractionDigits: 0 })} €</div>
                 </div>
-                <div style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "12px", padding: "0.9rem", textAlign: "center" }}>
-                  <div style={{ color: "#a07848", fontSize: "0.7rem", fontWeight: "600" }}>CHARGES FIXES/MOIS</div>
-                  <div style={{ color: "#3d1a0a", fontSize: "1.3rem", fontWeight: "bold" }}>{totalChargesFixes.toLocaleString("fr-BE", { minimumFractionDigits: 0 })} €</div>
+                <div style={{ ...CARD, padding: "0.9rem", textAlign: "center" }}>
+                  <div style={LBL}>Charges fixes/mois</div>
+                  <div style={{ color: "#3d1a0a", fontSize: "1.35rem", fontWeight: "800", marginTop: "0.15rem" }}>{totalChargesFixes.toLocaleString("fr-BE", { minimumFractionDigits: 0 })} €</div>
                 </div>
-                <div style={{ background: "#f5fff8", border: "1.5px solid #4caf5033", borderRadius: "12px", padding: "0.9rem", textAlign: "center" }}>
-                  <div style={{ color: "#4caf50", fontSize: "0.7rem", fontWeight: "600" }}>DETTES AVEC PLAN</div>
-                  <div style={{ color: "#4caf50", fontSize: "1.3rem", fontWeight: "bold" }}>{dettes.filter(d => d.avec_plan).length} / {dettes.length}</div>
+                <div style={{ ...CARD, padding: "0.9rem", textAlign: "center", borderColor: "#bfe3ca" }}>
+                  <div style={{ ...LBL, color: "#1f6e42" }}>Dettes avec plan</div>
+                  <div style={{ color: "#1f6e42", fontSize: "1.35rem", fontWeight: "800", marginTop: "0.15rem" }}>{dettes.filter(d => d.avec_plan).length} / {dettes.length}</div>
                 </div>
               </div>
-              <div style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "12px", padding: "1rem" }}>
-                <div style={{ color: "#a07848", fontSize: "0.75rem", fontWeight: "bold", marginBottom: "0.7rem" }}>DÉTAIL MENSUALITÉS</div>
+              <div style={{ ...CARD, padding: "1rem" }}>
+                <div style={{ ...LBL, marginBottom: "0.6rem" }}>Détail mensualités</div>
                 {dettes.filter(d => d.avec_plan && d.mensualite).map(d => (
                   <div key={d.id} style={{ display: "flex", justifyContent: "space-between", padding: "0.35rem 0", borderTop: "1px solid #f0d8b8" }}>
                     <div style={{ color: "#3d1a0a", fontSize: "0.85rem" }}>{d.nom}</div>
