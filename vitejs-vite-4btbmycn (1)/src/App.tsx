@@ -3324,16 +3324,16 @@ export default function App() {
                             </div>
                             <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap" }}>
                               <button onClick={() => { setPaiementPartiel(""); setEditingDette(d); }}
-                                style={{ background: "#faebd7", color: "#a07848", border: "1.5px solid #f0d8b8", borderRadius: "8px", padding: "0.35rem 0.7rem", fontSize: "0.75rem", cursor: "pointer", fontFamily: "'Poppins', sans-serif", fontWeight: "bold" }}>
-                                💶 Payer partiel
+                                style={{ background: "#faebd7", color: "#a07848", border: "1.5px solid #f0d8b8", borderRadius: "8px", padding: "0.35rem 0.7rem", fontSize: "0.75rem", cursor: "pointer", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", display: "inline-flex", alignItems: "center", gap: "4px" }}>
+                                <HandCoins size={13} /> Payer partiel
                               </button>
                               <button onClick={() => setEditDetteForm({ ...d })}
-                                style={{ background: "#faebd7", color: "#a07848", border: "1.5px solid #f5c842", borderRadius: "8px", padding: "0.35rem 0.7rem", fontSize: "0.75rem", cursor: "pointer", fontFamily: "'Poppins', sans-serif", fontWeight: "bold" }}>
-                                ✏️ Modifier
+                                style={{ background: "#faebd7", color: "#a07848", border: "1.5px solid #f5c842", borderRadius: "8px", padding: "0.35rem 0.7rem", fontSize: "0.75rem", cursor: "pointer", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", display: "inline-flex", alignItems: "center", gap: "4px" }}>
+                                <Pencil size={13} /> Modifier
                               </button>
                               <button onClick={() => handleReglerDette(d.id)}
-                                style={{ background: "#4caf50", color: "#fff", border: "none", borderRadius: "8px", padding: "0.35rem 0.7rem", fontSize: "0.75rem", cursor: "pointer", fontFamily: "'Poppins', sans-serif", fontWeight: "bold" }}>
-                                ✅ Réglé
+                                style={{ background: "#4caf50", color: "#fff", border: "none", borderRadius: "8px", padding: "0.35rem 0.7rem", fontSize: "0.75rem", cursor: "pointer", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", display: "inline-flex", alignItems: "center", gap: "4px" }}>
+                                <Check size={14} /> Réglé
                               </button>
                               <button onClick={() => handleDeleteDette(d.id)}
                                 style={{ background: "#fff5f5", color: "#e57373", border: "none", borderRadius: "8px", padding: "0.35rem 0.5rem", fontSize: "0.75rem", cursor: "pointer" }}>
