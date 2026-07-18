@@ -1309,6 +1309,25 @@ export default function App() {
       flash("✅ Profil paie sauvegardé !"); setEditingPaieUser(null); loadUsers();
     } catch { flash("❌ Erreur"); }
   }
+  // Génère (ou régénère) le contrat rempli pour un employé existant
+  async function handleGenererContratEmploye(u: any) {
+    const prenom = u.prenom;
+    const full = u.nom ? `${prenom} ${u.nom}` : prenom;
+    let age = u.age_employe ? parseInt(u.age_employe) : null;
+    const m = (u.date_naissance || "").match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+    if (age == null && m) { const d = new Date(+m[3], +m[2] - 1, +m[1]); age = Math.floor((Date.now() - d.getTime()) / (365.25 * 24 * 3600 * 1000)); }
+    try {
+      // Supprime l'ancien contrat numérisé de cet employé s'il existe
+      const existants = await fetchDocumentsMeta();
+      const anciens = existants.filter((doc: any) => doc.employe_nom === prenom && doc.type_doc === "contrat_num");
+      for (const a of anciens) await deleteDocument(a.id);
+      // Génère le nouveau
+      const html = genererContratHTML({ full, dob: u.date_naissance || "", adr: u.adresse_employe || "", nrn: u.nrn || "", type: u.type_contrat || "etudiant", minor: age != null && age < 18 });
+      const b64 = btoa(unescape(encodeURIComponent(html)));
+      await createDocument({ employe_nom: prenom, titre: "Contrat (version numérisée)", type_doc: "contrat_num", fichier: b64, mime: "text/html", taille: html.length, created_by: currentUser?.prenom });
+      flash("✅ Contrat généré pour " + prenom);
+    } catch { flash("❌ Erreur génération contrat"); }
+  }
 
   async function loadFinances() {
     setFinancesLoading(true);
@@ -4274,6 +4293,7 @@ export default function App() {
                         <button onClick={handleSavePaieUser} style={{ flex: 1, background: "#e8213a", color: "#fff", border: "none", padding: "0.8rem", borderRadius: "8px", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", cursor: "pointer" }}>💾 Sauvegarder</button>
                         <button onClick={() => setEditingPaieUser(null)} style={{ background: "#faebd7", color: "#a07848", border: "none", padding: "0.8rem 1rem", borderRadius: "8px", cursor: "pointer" }}>✕</button>
                       </div>
+                      <button onClick={async () => { const snap = editingPaieUser; await handleSavePaieUser(); await handleGenererContratEmploye(snap); }} style={{ background: "#3d1a0a", color: "#fff", border: "none", padding: "0.8rem", borderRadius: "8px", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", cursor: "pointer" }}>📄 Sauvegarder + générer le contrat</button>
                     </div>
                   ) : (
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
