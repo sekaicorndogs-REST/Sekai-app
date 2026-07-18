@@ -4609,12 +4609,12 @@ export default function App() {
           </div>
         </div>
         {!showChangePwd ? (
-          <button onClick={() => setShowChangePwd(true)} style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", color: "#3d1a0a", borderRadius: "12px", padding: "1rem", fontFamily: "'Poppins', sans-serif", fontSize: "0.95rem", cursor: "pointer", textAlign: "left" }}>
-            🔑 Changer mon mot de passe
+          <button onClick={() => setShowChangePwd(true)} style={{ background: "#fff", border: "1px solid #efe0c9", color: "#3d1a0a", borderRadius: "14px", padding: "1rem", fontFamily: "'Poppins', sans-serif", fontSize: "0.95rem", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "9px" }}>
+            <Lock size={17} color="#e8213a" /> Changer mon mot de passe
           </button>
         ) : (
-          <div style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "12px", padding: "1rem", display: "flex", flexDirection: "column", gap: "0.6rem" }}>
-            <div style={{ color: "#e8213a", fontSize: "0.9rem", fontWeight: "bold" }}>🔑 Changer le mot de passe</div>
+          <div style={{ background: "#fff", border: "1px solid #efe0c9", borderRadius: "14px", padding: "1rem", display: "flex", flexDirection: "column", gap: "0.6rem" }}>
+            <div style={{ color: "#e8213a", fontSize: "0.9rem", fontWeight: "bold", display: "flex", alignItems: "center", gap: "6px" }}><Lock size={15} /> Changer le mot de passe</div>
             <div style={{ position: "relative" }}>
               <input value={oldPwd} onChange={e => setOldPwd(e.target.value)} placeholder="Ancien mot de passe" type={showOldPwd ? "text" : "password"} style={{ ...inputStyle, paddingRight: "3rem" }} />
               <button onClick={() => setShowOldPwd(p => !p)} style={{ position: "absolute", right: "0.75rem", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", fontSize: "1.1rem", padding: 0 }}>{showOldPwd ? <EyeOff size={18} color="#c8a878" /> : <Eye size={18} color="#c8a878" />}</button>
@@ -4637,7 +4637,7 @@ export default function App() {
         {/* ── MES DOCUMENTS ── */}
         <div style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "12px", padding: "1rem" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.6rem" }}>
-            <div style={{ color: "#e8213a", fontSize: "0.95rem", fontWeight: "bold" }}>📄 {isAdmin ? "Documents équipe" : "Mes documents"}</div>
+            <div style={{ color: "#e8213a", fontSize: "0.95rem", fontWeight: "bold", display: "flex", alignItems: "center", gap: "6px" }}><FileText size={16} /> {isAdmin ? "Documents équipe" : "Mes documents"}</div>
             <button onClick={() => { setDocUploadEmploye(isAdmin ? "" : currentUser.prenom); setDocUploadTitre(""); setShowDocUpload(true); }}
               style={{ background: "#e8213a", color: "#fff", border: "none", borderRadius: "8px", padding: "0.35rem 0.7rem", fontSize: "0.78rem", fontWeight: "bold", cursor: "pointer", fontFamily: "'Poppins', sans-serif", display: "flex", alignItems: "center", gap: "4px" }}>
               <Plus size={13} /> Ajouter
@@ -4687,8 +4687,8 @@ export default function App() {
         </div>
 
         {isAdmin && (
-          <button onClick={() => { setPage("comptes"); loadUsers(); }} style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", color: "#3d1a0a", borderRadius: "12px", padding: "1rem", fontFamily: "'Poppins', sans-serif", fontSize: "0.95rem", cursor: "pointer", textAlign: "left" }}>
-            🔑 Gestion des comptes
+          <button onClick={() => { setPage("comptes"); loadUsers(); }} style={{ background: "#fff", border: "1px solid #efe0c9", color: "#3d1a0a", borderRadius: "14px", padding: "1rem", fontFamily: "'Poppins', sans-serif", fontSize: "0.95rem", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "9px" }}>
+            <Users size={17} color="#e8213a" /> Gestion des comptes
           </button>
         )}
 
@@ -4715,8 +4715,8 @@ export default function App() {
             </div>
           </div>
         )}
-        <button onClick={handleLogout} style={{ background: "#fff5f5", border: "1px solid #3a1a1a", color: "#e57373", borderRadius: "12px", padding: "1rem", fontFamily: "'Poppins', sans-serif", fontSize: "0.95rem", cursor: "pointer" }}>
-          🚪 Se déconnecter
+        <button onClick={handleLogout} style={{ background: "#fff5f5", border: "1px solid #f5c8c8", color: "#e8213a", borderRadius: "14px", padding: "1rem", fontFamily: "'Poppins', sans-serif", fontSize: "0.95rem", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", fontWeight: 600 }}>
+          <LogOut size={17} /> Se déconnecter
         </button>
       </div>
       <BottomNav />
