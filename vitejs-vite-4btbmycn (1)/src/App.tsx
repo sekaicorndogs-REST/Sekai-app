@@ -2390,7 +2390,7 @@ export default function App() {
                 const autoH = getAutoHoraire(heuresModalDate);
                 return (
                   <div style={{ background: "#fdf0d5", borderRadius: "10px", padding: "0.7rem 0.8rem" }}>
-                    <div style={{ color: "#a07848", fontSize: "0.66rem", fontWeight: "bold", marginBottom: "0.35rem" }}>📋 PRÉVU DE BASE ({autoH.debut}–{autoH.fin})</div>
+                    <div style={{ color: "#a07848", fontSize: "0.66rem", fontWeight: "bold", marginBottom: "0.35rem", display: "flex", alignItems: "center", gap: "5px" }}><ListChecks size={12} /> PRÉVU DE BASE ({autoH.debut}–{autoH.fin})</div>
                     {prevus.length === 0
                       ? <div style={{ color: "#c8a878", fontSize: "0.78rem" }}>Personne de prévu (jour off)</div>
                       : <div style={{ color: "#3d1a0a", fontSize: "0.82rem" }}>👤 {prevus.join(", ")}</div>}
@@ -2426,27 +2426,27 @@ export default function App() {
               <div onClick={e => e.stopPropagation()} style={{ background: "#fff8f0", borderRadius: "16px", padding: "1.3rem", width: "88%", maxWidth: "380px", display: "flex", flexDirection: "column", gap: "0.9rem", maxHeight: "80vh", overflowY: "auto" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <div style={{ color: "#e8213a", fontWeight: "bold", fontSize: "0.95rem", textTransform: "capitalize" as const }}>
-                    📅 {new Date(heuresDayDetail + "T12:00:00").toLocaleDateString("fr-BE", { weekday: "long", day: "numeric", month: "long" })}
+                    <Calendar size={15} style={{ verticalAlign: "-2px", marginRight: "5px" }} />{new Date(heuresDayDetail + "T12:00:00").toLocaleDateString("fr-BE", { weekday: "long", day: "numeric", month: "long" })}
                   </div>
                   <button onClick={() => setHeuresDayDetail("")} style={{ background: "#2a2a2a", border: "none", color: "#c8a878", borderRadius: "50%", width: "2rem", height: "2rem", cursor: "pointer" }}>✕</button>
                 </div>
 
                 {/* Prévu de base */}
                 <div style={{ background: "#fdf0d5", borderRadius: "10px", padding: "0.8rem" }}>
-                  <div style={{ color: "#a07848", fontSize: "0.68rem", fontWeight: "bold", marginBottom: "0.5rem" }}>📋 PRÉVU DE BASE ({autoH.debut}–{autoH.fin})</div>
+                  <div style={{ color: "#a07848", fontSize: "0.68rem", fontWeight: "bold", marginBottom: "0.5rem", display: "flex", alignItems: "center", gap: "5px" }}><ListChecks size={12} /> PRÉVU DE BASE ({autoH.debut}–{autoH.fin})</div>
                   {prevus.length === 0 ? <div style={{ color: "#c8a878", fontSize: "0.8rem" }}>Personne de prévu (jour off)</div>
                     : prevus.map((n: string) => (
-                      <div key={n} style={{ color: "#3d1a0a", fontSize: "0.85rem", padding: "0.15rem 0" }}>👤 {n}</div>
+                      <div key={n} style={{ color: "#3d1a0a", fontSize: "0.85rem", padding: "0.15rem 0", display: "flex", alignItems: "center", gap: "6px" }}><User size={13} color="#a07848" /> {n}</div>
                     ))}
                 </div>
 
                 {/* A réellement bossé */}
                 <div style={{ background: "#f0fff4", borderRadius: "10px", padding: "0.8rem" }}>
-                  <div style={{ color: "#4caf50", fontSize: "0.68rem", fontWeight: "bold", marginBottom: "0.5rem" }}>✅ A TRAVAILLÉ</div>
+                  <div style={{ color: "#4caf50", fontSize: "0.68rem", fontWeight: "bold", marginBottom: "0.5rem", display: "flex", alignItems: "center", gap: "5px" }}><CheckCircle size={12} /> A TRAVAILLÉ</div>
                   {travailleurs.length === 0 ? <div style={{ color: "#c8a878", fontSize: "0.8rem" }}>Aucune heure déclarée</div>
                     : travailleurs.map(h => (
                       <div key={h.id} style={{ display: "flex", justifyContent: "space-between", padding: "0.2rem 0", fontSize: "0.85rem" }}>
-                        <span style={{ color: "#3d1a0a" }}>👤 {h.employe_nom}</span>
+                        <span style={{ color: "#3d1a0a", display: "flex", alignItems: "center", gap: "6px" }}><User size={13} color="#a07848" /> {h.employe_nom}</span>
                         <span style={{ color: "#4caf50", fontWeight: "bold" }}>{Number(h.heures).toFixed(1).replace(".0", "")} h</span>
                       </div>
                     ))}
@@ -2590,16 +2590,16 @@ export default function App() {
                       })}
                     </div>
                     <div style={{ display: "flex", gap: "0.8rem", justifyContent: "center", fontSize: "0.66rem", color: "#a07848", marginBottom: "1rem" }}>
-                      <span>🟢 a bossé</span><span>🟡 prévu de base</span>
+                      <span style={{ display: "inline-flex", alignItems: "center", gap: "4px" }}><span style={{ width: "9px", height: "9px", borderRadius: "50%", background: "#4caf50", display: "inline-block" }} /> a bossé</span><span style={{ display: "inline-flex", alignItems: "center", gap: "4px" }}><span style={{ width: "9px", height: "9px", borderRadius: "50%", background: "#f5c842", display: "inline-block" }} /> prévu de base</span>
                     </div>
 
-                    <div style={{ color: "#a07848", fontSize: "0.72rem", fontWeight: "bold", marginBottom: "0.5rem" }}>👥 TOTAL PAR EMPLOYÉ</div>
+                    <div style={{ color: "#a07848", fontSize: "0.72rem", fontWeight: "bold", marginBottom: "0.5rem", display: "flex", alignItems: "center", gap: "5px" }}><Users size={13} /> TOTAL PAR EMPLOYÉ</div>
                     {recapParEmploye().length === 0 && <div style={{ color: "#c8a878", textAlign: "center", padding: "2rem", fontSize: "0.85rem" }}>Aucune heure déclarée ce mois</div>}
                     {recapParEmploye().map(([nom, h]) => (
                       <button key={nom} onClick={() => setHeuresEmployeFilter(nom)}
                         style={{ width: "100%", background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "12px", padding: "0.9rem 1rem", marginBottom: "0.5rem", display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer", fontFamily: "'Poppins', sans-serif" }}>
-                        <span style={{ color: "#3d1a0a", fontWeight: "600", fontSize: "0.92rem" }}>👤 {nom}</span>
-                        <span style={{ color: "#e8213a", fontWeight: "bold", fontSize: "1rem" }}>{Number(h).toFixed(1).replace(".0", "")} h ›</span>
+                        <span style={{ color: "#3d1a0a", fontWeight: "600", fontSize: "0.92rem", display: "flex", alignItems: "center", gap: "7px" }}><User size={15} color="#a07848" /> {nom}</span>
+                        <span style={{ color: "#e8213a", fontWeight: "bold", fontSize: "1rem", display: "flex", alignItems: "center", gap: "3px" }}>{Number(h).toFixed(1).replace(".0", "")} h <ChevronRight size={15} /></span>
                       </button>
                     ))}
                   </div>
@@ -2630,7 +2630,7 @@ export default function App() {
                       })}
                     </div>
                     <div style={{ color: "#a07848", fontSize: "0.72rem", textAlign: "center", marginTop: "0.5rem" }}>
-                      👆 Touche un jour pour {isAdmin || employeVu === currentUser?.prenom ? "ajouter / modifier tes heures" : "voir"}
+                      Touche un jour pour {isAdmin || employeVu === currentUser?.prenom ? "ajouter / modifier tes heures" : "voir"}
                     </div>
 
                     {/* Résumé du mois en direct */}
@@ -2769,7 +2769,7 @@ export default function App() {
           {horaireView === "events" && (
             <div>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
-                <div style={{ color: "#a07848", fontSize: "0.75rem", fontWeight: "bold" }}>🎪 Events du mois</div>
+                <div style={{ color: "#a07848", fontSize: "0.75rem", fontWeight: "bold", display: "flex", alignItems: "center", gap: "5px" }}><PartyPopper size={14} /> Events du mois</div>
                 <div style={{ display: "flex", gap: "0.4rem" }}>
                   <input type="month" value={eventMois} onChange={e => setEventMois(e.target.value)}
                     style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#e8213a", borderRadius: "8px", padding: "0.3rem 0.5rem", fontSize: "0.75rem", fontFamily: "'Poppins', sans-serif", outline: "none" }} />
@@ -2799,9 +2799,9 @@ export default function App() {
                     <div key={ev.id} style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "12px", padding: "1rem", marginBottom: "0.75rem" }}>
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "0.5rem" }}>
                         <div>
-                          <div style={{ color: "#e8213a", fontSize: "0.95rem", fontWeight: "bold" }}>🎪 {ev.label}</div>
-                          <div style={{ color: "#a07848", fontSize: "0.78rem", marginTop: "0.2rem", textTransform: "capitalize" }}>
-                            📅 {formatDateShort(dateStr)}
+                          <div style={{ color: "#e8213a", fontSize: "0.95rem", fontWeight: "bold", display: "flex", alignItems: "center", gap: "6px" }}><PartyPopper size={15} /> {ev.label}</div>
+                          <div style={{ color: "#a07848", fontSize: "0.78rem", marginTop: "0.2rem", textTransform: "capitalize", display: "flex", alignItems: "center", gap: "5px" }}>
+                            <Calendar size={12} /> {formatDateShort(dateStr)}
                             {ev.stand && <span style={{ marginLeft: "0.5rem" }}>· {ev.stand === "event-1" ? "Event 1" : "Event 2"}</span>}
                           </div>
                         </div>
@@ -2819,14 +2819,14 @@ export default function App() {
                       {/* Bouton participation (employé + admin) */}
                       <button onClick={() => toggleParticipation(ev, currentUser.prenom, maParticipation?.id)}
                         style={{ width: "100%", background: maParticipation ? "#4caf50" : "#e8213a", color: "#fff", border: "none", borderRadius: "10px", padding: "0.7rem", fontSize: "0.9rem", fontWeight: "bold", cursor: "pointer", fontFamily: "'Poppins', sans-serif", marginBottom: participants.length ? "0.6rem" : 0 }}>
-                        {maParticipation ? "✅ Tu participes — clique pour retirer" : "🙋 J'ai participé / je participe"}
+                        {maParticipation ? "Tu participes — clique pour retirer" : "J'ai participé / je participe"}
                       </button>
 
                       {participants.length > 0 && (
                         <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem" }}>
                           {participants.map((it: any) => (
                             <span key={it.id} style={{ background: it.employe_nom === currentUser.prenom ? "#f0fff4" : "#faebd7", color: "#3d1a0a", borderRadius: "8px", padding: "0.3rem 0.7rem", fontSize: "0.82rem", border: `1px solid ${it.employe_nom === currentUser.prenom ? "#4caf5066" : "#f0d8b8"}`, display: "inline-flex", alignItems: "center", gap: "0.3rem" }}>
-                              👤 {it.employe_nom}
+                              <User size={12} color="#a07848" /> {it.employe_nom}
                               {isAdmin && (
                                 <button onClick={() => handleDeleteEventWorker(it.id)}
                                   style={{ background: "none", border: "none", color: "#e57373", cursor: "pointer", fontSize: "0.85rem", padding: 0, lineHeight: 1 }}>✕</button>
@@ -2836,8 +2836,8 @@ export default function App() {
                         </div>
                       )}
                       {ev.note && (
-                        <div style={{ color: "#a07848", fontSize: "0.72rem", marginTop: "0.5rem", borderTop: "1px solid #f0d8b8", paddingTop: "0.4rem" }}>
-                          📌 {ev.note}
+                        <div style={{ color: "#a07848", fontSize: "0.72rem", marginTop: "0.5rem", borderTop: "1px solid #f0d8b8", paddingTop: "0.4rem", display: "flex", alignItems: "center", gap: "5px" }}>
+                          <Star size={12} /> {ev.note}
                         </div>
                       )}
                     </div>
@@ -2852,7 +2852,7 @@ export default function App() {
             <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", zIndex: 200, display: "flex", alignItems: "flex-end" }}>
               <div style={{ background: "#fff8f0", borderRadius: "16px 16px 0 0", padding: "1.2rem", width: "100%", display: "flex", flexDirection: "column", gap: "0.7rem", maxHeight: "90vh", overflowY: "auto" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <div style={{ color: "#e8213a", fontWeight: "bold", fontSize: "0.95rem" }}>🎪 Nouvel event</div>
+                  <div style={{ color: "#e8213a", fontWeight: "bold", fontSize: "0.95rem", display: "flex", alignItems: "center", gap: "6px" }}><PartyPopper size={16} /> Nouvel event</div>
                   <button onClick={() => setShowAddEvent(false)} style={{ background: "#2a2a2a", border: "none", color: "#c8a878", borderRadius: "50%", width: "2rem", height: "2rem", cursor: "pointer" }}>✕</button>
                 </div>
 
@@ -2869,7 +2869,7 @@ export default function App() {
                   <option value="event-2">🎪 Event 2</option>
                 </select>
 
-                <div style={{ color: "#a07848", fontSize: "0.78rem", marginTop: "0.3rem" }}>👥 Pré-assigner des personnes <span style={{ color: "#c8a878" }}>(optionnel — les employés peuvent s'ajouter eux-mêmes)</span></div>
+                <div style={{ color: "#a07848", fontSize: "0.78rem", marginTop: "0.3rem", display: "flex", alignItems: "center", gap: "5px" }}><Users size={13} /> Pré-assigner des personnes <span style={{ color: "#c8a878" }}>(optionnel)</span></div>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem" }}>
                   {["Abdel","Nabil","Mohammed","Wassim","Rachid","Ali","Momo"].map(nom => {
                     const sel = newEventEmployes.includes(nom);
