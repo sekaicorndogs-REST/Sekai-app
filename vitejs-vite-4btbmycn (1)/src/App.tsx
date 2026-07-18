@@ -1255,6 +1255,25 @@ export default function App() {
     catch { flash("❌ Erreur chargement events"); }
     finally { setEventsLoading(false); }
   }
+  // Supprime un event de rentabilité + son planning + participations liés
+  async function handleDeleteEventRenta(ev: any) {
+    if (!confirm("Supprimer cet event partout ? (rentabilité + planning + participations)")) return;
+    try {
+      await deleteEvent(ev.id);
+      if (ev.date_event) {
+        try {
+          const plannings = await fetchEventsPlanning();
+          const liesPlan = plannings.filter((p: any) => p.label === ev.nom && normalizeDate(p.event_date) === normalizeDate(ev.date_event));
+          for (const p of liesPlan) await deleteEventPlanning(p.id);
+          const workers = await fetchEventWorkers();
+          const liesWorkers = workers.filter((w: any) => w.event_label === ev.nom && normalizeDate(w.event_date) === normalizeDate(ev.date_event));
+          for (const w of liesWorkers) await deleteEventWorker(w.id);
+        } catch {}
+      }
+      flash("🗑️ Event supprimé partout");
+      loadEvents();
+    } catch { flash("❌ Erreur"); }
+  }
   async function loadMenu() {
     setMenuLoading(true);
     try {
@@ -1588,13 +1607,19 @@ export default function App() {
   }
 
   async function handleDeleteEventPlanning(ev) {
-    if (!confirm("Supprimer complètement cet event ?")) return;
+    if (!confirm("Supprimer complètement cet event ? (planning + participations + rentabilité)")) return;
     try {
       await deleteEventPlanning(ev.id);
       // Supprime aussi les participations liées
       const liens = eventWorkers.filter((w: any) => normalizeDate(w.event_date) === normalizeDate(ev.event_date) && w.event_label === ev.label && (w.event_stand || "") === (ev.stand || ""));
       for (const l of liens) await deleteEventWorker(l.id);
-      flash("🗑️ Event supprimé");
+      // Supprime aussi l'event de rentabilité lié (même nom + date)
+      try {
+        const rentas = await fetchEvents();
+        const liesRenta = rentas.filter((r: any) => r.nom === ev.label && normalizeDate(r.date_event || "") === normalizeDate(ev.event_date));
+        for (const r of liesRenta) await deleteEvent(r.id);
+      } catch {}
+      flash("🗑️ Event supprimé partout");
       loadEventWorkers();
     } catch { flash("❌ Erreur"); }
   }
@@ -3535,7 +3560,7 @@ export default function App() {
                         <div style={{ display: "flex", gap: "0.3rem" }}>
                           <button onClick={() => loadEventForm(ev, true)} style={{ background: "#faebd7", color: "#a07848", border: "1.5px solid #f5c842", borderRadius: "8px", padding: "0.3rem 0.6rem", fontSize: "0.72rem", cursor: "pointer", fontFamily: "'Poppins', sans-serif", fontWeight: "bold" }}>✏️ Modifier</button>
                           <button onClick={() => loadEventForm(ev, false)} style={{ background: "#faebd7", color: "#a07848", border: "1.5px solid #f0d8b8", borderRadius: "8px", padding: "0.3rem 0.6rem", fontSize: "0.72rem", cursor: "pointer", fontFamily: "'Poppins', sans-serif", fontWeight: "bold" }}>📋 Copier</button>
-                          <button onClick={() => deleteEvent(ev.id).then(() => loadEvents())} style={{ background: "none", color: "#c8a878", border: "none", cursor: "pointer" }}><Trash2 size={15} /></button>
+                          <button onClick={() => handleDeleteEventRenta(ev)} style={{ background: "none", color: "#c8a878", border: "none", cursor: "pointer" }}><Trash2 size={15} /></button>
                         </div>
                       </div>
                       {/* Tags résumé */}
