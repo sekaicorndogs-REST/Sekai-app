@@ -607,13 +607,14 @@ td{padding:2px 4px}.rt{text-align:right}
 <div>Heures: ${fmt(fiche.heures_total)}/${fmt(fiche.heures_total)}</div>
 <div>Commission Paritaire: 302</div>
 ${employe?.nrn ? `<div>No.Rég.Nat.: ${employe.nrn}</div>` : ""}
+${employe?.date_naissance ? `<div>Date de naissance: ${employe.date_naissance}</div>` : ""}
 <div>Catégorie prof.: Cat 1/2</div>
 <div>Date d'entrée: ${dateDebut} &nbsp; Anc.: ${employe?.anciennete_ans || 0}a</div>
 <div>Sortie de service: ${dateFin}</div>
 <div>Etat civil: ${employe?.etat_civil || "Célibataire"}</div>
 <div class="note">A conserver, cette fiche de rémunération fait partie de votre compte individuel.</div>
 </div>
-<div class="iright"><div class="ename">${fiche.employe_nom}</div>${employe?.adresse_employe ? `<div style="font-size:10px;margin-top:6px">${employe.adresse_employe.replace(/\n/g,"<br>")}</div>` : ""}</div></div>
+<div class="iright"><div class="ename">${employe?.nom ? `${fiche.employe_nom} ${String(employe.nom).toUpperCase()}` : fiche.employe_nom}</div>${employe?.adresse_employe ? `<div style="font-size:10px;margin-top:6px">${employe.adresse_employe.replace(/\n/g,"<br>")}</div>` : ""}</div></div>
 <table><thead><tr><th style="width:42%">ÉLÉMENTS DES SALAIRES</th><th>BASE</th><th>SUPPL.</th><th>%</th><th>JOURS</th><th>HEURES</th><th style="text-align:right">MONTANT</th></tr></thead>
 <tbody>
 <tr><td>Prestation (jour-heures)</td><td>${fmt(fiche.salaire_horaire)}</td><td></td><td></td><td>${jours}</td><td>${fmt(fiche.heures_total)}</td><td class="rt">${fmt(fiche.salaire_brut)}</td></tr>
@@ -1251,6 +1252,8 @@ export default function App() {
         nrn: editingPaieUser.nrn || null,
         iban: editingPaieUser.iban || null,
         etat_civil: editingPaieUser.etat_civil || "Célibataire",
+        nom: editingPaieUser.nom || null,
+        date_naissance: editingPaieUser.date_naissance || null,
       });
       flash("✅ Profil paie sauvegardé !"); setEditingPaieUser(null); loadUsers();
     } catch { flash("❌ Erreur"); }
@@ -4211,6 +4214,8 @@ export default function App() {
                         <option value="Marié(e)">Marié(e)</option>
                         <option value="Cohabitant légal">Cohabitant légal</option>
                       </select>
+                      <input value={editingPaieUser.nom || ""} onChange={e => setEditingPaieUser(p => ({ ...p, nom: e.target.value }))} placeholder="Nom de famille" style={inpS} />
+                      <input value={editingPaieUser.date_naissance || ""} onChange={e => setEditingPaieUser(p => ({ ...p, date_naissance: e.target.value }))} placeholder="Date de naissance (JJ/MM/AAAA)" style={inpS} />
                       <input value={editingPaieUser.nrn || ""} onChange={e => setEditingPaieUser(p => ({ ...p, nrn: e.target.value }))} placeholder="No. Registre National (XX.XX.XX XXX-XX)" style={inpS} />
                       <input value={editingPaieUser.iban || ""} onChange={e => setEditingPaieUser(p => ({ ...p, iban: e.target.value }))} placeholder="IBAN (BE...)" style={inpS} />
                       <textarea value={editingPaieUser.adresse_employe || ""} onChange={e => setEditingPaieUser(p => ({ ...p, adresse_employe: e.target.value }))} placeholder={"Adresse (Rue...\nCode postal Ville)"} rows={2} style={{ ...inpS, resize: "none" }} />
