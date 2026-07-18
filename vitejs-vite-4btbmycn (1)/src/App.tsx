@@ -1232,7 +1232,17 @@ export default function App() {
         flash("✅ Event modifié");
       } else {
         await createEvent(data);
-        flash("✅ Event sauvegardé");
+        // Lie automatiquement au planning horaire (si date fournie et pas déjà présent)
+        if (eventDate) {
+          try {
+            const existants = await fetchEventsPlanning();
+            const dejaLa = existants.some((ev: any) => normalizeDate(ev.event_date) === eventDate && ev.label === eventNom.trim());
+            if (!dejaLa) {
+              await createEventPlanning({ label: eventNom.trim(), stand: null, event_date: eventDate, note: "Créé depuis le calcul de rentabilité", created_by: currentUser?.prenom });
+            }
+          } catch {}
+        }
+        flash("✅ Event sauvegardé + ajouté au planning");
       }
       resetEventForm(); setShowEventForm(false); setEditingEventId(null);
       const evs = await fetchEvents(); setEvents(evs);
@@ -1550,6 +1560,14 @@ export default function App() {
         note: newEventNote.trim() || null,
         created_by: currentUser.prenom
       });
+      // Lie automatiquement à la rentabilité (si pas déjà présent)
+      try {
+        const rentaExistants = await fetchEvents();
+        const dejaRenta = rentaExistants.some((ev: any) => ev.nom === newEventLabel.trim() && normalizeDate(ev.date_event || "") === newEventDate);
+        if (!dejaRenta) {
+          await createEvent({ nom: newEventLabel.trim(), date_event: newEventDate, taux_ingredients: 18 });
+        }
+      } catch {}
       // Pré-assigne les personnes sélectionnées (optionnel)
       for (const nom of newEventEmployes) {
         await createEventWorker({
