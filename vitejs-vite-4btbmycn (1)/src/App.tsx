@@ -634,6 +634,20 @@ ${employe?.iban ? `<div class="pay"><strong>FORMULE DE PAIEMENT</strong><br>${fm
 </body></html>`;
   return html;
 }
+// Génère le contrat (version numérisée) rempli avec les infos de l'employé
+function genererContratHTML(d: { full: string; dob: string; adr: string; nrn: string; type: string; minor: boolean }) {
+  const CSS = `<style>body{font-family:Georgia,'Times New Roman',serif;max-width:800px;margin:0 auto;padding:24px;color:#1a1a1a;line-height:1.5;background:#fff}h1{font-size:20px;letter-spacing:.5px;margin-bottom:2px}.sub{font-size:12px;color:#555;font-style:italic;margin-bottom:18px}h2{font-size:14px;margin:16px 0 4px;border-bottom:1px solid #ddd;padding-bottom:2px}p{margin:6px 0;font-size:13.5px}.parties{background:#f7f7f5;border:1px solid #e5e5e0;border-radius:8px;padding:12px 14px;font-size:13.5px}.sign{margin-top:26px;display:flex;justify-content:space-between;gap:20px;font-size:13px}.sign div{flex:1;border:1px solid #bbb;border-radius:6px;padding:10px;min-height:70px}.foot{margin-top:22px;font-size:11px;color:#777;border-top:1px solid #ddd;padding-top:8px}.badge{display:inline-block;background:#e8213a;color:#fff;font-size:11px;padding:2px 8px;border-radius:10px;font-family:sans-serif;margin-bottom:10px}</style>`;
+  const parties = (role: string) => `<div class="parties"><p><b>ENTRE LES SOUSSIGNÉS :</b></p><p>CHERRY FOOD, dont le siège social est établi Rue de Malines 50, 1000 Bruxelles, Belgique, immatriculée à la BCE sous le numéro BE 0641.660.146, ici représentée par Abdelmajid Taouil Gharbaoui, en sa qualité de gérant, ci-après dénommée « l'employeur »,</p><p><b>ET</b></p><p>${d.full}, né(e) le ${d.dob || "—"}, domicilié(e) ${d.adr || "—"}, numéro de registre national ${d.nrn || "—"}, ci-après dénommé(e) « ${role} ».</p></div>`;
+  const sign = (label: string) => `<div class="sign"><div><b>Pour l'employeur</b><br>Abdelmajid Taouil Gharbaoui</div><div><b>${label}</b><br>${d.full}</div></div>`;
+  const foot = `<div class="foot">Fait en deux exemplaires — CHERRY FOOD SRL · BE 0641.660.146 · CP 302. Contrat généré depuis l'application.</div>`;
+  if (d.type === "flexi") {
+    return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">${CSS}</head><body><div class="badge">Version numérisée</div><h1>ACCORD-CADRE FLEXI-JOB</h1><div class="sub">(Loi-programme du 26 décembre 2015 et dispositions relatives aux flexi-jobs)</div>${parties("le/la flexi-jobiste")}<h2>Article 1 — Objet</h2><p>Le présent accord-cadre régit la relation de travail dans le cadre du statut de flexi-job entre l'employeur et le/la flexi-jobiste, conformément à la réglementation applicable au secteur de l'horeca (CP 302). Il constitue le cadre général au sein duquel des contrats de travail flexi-job spécifiques seront conclus, précisant à chaque fois les jours, horaires et fonctions concernés.</p><h2>Article 2 — Déclaration du flexi-jobiste</h2><p>Le/la flexi-jobiste déclare remplir les conditions légales d'éligibilité au statut de flexi-job à la date de signature, et s'engage à informer immédiatement l'employeur de tout changement de situation. L'éligibilité fait l'objet d'une vérification automatique par l'ONSS lors de chaque déclaration Dimona FLX.</p><h2>Article 3 — Durée</h2><p>Le présent accord-cadre est conclu pour une durée indéterminée et peut être résilié à tout moment par l'une ou l'autre des parties, sans délai de préavis ni indemnité, sous réserve du respect des flexi-contrats en cours.</p><h2>Article 4 — Fonction et lieu de travail</h2><p>Le/la flexi-jobiste est occupé(e) en qualité d'équipier(ère) de vente / préparation (stand alimentaire) au stand Sekaï Corndogs.</p><h2>Article 5 — Flexi-salaire</h2><p>Le/la flexi-jobiste perçoit un flexi-salaire horaire brut de 15,00 € (flexi-pécule de vacances de 7,67 % inclus), supérieur au minimum sectoriel horeca (12,78 €/h) et inférieur au plafond sectoriel (21,00 €/h). Ce salaire n'est soumis ni aux cotisations sociales ordinaires ni au précompte professionnel, dans les limites du plafond annuel flexi (18.000 € en 2026).</p><h2>Article 6 — Commission paritaire</h2><p>Le présent contrat relève de la Commission paritaire de l'industrie hôtelière (CP 302).</p><h2>Article 7 — Déclaration Dimona</h2><p>L'employeur effectue une déclaration Dimona FLX préalablement à chaque prestation et enregistre électroniquement les heures prestées.</p>${sign("Le/la flexi-jobiste")}${foot}</body></html>`;
+  }
+  const art4 = d.minor
+    ? `Les horaires sont établis selon les besoins du stand et communiqués à l'avance. L'étudiant(e) étant mineur(e) d'âge, l'employeur veille au strict respect de la réglementation applicable au travail des jeunes travailleurs (interdiction du travail de nuit entre 20h et 6h sauf dérogation légale, durée maximale de prestation réduite, temps de repos obligatoires).`
+    : `Les horaires sont établis selon les besoins du stand et communiqués à l'avance à l'étudiant(e), dans le respect des limites légales applicables (maximum 8h/jour, 38h/semaine sauf dérogation).`;
+  return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">${CSS}</head><body><div class="badge">Version numérisée</div><h1>CONTRAT D'OCCUPATION D'ÉTUDIANT</h1><div class="sub">(Loi du 3 juillet 1978 relative aux contrats de travail, Titre VII)</div>${parties("l'étudiant(e)")}<h2>Article 1 — Engagement</h2><p>L'employeur engage l'étudiant(e), qui accepte, en qualité d'équipier(ère) de vente / préparation (stand alimentaire).</p><h2>Article 2 — Rémunération</h2><p>L'étudiant(e) percevra une rémunération horaire brute de 15,00 € (quinze euros), sous déduction de la cotisation de solidarité (le cas échéant, si le quota de 475 heures/an est dépassé).</p><h2>Article 3 — Lieu de travail</h2><p>Stand Sekaï Corndogs.</p><h2>Article 4 — Horaire de travail</h2><p>${art4}</p><h2>Article 5 — Quota d'heures</h2><p>Il appartient à l'étudiant(e) de vérifier son solde d'heures restant dans le contingent annuel de 475 heures sous cotisation de solidarité réduite, notamment via student@work.belgium.be.</p><h2>Article 6 — Commission paritaire</h2><p>Le présent contrat relève de la Commission paritaire de l'industrie hôtelière (CP 302).</p><h2>Article 7 — Obligations des parties</h2><p>L'étudiant(e) s'engage à exécuter son travail avec soin et à respecter les règles d'hygiène alimentaire. L'employeur s'engage à assurer des conditions conformes à la législation et à effectuer la déclaration Dimona préalablement à l'entrée en service.</p>${sign("L'étudiant(e)")}${foot}</body></html>`;
+}
 function genererPDFComptable(fiches, periode, dateDoc?: string) {
   const totalBrut = fiches.reduce((s,f) => s + Number(f.salaire_brut||0), 0);
   const totalOnss = fiches.reduce((s,f) => s + Number(f.cotisation_onss||0), 0);
@@ -731,6 +745,13 @@ export default function App() {
   const [newUserPassword, setNewUserPassword] = useState("");
   const [newUserRole, setNewUserRole] = useState("employe");
   const [newUserRestaurant, setNewUserRestaurant] = useState("");
+  const [newUserNom, setNewUserNom] = useState("");
+  const [newUserNaissance, setNewUserNaissance] = useState("");
+  const [newUserAdresse, setNewUserAdresse] = useState("");
+  const [newUserNrn, setNewUserNrn] = useState("");
+  const [newUserIban, setNewUserIban] = useState("");
+  const [newUserType, setNewUserType] = useState("etudiant");
+  const [newUserGenContrat, setNewUserGenContrat] = useState(true);
   const [editingUser, setEditingUser] = useState(null);
   const [showChangePwd, setShowChangePwd] = useState(false);
   const [oldPwd, setOldPwd] = useState("");
@@ -1153,9 +1174,39 @@ export default function App() {
   async function handleCreateUser() {
     if (!newUserPrenom.trim() || !newUserPassword.trim()) return;
     try {
-      await createUser(newUserPrenom.trim(), newUserPassword.trim(), newUserRole, newUserRestaurant || null);
-      flash("✅ Compte créé !"); setShowNewUser(false);
+      const prenom = newUserPrenom.trim();
+      const created = await createUser(prenom, newUserPassword.trim(), newUserRole, newUserRestaurant || null);
+      const newId = Array.isArray(created) ? created[0]?.id : created?.id;
+      // Calcule l'âge depuis la date de naissance (JJ/MM/AAAA)
+      let age: number | null = null;
+      const m = newUserNaissance.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+      if (m) {
+        const d = new Date(+m[3], +m[2] - 1, +m[1]);
+        const diff = Date.now() - d.getTime();
+        age = Math.floor(diff / (365.25 * 24 * 3600 * 1000));
+      }
+      // Enregistre les infos supplémentaires
+      if (newId) {
+        await updateUser(newId, {
+          nom: newUserNom.trim() || null,
+          date_naissance: newUserNaissance.trim() || null,
+          adresse_employe: newUserAdresse.trim() || null,
+          nrn: newUserNrn.trim() || null,
+          iban: newUserIban.replace(/\s/g, "") || null,
+          type_contrat: newUserType,
+          age_employe: age,
+        });
+      }
+      // Génère le contrat rempli dans les documents
+      if (newUserGenContrat) {
+        const full = newUserNom.trim() ? `${prenom} ${newUserNom.trim()}` : prenom;
+        const html = genererContratHTML({ full, dob: newUserNaissance.trim(), adr: newUserAdresse.trim(), nrn: newUserNrn.trim(), type: newUserType, minor: age != null && age < 18 });
+        const b64 = btoa(unescape(encodeURIComponent(html)));
+        await createDocument({ employe_nom: prenom, titre: "Contrat (version numérisée)", type_doc: "contrat_num", fichier: b64, mime: "text/html", taille: html.length, created_by: currentUser?.prenom });
+      }
+      flash("✅ Compte créé" + (newUserGenContrat ? " + contrat généré" : "")); setShowNewUser(false);
       setNewUserPrenom(""); setNewUserPassword(""); setNewUserRole("employe"); setNewUserRestaurant("");
+      setNewUserNom(""); setNewUserNaissance(""); setNewUserAdresse(""); setNewUserNrn(""); setNewUserIban(""); setNewUserType("etudiant"); setNewUserGenContrat(true);
       loadUsers();
     } catch { flash("❌ Erreur création"); }
   }
@@ -4615,6 +4666,23 @@ export default function App() {
             <option value="">Tous les restaurants</option>
             {RESTAURANTS.map(r => <option key={r.id} value={r.id}>{r.emoji} {r.name}</option>)}
           </select>
+
+          <div style={{ color: "#a07848", fontSize: "0.72rem", fontWeight: "bold", marginTop: "0.3rem", borderTop: "1px dashed #f0d8b8", paddingTop: "0.6rem" }}>📄 INFOS CONTRAT (pour générer la fiche)</div>
+          <input value={newUserNom} onChange={e => setNewUserNom(e.target.value)} placeholder="Nom de famille" style={inputStyle} />
+          <input value={newUserNaissance} onChange={e => setNewUserNaissance(e.target.value)} placeholder="Date de naissance (JJ/MM/AAAA)" style={inputStyle} />
+          <input value={newUserAdresse} onChange={e => setNewUserAdresse(e.target.value)} placeholder="Adresse (rue, code postal ville)" style={inputStyle} />
+          <input value={newUserNrn} onChange={e => setNewUserNrn(e.target.value)} placeholder="No. Registre National (optionnel)" style={inputStyle} />
+          <input value={newUserIban} onChange={e => setNewUserIban(e.target.value)} placeholder="IBAN (BE...)" style={inputStyle} />
+          <select value={newUserType} onChange={e => setNewUserType(e.target.value)} style={inputStyle}>
+            <option value="etudiant">🎓 Étudiant</option>
+            <option value="flexi">⚡ Flexi-job</option>
+            <option value="cdi">📋 CDI</option>
+          </select>
+          <label style={{ display: "flex", alignItems: "center", gap: "0.6rem", color: "#3d1a0a", fontSize: "0.85rem", cursor: "pointer" }}>
+            <input type="checkbox" checked={newUserGenContrat} onChange={e => setNewUserGenContrat(e.target.checked)} style={{ width: "1.1rem", height: "1.1rem", accentColor: "#e8213a" }} />
+            📄 Générer automatiquement le contrat rempli
+          </label>
+
           <div style={{ display: "flex", gap: "0.5rem" }}>
             <button onClick={handleCreateUser} style={{ ...btnPrimary, flex: 1 }}>Créer</button>
             <button onClick={() => setShowNewUser(false)} style={{ background: "#faebd7", color: "#c8a878", border: "none", padding: "0.9rem 1rem", borderRadius: "10px", cursor: "pointer" }}>✕</button>
