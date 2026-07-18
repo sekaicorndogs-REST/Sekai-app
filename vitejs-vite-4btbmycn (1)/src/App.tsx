@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Package, Calendar, CreditCard, Users, UserCircle, ArrowLeft, RefreshCw, AlertTriangle, AlertCircle, CheckCircle, Pencil, Save, Eye, EyeOff, Check, Lock, User, ArrowRight, Trash2, Plus, ChevronRight, Settings, LogOut, Shield, Star, ListChecks, FileText } from "lucide-react";
+import { Package, Calendar, CreditCard, Users, UserCircle, ArrowLeft, RefreshCw, AlertTriangle, AlertCircle, CheckCircle, Pencil, Save, Eye, EyeOff, Check, Lock, User, ArrowRight, Trash2, Plus, ChevronRight, Settings, LogOut, Shield, Star, ListChecks, FileText, Wallet, Target, Lightbulb, Banknote, Receipt, PartyPopper, Utensils, Heart, TrendingUp, Coins, PiggyBank, HandCoins, Percent } from "lucide-react";
 
 const SUPABASE_URL = "https://ldpxgfgcnlzktaymtnwd.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkcHhnZmdjbmx6a3RheW10bndkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxOTgyMTAsImV4cCI6MjA5MTc3NDIxMH0.N_yUwjRvBM9rfxu0Xj-FCCGJ9eJ3UomPZdcUYAb8B8s";
@@ -3263,14 +3263,14 @@ export default function App() {
         {/* Header */}
         <div style={{ background: "#fff8f0", padding: "1rem 1.2rem 0.5rem", borderBottom: "1.5px solid #f0d8b8", position: "sticky", top: 0, zIndex: 30 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
-            <h1 style={{ color: "#e8213a", fontSize: "1.1rem", margin: 0, fontWeight: "bold" }}>💳 Finances</h1>
+            <h1 style={{ color: "#e8213a", fontSize: "1.1rem", margin: 0, fontWeight: "bold", display: "flex", alignItems: "center", gap: "7px" }}><Wallet size={19} /> Finances</h1>
             <button onClick={() => { loadFinances(); loadTodoTaches(); }} style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#a07848", borderRadius: "8px", padding: "0.3rem 0.6rem", fontSize: "0.8rem", cursor: "pointer" }}><RefreshCw size={16} /></button>
           </div>
           <div style={{ display: "flex", gap: "0.4rem", overflowX: "auto", paddingBottom: "0.5rem" }}>
-            {[{id:"dettes",label:"💳 Dettes"},{id:"charges",label:"💸 Charges"},{id:"resume",label:"❤️ Résumé"},{id:"event",label:"🎪 Event"},{id:"carte",label:"🍽️ Carte"},{id:"taches",label:"✅ Tâches"}].map(tab => (
+            {[{id:"dettes",label:"Dettes",Icon:Banknote},{id:"charges",label:"Charges",Icon:Receipt},{id:"resume",label:"Résumé",Icon:Heart},{id:"event",label:"Event",Icon:PartyPopper},{id:"carte",label:"Carte",Icon:Utensils},{id:"taches",label:"Tâches",Icon:ListChecks}].map(tab => (
               <button key={tab.id} onClick={() => { setFinancesView(tab.id as any); if(tab.id==="carte") loadMenu(); if(tab.id==="sante"||tab.id==="resume") loadFinances(); if(tab.id==="event") { setEventView("historique"); setShowEventForm(false); loadEvents(); } }}
-                style={{ background: financesView === tab.id ? "#e8213a" : "#1e1e1e", color: financesView === tab.id ? "#fff" : "#888", border: "none", borderRadius: "8px", padding: "0.35rem 0.9rem", fontSize: "0.78rem", fontFamily: "'Poppins', sans-serif", fontWeight: financesView === tab.id ? "bold" : "normal", cursor: "pointer", whiteSpace: "nowrap" }}>
-                {tab.label}
+                style={{ background: financesView === tab.id ? "#e8213a" : "#fff", color: financesView === tab.id ? "#fff" : "#a07848", border: `1px solid ${financesView === tab.id ? "#e8213a" : "#efe0c9"}`, borderRadius: "20px", padding: "0.4rem 0.85rem", fontSize: "0.78rem", fontFamily: "'Poppins', sans-serif", fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap", display: "flex", alignItems: "center", gap: "5px" }}>
+                <tab.Icon size={14} /> {tab.label}
               </button>
             ))}
           </div>
@@ -3398,7 +3398,7 @@ export default function App() {
           const budgetEmployeMax = Math.max(0, ca * 0.35 - gerant); // plafond 35% - gérant
           const margeEmbauche = budgetEmployeMax - employesReels;
           const masseColor = pctMasse < 30 ? "#4caf50" : pctMasse < 35 ? "#f5a623" : "#e8213a";
-          const masseLabel = pctMasse < 30 ? "🟢 Sain" : pctMasse < 35 ? "🟠 Limite" : "🔴 Trop élevé";
+          const masseLabel = pctMasse < 30 ? "Sain" : pctMasse < 35 ? "Limite" : "Trop élevé";
           const fmt = (n: number) => n.toLocaleString("fr-BE", { maximumFractionDigits: 0 });
 
           const CARD = { background: "#ffffff", border: "1px solid #efe0c9", borderRadius: "16px", boxShadow: "0 1px 3px rgba(61,26,10,0.05)" } as const;
@@ -3407,7 +3407,7 @@ export default function App() {
             <div style={{ padding: "0.9rem 1rem", display: "flex", flexDirection: "column", gap: "0.7rem" }}>
               {/* CA modifiable */}
               <div style={{ ...CARD, padding: "1.1rem" }}>
-                <div style={{ ...LBL, marginBottom: "0.6rem" }}>💰 Chiffre d'affaires / mois</div>
+                <div style={{ ...LBL, marginBottom: "0.6rem", display: "flex", alignItems: "center", gap: "5px" }}><Wallet size={13} /> Chiffre d'affaires / mois</div>
                 <div style={{ display: "flex", alignItems: "center", background: "#faf3e8", border: "1.5px solid #efe0c9", borderRadius: "12px", padding: "0.2rem 0.9rem" }}>
                   <input value={caMoyen} onChange={e => { const v = e.target.value.replace(/[^0-9]/g, ""); setCaMoyen(v); localStorage.setItem("sekai_ca_moyen", v); }} inputMode="numeric"
                     style={{ background: "transparent", border: "none", color: "#e8213a", padding: "0.5rem 0", fontSize: "1.7rem", fontWeight: "800", outline: "none", width: "100%", boxSizing: "border-box" as const, fontFamily: "'Poppins', sans-serif" }} />
@@ -3435,7 +3435,7 @@ export default function App() {
               {/* Masse salariale gauge */}
               <div style={{ ...CARD, padding: "1.1rem" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.6rem" }}>
-                  <div style={LBL}>👥 Masse salariale</div>
+                  <div style={{ ...LBL, display: "flex", alignItems: "center", gap: "5px" }}><Users size={13} /> Masse salariale</div>
                   <span style={{ background: masseColor + "1a", color: masseColor, fontSize: "0.7rem", fontWeight: 600, padding: "0.2rem 0.6rem", borderRadius: "20px" }}>{masseLabel}</span>
                 </div>
                 <div style={{ display: "flex", alignItems: "baseline", gap: "0.5rem", marginBottom: "0.7rem" }}>
@@ -3452,11 +3452,11 @@ export default function App() {
                 </div>
                 <div style={{ borderTop: "1px solid #f4e8d6", marginTop: "0.7rem", paddingTop: "0.5rem" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.82rem", padding: "0.18rem 0" }}>
-                    <span style={{ color: "#6b4c2a" }}>👤 Salaire gérant</span>
+                    <span style={{ color: "#6b4c2a", display: "flex", alignItems: "center", gap: "5px" }}><User size={13} /> Salaire gérant</span>
                     <span style={{ color: "#3d1a0a", fontWeight: 600 }}>{fmt(gerant)} € <span style={{ color: "#c8a878", fontWeight: "normal" }}>({ca>0?((gerant/ca)*100).toFixed(1):0}%)</span></span>
                   </div>
                   <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.82rem", padding: "0.18rem 0" }}>
-                    <span style={{ color: "#6b4c2a" }}>👥 Employés</span>
+                    <span style={{ color: "#6b4c2a", display: "flex", alignItems: "center", gap: "5px" }}><Users size={13} /> Employés</span>
                     <span style={{ color: "#3d1a0a", fontWeight: 600 }}>{fmt(employesReels)} € <span style={{ color: "#c8a878", fontWeight: "normal" }}>({ca>0?((employesReels/ca)*100).toFixed(1):0}%)</span></span>
                   </div>
                 </div>
@@ -3464,7 +3464,7 @@ export default function App() {
 
               {/* Budget employé MAX — la carte clé */}
               <div style={{ background: "linear-gradient(135deg, #3d1a0a, #5a2a12)", borderRadius: "18px", padding: "1.3rem", color: "#fff", boxShadow: "0 6px 18px rgba(61,26,10,0.25)" }}>
-                <div style={{ color: "#f5c842", fontSize: "0.72rem", fontWeight: "bold", marginBottom: "0.3rem" }}>🎯 BUDGET EMPLOYÉS MAX / MOIS</div>
+                <div style={{ color: "#f5c842", fontSize: "0.72rem", fontWeight: "bold", marginBottom: "0.3rem", display: "flex", alignItems: "center", gap: "6px" }}><Target size={14} /> BUDGET EMPLOYÉS MAX / MOIS</div>
                 <div style={{ fontSize: "2.5rem", fontWeight: "900", color: "#fff", lineHeight: 1 }}>{fmt(budgetEmployeMax)} €</div>
                 <div style={{ color: "#f0d8b8", fontSize: "0.72rem", marginTop: "0.3rem", marginBottom: "0.9rem" }}>Plafond sain = 35% du CA − salaire gérant</div>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.6rem" }}>
@@ -3478,15 +3478,15 @@ export default function App() {
                   </div>
                 </div>
                 {margeEmbauche >= 0 && (
-                  <div style={{ color: "#f0d8b8", fontSize: "0.72rem", marginTop: "0.8rem", textAlign: "center", background: "rgba(255,255,255,0.08)", borderRadius: "8px", padding: "0.5rem" }}>
-                    💡 ≈ {fmt(margeEmbauche / 16.4)} h/mois de flexi en plus (~{fmt(margeEmbauche / 16.4 / 4.3)} h/semaine)
+                  <div style={{ color: "#f0d8b8", fontSize: "0.72rem", marginTop: "0.8rem", textAlign: "center", background: "rgba(255,255,255,0.08)", borderRadius: "8px", padding: "0.5rem", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}>
+                    <Lightbulb size={13} /> ≈ {fmt(margeEmbauche / 16.4)} h/mois de flexi en plus (~{fmt(margeEmbauche / 16.4 / 4.3)} h/semaine)
                   </div>
                 )}
               </div>
 
               {/* Règle simple */}
               <div style={{ background: "#fdf6e9", border: "1px solid #efe0c9", borderRadius: "16px", padding: "1rem" }}>
-                <div style={{ ...LBL, marginBottom: "0.5rem" }}>📌 Règle simple à retenir</div>
+                <div style={{ ...LBL, marginBottom: "0.5rem", display: "flex", alignItems: "center", gap: "5px" }}><Lightbulb size={13} /> Règle simple à retenir</div>
                 <div style={{ color: "#3d1a0a", fontSize: "0.83rem", lineHeight: 1.55 }}>
                   Chaque <strong>+1 000 € de CA/mois</strong> = <strong style={{ color: "#1f6e42" }}>+150 €</strong> de budget employé possible.<br/>
                   Ne dépasse jamais <strong style={{ color: "#e8213a" }}>35 % du CA</strong> en masse salariale (gérant + employés).
