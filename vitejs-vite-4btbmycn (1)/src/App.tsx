@@ -798,6 +798,7 @@ export default function App() {
   const [showAddDette, setShowAddDette] = useState(false);
   const [showAddCharge, setShowAddCharge] = useState(false);
   const [editingDette, setEditingDette] = useState<any>(null);
+  const [editDetteForm, setEditDetteForm] = useState<any>(null); // modification complète d'une dette
   const [editingCharge, setEditingCharge] = useState<any>(null);
   const [newDetteNom, setNewDetteNom] = useState("");
   const [newDetteMontant, setNewDetteMontant] = useState("");
@@ -1314,6 +1315,27 @@ export default function App() {
       const updated = await fetchDettes();
       setDettes(updated);
       flash("✅ Supprimée");
+    } catch { flash("❌ Erreur"); }
+  }
+  async function handleSaveEditDette() {
+    const f = editDetteForm;
+    if (!f?.nom?.trim()) { flash("❌ Nom requis"); return; }
+    const initial = parseFloat(String(f.montant_initial).replace(",", ".")) || 0;
+    const restant = parseFloat(String(f.montant_restant).replace(",", ".")) || 0;
+    try {
+      await updateDette(f.id, {
+        nom: f.nom.trim(),
+        categorie: f.categorie,
+        montant_initial: initial,
+        montant_restant: restant,
+        avec_plan: f.avec_plan,
+        mensualite: f.avec_plan && f.mensualite ? parseFloat(String(f.mensualite).replace(",", ".")) : null,
+        statut: restant <= 0 ? "regle" : "en_cours"
+      });
+      const updated = await fetchDettes();
+      setDettes(updated);
+      setEditDetteForm(null);
+      flash("✅ Dette modifiée");
     } catch { flash("❌ Erreur"); }
   }
   async function handleAddCharge() {
@@ -3136,6 +3158,10 @@ export default function App() {
                                 style={{ background: "#faebd7", color: "#a07848", border: "1.5px solid #f0d8b8", borderRadius: "8px", padding: "0.35rem 0.7rem", fontSize: "0.75rem", cursor: "pointer", fontFamily: "'Poppins', sans-serif", fontWeight: "bold" }}>
                                 💶 Payer partiel
                               </button>
+                              <button onClick={() => setEditDetteForm({ ...d })}
+                                style={{ background: "#faebd7", color: "#a07848", border: "1.5px solid #f5c842", borderRadius: "8px", padding: "0.35rem 0.7rem", fontSize: "0.75rem", cursor: "pointer", fontFamily: "'Poppins', sans-serif", fontWeight: "bold" }}>
+                                ✏️ Modifier
+                              </button>
                               <button onClick={() => handleReglerDette(d.id)}
                                 style={{ background: "#4caf50", color: "#fff", border: "none", borderRadius: "8px", padding: "0.35rem 0.7rem", fontSize: "0.75rem", cursor: "pointer", fontFamily: "'Poppins', sans-serif", fontWeight: "bold" }}>
                                 ✅ Réglé
@@ -3859,6 +3885,51 @@ export default function App() {
                 <button onClick={() => setEditingDette(null)} style={{ flex: 1, background: "#faebd7", color: "#a07848", border: "1.5px solid #f0d8b8", padding: "0.8rem", borderRadius: "10px", fontWeight: "bold", cursor: "pointer", fontFamily: "'Poppins', sans-serif" }}>Annuler</button>
                 <button onClick={() => handlePayerPartielDette(editingDette)} style={{ flex: 2, background: "#e8213a", color: "#fff", border: "none", padding: "0.8rem", borderRadius: "10px", fontWeight: "bold", cursor: "pointer", fontFamily: "'Poppins', sans-serif" }}>✅ Confirmer</button>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* MODAL MODIFIER DETTE */}
+        {editDetteForm && (
+          <div onClick={() => setEditDetteForm(null)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", zIndex: 200, display: "flex", alignItems: "flex-start", justifyContent: "center", paddingTop: "8vh", overflowY: "auto" }}>
+            <div onClick={e => e.stopPropagation()} style={{ background: "#fff8f0", borderRadius: "16px", padding: "1.4rem", width: "90%", maxWidth: "380px", display: "flex", flexDirection: "column", gap: "0.7rem", marginBottom: "2rem" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div style={{ color: "#e8213a", fontWeight: "bold", fontSize: "0.95rem" }}>✏️ Modifier la dette</div>
+                <button onClick={() => setEditDetteForm(null)} style={{ background: "#2a2a2a", border: "none", color: "#c8a878", borderRadius: "50%", width: "2rem", height: "2rem", cursor: "pointer" }}>✕</button>
+              </div>
+              <input value={editDetteForm.nom} onChange={e => setEditDetteForm({ ...editDetteForm, nom: e.target.value })} placeholder="Nom"
+                style={{ background: "#faebd7", border: "1px solid #f5c842", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", outline: "none", width: "100%", boxSizing: "border-box" as const, fontFamily: "'Poppins', sans-serif" }} />
+              <select value={editDetteForm.categorie} onChange={e => setEditDetteForm({ ...editDetteForm, categorie: e.target.value })}
+                style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", fontFamily: "'Poppins', sans-serif", outline: "none", width: "100%" }}>
+                <option value="cotisation">ONSS / Cotisations</option>
+                <option value="impots">Impôts</option>
+                <option value="tva">TVA</option>
+                <option value="fournisseur">Fournisseur</option>
+                <option value="prive">Privé</option>
+                <option value="energie">Énergie</option>
+                <option value="autre">Autre</option>
+              </select>
+              <div style={{ display: "flex", gap: "0.5rem" }}>
+                <div style={{ flex: 1 }}>
+                  <label style={{ color: "#a07848", fontSize: "0.68rem", fontWeight: "bold" }}>MONTANT TOTAL</label>
+                  <input value={editDetteForm.montant_initial} onChange={e => setEditDetteForm({ ...editDetteForm, montant_initial: e.target.value.replace(",", ".") })} inputMode="decimal"
+                    style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.7rem", borderRadius: "8px", fontSize: "0.95rem", outline: "none", width: "100%", boxSizing: "border-box" as const, fontFamily: "'Poppins', sans-serif" }} />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <label style={{ color: "#a07848", fontSize: "0.68rem", fontWeight: "bold" }}>RESTANT</label>
+                  <input value={editDetteForm.montant_restant} onChange={e => setEditDetteForm({ ...editDetteForm, montant_restant: e.target.value.replace(",", ".") })} inputMode="decimal"
+                    style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.7rem", borderRadius: "8px", fontSize: "0.95rem", outline: "none", width: "100%", boxSizing: "border-box" as const, fontFamily: "'Poppins', sans-serif" }} />
+                </div>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginTop: "0.2rem" }}>
+                <input type="checkbox" id="editDettePlan" checked={!!editDetteForm.avec_plan} onChange={e => setEditDetteForm({ ...editDetteForm, avec_plan: e.target.checked })} style={{ width: "1.1rem", height: "1.1rem", accentColor: "#4caf50", cursor: "pointer" }} />
+                <label htmlFor="editDettePlan" style={{ color: "#3d1a0a", fontSize: "0.85rem", cursor: "pointer" }}>Plan de paiement mensuel</label>
+              </div>
+              {editDetteForm.avec_plan && (
+                <input value={editDetteForm.mensualite || ""} onChange={e => setEditDetteForm({ ...editDetteForm, mensualite: e.target.value.replace(",", ".") })} placeholder="Mensualité (€/mois)" inputMode="decimal"
+                  style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", outline: "none", width: "100%", boxSizing: "border-box" as const, fontFamily: "'Poppins', sans-serif" }} />
+              )}
+              <button onClick={handleSaveEditDette} style={{ background: "#e8213a", color: "#fff", border: "none", padding: "0.9rem", borderRadius: "10px", fontWeight: "bold", fontSize: "1rem", cursor: "pointer", width: "100%", fontFamily: "'Poppins', sans-serif" }}>✅ Enregistrer</button>
             </div>
           </div>
         )}
