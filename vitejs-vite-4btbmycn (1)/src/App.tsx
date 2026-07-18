@@ -255,6 +255,33 @@ async function deleteUser(id) {
   if (!res.ok) throw new Error("Delete user failed");
 }
 
+// ── DOCUMENTS API ──────────────────────────────────────────
+// Liste sans le fichier (léger)
+async function fetchDocumentsMeta() {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/documents?select=id,employe_nom,titre,type_doc,mime,taille,created_by,created_at&order=created_at.desc`, { headers: HEADERS });
+  if (!res.ok) throw new Error("Fetch documents failed");
+  return res.json();
+}
+// Contenu d'un seul document
+async function fetchDocumentContent(id) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/documents?select=fichier,mime,titre&id=eq.${id}`, { headers: HEADERS });
+  if (!res.ok) throw new Error("Fetch document content failed");
+  const arr = await res.json();
+  return arr[0];
+}
+async function createDocument(data) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/documents`, {
+    method: "POST", headers: { ...HEADERS, "Prefer": "return=minimal" }, body: JSON.stringify(data)
+  });
+  if (!res.ok) throw new Error("Create document failed");
+}
+async function deleteDocument(id) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/documents?id=eq.${id}`, {
+    method: "DELETE", headers: HEADERS
+  });
+  if (!res.ok) throw new Error("Delete document failed");
+}
+
 function getCurrentMois() {
   const d = new Date();
   const month = String(d.getMonth() + 1).padStart(2, "0");
@@ -692,6 +719,12 @@ export default function App() {
   const [editItemThresholdLabel, setEditItemThresholdLabel] = useState("");
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [allUsers, setAllUsers] = useState([]);
+  const [documents, setDocuments] = useState<any[]>([]);
+  const [documentsLoading, setDocumentsLoading] = useState(false);
+  const [showDocUpload, setShowDocUpload] = useState(false);
+  const [docUploadEmploye, setDocUploadEmploye] = useState("");
+  const [docUploadTitre, setDocUploadTitre] = useState("");
+  const [docUploading, setDocUploading] = useState(false);
   const [showNewUser, setShowNewUser] = useState(false);
   const [newUserPrenom, setNewUserPrenom] = useState("");
   const [newUserPassword, setNewUserPassword] = useState("");
@@ -1064,6 +1097,56 @@ export default function App() {
 
   async function loadUsers() {
     try { const u = await fetchAllUsers(); setAllUsers(u); } catch { flash("❌ Erreur chargement comptes"); }
+  }
+
+  // ── Documents handlers ──
+  async function loadDocuments() {
+    setDocumentsLoading(true);
+    try { setDocuments(await fetchDocumentsMeta()); }
+    catch { flash("❌ Erreur chargement documents"); }
+    finally { setDocumentsLoading(false); }
+  }
+  async function handleOpenDocument(doc: any) {
+    try {
+      flash("⏳ Ouverture...");
+      const content = await fetchDocumentContent(doc.id);
+      if (!content?.fichier) { flash("❌ Fichier introuvable"); return; }
+      // Ouvre le PDF dans le viewer (data URI)
+      setPdfModal(`<html><head><meta name="viewport" content="width=device-width,initial-scale=1"><style>html,body{margin:0;height:100%}iframe{border:none;width:100%;height:100%}</style></head><body><iframe src="data:${content.mime || "application/pdf"};base64,${content.fichier}"></iframe></body></html>`);
+    } catch { flash("❌ Erreur ouverture"); }
+  }
+  async function handleUploadDocument(file: File) {
+    if (!file) return;
+    if (isAdmin && !docUploadEmploye) { flash("❌ Choisis un employé"); return; }
+    if (file.size > 8 * 1024 * 1024) { flash("❌ Fichier trop lourd (max 8 Mo)"); return; }
+    setDocUploading(true);
+    try {
+      const b64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result).split(",")[1] || "");
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+      const nom = isAdmin ? docUploadEmploye : currentUser.prenom;
+      await createDocument({
+        employe_nom: nom,
+        titre: docUploadTitre.trim() || file.name.replace(/\.pdf$/i, ""),
+        type_doc: "contrat",
+        fichier: b64,
+        mime: file.type || "application/pdf",
+        taille: file.size,
+        created_by: currentUser.prenom
+      });
+      flash("✅ Document ajouté");
+      setShowDocUpload(false); setDocUploadTitre(""); setDocUploadEmploye("");
+      loadDocuments();
+    } catch { flash("❌ Erreur upload"); }
+    finally { setDocUploading(false); }
+  }
+  async function handleDeleteDocument(id: number) {
+    if (!confirm("Supprimer ce document ?")) return;
+    try { await deleteDocument(id); flash("🗑️ Supprimé"); loadDocuments(); }
+    catch { flash("❌ Erreur"); }
   }
 
   async function handleCreateUser() {
@@ -1893,7 +1976,7 @@ export default function App() {
         { id: "paie", label: "Paie", icon: "paie", adminOnly: true },
         { id: "profil", label: "Profil", icon: "profil", adminOnly: false }
       ].filter(tab => !tab.adminOnly || isAdmin).map(tab => (
-        <button key={tab.id} onClick={() => { setPage(tab.id); if (tab.id === "comptes") loadUsers(); if (tab.id === "horaires") { if (!horaires.length) fetchHoraires(horaireRestaurant); fetchHeuresJours(horaireRestaurant); if (isAdmin && !allUsers.length) loadUsers(); } if (tab.id === "finances") { loadFinances(); loadTodoTaches(); loadEvents(); } if (tab.id === "fermetures") { loadFermetureHistorique(); loadFermetureData(); } if (tab.id === "paie") { loadFichesPaie(); loadUsers(); } }} style={{ flex: 1, background: "none", border: "none", padding: "0.7rem 0", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: "0.15rem" }}>
+        <button key={tab.id} onClick={() => { setPage(tab.id); if (tab.id === "profil") { loadDocuments(); if (isAdmin && !allUsers.length) loadUsers(); } if (tab.id === "comptes") loadUsers(); if (tab.id === "horaires") { if (!horaires.length) fetchHoraires(horaireRestaurant); fetchHeuresJours(horaireRestaurant); if (isAdmin && !allUsers.length) loadUsers(); } if (tab.id === "finances") { loadFinances(); loadTodoTaches(); loadEvents(); } if (tab.id === "fermetures") { loadFermetureHistorique(); loadFermetureData(); } if (tab.id === "paie") { loadFichesPaie(); loadUsers(); } }} style={{ flex: 1, background: "none", border: "none", padding: "0.7rem 0", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: "0.15rem" }}>
           <span style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
             {tab.icon === "stock" && <Package size={20} color={page === tab.id ? "#e8213a" : "#c8a878"} />}
             {tab.icon === "horaires" && <Calendar size={20} color={page === tab.id ? "#e8213a" : "#c8a878"} />}
@@ -4416,10 +4499,64 @@ export default function App() {
             </div>
           </div>
         )}
+        {/* ── MES DOCUMENTS ── */}
+        <div style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "12px", padding: "1rem" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.6rem" }}>
+            <div style={{ color: "#e8213a", fontSize: "0.95rem", fontWeight: "bold" }}>📄 {isAdmin ? "Documents équipe" : "Mes documents"}</div>
+            <button onClick={() => { setDocUploadEmploye(isAdmin ? "" : currentUser.prenom); setDocUploadTitre(""); setShowDocUpload(true); }}
+              style={{ background: "#e8213a", color: "#fff", border: "none", borderRadius: "8px", padding: "0.35rem 0.7rem", fontSize: "0.78rem", fontWeight: "bold", cursor: "pointer", fontFamily: "'Poppins', sans-serif", display: "flex", alignItems: "center", gap: "4px" }}>
+              <Plus size={13} /> Ajouter
+            </button>
+          </div>
+          {documentsLoading && <div style={{ color: "#c8a878", fontSize: "0.82rem", textAlign: "center", padding: "0.8rem" }}>⏳ Chargement...</div>}
+          {(() => {
+            const mesDocs = isAdmin ? documents : documents.filter(d => d.employe_nom === currentUser.prenom);
+            if (!documentsLoading && mesDocs.length === 0) return <div style={{ color: "#c8a878", fontSize: "0.82rem", textAlign: "center", padding: "0.8rem" }}>Aucun document</div>;
+            return mesDocs.map(d => (
+              <div key={d.id} style={{ display: "flex", alignItems: "center", gap: "0.6rem", padding: "0.6rem 0", borderTop: "1px solid #f0d8b8" }}>
+                <button onClick={() => handleOpenDocument(d)} style={{ flex: 1, background: "none", border: "none", textAlign: "left", cursor: "pointer", display: "flex", alignItems: "center", gap: "0.6rem", padding: 0, fontFamily: "'Poppins', sans-serif" }}>
+                  <FileText size={20} color="#e8213a" />
+                  <div>
+                    <div style={{ color: "#3d1a0a", fontSize: "0.88rem", fontWeight: "600" }}>{d.titre}</div>
+                    <div style={{ color: "#a07848", fontSize: "0.7rem" }}>{isAdmin && <span>👤 {d.employe_nom} · </span>}{d.taille ? Math.round(d.taille/1024) + " Ko" : "PDF"}</div>
+                  </div>
+                </button>
+                {isAdmin && (
+                  <button onClick={() => handleDeleteDocument(d.id)} style={{ background: "none", color: "#c8a878", border: "none", cursor: "pointer" }}><Trash2 size={15} /></button>
+                )}
+              </div>
+            ));
+          })()}
+        </div>
+
         {isAdmin && (
           <button onClick={() => { setPage("comptes"); loadUsers(); }} style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", color: "#3d1a0a", borderRadius: "12px", padding: "1rem", fontFamily: "'Poppins', sans-serif", fontSize: "0.95rem", cursor: "pointer", textAlign: "left" }}>
             🔑 Gestion des comptes
           </button>
+        )}
+
+        {/* Modal upload document */}
+        {showDocUpload && (
+          <div onClick={() => setShowDocUpload(false)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", zIndex: 200, display: "flex", alignItems: "flex-start", justifyContent: "center", paddingTop: "12vh" }}>
+            <div onClick={e => e.stopPropagation()} style={{ background: "#fff8f0", borderRadius: "16px", padding: "1.4rem", width: "90%", maxWidth: "380px", display: "flex", flexDirection: "column", gap: "0.8rem" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div style={{ color: "#e8213a", fontWeight: "bold", fontSize: "0.95rem" }}>📄 Ajouter un document</div>
+                <button onClick={() => setShowDocUpload(false)} style={{ background: "#2a2a2a", border: "none", color: "#c8a878", borderRadius: "50%", width: "2rem", height: "2rem", cursor: "pointer" }}>✕</button>
+              </div>
+              {isAdmin && (
+                <select value={docUploadEmploye} onChange={e => setDocUploadEmploye(e.target.value)} style={inputStyle}>
+                  <option value="">👤 Choisir l'employé...</option>
+                  {allUsers.map((u: any) => <option key={u.id} value={u.prenom}>{u.prenom}</option>)}
+                </select>
+              )}
+              <input value={docUploadTitre} onChange={e => setDocUploadTitre(e.target.value)} placeholder="Titre (ex: Contrat) — optionnel" style={inputStyle} />
+              <label style={{ background: "#e8213a", color: "#fff", padding: "0.9rem", borderRadius: "10px", fontWeight: "bold", fontSize: "0.95rem", cursor: "pointer", textAlign: "center", fontFamily: "'Poppins', sans-serif" }}>
+                {docUploading ? "⏳ Envoi..." : "📎 Choisir un PDF"}
+                <input type="file" accept="application/pdf" disabled={docUploading} onChange={e => { const f = e.target.files?.[0]; if (f) handleUploadDocument(f); }} style={{ display: "none" }} />
+              </label>
+              <div style={{ color: "#a07848", fontSize: "0.7rem", textAlign: "center" }}>PDF · max 8 Mo</div>
+            </div>
+          </div>
         )}
         <button onClick={handleLogout} style={{ background: "#fff5f5", border: "1px solid #3a1a1a", color: "#e57373", borderRadius: "12px", padding: "1rem", fontFamily: "'Poppins', sans-serif", fontSize: "0.95rem", cursor: "pointer" }}>
           🚪 Se déconnecter
