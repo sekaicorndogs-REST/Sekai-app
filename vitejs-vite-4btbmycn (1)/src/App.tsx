@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Package, Calendar, CreditCard, Users, UserCircle, ArrowLeft, RefreshCw, AlertTriangle, AlertCircle, CheckCircle, Pencil, Save, Eye, EyeOff, Check, Lock, User, ArrowRight, Trash2, Plus, ChevronRight, Settings, LogOut, Shield, Star, ListChecks, FileText, Wallet, Target, Lightbulb, Banknote, Receipt, PartyPopper, Utensils, Heart, TrendingUp, Coins, PiggyBank, HandCoins, Percent } from "lucide-react";
+import { Package, Calendar, CreditCard, Users, UserCircle, ArrowLeft, RefreshCw, AlertTriangle, AlertCircle, CheckCircle, Pencil, Save, Eye, EyeOff, Check, Lock, User, ArrowRight, Trash2, Plus, ChevronRight, Settings, LogOut, Shield, Star, ListChecks, FileText, Wallet, Target, Lightbulb, Banknote, Receipt, PartyPopper, Utensils, Heart, TrendingUp, Coins, PiggyBank, HandCoins, Percent, Moon, Clock, Box, Home } from "lucide-react";
 
 const SUPABASE_URL = "https://ldpxgfgcnlzktaymtnwd.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkcHhnZmdjbmx6a3RheW10bndkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxOTgyMTAsImV4cCI6MjA5MTc3NDIxMH0.N_yUwjRvBM9rfxu0Xj-FCCGJ9eJ3UomPZdcUYAb8B8s";
@@ -2081,7 +2081,7 @@ export default function App() {
       <div style={{ ...s, minHeight: "100vh", background: "#faebd7", padding: "1rem", paddingBottom: "2rem" }}>
         {toast && <div style={{ position: "fixed", top: "1rem", left: "50%", transform: "translateX(-50%)", background: toast.type === "success" ? "#f0fff4" : toast.type === "warn" ? "#fffbe6" : "#fff0f0", color: toast.type === "success" ? "#2e7d32" : toast.type === "warn" ? "#b45309" : "#e8213a", padding: "0.6rem 1.4rem", borderRadius: "20px", fontSize: "0.88rem", zIndex: 999, border: `1.5px solid ${toast.type === "success" ? "#a5d6a7" : toast.type === "warn" ? "#fde68a" : "#f5c8c8"}`, whiteSpace: "nowrap", pointerEvents: "none", fontWeight: "600", boxShadow: "0 2px 12px rgba(0,0,0,0.12)" }}>{toast.msg}</div>}
         <div style={{ background: "#e8213a", borderRadius: "12px", padding: "1.2rem", marginBottom: "1rem", textAlign: "center" }}>
-          <h1 style={{ color: "#fff", fontSize: "1.4rem", margin: 0 }}>🌙 Fermeture du soir</h1>
+          <h1 style={{ color: "#fff", fontSize: "1.4rem", margin: 0, display: "flex", alignItems: "center", gap: "8px" }}><Moon size={22} /> Fermeture du soir</h1>
           <p style={{ color: "#ffffffcc", fontSize: "0.9rem", margin: "0.4rem 0 0", textTransform: "capitalize" }}>{getTodayStr()}</p>
         </div>
         {fermetureLoading ? (
@@ -2458,7 +2458,7 @@ export default function App() {
         {/* Header */}
         <div style={{ background: "#fff8f0", padding: "1rem 1.2rem", borderBottom: "1.5px solid #f0d8b8", position: "sticky", top: 0, zIndex: 30 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
-            <h1 style={{ color: "#ffffff", fontSize: "1.1rem", margin: 0 }}>📅 Horaires</h1>
+            <h1 style={{ color: "#ffffff", fontSize: "1.1rem", margin: 0, display: "flex", alignItems: "center", gap: "7px" }}><Calendar size={18} /> Horaires</h1>
             <div style={{ display: "flex", gap: "0.4rem" }}>
               <select value={horaireRestaurant} onChange={e => { setHoraireRestaurant(e.target.value); setHoraires([]); fetchHoraires(e.target.value); }}
                 style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#e8213a", borderRadius: "8px", padding: "0.3rem 0.5rem", fontSize: "0.75rem", fontFamily: "'Poppins', sans-serif" }}>
@@ -2480,10 +2480,10 @@ export default function App() {
             </div>
           </div>
           <div style={{ display: "flex", gap: "0.4rem", overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
-            {[{id:"heures",label:"📅 Calendrier"},{id:"events",label:"Events"},{id:"stats",label:"Stats"},...(isAdmin?[{id:"suivi",label:"🏆 Suivi"},{id:"fermeture",label:"🔒 Fermeture"}]:[])].map(tab => (
+            {[{id:"heures",label:"Calendrier",Icon:Calendar},{id:"events",label:"Events",Icon:PartyPopper},{id:"stats",label:"Stats",Icon:TrendingUp},...(isAdmin?[{id:"suivi",label:"Suivi",Icon:Star},{id:"fermeture",label:"Fermeture",Icon:Lock}]:[])].map(tab => (
               <button key={tab.id} onClick={() => { if (tab.id === "fermeture") { setPage("fermetures"); loadFermetureHistorique(); loadFermetureData(); } else { setHoraireView(tab.id); if (tab.id === "suivi") loadAmendes(); if (tab.id === "heures") { fetchHeuresJours(horaireRestaurant); if (isAdmin && !allUsers.length) loadUsers(); } if (tab.id === "events") loadEventWorkers(); } }}
-                style={{ background: horaireView === tab.id ? "#f5c842" : "#1e1e1e", color: horaireView === tab.id ? "#111" : "#555", border: "none", borderRadius: "8px", padding: "0.35rem 0.9rem", flexShrink: 0, whiteSpace: "nowrap", fontSize: "0.78rem", fontFamily: "'Poppins', sans-serif", fontWeight: horaireView === tab.id ? "bold" : "normal", cursor: "pointer" }}>
-                {tab.label}
+                style={{ background: horaireView === tab.id ? "#e8213a" : "#fff", color: horaireView === tab.id ? "#fff" : "#a07848", border: `1px solid ${horaireView === tab.id ? "#e8213a" : "#efe0c9"}`, borderRadius: "20px", padding: "0.4rem 0.85rem", flexShrink: 0, whiteSpace: "nowrap", fontSize: "0.78rem", fontFamily: "'Poppins', sans-serif", fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: "5px" }}>
+                <tab.Icon size={14} /> {tab.label}
               </button>
             ))}
           </div>
@@ -4240,12 +4240,12 @@ export default function App() {
         {/* Header */}
         <div style={{ background: "#e8213a", padding: "1rem 1.2rem", position: "sticky", top: 0, zIndex: 30 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.6rem" }}>
-            <h1 style={{ color: "#fff", fontSize: "1.1rem", margin: 0 }}>💶 Paie — Cherry Food</h1>
+            <h1 style={{ color: "#fff", fontSize: "1.1rem", margin: 0, display: "flex", alignItems: "center", gap: "7px" }}><Banknote size={18} /> Paie — Cherry Food</h1>
             <button onClick={() => { loadFichesPaie(); loadUsers(); }} style={{ background: "rgba(255,255,255,0.15)", border: "none", color: "#fff", borderRadius: "8px", padding: "0.3rem 0.6rem", cursor: "pointer" }}><RefreshCw size={16} /></button>
           </div>
           <div style={{ display: "flex", gap: "0.4rem" }}>
-            {[{ id: "fiches", label: "📄 Fiches" }, { id: "employes", label: "👥 Employés" }, { id: "comptable", label: "📊 Comptable" }, { id: "cotisations", label: "🏦 Cotis." }].map(t => (
-              <button key={t.id} onClick={() => setPaieView(t.id)} style={{ background: paieView === t.id ? "#f5c842" : "rgba(255,255,255,0.15)", color: paieView === t.id ? "#111" : "#fff", border: "none", borderRadius: "8px", padding: "0.35rem 0.8rem", fontSize: "0.78rem", fontFamily: "'Poppins', sans-serif", fontWeight: paieView === t.id ? "bold" : "normal", cursor: "pointer", flexShrink: 0 }}>{t.label}</button>
+            {[{ id: "fiches", label: "Fiches", Icon: FileText }, { id: "employes", label: "Employés", Icon: Users }, { id: "comptable", label: "Comptable", Icon: TrendingUp }, { id: "cotisations", label: "Cotis.", Icon: PiggyBank }].map(t => (
+              <button key={t.id} onClick={() => setPaieView(t.id)} style={{ background: paieView === t.id ? "#f5c842" : "rgba(255,255,255,0.15)", color: paieView === t.id ? "#111" : "#fff", border: "none", borderRadius: "20px", padding: "0.4rem 0.8rem", fontSize: "0.78rem", fontFamily: "'Poppins', sans-serif", fontWeight: 600, cursor: "pointer", flexShrink: 0, display: "flex", alignItems: "center", gap: "5px" }}><t.Icon size={13} /> {t.label}</button>
             ))}
           </div>
         </div>
@@ -4599,7 +4599,7 @@ export default function App() {
     <div style={{ ...s, minHeight: "100vh", background: "#faebd7", paddingBottom: "5rem" }}>
       {toast && <div style={{ position: "fixed", top: "1rem", left: "50%", transform: "translateX(-50%)", background: toast.type === "success" ? "#f0fff4" : toast.type === "warn" ? "#fffbe6" : "#fff0f0", color: toast.type === "success" ? "#2e7d32" : toast.type === "warn" ? "#b45309" : "#e8213a", padding: "0.6rem 1.4rem", borderRadius: "20px", fontSize: "0.88rem", zIndex: 999, border: `1.5px solid ${toast.type === "success" ? "#a5d6a7" : toast.type === "warn" ? "#fde68a" : "#f5c8c8"}`, whiteSpace: "nowrap", pointerEvents: "none", fontWeight: "600", boxShadow: "0 2px 12px rgba(0,0,0,0.12)" }}>{toast.msg}</div>}
       <div style={{ background: "#e8213a", padding: "1.2rem", borderBottom: "none" }}>
-        <h1 style={{ color: "#ffffff", fontSize: "1.1rem", margin: 0 }}>👤 Mon profil</h1>
+        <h1 style={{ color: "#ffffff", fontSize: "1.1rem", margin: 0, display: "flex", alignItems: "center", gap: "7px" }}><UserCircle size={19} /> Mon profil</h1>
       </div>
       <div style={{ padding: "1.2rem", display: "flex", flexDirection: "column", gap: "0.75rem" }}>
         <div style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "12px", padding: "1.2rem" }}>
@@ -4728,7 +4728,7 @@ export default function App() {
     <div style={{ ...s, minHeight: "100vh", background: "#faebd7", paddingBottom: "5rem" }}>
       {toast && <div style={{ position: "fixed", top: "1rem", left: "50%", transform: "translateX(-50%)", background: toast.type === "success" ? "#f0fff4" : toast.type === "warn" ? "#fffbe6" : "#fff0f0", color: toast.type === "success" ? "#2e7d32" : toast.type === "warn" ? "#b45309" : "#e8213a", padding: "0.6rem 1.4rem", borderRadius: "20px", fontSize: "0.88rem", zIndex: 999, border: `1.5px solid ${toast.type === "success" ? "#a5d6a7" : toast.type === "warn" ? "#fde68a" : "#f5c8c8"}`, whiteSpace: "nowrap", pointerEvents: "none", fontWeight: "600", boxShadow: "0 2px 12px rgba(0,0,0,0.12)" }}>{toast.msg}</div>}
       <div style={{ background: "#e8213a", padding: "1.2rem", borderBottom: "none", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <h1 style={{ color: "#ffffff", fontSize: "1.1rem", margin: 0 }}>👥 Gestion des comptes</h1>
+        <h1 style={{ color: "#ffffff", fontSize: "1.1rem", margin: 0, display: "flex", alignItems: "center", gap: "7px" }}><Users size={19} /> Gestion des comptes</h1>
         <button onClick={() => setShowNewUser(true)} style={{ background: "#e8213a", color: "#ffffff", border: "none", borderRadius: "8px", padding: "0.5rem 0.9rem", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", fontSize: "0.85rem", cursor: "pointer" }}><span style={{display:"flex",alignItems:"center",gap:"6px"}}><Plus size={14} /> Nouveau</span></button>
       </div>
       {showNewUser && (
@@ -4829,7 +4829,7 @@ export default function App() {
             ))}
           </div>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
-            <h1 style={{ color: "#e8213a", fontSize: "1.1rem", margin: 0 }}>🔒 Fermetures</h1>
+            <h1 style={{ color: "#e8213a", fontSize: "1.1rem", margin: 0, display: "flex", alignItems: "center", gap: "7px" }}><Lock size={18} /> Fermetures</h1>
             <button onClick={() => { loadFermetureHistorique(); loadFermetureData(); }}
               style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#a07848", borderRadius: "8px", padding: "0.3rem 0.6rem", fontSize: "0.8rem", cursor: "pointer" }}><RefreshCw size={16} /></button>
           </div>
