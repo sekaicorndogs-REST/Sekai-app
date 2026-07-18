@@ -3210,6 +3210,7 @@ export default function App() {
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
                   <div style={{ color: "#e8213a", fontSize: "0.95rem", fontWeight: "bold" }}>{parseFloat(c.montant).toLocaleString("fr-BE", { minimumFractionDigits: 2 })} €</div>
+                  <button onClick={() => setEditingCharge({ ...c })} style={{ background: "none", color: "#a07848", border: "none", cursor: "pointer" }}><Pencil size={15} /></button>
                   <button onClick={() => handleDeleteCharge(c.id)} style={{ background: "none", color: "#c8a878", border: "none", cursor: "pointer" }}><Trash2 size={15} /></button>
                 </div>
               </div>
@@ -3930,6 +3931,37 @@ export default function App() {
                   style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", outline: "none", width: "100%", boxSizing: "border-box" as const, fontFamily: "'Poppins', sans-serif" }} />
               )}
               <button onClick={handleSaveEditDette} style={{ background: "#e8213a", color: "#fff", border: "none", padding: "0.9rem", borderRadius: "10px", fontWeight: "bold", fontSize: "1rem", cursor: "pointer", width: "100%", fontFamily: "'Poppins', sans-serif" }}>✅ Enregistrer</button>
+            </div>
+          </div>
+        )}
+
+        {/* MODAL MODIFIER CHARGE */}
+        {editingCharge && (
+          <div onClick={() => setEditingCharge(null)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", zIndex: 200, display: "flex", alignItems: "flex-start", justifyContent: "center", paddingTop: "10vh" }}>
+            <div onClick={e => e.stopPropagation()} style={{ background: "#fff8f0", borderRadius: "16px", padding: "1.4rem", width: "90%", maxWidth: "380px", display: "flex", flexDirection: "column", gap: "0.7rem" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div style={{ color: "#e8213a", fontWeight: "bold", fontSize: "0.95rem" }}>✏️ Modifier la charge</div>
+                <button onClick={() => setEditingCharge(null)} style={{ background: "#2a2a2a", border: "none", color: "#c8a878", borderRadius: "50%", width: "2rem", height: "2rem", cursor: "pointer" }}>✕</button>
+              </div>
+              <input value={editingCharge.nom} onChange={e => setEditingCharge({ ...editingCharge, nom: e.target.value })} placeholder="Nom"
+                style={{ background: "#faebd7", border: "1px solid #f5c842", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", outline: "none", width: "100%", boxSizing: "border-box" as const, fontFamily: "'Poppins', sans-serif" }} />
+              <input value={editingCharge.montant} onChange={e => setEditingCharge({ ...editingCharge, montant: e.target.value.replace(",", ".") })} placeholder="Montant (€)" inputMode="decimal"
+                style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", outline: "none", width: "100%", boxSizing: "border-box" as const, fontFamily: "'Poppins', sans-serif" }} />
+              <select value={editingCharge.categorie} onChange={e => setEditingCharge({ ...editingCharge, categorie: e.target.value })}
+                style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", fontFamily: "'Poppins', sans-serif", outline: "none", width: "100%" }}>
+                <option value="salaire">💼 Salaire</option>
+                <option value="personnel">👥 Personnel</option>
+                <option value="loyer">🏠 Loyer</option>
+                <option value="voiture">🚗 Voiture</option>
+                <option value="tva">🧾 TVA</option>
+                <option value="cotisation">📋 Cotisation</option>
+                <option value="marketing">📣 Marketing</option>
+                <option value="comptable">🧮 Comptable</option>
+                <option value="energie">⚡ Énergie</option>
+                <option value="telecom">📞 Télécom</option>
+                <option value="autre">📦 Autre</option>
+              </select>
+              <button onClick={() => handleUpdateCharge(editingCharge)} style={{ background: "#e8213a", color: "#fff", border: "none", padding: "0.9rem", borderRadius: "10px", fontWeight: "bold", fontSize: "1rem", cursor: "pointer", width: "100%", fontFamily: "'Poppins', sans-serif" }}>✅ Enregistrer</button>
             </div>
           </div>
         )}
