@@ -843,6 +843,7 @@ export default function App() {
   const [eventLocationMateriel, setEventLocationMateriel] = useState("");
   const [eventEssence, setEventEssence] = useState("");
   const [eventCaRealise, setEventCaRealise] = useState("");
+  const [eventObjectif, setEventObjectif] = useState("");
   const [eventResultat, setEventResultat] = useState<any>(null);
   const [events, setEvents] = useState<any[]>([]);
   const [eventsLoading, setEventsLoading] = useState(false);
@@ -1342,7 +1343,7 @@ export default function App() {
     setEventTransport(""); setEventMateriel(""); setEventAutres("");
     setEventHotel(""); setEventLocationMateriel(""); setEventEssence("");
     setEventTauxIngredients("18"); setEventFoodCostMode("pct"); setEventFoodCostEur("");
-    setEventCaRealise(""); setEventResultat(null);
+    setEventCaRealise(""); setEventObjectif(""); setEventResultat(null);
   }
   function loadEventForm(ev: any, editMode = false) {
     setEventNom(ev.nom || ""); setEventDate(ev.date_event || "");
@@ -1351,7 +1352,7 @@ export default function App() {
     setEventAutres(String(ev.cout_autres || "")); setEventTauxIngredients(String(ev.taux_ingredients || "18"));
     setEventHotel(String(ev.cout_hotel || "")); setEventLocationMateriel(String(ev.cout_location_materiel || ""));
     setEventEssence(String(ev.cout_essence || ""));
-    setEventCaRealise(String(ev.ca_realise || "")); setEventResultat(null);
+    setEventCaRealise(String(ev.ca_realise || "")); setEventObjectif(String(ev.objectif_benefice || "")); setEventResultat(null);
     setEditingEventId(editMode ? ev.id : null);
     setEventView("form"); setShowEventForm(true);
   }
@@ -1381,7 +1382,8 @@ export default function App() {
       cout_autres: parseFloat(eventAutres)||0, cout_hotel: parseFloat(eventHotel)||0,
       cout_location_materiel: parseFloat(eventLocationMateriel)||0, cout_essence: parseFloat(eventEssence)||0,
       taux_ingredients: parseFloat(eventTauxIngredients)||18,
-      ca_realise: parseFloat(eventCaRealise)||null
+      ca_realise: parseFloat(eventCaRealise)||null,
+      objectif_benefice: parseFloat(eventObjectif)||null
     };
     try {
       if (editingEventId) {
@@ -3754,6 +3756,19 @@ export default function App() {
                         {profit != null && <span style={{ background: profit >= 0 ? "#f5fff8" : "#fff5f5", color: profit >= 0 ? "#4caf50" : "#e8213a", fontSize: "0.75rem", borderRadius: "6px", padding: "0.2rem 0.5rem", fontWeight: "900" }}>{profit >= 0 ? "+" : ""}{Math.round(profit).toLocaleString("fr-BE")} €</span>}
                       </div>
 
+                      {/* Objectif de bénéfice personnalisé */}
+                      {ca == null && ev.objectif_benefice > 0 && (() => {
+                        const obj = parseFloat(ev.objectif_benefice);
+                        const caObjectif = (obj + coutsFixes) / (1 - taux);
+                        const foodCostObj = caObjectif * taux;
+                        return (
+                          <div style={{ background: "linear-gradient(135deg,#3d1a0a,#5a2a12)", borderRadius: "10px", padding: "0.8rem 1rem", marginBottom: "0.6rem", color: "#fff" }}>
+                            <div style={{ color: "#f5c842", fontSize: "0.68rem", fontWeight: "bold", marginBottom: "0.2rem" }}>🎯 POUR {obj.toLocaleString("fr-BE")} € DE BÉNÉFICE</div>
+                            <div style={{ fontSize: "1.5rem", fontWeight: "900" }}>{Math.ceil(caObjectif).toLocaleString("fr-BE")} € <span style={{ fontSize: "0.8rem", fontWeight: "normal", color: "#f0d8b8" }}>de CA à faire</span></div>
+                            <div style={{ color: "#f0d8b8", fontSize: "0.68rem", marginTop: "0.2rem" }}>≈ {Math.ceil(foodCostObj).toLocaleString("fr-BE")} € de food cost · {Math.ceil(caObjectif/6).toLocaleString("fr-BE")} corndogs à 6€</div>
+                          </div>
+                        );
+                      })()}
                       {/* Event pas encore eu lieu → projection */}
                       {ca == null && (
                         <div style={{ background: "#faebd7", borderRadius: "10px", padding: "0.7rem 0.8rem" }}>
@@ -3851,6 +3866,14 @@ export default function App() {
                       </div>
                     )}
                   </div>
+                  <div style={{ color: "#a07848", fontSize: "0.72rem", fontWeight: "600", margin: "0.6rem 0 0.4rem" }}>🎯 OBJECTIF DE BÉNÉFICE (avant l'event)</div>
+                  <div style={{ display: "flex", alignItems: "center", background: "#faebd7", border: "1.5px solid #f5c84266", borderRadius: "8px", overflow: "hidden", marginBottom: "0.3rem" }}>
+                    <input value={eventObjectif} onChange={e => setEventObjectif(e.target.value.replace(",", "."))} inputMode="decimal" type="text" placeholder="Ex: 5000"
+                      style={{ background: "transparent", border: "none", color: "#3d1a0a", padding: "0.7rem 1rem", fontSize: "0.95rem", outline: "none", flex: 1, fontFamily: "'Poppins', sans-serif" }} />
+                    <span style={{ color: "#a07848", paddingRight: "0.8rem", fontSize: "0.9rem" }}>€ de bénéf.</span>
+                  </div>
+                  <div style={{ color: "#c8a878", fontSize: "0.68rem", marginBottom: "0.8rem" }}>On te dira le CA à faire pour atteindre cet objectif tant que le CA réel n'est pas rentré.</div>
+
                   <div style={{ color: "#a07848", fontSize: "0.72rem", fontWeight: "600", margin: "0.6rem 0 0.4rem" }}>CA RÉALISÉ (optionnel — après l'event)</div>
                   <div style={{ display: "flex", alignItems: "center", background: "#faebd7", border: "1.5px solid #4caf5044", borderRadius: "8px", overflow: "hidden", marginBottom: "0.8rem" }}>
                     <input value={eventCaRealise} onChange={e => setEventCaRealise(e.target.value.replace(",", "."))} inputMode="decimal" type="text" placeholder="0"
