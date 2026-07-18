@@ -2230,15 +2230,15 @@ export default function App() {
             {addHoraireDate && <div style={{ display: "flex", gap: "0.5rem" }}>
               <button onClick={() => { setAddHoraireIsRemplacement(false); setAddHoraireExtra(false); }}
                 style={{ flex: 1, background: !addHoraireIsRemplacement && !addHoraireExtra ? "#f5c842" : "#1e1e1e", color: !addHoraireIsRemplacement && !addHoraireExtra ? "#111" : "#555", border: "none", borderRadius: "8px", padding: "0.6rem", fontSize: "0.8rem", fontFamily: "'Poppins', sans-serif", cursor: "pointer", fontWeight: "bold" }}>
-                👤 Employé normal
+                <User size={13} style={{ verticalAlign: "-2px", marginRight: "4px" }} />Employé normal
               </button>
               <button onClick={() => { setAddHoraireExtra(true); setAddHoraireIsRemplacement(false); }}
                 style={{ flex: 1, background: addHoraireExtra ? "#f5c842" : "#1e1e1e", color: addHoraireExtra ? "#111" : "#555", border: "none", borderRadius: "8px", padding: "0.6rem", fontSize: "0.8rem", fontFamily: "'Poppins', sans-serif", cursor: "pointer", fontWeight: "bold" }}>
-                ⭐ Extra
+                <Star size={13} style={{ verticalAlign: "-2px", marginRight: "4px" }} />Extra
               </button>
               <button onClick={() => { setAddHoraireIsRemplacement(true); setAddHoraireExtra(false); }}
                 style={{ flex: 1, background: addHoraireIsRemplacement ? "#f5c842" : "#1e1e1e", color: addHoraireIsRemplacement ? "#111" : "#555", border: "none", borderRadius: "8px", padding: "0.6rem", fontSize: "0.8rem", fontFamily: "'Poppins', sans-serif", cursor: "pointer", fontWeight: "bold" }}>
-                🔄 Remplacement
+                <RefreshCw size={13} style={{ verticalAlign: "-2px", marginRight: "4px" }} />Remplacement
               </button>
             </div>}
 
@@ -2376,8 +2376,8 @@ export default function App() {
           <div onClick={() => setShowHeuresModal(false)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", zIndex: 200, display: "flex", alignItems: "flex-start", justifyContent: "center", paddingTop: "12vh" }}>
             <div onClick={e => e.stopPropagation()} style={{ background: "#fff8f0", borderRadius: "16px", padding: "1.3rem", width: "88%", maxWidth: "360px", display: "flex", flexDirection: "column", gap: "0.9rem" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <div style={{ color: "#e8213a", fontWeight: "bold", fontSize: "0.95rem" }}>
-                  ⏱️ {heuresModalDate && new Date(heuresModalDate + "T12:00:00").toLocaleDateString("fr-BE", { weekday: "long", day: "numeric", month: "long" })}
+                <div style={{ color: "#e8213a", fontWeight: "bold", fontSize: "0.95rem", display: "flex", alignItems: "center", gap: "6px" }}>
+                  <Clock size={16} /> {heuresModalDate && new Date(heuresModalDate + "T12:00:00").toLocaleDateString("fr-BE", { weekday: "long", day: "numeric", month: "long" })}
                 </div>
                 <button onClick={() => setShowHeuresModal(false)} style={{ background: "#2a2a2a", border: "none", color: "#c8a878", borderRadius: "50%", width: "2rem", height: "2rem", cursor: "pointer" }}>✕</button>
               </div>
@@ -2393,7 +2393,7 @@ export default function App() {
                     <div style={{ color: "#a07848", fontSize: "0.66rem", fontWeight: "bold", marginBottom: "0.35rem", display: "flex", alignItems: "center", gap: "5px" }}><ListChecks size={12} /> PRÉVU DE BASE ({autoH.debut}–{autoH.fin})</div>
                     {prevus.length === 0
                       ? <div style={{ color: "#c8a878", fontSize: "0.78rem" }}>Personne de prévu (jour off)</div>
-                      : <div style={{ color: "#3d1a0a", fontSize: "0.82rem" }}>👤 {prevus.join(", ")}</div>}
+                      : <div style={{ color: "#3d1a0a", fontSize: "0.82rem", display: "flex", alignItems: "center", gap: "6px" }}><User size={13} color="#a07848" /> {prevus.join(", ")}</div>}
                   </div>
                 );
               })()}
