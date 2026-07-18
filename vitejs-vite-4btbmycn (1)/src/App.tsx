@@ -3100,7 +3100,7 @@ export default function App() {
           </div>
           <div style={{ display: "flex", gap: "0.4rem", overflowX: "auto", paddingBottom: "0.5rem" }}>
             {[{id:"dettes",label:"💳 Dettes"},{id:"charges",label:"💸 Charges"},{id:"resume",label:"❤️ Résumé"},{id:"event",label:"🎪 Event"},{id:"carte",label:"🍽️ Carte"},{id:"taches",label:"✅ Tâches"}].map(tab => (
-              <button key={tab.id} onClick={() => { setFinancesView(tab.id as any); if(tab.id==="carte") loadMenu(); if(tab.id==="sante"||tab.id==="resume") loadFinances(); }}
+              <button key={tab.id} onClick={() => { setFinancesView(tab.id as any); if(tab.id==="carte") loadMenu(); if(tab.id==="sante"||tab.id==="resume") loadFinances(); if(tab.id==="event") { setEventView("historique"); setShowEventForm(false); loadEvents(); } }}
                 style={{ background: financesView === tab.id ? "#e8213a" : "#1e1e1e", color: financesView === tab.id ? "#fff" : "#888", border: "none", borderRadius: "8px", padding: "0.35rem 0.9rem", fontSize: "0.78rem", fontFamily: "'Poppins', sans-serif", fontWeight: financesView === tab.id ? "bold" : "normal", cursor: "pointer", whiteSpace: "nowrap" }}>
                 {tab.label}
               </button>
