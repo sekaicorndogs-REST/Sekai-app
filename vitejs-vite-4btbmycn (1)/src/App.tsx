@@ -844,6 +844,8 @@ export default function App() {
   const [eventEssence, setEventEssence] = useState("");
   const [eventCaRealise, setEventCaRealise] = useState("");
   const [eventObjectif, setEventObjectif] = useState("");
+  const [eventLocationMode, setEventLocationMode] = useState<"eur"|"pct">("eur");
+  const [eventLocationPct, setEventLocationPct] = useState("");
   const [eventResultat, setEventResultat] = useState<any>(null);
   const [events, setEvents] = useState<any[]>([]);
   const [eventsLoading, setEventsLoading] = useState(false);
@@ -1344,6 +1346,7 @@ export default function App() {
     setEventHotel(""); setEventLocationMateriel(""); setEventEssence("");
     setEventTauxIngredients("18"); setEventFoodCostMode("pct"); setEventFoodCostEur("");
     setEventCaRealise(""); setEventObjectif(""); setEventResultat(null);
+    setEventLocationMode("eur"); setEventLocationPct("");
   }
   function loadEventForm(ev: any, editMode = false) {
     setEventNom(ev.nom || ""); setEventDate(ev.date_event || "");
@@ -1353,11 +1356,14 @@ export default function App() {
     setEventHotel(String(ev.cout_hotel || "")); setEventLocationMateriel(String(ev.cout_location_materiel || ""));
     setEventEssence(String(ev.cout_essence || ""));
     setEventCaRealise(String(ev.ca_realise || "")); setEventObjectif(String(ev.objectif_benefice || "")); setEventResultat(null);
+    setEventLocationMode(ev.cout_location_mode === "pct" ? "pct" : "eur"); setEventLocationPct(String(ev.cout_location_pct || ""));
     setEditingEventId(editMode ? ev.id : null);
     setEventView("form"); setShowEventForm(true);
   }
   function calculerEvent() {
-    const coutsFixes = (parseFloat(eventLocation)||0)+(parseFloat(eventPersonnel)||0)+(parseFloat(eventTransport)||0)+(parseFloat(eventMateriel)||0)+(parseFloat(eventAutres)||0)+(parseFloat(eventHotel)||0)+(parseFloat(eventLocationMateriel)||0)+(parseFloat(eventEssence)||0);
+    const locPct = eventLocationMode === "pct" ? (parseFloat(eventLocationPct)||0)/100 : 0;
+    const locEur = eventLocationMode === "eur" ? (parseFloat(eventLocation)||0) : 0;
+    const coutsFixes = locEur+(parseFloat(eventPersonnel)||0)+(parseFloat(eventTransport)||0)+(parseFloat(eventMateriel)||0)+(parseFloat(eventAutres)||0)+(parseFloat(eventHotel)||0)+(parseFloat(eventLocationMateriel)||0)+(parseFloat(eventEssence)||0);
     const ca = parseFloat(eventCaRealise) || 0;
     let taux: number;
     let foodCostEur: number | null = null;
@@ -1367,11 +1373,13 @@ export default function App() {
     } else {
       taux = (parseFloat(eventTauxIngredients)||18)/100;
     }
+    // Seuil rentable : tient compte du loyer en % (qui dépend du CA)
     const seuilMin = eventFoodCostMode === "eur" && foodCostEur != null
-      ? coutsFixes + foodCostEur
-      : coutsFixes / (1 - taux);
-    const profitRealise = ca > 0 ? (eventFoodCostMode === "eur" ? ca - (foodCostEur||0) - coutsFixes : ca - ca*taux - coutsFixes) : null;
-    setEventResultat({ coutsFixes, taux, seuilMin, profitRealise, ca, foodCostEur, mode: eventFoodCostMode });
+      ? (coutsFixes + foodCostEur) / (1 - locPct)
+      : coutsFixes / (1 - taux - locPct);
+    const loyerReel = locPct > 0 ? ca * locPct : locEur;
+    const profitRealise = ca > 0 ? (eventFoodCostMode === "eur" ? ca - (foodCostEur||0) - coutsFixes - ca*locPct : ca - ca*taux - coutsFixes - ca*locPct) : null;
+    setEventResultat({ coutsFixes, taux, seuilMin, profitRealise, ca, foodCostEur, mode: eventFoodCostMode, locPct, loyerReel });
   }
   async function handleSaveEvent() {
     if (!eventNom.trim()) { flash("❌ Donne un nom à l'event"); return; }
@@ -1383,7 +1391,9 @@ export default function App() {
       cout_location_materiel: parseFloat(eventLocationMateriel)||0, cout_essence: parseFloat(eventEssence)||0,
       taux_ingredients: parseFloat(eventTauxIngredients)||18,
       ca_realise: parseFloat(eventCaRealise)||null,
-      objectif_benefice: parseFloat(eventObjectif)||null
+      objectif_benefice: parseFloat(eventObjectif)||null,
+      cout_location_mode: eventLocationMode,
+      cout_location_pct: eventLocationMode === "pct" ? (parseFloat(eventLocationPct)||0) : null
     };
     try {
       if (editingEventId) {
@@ -3727,11 +3737,13 @@ export default function App() {
                 {eventsLoading && <div style={{ textAlign: "center", padding: "2rem", color: "#e8213a" }}>⏳ Chargement...</div>}
                 {!eventsLoading && events.length === 0 && <div style={{ color: "#c8a878", textAlign: "center", padding: "3rem", fontSize: "0.85rem" }}>Aucun event enregistré</div>}
                 {events.map(ev => {
-                  const coutsFixes = (ev.cout_location||0)+(ev.cout_personnel||0)+(ev.cout_transport||0)+(ev.cout_materiel||0)+(ev.cout_autres||0);
+                  const locPct = ev.cout_location_mode === "pct" ? (parseFloat(ev.cout_location_pct)||0)/100 : 0;
+                  const locEur = ev.cout_location_mode === "pct" ? 0 : (parseFloat(ev.cout_location)||0);
+                  const coutsFixes = locEur+(parseFloat(ev.cout_personnel)||0)+(parseFloat(ev.cout_transport)||0)+(parseFloat(ev.cout_materiel)||0)+(parseFloat(ev.cout_autres)||0)+(parseFloat(ev.cout_hotel)||0)+(parseFloat(ev.cout_location_materiel)||0)+(parseFloat(ev.cout_essence)||0);
                   const taux = (ev.taux_ingredients||18)/100;
-                  const seuilMin = coutsFixes / (1 - taux);
+                  const seuilMin = coutsFixes / (1 - taux - locPct);
                   const ca = ev.ca_realise;
-                  const profit = ca != null ? ca - ca*taux - coutsFixes : null;
+                  const profit = ca != null ? ca - ca*taux - coutsFixes - ca*locPct : null;
                   const rentable = profit != null ? profit >= 0 : null;
                   return (
                     <div key={ev.id} style={{ background: "#fff8f0", border: `1.5px solid ${rentable===true?"#4caf5044":rentable===false?"#e8213a44":"#f0d8b8"}`, borderRadius: "12px", padding: "1rem", marginBottom: "0.6rem" }}>
@@ -3759,7 +3771,7 @@ export default function App() {
                       {/* Objectif de bénéfice personnalisé */}
                       {ca == null && ev.objectif_benefice > 0 && (() => {
                         const obj = parseFloat(ev.objectif_benefice);
-                        const caObjectif = (obj + coutsFixes) / (1 - taux);
+                        const caObjectif = (obj + coutsFixes) / (1 - taux - locPct);
                         const foodCostObj = caObjectif * taux;
                         return (
                           <div style={{ background: "linear-gradient(135deg,#3d1a0a,#5a2a12)", borderRadius: "10px", padding: "0.8rem 1rem", marginBottom: "0.6rem", color: "#fff" }}>
@@ -3825,8 +3837,30 @@ export default function App() {
                       style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.7rem 0.8rem", borderRadius: "8px", fontSize: "0.85rem", outline: "none", flex: 1, fontFamily: "'Poppins', sans-serif" }} />
                   </div>
                   <div style={{ color: "#a07848", fontSize: "0.72rem", fontWeight: "600", margin: "0.6rem 0 0.4rem" }}>COÛTS DE L'EVENT</div>
+                  {/* Location / loyer : € fixe ou % du CA */}
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.45rem" }}>
+                    <div style={{ color: "#3d1a0a", fontSize: "0.82rem", flex: 1 }}>📍 Location / place</div>
+                    <div style={{ display: "flex", background: "#faebd7", border: "1.5px solid #f0d8b8", borderRadius: "8px", overflow: "hidden", marginRight: "0.3rem" }}>
+                      <button onClick={() => setEventLocationMode("eur")} style={{ background: eventLocationMode==="eur" ? "#f5c842" : "transparent", color: "#3d1a0a", border: "none", padding: "0.3rem 0.55rem", fontSize: "0.72rem", fontWeight: "bold", cursor: "pointer", fontFamily: "'Poppins', sans-serif" }}>€</button>
+                      <button onClick={() => setEventLocationMode("pct")} style={{ background: eventLocationMode==="pct" ? "#f5c842" : "transparent", color: "#3d1a0a", border: "none", padding: "0.3rem 0.55rem", fontSize: "0.72rem", fontWeight: "bold", cursor: "pointer", fontFamily: "'Poppins', sans-serif" }}>%</button>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", background: "#faebd7", border: "1.5px solid #f0d8b8", borderRadius: "8px", overflow: "hidden" }}>
+                      {eventLocationMode === "eur" ? (
+                        <>
+                          <input value={eventLocation} onChange={e => setEventLocation(e.target.value.replace(",", "."))} inputMode="decimal" type="text" placeholder="0"
+                            style={{ background: "transparent", border: "none", color: "#3d1a0a", padding: "0.55rem 0.5rem", fontSize: "0.9rem", outline: "none", width: "85px", fontFamily: "'Poppins', sans-serif", textAlign: "right" }} />
+                          <span style={{ color: "#a07848", paddingRight: "0.5rem", fontSize: "0.85rem" }}>€</span>
+                        </>
+                      ) : (
+                        <>
+                          <input value={eventLocationPct} onChange={e => setEventLocationPct(e.target.value.replace(",", "."))} inputMode="decimal" type="text" placeholder="0"
+                            style={{ background: "transparent", border: "none", color: "#3d1a0a", padding: "0.55rem 0.5rem", fontSize: "0.9rem", outline: "none", width: "85px", fontFamily: "'Poppins', sans-serif", textAlign: "right" }} />
+                          <span style={{ color: "#a07848", paddingRight: "0.5rem", fontSize: "0.85rem" }}>% du CA</span>
+                        </>
+                      )}
+                    </div>
+                  </div>
                   {[
-                    { label: "📍 Location / place", val: eventLocation, set: setEventLocation },
                     { label: "👥 Personnel", val: eventPersonnel, set: setEventPersonnel },
                     { label: "🚗 Transport", val: eventTransport, set: setEventTransport },
                     { label: "🔧 Matériel", val: eventMateriel, set: setEventMateriel },
