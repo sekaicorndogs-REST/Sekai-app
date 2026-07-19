@@ -3579,7 +3579,7 @@ export default function App() {
             panier: horsPeriode.reduce((s, v) => s + v.p, 0) / horsPeriode.length,
           } : null;
           const toutesPeriodes = statHors ? [...statsPeriodes, statHors] : statsPeriodes;
-          const typeCouleur = (t: string) => t === "soldes" ? "#e8213a" : t === "vacances" ? "#c98a17" : t === "event" ? "#7b4bc4" : t === "examens" ? "#2b6cb0" : "#1f6e42";
+          const typeCouleur = (t: string) => t === "soldes" ? "#e8213a" : t === "vacances" ? "#c98a17" : t === "event" ? "#7b4bc4" : t === "examens" ? "#2b6cb0" : t === "ramadan" ? "#7b4bc4" : "#1f6e42";
 
           // Tendance : 7 derniers jours vs 7 précédents
           const parDate: Record<string, { ca: number; n: number }> = {};
@@ -4588,6 +4588,7 @@ export default function App() {
                 <option value="scolaire">Période scolaire</option>
                 <option value="soldes">Soldes</option>
                 <option value="examens">Blocus / examens</option>
+                <option value="ramadan">Ramadan</option>
                 <option value="event">Event / braderie</option>
                 <option value="autre">Autre</option>
               </select>
