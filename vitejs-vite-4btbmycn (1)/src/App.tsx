@@ -4399,7 +4399,7 @@ export default function App() {
 
               // PROPOSITIONS DE MENUS
               if (carteView === "propositions") {
-                const totImpact = propositions.reduce((acc, x) => acc + Number(x.impact_mois || 0), 0);
+                const totImpact = propositions.filter(x => Number(x.impact_mois || 0) > 0).reduce((acc, x) => acc + Number(x.impact_mois || 0), 0);
                 return (
                   <div>
                     <div style={{ background: "#3d1a0a", borderRadius: "16px", padding: "1.1rem", color: "#fff", marginBottom: "0.8rem" }}>
@@ -4432,7 +4432,7 @@ export default function App() {
                       const ouvert = propOpen === pr.id;
                       const remise = pr.prix_separe ? Number(pr.prix_separe) - Number(pr.prix) : 0;
                       return (
-                        <div key={pr.id} style={{ background: "#fff", border: (pr.recommande ? "2px solid #1f6e42" : "1px solid #efe0c9"), borderRadius: "14px", marginBottom: "0.6rem", overflow: "hidden" }}>
+                        <div key={pr.id} style={{ background: "#fff", border: (pr.recommande ? "2px solid #1f6e42" : Number(pr.impact_mois) < 0 ? "2px solid #e8213a" : "1px solid #efe0c9"), borderRadius: "14px", marginBottom: "0.6rem", overflow: "hidden" }}>
                           <button onClick={() => setPropOpen(ouvert ? null : pr.id)}
                             style={{ width: "100%", background: "none", border: "none", padding: "0.9rem", cursor: "pointer", fontFamily: "Poppins, sans-serif", textAlign: "left" }}>
                             <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "0.4rem" }}>
@@ -4446,7 +4446,7 @@ export default function App() {
                             <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap" }}>
                               <span style={{ background: "#f0fff4", color: "#1f6e42", fontSize: "0.72rem", fontWeight: 700, padding: "0.2rem 0.55rem", borderRadius: "20px" }}>Marge {marge.toFixed(2)} &euro;</span>
                               <span style={{ background: "#faf3e8", color: "#a07848", fontSize: "0.72rem", padding: "0.2rem 0.55rem", borderRadius: "20px" }}>FC {fc.toFixed(1)} %</span>
-                              <span style={{ background: "#fdf0d5", color: "#c98a17", fontSize: "0.72rem", fontWeight: 700, padding: "0.2rem 0.55rem", borderRadius: "20px" }}>+{Number(pr.impact_mois).toLocaleString("fr-BE")} &euro;/mois</span>
+                              <span style={{ background: Number(pr.impact_mois) < 0 ? "#fff0f0" : "#fdf0d5", color: Number(pr.impact_mois) < 0 ? "#e8213a" : "#c98a17", fontSize: "0.72rem", fontWeight: 700, padding: "0.2rem 0.55rem", borderRadius: "20px" }}>{Number(pr.impact_mois) > 0 ? "+" : ""}{Number(pr.impact_mois).toLocaleString("fr-BE")} &euro;/mois</span>
                             </div>
                           </button>
 
@@ -4482,7 +4482,7 @@ export default function App() {
                               <div style={{ marginBottom: "0.6rem" }}>
                                 <div style={{ color: "#a07848", fontSize: "0.66rem", fontWeight: 700 }}>HYPOTHESE DE CALCUL</div>
                                 <div style={{ color: "#3d1a0a", fontSize: "0.78rem", lineHeight: 1.5 }}>{pr.hypothese}</div>
-                                <div style={{ color: "#1f6e42", fontSize: "0.8rem", fontWeight: 700, marginTop: "0.2rem" }}>+{Number(pr.impact_jour)} &euro;/jour &middot; +{Number(pr.impact_mois).toLocaleString("fr-BE")} &euro;/mois</div>
+                                <div style={{ color: Number(pr.impact_mois) < 0 ? "#e8213a" : "#1f6e42", fontSize: "0.8rem", fontWeight: 700, marginTop: "0.2rem" }}>{Number(pr.impact_jour) > 0 ? "+" : ""}{Number(pr.impact_jour)} &euro;/jour &middot; {Number(pr.impact_mois) > 0 ? "+" : ""}{Number(pr.impact_mois).toLocaleString("fr-BE")} &euro;/mois</div>
                               </div>
                               <div style={{ background: "#fff5f5", borderRadius: "10px", padding: "0.6rem" }}>
                                 <div style={{ color: "#e8213a", fontSize: "0.66rem", fontWeight: 700 }}>RISQUE</div>
