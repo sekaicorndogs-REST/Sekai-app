@@ -262,6 +262,21 @@ async function fetchVentes() {
   return res.json();
 }
 
+// ── PÉRIODES API (vacances, soldes, events…) ───────────────
+async function fetchPeriodes() {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/periodes?select=*&order=date_debut.desc`, { headers: HEADERS });
+  if (!res.ok) throw new Error("Fetch periodes failed");
+  return res.json();
+}
+async function createPeriode(data: any) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/periodes`, { method: "POST", headers: HEADERS, body: JSON.stringify(data) });
+  if (!res.ok) throw new Error("Create periode failed");
+}
+async function deletePeriode(id: number) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/periodes?id=eq.${id}`, { method: "DELETE", headers: HEADERS });
+  if (!res.ok) throw new Error("Delete periode failed");
+}
+
 // ── DOCUMENTS API ──────────────────────────────────────────
 // Liste sans le fichier (léger)
 async function fetchDocumentsMeta() {
@@ -742,6 +757,12 @@ export default function App() {
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [allUsers, setAllUsers] = useState([]);
   const [ventes, setVentes] = useState<any[]>([]);
+  const [periodes, setPeriodes] = useState<any[]>([]);
+  const [showAddPeriode, setShowAddPeriode] = useState(false);
+  const [newPeriodeNom, setNewPeriodeNom] = useState("");
+  const [newPeriodeType, setNewPeriodeType] = useState("vacances");
+  const [newPeriodeDebut, setNewPeriodeDebut] = useState("");
+  const [newPeriodeFin, setNewPeriodeFin] = useState("");
   const [documents, setDocuments] = useState<any[]>([]);
   const [documentsLoading, setDocumentsLoading] = useState(false);
   const [showDocUpload, setShowDocUpload] = useState(false);
@@ -1139,6 +1160,21 @@ export default function App() {
   async function loadVentes() {
     try { setVentes(await fetchVentes()); }
     catch { /* silencieux : les ventes sont optionnelles */ }
+    try { setPeriodes(await fetchPeriodes()); } catch {}
+  }
+  async function handleAddPeriode() {
+    if (!newPeriodeNom.trim() || !newPeriodeDebut || !newPeriodeFin) { flash("❌ Nom et dates requis"); return; }
+    try {
+      await createPeriode({ nom: newPeriodeNom.trim(), type: newPeriodeType, date_debut: newPeriodeDebut, date_fin: newPeriodeFin });
+      flash("✅ Période ajoutée");
+      setShowAddPeriode(false); setNewPeriodeNom(""); setNewPeriodeDebut(""); setNewPeriodeFin("");
+      setPeriodes(await fetchPeriodes());
+    } catch { flash("❌ Erreur"); }
+  }
+  async function handleDeletePeriode(id: number) {
+    if (!confirm("Supprimer cette période ?")) return;
+    try { await deletePeriode(id); setPeriodes(await fetchPeriodes()); flash("✅ Supprimée"); }
+    catch { flash("❌ Erreur"); }
   }
   async function loadDocuments() {
     setDocumentsLoading(true);
@@ -3473,6 +3509,31 @@ export default function App() {
           const panierTable = nbTable ? caTable / nbTable : 0;
           const panierEmporter = nbEmporter ? caEmporter / nbEmporter : 0;
 
+          // ── Segmentation par période (vacances, soldes…) ──
+          const jourDansPeriode = (d: Date, p: any) => {
+            const k = d.toISOString().slice(0, 10);
+            return k >= p.date_debut && k <= p.date_fin;
+          };
+          const statsPeriodes = periodes.map((p: any) => {
+            const dedans = V.filter(v => jourDansPeriode(v.d, p));
+            const jrs = new Set(dedans.map(v => v.d.toDateString())).size;
+            if (!jrs) return null;
+            const ca = dedans.reduce((s, v) => s + v.p, 0);
+            return { ...p, jrs, caJour: ca / jrs + hb, cmdJour: dedans.length / jrs, panier: ca / dedans.length };
+          }).filter(Boolean) as any[];
+          statsPeriodes.sort((a, b) => b.caJour - a.caJour);
+          // Jours hors de toute période
+          const horsPeriode = V.filter(v => !periodes.some((p: any) => jourDansPeriode(v.d, p)));
+          const jrsHors = new Set(horsPeriode.map(v => v.d.toDateString())).size;
+          const statHors = jrsHors ? {
+            nom: "Hors période", type: "normal", jrs: jrsHors,
+            caJour: horsPeriode.reduce((s, v) => s + v.p, 0) / jrsHors + hb,
+            cmdJour: horsPeriode.length / jrsHors,
+            panier: horsPeriode.reduce((s, v) => s + v.p, 0) / horsPeriode.length,
+          } : null;
+          const toutesPeriodes = statHors ? [...statsPeriodes, statHors] : statsPeriodes;
+          const typeCouleur = (t: string) => t === "soldes" ? "#e8213a" : t === "vacances" ? "#c98a17" : t === "event" ? "#7b4bc4" : "#1f6e42";
+
           // Tendance : 7 derniers jours vs 7 précédents
           const parDate: Record<string, { ca: number; n: number }> = {};
           V.forEach(v => {
@@ -3587,6 +3648,33 @@ export default function App() {
                     {meilleurJour && kpi("Meilleur jour", JN[meilleurJour.j], `${fmt(meilleurJour.moy)} € en moyenne`, "#1f6e42")}
                     {heurePic && kpi("Heure de pointe", `${heurePic[0]}h`, `${heurePic[1]} commandes`, "#c98a17")}
                   </div>
+
+                  {/* Comparaison par période */}
+                  {toutesPeriodes.length > 0 && (
+                    <div style={{ ...CARD, padding: "1rem" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.7rem" }}>
+                        <div style={LBL}>CA par période</div>
+                        <button onClick={() => { setNewPeriodeNom(""); setNewPeriodeDebut(""); setNewPeriodeFin(""); setShowAddPeriode(true); }}
+                          style={{ background: "#faebd7", color: "#a07848", border: "1px solid #efe0c9", borderRadius: "20px", padding: "0.25rem 0.6rem", fontSize: "0.7rem", fontWeight: 600, cursor: "pointer", fontFamily: "'Poppins', sans-serif", display: "flex", alignItems: "center", gap: "3px" }}>
+                          <Plus size={11} /> Période
+                        </button>
+                      </div>
+                      {toutesPeriodes.map((p, i) => (
+                        <div key={i} style={{ display: "flex", alignItems: "center", gap: "8px", padding: "0.5rem 0", borderTop: i === 0 ? "none" : "1px solid #f4e8d6" }}>
+                          <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: typeCouleur(p.type), flexShrink: 0 }} />
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ color: "#3d1a0a", fontSize: "0.83rem", fontWeight: 600 }}>{p.nom}</div>
+                            <div style={{ color: "#a07848", fontSize: "0.7rem" }}>{p.jrs} j · {Math.round(p.cmdJour)} cmd/j · panier {p.panier.toFixed(2)} €</div>
+                          </div>
+                          <div style={{ color: p.caJour >= objJour ? "#1f6e42" : "#e8213a", fontSize: "0.95rem", fontWeight: 800, whiteSpace: "nowrap" as const }}>{fmt(p.caJour)} €/j</div>
+                          {p.id && <button onClick={() => handleDeletePeriode(p.id)} style={{ background: "none", border: "none", color: "#c8a878", cursor: "pointer", padding: 0 }}><Trash2 size={13} /></button>}
+                        </div>
+                      ))}
+                      <div style={{ color: "#c8a878", fontSize: "0.68rem", marginTop: "0.5rem" }}>
+                        Ajoute tes périodes (vacances scolaires, soldes, events) pour comparer ce qui est comparable.
+                      </div>
+                    </div>
+                  )}
 
                   {/* Répartition sur place / à emporter */}
                   <div style={{ ...CARD, padding: "1rem" }}>
@@ -4368,6 +4456,41 @@ export default function App() {
                   style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", outline: "none", width: "100%", boxSizing: "border-box" as const, fontFamily: "'Poppins', sans-serif" }} />
               )}
               <button onClick={handleSaveEditDette} style={{ background: "#e8213a", color: "#fff", border: "none", padding: "0.9rem", borderRadius: "10px", fontWeight: "bold", fontSize: "1rem", cursor: "pointer", width: "100%", fontFamily: "'Poppins', sans-serif" }}>Enregistrer</button>
+            </div>
+          </div>
+        )}
+
+        {/* MODAL AJOUTER PÉRIODE */}
+        {showAddPeriode && (
+          <div onClick={() => setShowAddPeriode(false)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", zIndex: 200, display: "flex", alignItems: "flex-start", justifyContent: "center", paddingTop: "10vh" }}>
+            <div onClick={e => e.stopPropagation()} style={{ background: "#fff8f0", borderRadius: "16px", padding: "1.4rem", width: "90%", maxWidth: "380px", display: "flex", flexDirection: "column", gap: "0.7rem" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div style={{ color: "#e8213a", fontWeight: "bold", fontSize: "0.95rem" }}>Nouvelle période</div>
+                <button onClick={() => setShowAddPeriode(false)} style={{ background: "#2a2a2a", border: "none", color: "#c8a878", borderRadius: "50%", width: "2rem", height: "2rem", cursor: "pointer" }}><X size={16} /></button>
+              </div>
+              <input autoFocus value={newPeriodeNom} onChange={e => setNewPeriodeNom(e.target.value)} placeholder="Nom (ex: Vacances de Toussaint)"
+                style={{ background: "#faebd7", border: "1px solid #f5c842", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", outline: "none", width: "100%", boxSizing: "border-box" as const, fontFamily: "'Poppins', sans-serif" }} />
+              <select value={newPeriodeType} onChange={e => setNewPeriodeType(e.target.value)}
+                style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", fontFamily: "'Poppins', sans-serif", outline: "none", width: "100%" }}>
+                <option value="vacances">Vacances scolaires</option>
+                <option value="scolaire">Période scolaire</option>
+                <option value="soldes">Soldes</option>
+                <option value="event">Event / braderie</option>
+                <option value="autre">Autre</option>
+              </select>
+              <div style={{ display: "flex", gap: "0.5rem" }}>
+                <div style={{ flex: 1 }}>
+                  <label style={{ color: "#a07848", fontSize: "0.68rem", fontWeight: "bold" }}>DÉBUT</label>
+                  <input type="date" value={newPeriodeDebut} onChange={e => setNewPeriodeDebut(e.target.value)}
+                    style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.7rem", borderRadius: "8px", fontSize: "0.9rem", outline: "none", width: "100%", boxSizing: "border-box" as const, fontFamily: "'Poppins', sans-serif" }} />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <label style={{ color: "#a07848", fontSize: "0.68rem", fontWeight: "bold" }}>FIN</label>
+                  <input type="date" value={newPeriodeFin} onChange={e => setNewPeriodeFin(e.target.value)}
+                    style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.7rem", borderRadius: "8px", fontSize: "0.9rem", outline: "none", width: "100%", boxSizing: "border-box" as const, fontFamily: "'Poppins', sans-serif" }} />
+                </div>
+              </div>
+              <button onClick={handleAddPeriode} style={{ background: "#e8213a", color: "#fff", border: "none", padding: "0.9rem", borderRadius: "10px", fontWeight: "bold", fontSize: "1rem", cursor: "pointer", width: "100%", fontFamily: "'Poppins', sans-serif" }}>Enregistrer</button>
             </div>
           </div>
         )}
