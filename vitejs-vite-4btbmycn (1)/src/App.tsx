@@ -4433,7 +4433,7 @@ export default function App() {
                               <span style={{ color: "#e8213a", fontSize: "1.05rem", fontWeight: 800 }}>{Number(pr.prix).toFixed(2)} &euro;</span>
                               <ChevronRight size={15} color="#c8a878" style={{ transform: ouvert ? "rotate(90deg)" : "none", transition: "transform 0.15s" }} />
                             </div>
-                            {pr.recommande && <div style={{ color: "#1f6e42", fontSize: "0.7rem", fontWeight: 700, marginBottom: "0.3rem" }}>RECOMMANDE</div>}
+                            {pr.verdict && <div style={{ display: "inline-block", background: pr.verdict.indexOf("DECONSEILLE") >= 0 || pr.verdict.indexOf("D\u00c9CONSEILLE") >= 0 ? "#fff0f0" : pr.recommande ? "#f0fff4" : "#faf3e8", color: pr.verdict.indexOf("DECONSEILLE") >= 0 || pr.verdict.indexOf("D\u00c9CONSEILLE") >= 0 ? "#e8213a" : pr.recommande ? "#1f6e42" : "#a07848", fontSize: "0.66rem", fontWeight: 700, padding: "0.15rem 0.5rem", borderRadius: "20px", marginBottom: "0.35rem", letterSpacing: "0.3px" }}>{pr.verdict}</div>}
                             <div style={{ color: "#a07848", fontSize: "0.75rem", marginBottom: "0.5rem" }}>{pr.composition}</div>
                             <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap" }}>
                               <span style={{ background: "#f0fff4", color: "#1f6e42", fontSize: "0.72rem", fontWeight: 700, padding: "0.2rem 0.55rem", borderRadius: "20px" }}>Marge {marge.toFixed(2)} &euro;</span>
@@ -4444,6 +4444,14 @@ export default function App() {
 
                           {ouvert && (
                             <div style={{ background: "#faf3e8", padding: "0.9rem", borderTop: "1px solid #efe0c9" }}>
+                              {pr.pourquoi && (
+                                <div style={{ background: "#fff", borderLeft: "3px solid " + (pr.recommande ? "#1f6e42" : "#c8a878"), borderRadius: "0 10px 10px 0", padding: "0.7rem 0.8rem", marginBottom: "0.7rem" }}>
+                                  <div style={{ color: "#a07848", fontSize: "0.66rem", fontWeight: 700, marginBottom: "0.35rem" }}>POURQUOI</div>
+                                  {String(pr.pourquoi).split("\n\n").map((par, k) => (
+                                    <div key={k} style={{ color: "#3d1a0a", fontSize: "0.79rem", lineHeight: 1.55, marginBottom: "0.45rem" }}>{par}</div>
+                                  ))}
+                                </div>
+                              )}
                               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.5rem", marginBottom: "0.7rem" }}>
                                 <div style={{ background: "#fff", borderRadius: "10px", padding: "0.6rem", textAlign: "center" }}>
                                   <div style={{ color: "#a07848", fontSize: "0.62rem" }}>COUT MATIERES</div>
