@@ -2459,7 +2459,7 @@ export default function App() {
         {/* Header */}
         <div style={{ background: "#fff8f0", padding: "1rem 1.2rem", borderBottom: "1.5px solid #f0d8b8", position: "sticky", top: 0, zIndex: 30 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
-            <h1 style={{ color: "#ffffff", fontSize: "1.1rem", margin: 0, display: "flex", alignItems: "center", gap: "7px" }}><Calendar size={18} /> Horaires</h1>
+            <h1 style={{ color: "#e8213a", fontSize: "1.1rem", margin: 0, fontWeight: "bold", display: "flex", alignItems: "center", gap: "7px" }}><Calendar size={18} /> Horaires</h1>
             <div style={{ display: "flex", gap: "0.4rem" }}>
               <select value={horaireRestaurant} onChange={e => { setHoraireRestaurant(e.target.value); setHoraires([]); fetchHoraires(e.target.value); }}
                 style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#e8213a", borderRadius: "8px", padding: "0.3rem 0.5rem", fontSize: "0.75rem", fontFamily: "'Poppins', sans-serif" }}>
@@ -5141,9 +5141,9 @@ export default function App() {
             </div>
           </div>
           <div style={{ display: "flex", gap: "0.5rem" }}>
-            <button onClick={() => loadData(restaurant)} style={{ background: "none", border: "1.5px solid #f0d8b8", color: "#a07848", borderRadius: "8px", padding: "0.35rem 0.6rem", fontSize: "0.8rem", cursor: "pointer", fontFamily: "'Poppins', sans-serif" }}><RefreshCw size={16} /></button>
+            <button onClick={() => loadData(restaurant)} style={{ background: "rgba(255,255,255,0.16)", border: "none", color: "#ffffff", borderRadius: "8px", padding: "0.4rem 0.65rem", fontSize: "0.8rem", cursor: "pointer", fontFamily: "'Poppins', sans-serif" }}><RefreshCw size={16} /></button>
             {totalAlerts > 0 && <button onClick={() => setShowAlerts(true)} style={{ background: "#ffffff", color: "#e8213a", border: "none", borderRadius: "20px", padding: "0.4rem 0.85rem", fontSize: "0.78rem", fontWeight: "bold", cursor: "pointer", fontFamily: "'Poppins', sans-serif", display: "flex", alignItems: "center", gap: "4px" }}><AlertTriangle size={13} /> {totalAlerts}</button>}
-            {isAdmin && <button onClick={() => setShowResetConfirm(true)} style={{ background: "#1a1a2a", color: "#8888ff", border: "1px solid #2a2a4a", borderRadius: "8px", padding: "0.35rem 0.6rem", fontSize: "0.78rem", cursor: "pointer", fontFamily: "'Poppins', sans-serif" }}>RAZ</button>}
+            {isAdmin && <button onClick={() => setShowResetConfirm(true)} style={{ background: "rgba(255,255,255,0.16)", color: "#ffffff", border: "none", borderRadius: "8px", padding: "0.4rem 0.7rem", fontSize: "0.78rem", fontWeight: 600, cursor: "pointer", fontFamily: "'Poppins', sans-serif" }}>RAZ</button>}
           </div>
         </div>
       </div>
@@ -5191,8 +5191,8 @@ export default function App() {
         <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
           <button onClick={() => { setActiveStore(null); setEditingId(null); setAddMode(false); }} style={{ background: "none", border: "none", color: "#ffffff", fontSize: "1.6rem", cursor: "pointer", padding: 0, lineHeight: 1 }}><ArrowLeft size={20} /></button>
           <div>
-            <h2 style={{ color: "#3d1a0a", fontSize: "1rem", fontWeight: "bold", margin: 0 }}>{activeStore}</h2>
-            <p style={{ color: "#c8a878", fontSize: "0.72rem", margin: "0.15rem 0 0" }}>{storeItems.length} articles · {currentUser.prenom}</p>
+            <h2 style={{ color: "#ffffff", fontSize: "1rem", fontWeight: "bold", margin: 0 }}>{activeStore}</h2>
+            <p style={{ color: "#ffffffb0", fontSize: "0.72rem", margin: "0.15rem 0 0" }}>{storeItems.length} articles · {currentUser.prenom}</p>
           </div>
         </div>
       </div>
