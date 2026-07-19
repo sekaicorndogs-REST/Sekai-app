@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Package, Calendar, CreditCard, Users, UserCircle, ArrowLeft, RefreshCw, AlertTriangle, AlertCircle, CheckCircle, Pencil, Save, Eye, EyeOff, Check, Lock, User, ArrowRight, Trash2, Plus, ChevronRight, Settings, LogOut, Shield, Star, ListChecks, FileText, Wallet, Target, Lightbulb, Banknote, Receipt, PartyPopper, Utensils, Heart, TrendingUp, Coins, PiggyBank, HandCoins, Percent, Moon, Clock, Box, Home } from "lucide-react";
+import { Package, Calendar, CreditCard, Users, UserCircle, ArrowLeft, RefreshCw, AlertTriangle, AlertCircle, CheckCircle, Pencil, Save, Eye, EyeOff, Check, Lock, User, ArrowRight, Trash2, Plus, ChevronRight, Settings, LogOut, Shield, Star, ListChecks, FileText, Wallet, Target, Lightbulb, Banknote, Receipt, PartyPopper, Utensils, Heart, TrendingUp, Coins, PiggyBank, HandCoins, Percent, Moon, Clock, Box, Home, X } from "lucide-react";
 
 const SUPABASE_URL = "https://ldpxgfgcnlzktaymtnwd.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkcHhnZmdjbmx6a3RheW10bndkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxOTgyMTAsImV4cCI6MjA5MTc3NDIxMH0.N_yUwjRvBM9rfxu0Xj-FCCGJ9eJ3UomPZdcUYAb8B8s";
@@ -687,7 +687,7 @@ ${rows}
 Total brut: <strong>${fmt(totalBrut)} EUR</strong> &nbsp;|&nbsp;
 Total net à payer aux employés: <strong>${fmt(totalNet)} EUR</strong> &nbsp;|&nbsp;
 Charges patronales: <strong>${fmt(totalCharges)} EUR</strong><br>
-<strong>💰 Coût total employeur: ${fmt(totalBrut + totalCharges)} EUR</strong>
+<strong>Coût total employeur: ${fmt(totalBrut + totalCharges)} EUR</strong>
 </div></div>
 <div style="margin-top:18px;font-size:8.5px;color:#777;border-top:1px solid #ccc;padding-top:6px">Document établi le ${dateDocument2} par CHERRY FOOD SRL — BE0641.660.146 — Pour transmission au bureau comptable.</div>
 </body></html>`;
@@ -2092,12 +2092,12 @@ export default function App() {
           </div>
         ) : (currentFermeture && currentFermeture.termine_at) ? (
           <div style={{ background: "#fff8f0", border: "1.5px solid #4caf5033", borderRadius: "16px", padding: "2rem", textAlign: "center" }}>
-            <div style={{ fontSize: "4rem", marginBottom: "1rem" }}>✅</div>
+            <div style={{ marginBottom: "1rem" }}><CheckCircle size={64} color="#4caf50" /></div>
             <h2 style={{ color: "#4caf50", fontSize: "1.3rem", margin: "0 0 0.5rem" }}>Fermeture déjà faite</h2>
             <p style={{ color: "#3d1a0a", fontSize: "1.1rem", margin: "0 0 0.5rem" }}>par <strong>{currentFermeture.nom_personne}</strong></p>
             <p style={{ color: "#a07848", fontSize: "0.9rem", margin: "0 0 1.5rem" }}>à {new Date(currentFermeture.termine_at).toLocaleTimeString("fr-BE", { hour: "2-digit", minute: "2-digit" })}</p>
-            <p style={{ color: "#a07848", fontSize: "0.95rem", margin: "0 0 1.5rem" }}>Reviens demain 👋</p>
-            <button onClick={handleLogout} style={{ background: "#e8213a", color: "#fff", border: "none", padding: "0.9rem 2rem", borderRadius: "10px", fontSize: "1rem", fontWeight: "bold", cursor: "pointer", fontFamily: "'Poppins', sans-serif" }}>🚪 Déconnexion</button>
+            <p style={{ color: "#a07848", fontSize: "0.95rem", margin: "0 0 1.5rem" }}>Reviens demain</p>
+            <button onClick={handleLogout} style={{ background: "#e8213a", color: "#fff", border: "none", padding: "0.9rem 2rem", borderRadius: "10px", fontSize: "1rem", fontWeight: "bold", cursor: "pointer", fontFamily: "'Poppins', sans-serif" }}>Déconnexion</button>
           </div>
         ) : !currentFermeture ? (
           <div style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "16px", padding: "2rem", textAlign: "center" }}>
@@ -2131,7 +2131,7 @@ export default function App() {
             <div>
               <div style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "12px", padding: "1rem", marginBottom: "1rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <div>
-                  <div style={{ color: "#3d1a0a", fontSize: "0.95rem", fontWeight: "bold" }}>👤 {currentFermeture.nom_personne}</div>
+                  <div style={{ color: "#3d1a0a", fontSize: "0.95rem", fontWeight: "bold" }}>{currentFermeture.nom_personne}</div>
                   <div style={{ color: "#a07848", fontSize: "0.78rem" }}>Démarré à {new Date(currentFermeture.demarre_at).toLocaleTimeString("fr-BE", { hour: "2-digit", minute: "2-digit" })}</div>
                 </div>
                 <div style={{ color: peutTerminer ? "#4caf50" : "#e8213a", fontSize: "1.2rem", fontWeight: "bold" }}>{obligatoiresValidees.length}/{tachesObligatoires.length}</div>
@@ -2149,7 +2149,7 @@ export default function App() {
                       return (
                         <button key={t.id} type="button" onClick={() => handleToggleTache(t)} style={{ background: checked ? "#f5fff8" : "#fff8f0", border: "1.5px solid " + (checked ? "#4caf5055" : "#f0d8b8"), borderTop: "none", padding: "1.2rem 1.2rem", display: "flex", alignItems: "flex-start", gap: "0.9rem", cursor: "pointer", width: "100%", textAlign: "left", fontFamily: "inherit", touchAction: "manipulation", WebkitTapHighlightColor: "rgba(232,33,58,0.15)" }}>
                           <div style={{ width: "1.6rem", height: "1.6rem", borderRadius: "50%", border: "2.5px solid " + (checked ? "#4caf50" : "#c8a878"), background: checked ? "#4caf50" : "transparent", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: "0.1rem" }}>
-                            {checked && <span style={{ color: "#fff", fontSize: "1.1rem", fontWeight: "bold" }}>✓</span>}
+                            {checked && <Check size={16} color="#fff" strokeWidth={3} />}
                           </div>
                           <div style={{ flex: 1 }}>
                             <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
@@ -2166,7 +2166,7 @@ export default function App() {
               })}
               <button onClick={handleTerminerFermeture} disabled={!peutTerminer}
                 style={{ background: peutTerminer ? "#4caf50" : "#c8a878", color: "#fff", border: "none", padding: "1.2rem", borderRadius: "12px", fontSize: "1.1rem", fontWeight: "bold", cursor: peutTerminer ? "pointer" : "not-allowed", width: "100%", fontFamily: "'Poppins', sans-serif", marginTop: "1rem", opacity: peutTerminer ? 1 : 0.7, touchAction: "manipulation", WebkitTapHighlightColor: "rgba(255,255,255,0.2)" }}>
-                {peutTerminer ? "✅ Terminer la fermeture" : "Encore " + restantes + " tâche" + (restantes > 1 ? "s" : "") + " obligatoire" + (restantes > 1 ? "s" : "")}
+                {peutTerminer ? "Terminer la fermeture" : "Encore " + restantes + " tâche" + (restantes > 1 ? "s" : "") + " obligatoire" + (restantes > 1 ? "s" : "")}
               </button>
               <button onClick={handleLogout} style={{ display: "block", margin: "1rem auto 0", background: "transparent", border: "none", color: "#a07848", fontSize: "0.85rem", cursor: "pointer", textDecoration: "underline" }}>Déconnexion</button>
             </div>
@@ -2199,10 +2199,10 @@ export default function App() {
           <div style={{ background: "#fff8f0", borderRadius: "16px 16px 0 0", padding: "1.2rem", width: "100%", display: "flex", flexDirection: "column", gap: "0.75rem", maxHeight: "85vh", overflowY: "auto" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div style={{ color: "#e8213a", fontWeight: "bold", fontSize: "0.95rem" }}>
-                ➕ {addHoraireDate ? formatDateShort(addHoraireDate) : "📅 Choisir une date future"}
+                {addHoraireDate ? formatDateShort(addHoraireDate) : "Choisir une date future"}
               </div>
               <button onClick={() => { setShowAddHoraire(false); setAddHoraireIsRemplacement(false); setAddHoraireExtra(false); setAddHoraireEmploye(""); setAddHoraireExtranom(""); setAddHoraireRemplaceNom(""); }}
-                style={{ background: "#2a2a2a", border: "none", color: "#c8a878", borderRadius: "50%", width: "2rem", height: "2rem", cursor: "pointer", fontSize: "1rem" }}>✕</button>
+                style={{ background: "#2a2a2a", border: "none", color: "#c8a878", borderRadius: "50%", width: "2rem", height: "2rem", cursor: "pointer", fontSize: "1rem" }}><X size={16} /></button>
             </div>
 
             {/* Date picker - only future dates (after current week) */}
@@ -2306,7 +2306,7 @@ export default function App() {
                   </>
                 ) : (
                   <div style={{ background: "#f5fff8", border: "1.5px solid #4caf5033", borderRadius: "10px", padding: "0.75rem 1rem" }}>
-                    <div style={{ color: "#4caf50", fontSize: "0.72rem", marginBottom: "0.2rem" }}>✅ Tu es le remplaçant</div>
+                    <div style={{ color: "#4caf50", fontSize: "0.72rem", marginBottom: "0.2rem" }}>Tu es le remplaçant</div>
                     <div style={{ color: "#3d1a0a", fontSize: "0.95rem", fontWeight: "600" }}>{currentUser?.prenom}</div>
                   </div>
                 )}
@@ -2359,7 +2359,7 @@ export default function App() {
                 fetchHoraires(horaireRestaurant);
               } catch { flash("❌ Erreur"); }
             }} style={{ background: "#e8213a", color: "#ffffff", border: "none", padding: "0.9rem", borderRadius: "10px", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", fontSize: "1rem", cursor: "pointer", width: "100%" }}>
-              ✅ Confirmer
+              Confirmer
             </button>}
           </div>
         </div>
@@ -2379,7 +2379,7 @@ export default function App() {
                 <div style={{ color: "#e8213a", fontWeight: "bold", fontSize: "0.95rem", display: "flex", alignItems: "center", gap: "6px" }}>
                   <Clock size={16} /> {heuresModalDate && new Date(heuresModalDate + "T12:00:00").toLocaleDateString("fr-BE", { weekday: "long", day: "numeric", month: "long" })}
                 </div>
-                <button onClick={() => setShowHeuresModal(false)} style={{ background: "#2a2a2a", border: "none", color: "#c8a878", borderRadius: "50%", width: "2rem", height: "2rem", cursor: "pointer" }}>✕</button>
+                <button onClick={() => setShowHeuresModal(false)} style={{ background: "#2a2a2a", border: "none", color: "#c8a878", borderRadius: "50%", width: "2rem", height: "2rem", cursor: "pointer" }}><X size={16} /></button>
               </div>
               <div style={{ color: "#a07848", fontSize: "0.78rem" }}>
                 {(isAdmin && heuresEmployeFilter) ? `Employé : ${heuresEmployeFilter}` : `Tes heures — ${currentUser?.prenom}`}
@@ -2408,9 +2408,9 @@ export default function App() {
                   <button key={h} onClick={() => setHeuresModalValue(h)} style={{ flex: 1, background: heuresModalValue === h ? "#e8213a" : "#faebd7", color: heuresModalValue === h ? "#fff" : "#3d1a0a", border: "1.5px solid #f0d8b8", borderRadius: "8px", padding: "0.5rem", fontSize: "0.9rem", fontWeight: "bold", cursor: "pointer", fontFamily: "'Poppins', sans-serif" }}>{h}h</button>
                 ))}
               </div>
-              <button onClick={saveHeuresJour} style={{ background: "#e8213a", color: "#fff", border: "none", padding: "0.9rem", borderRadius: "10px", fontWeight: "bold", fontSize: "1rem", cursor: "pointer", fontFamily: "'Poppins', sans-serif" }}>✅ Enregistrer</button>
+              <button onClick={saveHeuresJour} style={{ background: "#e8213a", color: "#fff", border: "none", padding: "0.9rem", borderRadius: "10px", fontWeight: "bold", fontSize: "1rem", cursor: "pointer", fontFamily: "'Poppins', sans-serif" }}>Enregistrer</button>
               {heuresModalExisting && (
-                <button onClick={() => deleteHeuresJour(heuresModalExisting.id)} style={{ background: "none", color: "#e8213a", border: "1.5px solid #e8213a44", padding: "0.6rem", borderRadius: "10px", fontWeight: "600", fontSize: "0.85rem", cursor: "pointer", fontFamily: "'Poppins', sans-serif" }}>🗑️ Supprimer ce jour</button>
+                <button onClick={() => deleteHeuresJour(heuresModalExisting.id)} style={{ background: "none", color: "#e8213a", border: "1.5px solid #e8213a44", padding: "0.6rem", borderRadius: "10px", fontWeight: "600", fontSize: "0.85rem", cursor: "pointer", fontFamily: "'Poppins', sans-serif" }}>Supprimer ce jour</button>
               )}
             </div>
           </div>
@@ -2428,7 +2428,7 @@ export default function App() {
                   <div style={{ color: "#e8213a", fontWeight: "bold", fontSize: "0.95rem", textTransform: "capitalize" as const }}>
                     <Calendar size={15} style={{ verticalAlign: "-2px", marginRight: "5px" }} />{new Date(heuresDayDetail + "T12:00:00").toLocaleDateString("fr-BE", { weekday: "long", day: "numeric", month: "long" })}
                   </div>
-                  <button onClick={() => setHeuresDayDetail("")} style={{ background: "#2a2a2a", border: "none", color: "#c8a878", borderRadius: "50%", width: "2rem", height: "2rem", cursor: "pointer" }}>✕</button>
+                  <button onClick={() => setHeuresDayDetail("")} style={{ background: "#2a2a2a", border: "none", color: "#c8a878", borderRadius: "50%", width: "2rem", height: "2rem", cursor: "pointer" }}><X size={16} /></button>
                 </div>
 
                 {/* Prévu de base */}
@@ -2477,7 +2477,7 @@ export default function App() {
                 setAddHoraireExtranom("");
                 setAddHoraireRemplaceNom("");
                 setShowAddHoraire(true);
-              }} style={{ background: "#e8213a", border: "none", color: "#fff", borderRadius: "8px", padding: "0.3rem 0.7rem", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", fontSize: "0.78rem", cursor: "pointer" }}>📅 Autre date</button>
+              }} style={{ background: "#e8213a", border: "none", color: "#fff", borderRadius: "8px", padding: "0.3rem 0.7rem", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", fontSize: "0.78rem", cursor: "pointer" }}>Autre date</button>
             </div>
           </div>
           <div style={{ display: "flex", gap: "0.4rem", overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
@@ -2583,8 +2583,8 @@ export default function App() {
                           <button key={jour} onClick={() => setHeuresDayDetail(dateStr)}
                             style={{ aspectRatio: "1", background: nb > 0 ? "#4caf50" : prevus.length > 0 ? "#fdf0d5" : "#fff8f0", border: `1.5px solid ${isToday ? "#e8213a" : nb > 0 ? "#4caf50" : "#f0d8b8"}`, borderRadius: "8px", display: "flex", flexDirection: "column" as const, alignItems: "center", justifyContent: "center", cursor: "pointer", padding: "0.1rem", fontFamily: "'Poppins', sans-serif" }}>
                             <span style={{ color: nb > 0 ? "#fff" : isToday ? "#e8213a" : "#3d1a0a", fontSize: "0.8rem", fontWeight: isToday ? "bold" : "normal" }}>{jour}</span>
-                            {nb > 0 ? <span style={{ color: "#fff", fontSize: "0.6rem", fontWeight: "bold" }}>👤{nb}</span>
-                              : prevus.length > 0 && <span style={{ color: "#c8a878", fontSize: "0.58rem" }}>{prevus.length}📋</span>}
+                            {nb > 0 ? <span style={{ color: "#fff", fontSize: "0.6rem", fontWeight: "bold" }}>{nb}</span>
+                              : prevus.length > 0 && <span style={{ color: "#c8a878", fontSize: "0.58rem" }}>{prevus.length}</span>}
                           </button>
                         );
                       })}
@@ -2635,7 +2635,7 @@ export default function App() {
 
                     {/* Résumé du mois en direct */}
                     <div style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "12px", padding: "1rem", marginTop: "0.9rem" }}>
-                      <div style={{ color: "#a07848", fontSize: "0.72rem", fontWeight: "bold", marginBottom: "0.7rem", textTransform: "capitalize" as const }}>📊 RÉSUMÉ — {moisLabel}</div>
+                      <div style={{ color: "#a07848", fontSize: "0.72rem", fontWeight: "bold", marginBottom: "0.7rem", textTransform: "capitalize" as const }}>RÉSUMÉ — {moisLabel}</div>
                       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "0.5rem", marginBottom: "0.8rem" }}>
                         <div style={{ background: "#faebd7", borderRadius: "10px", padding: "0.6rem", textAlign: "center" }}>
                           <div style={{ color: "#e8213a", fontSize: "1.3rem", fontWeight: "900" }}>{heuresMoisData.length}</div>
@@ -2701,24 +2701,24 @@ export default function App() {
                     {/* Workers */}
                     <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap" }}>
                       {autoEmps.map(emp => (
-                        <span key={emp} style={{ background: "#1a2a1a", color: "#8bc08b", borderRadius: "6px", padding: "0.25rem 0.6rem", fontSize: "0.78rem" }}>👤 {emp}</span>
+                        <span key={emp} style={{ background: "#1a2a1a", color: "#8bc08b", borderRadius: "6px", padding: "0.25rem 0.6rem", fontSize: "0.78rem" }}>{emp}</span>
                       ))}
                       {encoded.filter(h => !h.extra && !h.est_remplacement).map(h => (
                         <span key={h.id} style={{ background: "#1e2a1e", color: "#7bc07b", borderRadius: "6px", padding: "0.25rem 0.6rem", fontSize: "0.78rem" }}>
-                          👤 {h.employe_nom}
-                          {isSuperAdmin && <button onClick={() => handleDeleteHoraire(h.id)} style={{ background: "none", border: "none", color: "#e57373", cursor: "pointer", fontSize: "0.7rem", marginLeft: "0.3rem" }}>✕</button>}
+                          {h.employe_nom}
+                          {isSuperAdmin && <button onClick={() => handleDeleteHoraire(h.id)} style={{ background: "none", border: "none", color: "#e57373", cursor: "pointer", fontSize: "0.7rem", marginLeft: "0.3rem" }}><X size={16} /></button>}
                         </span>
                       ))}
                       {encoded.filter(h => h.extra).map(h => (
                         <span key={h.id} style={{ background: "#2a3a1a", color: "#a8d060", borderRadius: "6px", padding: "0.25rem 0.6rem", fontSize: "0.78rem" }}>
-                          ⭐ {h.employe_nom}
-                          {isSuperAdmin && <button onClick={() => handleDeleteHoraire(h.id)} style={{ background: "none", border: "none", color: "#e57373", cursor: "pointer", fontSize: "0.7rem", marginLeft: "0.3rem" }}>✕</button>}
+                          {h.employe_nom}
+                          {isSuperAdmin && <button onClick={() => handleDeleteHoraire(h.id)} style={{ background: "none", border: "none", color: "#e57373", cursor: "pointer", fontSize: "0.7rem", marginLeft: "0.3rem" }}><X size={16} /></button>}
                         </span>
                       ))}
                       {encoded.filter(h => h.est_remplacement).map(h => (
                         <span key={h.id} style={{ background: "#2a1a1a", color: "#e57373", borderRadius: "6px", padding: "0.25rem 0.6rem", fontSize: "0.78rem" }}>
-                          🔄 {h.employe_nom}→{h.remplace_nom}
-                          {isSuperAdmin && <button onClick={() => handleDeleteHoraire(h.id)} style={{ background: "none", border: "none", color: "#e57373", cursor: "pointer", fontSize: "0.7rem", marginLeft: "0.3rem" }}>✕</button>}
+                          {h.employe_nom}→{h.remplace_nom}
+                          {isSuperAdmin && <button onClick={() => handleDeleteHoraire(h.id)} style={{ background: "none", border: "none", color: "#e57373", cursor: "pointer", fontSize: "0.7rem", marginLeft: "0.3rem" }}><X size={16} /></button>}
                         </span>
                       ))}
                     </div>
@@ -2745,7 +2745,7 @@ export default function App() {
               ).map(([nom, stats]: [string, any]) => (
                 <div key={nom} style={{ background: "#fff8f0", border: "1px solid #3a1a1a", borderRadius: "12px", padding: "1rem", marginBottom: "0.75rem" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
-                    <div style={{ color: "#e8213a", fontSize: "0.95rem", fontWeight: "bold" }}>👤 {nom}</div>
+                    <div style={{ color: "#e8213a", fontSize: "0.95rem", fontWeight: "bold" }}>{nom}</div>
                     <div style={{ display: "flex", gap: "0.5rem" }}>
                       <span style={{ background: "#fff0f0", color: "#e57373", borderRadius: "8px", padding: "0.2rem 0.6rem", fontSize: "0.78rem" }}>{stats.count} jour{stats.count > 1 ? "s" : ""}</span>
                       <span style={{ background: "#1a1a2a", color: "#8888ff", borderRadius: "8px", padding: "0.2rem 0.6rem", fontSize: "0.78rem" }}>{stats.heures.toFixed(1)}h</span>
@@ -2829,7 +2829,7 @@ export default function App() {
                               <User size={12} color="#a07848" /> {it.employe_nom}
                               {isAdmin && (
                                 <button onClick={() => handleDeleteEventWorker(it.id)}
-                                  style={{ background: "none", border: "none", color: "#e57373", cursor: "pointer", fontSize: "0.85rem", padding: 0, lineHeight: 1 }}>✕</button>
+                                  style={{ background: "none", border: "none", color: "#e57373", cursor: "pointer", fontSize: "0.85rem", padding: 0, lineHeight: 1 }}><X size={16} /></button>
                               )}
                             </span>
                           ))}
@@ -2853,7 +2853,7 @@ export default function App() {
               <div style={{ background: "#fff8f0", borderRadius: "16px 16px 0 0", padding: "1.2rem", width: "100%", display: "flex", flexDirection: "column", gap: "0.7rem", maxHeight: "90vh", overflowY: "auto" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <div style={{ color: "#e8213a", fontWeight: "bold", fontSize: "0.95rem", display: "flex", alignItems: "center", gap: "6px" }}><PartyPopper size={16} /> Nouvel event</div>
-                  <button onClick={() => setShowAddEvent(false)} style={{ background: "#2a2a2a", border: "none", color: "#c8a878", borderRadius: "50%", width: "2rem", height: "2rem", cursor: "pointer" }}>✕</button>
+                  <button onClick={() => setShowAddEvent(false)} style={{ background: "#2a2a2a", border: "none", color: "#c8a878", borderRadius: "50%", width: "2rem", height: "2rem", cursor: "pointer" }}><X size={16} /></button>
                 </div>
 
                 <input value={newEventLabel} onChange={e => setNewEventLabel(e.target.value)} placeholder="Nom de l'event (ex: Made in Asia 2026)..."
@@ -2875,8 +2875,8 @@ export default function App() {
                     const sel = newEventEmployes.includes(nom);
                     return (
                       <button key={nom} onClick={() => toggleEventEmploye(nom)}
-                        style={{ background: sel ? "#e8213a" : "#faebd7", color: sel ? "#fff" : "#3d1a0a", border: `1.5px solid ${sel ? "#e8213a" : "#f0d8b8"}`, borderRadius: "20px", padding: "0.4rem 0.9rem", fontSize: "0.85rem", fontFamily: "'Poppins', sans-serif", cursor: "pointer", fontWeight: sel ? "bold" : "normal" }}>
-                        {sel ? "✓" : "+"} {nom}
+                        style={{ background: sel ? "#e8213a" : "#faebd7", color: sel ? "#fff" : "#3d1a0a", border: `1.5px solid ${sel ? "#e8213a" : "#f0d8b8"}`, borderRadius: "20px", padding: "0.4rem 0.9rem", fontSize: "0.85rem", fontFamily: "'Poppins', sans-serif", cursor: "pointer", fontWeight: sel ? "bold" : "normal", display: "inline-flex", alignItems: "center", gap: "5px" }}>
+                        {sel ? <Check size={14} /> : <Plus size={14} />} {nom}
                       </button>
                     );
                   })}
@@ -2888,7 +2888,7 @@ export default function App() {
                 <button onClick={handleAddEvent}
                   disabled={!newEventLabel.trim() || !newEventDate}
                   style={{ background: "#e8213a", color: "#ffffff", border: "none", padding: "0.9rem", borderRadius: "10px", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", fontSize: "1rem", cursor: "pointer", width: "100%", opacity: (!newEventLabel.trim() || !newEventDate) ? 0.5 : 1 }}>
-                  ✅ Créer l'event{newEventEmployes.length > 0 ? ` (${newEventEmployes.length} pré-assigné${newEventEmployes.length > 1 ? "s" : ""})` : ""}
+                  Créer l'event{newEventEmployes.length > 0 ? ` (${newEventEmployes.length} pré-assigné${newEventEmployes.length > 1 ? "s" : ""})` : ""}
                 </button>
               </div>
             </div>
@@ -2959,18 +2959,18 @@ export default function App() {
                   return (
                     <div>
                       {/* Résumé des 3 admins */}
-                      <div style={{ color: "#e8213a", fontSize: "0.75rem", fontWeight: "bold", marginBottom: "0.5rem" }}>👑 Admins</div>
+                      <div style={{ color: "#e8213a", fontSize: "0.75rem", fontWeight: "bold", marginBottom: "0.5rem" }}>Admins</div>
                       {ADMINS.map(nom => {
                         const remplacees = heuresRemplacees[nom];
                         const enPlus = heuresEnPlus[nom];
                         return (
                           <div key={nom} style={{ background: "#fff8f0", border: `1px solid ${nom === currentUser.prenom ? "#f5c842" : "#1e1e1e"}`, borderRadius: "12px", padding: "1rem", marginBottom: "0.6rem" }}>
                             <div style={{ color: "#e8213a", fontSize: "0.9rem", fontWeight: "bold", marginBottom: "0.5rem" }}>
-                              👑 {nom} {nom === currentUser.prenom ? "· Moi" : ""}
+                              {nom} {nom === currentUser.prenom ? "· Moi" : ""}
                             </div>
                             <div style={{ display: "flex", gap: "0.5rem" }}>
                               <div style={{ flex: 1, background: "#fff5f5", border: "1px solid #3a1a1a", borderRadius: "8px", padding: "0.6rem 0.8rem" }}>
-                                <div style={{ color: "#e57373", fontSize: "0.7rem", marginBottom: "0.2rem" }}>🔄 Remplacé</div>
+                                <div style={{ color: "#e57373", fontSize: "0.7rem", marginBottom: "0.2rem" }}>Remplacé</div>
                                 <div style={{ color: "#e57373", fontSize: "1.2rem", fontWeight: "bold" }}>{remplacees ? "-" + remplacees.heures.toFixed(1) + "h" : "0h"}</div>
                                 <div style={{ color: "#5a2a2a", fontSize: "0.7rem" }}>{remplacees ? remplacees.jours + " jour" + (remplacees.jours > 1 ? "s" : "") : "0 jour"}</div>
                                 {remplacees && remplacees.details.map((r: any) => (
@@ -2980,7 +2980,7 @@ export default function App() {
                                 ))}
                               </div>
                               <div style={{ flex: 1, background: "#0f1a2a", border: "1px solid #1e3a5a", borderRadius: "8px", padding: "0.6rem 0.8rem" }}>
-                                <div style={{ color: "#6ab0ff", fontSize: "0.7rem", marginBottom: "0.2rem" }}>➕ Fait en plus</div>
+                                <div style={{ color: "#6ab0ff", fontSize: "0.7rem", marginBottom: "0.2rem" }}>Fait en plus</div>
                                 <div style={{ color: "#6ab0ff", fontSize: "1.2rem", fontWeight: "bold" }}>{enPlus ? "+" + enPlus.heures.toFixed(1) + "h" : "0h"}</div>
                                 <div style={{ color: "#2a4a6a", fontSize: "0.7rem" }}>{enPlus ? enPlus.jours + " jour" + (enPlus.jours > 1 ? "s" : "") : "0 jour"}</div>
                                 {enPlus && enPlus.details.map((r: any) => (
@@ -2992,7 +2992,7 @@ export default function App() {
                               {/* Badge events admin */}
                               {eventsParPersonne[nom] && (
                                 <div style={{ flex: 1, background: "#fff5e6", border: "1px solid #f5a62355", borderRadius: "8px", padding: "0.6rem 0.8rem" }}>
-                                  <div style={{ color: "#e8213a", fontSize: "0.7rem", marginBottom: "0.2rem" }}>🎪 Events</div>
+                                  <div style={{ color: "#e8213a", fontSize: "0.7rem", marginBottom: "0.2rem" }}>Events</div>
                                   <div style={{ color: "#e8213a", fontSize: "1.2rem", fontWeight: "bold" }}>+{eventsParPersonne[nom].count}</div>
                                   <div style={{ color: "#a07848", fontSize: "0.7rem" }}>
                                     {eventsParPersonne[nom].count} event{eventsParPersonne[nom].count > 1 ? "s" : ""}
@@ -3011,35 +3011,35 @@ export default function App() {
                       })}
 
                       {/* Employés */}
-                      <div style={{ color: "#e8213a", fontSize: "0.75rem", fontWeight: "bold", marginBottom: "0.5rem" }}>👤 Employés</div>
+                      <div style={{ color: "#e8213a", fontSize: "0.75rem", fontWeight: "bold", marginBottom: "0.5rem" }}>Employés</div>
                       {EMPLOYES.map(nom => {
                         const st = heuresPrestees[nom];
                         if (!st) return null;
                         const enPlus = heuresEnPlus[nom];
                         return (
                           <div key={nom} style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "12px", padding: "1rem", marginBottom: "0.6rem" }}>
-                            <div style={{ color: "#3d1a0a", fontSize: "0.9rem", fontWeight: "bold", marginBottom: "0.5rem" }}>👤 {nom}</div>
+                            <div style={{ color: "#3d1a0a", fontSize: "0.9rem", fontWeight: "bold", marginBottom: "0.5rem" }}>{nom}</div>
                             <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
                               <div style={{ background: "#f5fff8", border: "1.5px solid #4caf5033", borderRadius: "8px", padding: "0.5rem 0.8rem", flex: 1 }}>
-                                <div style={{ color: "#4caf50", fontSize: "0.7rem", marginBottom: "0.2rem" }}>✅ Prestées</div>
+                                <div style={{ color: "#4caf50", fontSize: "0.7rem", marginBottom: "0.2rem" }}>Prestées</div>
                                 <div style={{ color: "#3d1a0a", fontSize: "1.1rem", fontWeight: "bold" }}>{st.travail.toFixed(1)}h</div>
                               </div>
                               {st.joursRemplace > 0 && (
                                 <div style={{ background: "#fff5f5", border: "1px solid #3a1a1a", borderRadius: "8px", padding: "0.5rem 0.8rem", flex: 1 }}>
-                                  <div style={{ color: "#e57373", fontSize: "0.7rem", marginBottom: "0.2rem" }}>🔄 Remplacé</div>
+                                  <div style={{ color: "#e57373", fontSize: "0.7rem", marginBottom: "0.2rem" }}>Remplacé</div>
                                   <div style={{ color: "#e57373", fontSize: "1.1rem", fontWeight: "bold" }}>-{st.remplace.toFixed(1)}h</div>
                                   <div style={{ color: "#5a2a2a", fontSize: "0.7rem" }}>{st.joursRemplace} jour{st.joursRemplace > 1 ? "s" : ""}</div>
                                 </div>
                               )}
                               {enPlus && (
                                 <div style={{ background: "#0f1a2a", border: "1px solid #1e3a5a", borderRadius: "8px", padding: "0.5rem 0.8rem", flex: 1 }}>
-                                  <div style={{ color: "#6ab0ff", fontSize: "0.7rem", marginBottom: "0.2rem" }}>➕ En plus</div>
+                                  <div style={{ color: "#6ab0ff", fontSize: "0.7rem", marginBottom: "0.2rem" }}>En plus</div>
                                   <div style={{ color: "#6ab0ff", fontSize: "1.1rem", fontWeight: "bold" }}>+{enPlus.heures.toFixed(1)}h</div>
                                 </div>
                               )}
                               {eventsParPersonne[nom] && (
                                 <div style={{ background: "#fff5e6", border: "1px solid #f5a62355", borderRadius: "8px", padding: "0.5rem 0.8rem", flex: 1 }}>
-                                  <div style={{ color: "#e8213a", fontSize: "0.7rem", marginBottom: "0.2rem" }}>🎪 Events</div>
+                                  <div style={{ color: "#e8213a", fontSize: "0.7rem", marginBottom: "0.2rem" }}>Events</div>
                                   <div style={{ color: "#e8213a", fontSize: "1.1rem", fontWeight: "bold" }}>+{eventsParPersonne[nom].count}</div>
                                 </div>
                               )}
@@ -3116,9 +3116,9 @@ export default function App() {
                         <div style={{ color: "#ffffff", fontSize: "1.6rem", fontWeight: "700" }}>{totalNet.toFixed(1)}h</div>
                       </div>
                       <div style={{ textAlign: "right", display: "flex", flexDirection: "column", gap: "0.15rem" }}>
-                        <div style={{ color: "#ffffff99", fontSize: "0.7rem" }}>✅ {heuresFaites.toFixed(1)}h faites</div>
-                        <div style={{ color: "#ffffff99", fontSize: "0.7rem" }}>📅 {heuresAvenir.toFixed(1)}h à venir</div>
-                        {heuresRemplaceesMoi > 0 && <div style={{ color: "#ffffff99", fontSize: "0.7rem" }}>🔄 -{heuresRemplaceesMoi.toFixed(1)}h remplacé</div>}
+                        <div style={{ color: "#ffffff99", fontSize: "0.7rem" }}>{heuresFaites.toFixed(1)}h faites</div>
+                        <div style={{ color: "#ffffff99", fontSize: "0.7rem" }}>{heuresAvenir.toFixed(1)}h à venir</div>
+                        {heuresRemplaceesMoi > 0 && <div style={{ color: "#ffffff99", fontSize: "0.7rem" }}>-{heuresRemplaceesMoi.toFixed(1)}h remplacé</div>}
                       </div>
                     </div>
 
@@ -3126,7 +3126,7 @@ export default function App() {
                     {eventsParPersonne[nom] && (
                       <div style={{ background: "#fff5e6", border: "1.5px solid #f5a62355", borderRadius: "14px", padding: "0.85rem 1rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                         <div>
-                          <div style={{ color: "#e8213a", fontSize: "0.75rem", fontWeight: "bold" }}>🎪 Events ce mois</div>
+                          <div style={{ color: "#e8213a", fontSize: "0.75rem", fontWeight: "bold" }}>Events ce mois</div>
                           <div style={{ color: "#a07848", fontSize: "0.7rem", marginTop: "0.2rem" }}>
                             {eventsParPersonne[nom].details.map((ev: any) =>
                               `${formatDateShort(normalizeDate(ev.event_date))} · ${ev.event_label}`
@@ -3137,7 +3137,7 @@ export default function App() {
                       </div>
                     )}
                     {/* Liste des jours */}
-                    <div style={{ color: "#a07848", fontSize: "0.75rem", fontWeight: "600" }}>📋 Mes jours ce mois</div>
+                    <div style={{ color: "#a07848", fontSize: "0.75rem", fontWeight: "600" }}>Mes jours ce mois</div>
                     {tousJours.map((j, idx) => (
                       <div key={idx} style={{
                         background: j.estRemplace ? "#fff5f5" : j.type === "extra" ? "#f0fff4" : j.type === "remplacement" ? "#f0f8ff" : j.dateStr === todayEmpStr ? "#f5fff8" : "#ffffff",
@@ -3148,11 +3148,11 @@ export default function App() {
                       }}>
                         <div>
                           <div style={{ color: "#3d1a0a", fontSize: "0.85rem", fontWeight: "600", textTransform: "capitalize" }}>
-                            {j.dateStr === todayEmpStr ? "🟢 " : ""}{formatDateShort(j.dateStr)}
+                            {j.dateStr === todayEmpStr ? "" : ""}{formatDateShort(j.dateStr)}
                           </div>
-                          {j.estRemplace && <div style={{ color: "#e8213a", fontSize: "0.7rem" }}>🔄 Remplacé</div>}
-                          {j.type === "extra" && <div style={{ color: "#4caf50", fontSize: "0.7rem" }}>➕ Heure extra</div>}
-                          {j.type === "remplacement" && <div style={{ color: "#6ab0ff", fontSize: "0.7rem" }}>🔄 Remplace {j.remplace_nom}</div>}
+                          {j.estRemplace && <div style={{ color: "#e8213a", fontSize: "0.7rem" }}>Remplacé</div>}
+                          {j.type === "extra" && <div style={{ color: "#4caf50", fontSize: "0.7rem" }}>Heure extra</div>}
+                          {j.type === "remplacement" && <div style={{ color: "#6ab0ff", fontSize: "0.7rem" }}>Remplace {j.remplace_nom}</div>}
                         </div>
                         <div style={{ textAlign: "right" }}>
                           <div style={{ color: j.estRemplace ? "#e8213a" : j.type === "extra" ? "#4caf50" : j.type === "remplacement" ? "#6ab0ff" : "#f5a623", fontSize: "0.95rem", fontWeight: "700" }}>
@@ -3172,7 +3172,7 @@ export default function App() {
           {horaireView === "suivi" && isAdmin && (
             <div>
               <div style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "12px", padding: "1rem", marginBottom: "0.75rem" }}>
-                <div style={{ color: "#e8213a", fontWeight: "bold", fontSize: "0.95rem", marginBottom: "0.5rem" }}>🏆 Classement points (all-time)</div>
+                <div style={{ color: "#e8213a", fontWeight: "bold", fontSize: "0.95rem", marginBottom: "0.5rem" }}>Classement points (all-time)</div>
                 {(() => {
                   const pts: any = {};
                   todoTaches.filter(t => t.statut === "fait" && t.completed_by).forEach(t => { pts[t.completed_by] = (pts[t.completed_by] || 0) + (t.points || 0); });
@@ -3188,7 +3188,7 @@ export default function App() {
                 })()}
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
-                <div style={{ color: "#e8213a", fontWeight: "bold", fontSize: "0.95rem" }}>💸 Amendes</div>
+                <div style={{ color: "#e8213a", fontWeight: "bold", fontSize: "0.95rem" }}>Amendes</div>
                 <button onClick={() => { setAmendeMontant(""); setAmendeAttribueeA(""); setAmendeDateIncident(getTodayDateStr()); setAmendeNote(""); setShowAddAmende(true); }} style={{ background: "#e8213a", color: "#fff", border: "none", borderRadius: "8px", padding: "0.35rem 0.8rem", fontSize: "0.78rem", fontWeight: "bold", cursor: "pointer", display: "flex", alignItems: "center", gap: "4px", fontFamily: "'Poppins', sans-serif" }}><Plus size={12} /> Amende</button>
               </div>
               {(() => {
@@ -3209,8 +3209,8 @@ export default function App() {
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "0.5rem" }}>
                     <div style={{ flex: 1 }}>
                       <div style={{ color: "#3d1a0a", fontSize: "0.9rem", fontWeight: "bold" }}>{a.type} · {a.attribuee_a}</div>
-                      <div style={{ color: "#a07848", fontSize: "0.72rem", marginTop: "0.2rem" }}>📅 {new Date(a.date_incident + "T12:00:00").toLocaleDateString("fr-BE", { day: "numeric", month: "short", year: "numeric" })}</div>
-                      {a.note && <div style={{ color: "#a07848", fontSize: "0.72rem", marginTop: "0.2rem" }}>📌 {a.note}</div>}
+                      <div style={{ color: "#a07848", fontSize: "0.72rem", marginTop: "0.2rem" }}>{new Date(a.date_incident + "T12:00:00").toLocaleDateString("fr-BE", { day: "numeric", month: "short", year: "numeric" })}</div>
+                      {a.note && <div style={{ color: "#a07848", fontSize: "0.72rem", marginTop: "0.2rem" }}>{a.note}</div>}
                     </div>
                     <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "0.3rem" }}>
                       <div style={{ color: "#e8213a", fontSize: "1rem", fontWeight: "bold" }}>{parseFloat(a.montant).toFixed(2)}€</div>
@@ -3224,8 +3224,8 @@ export default function App() {
                 <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", zIndex: 200, display: "flex", alignItems: "flex-end" }}>
                   <div style={{ background: "#fff8f0", borderRadius: "16px 16px 0 0", padding: "1.2rem", width: "100%", display: "flex", flexDirection: "column", gap: "0.7rem", maxHeight: "90vh", overflowY: "auto" }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                      <div style={{ color: "#e8213a", fontWeight: "bold", fontSize: "0.95rem" }}>💸 Nouvelle amende</div>
-                      <button onClick={() => setShowAddAmende(false)} style={{ background: "#2a2a2a", border: "none", color: "#c8a878", borderRadius: "50%", width: "2rem", height: "2rem", cursor: "pointer" }}>✕</button>
+                      <div style={{ color: "#e8213a", fontWeight: "bold", fontSize: "0.95rem" }}>Nouvelle amende</div>
+                      <button onClick={() => setShowAddAmende(false)} style={{ background: "#2a2a2a", border: "none", color: "#c8a878", borderRadius: "50%", width: "2rem", height: "2rem", cursor: "pointer" }}><X size={16} /></button>
                     </div>
                     <select value={amendeType} onChange={e => setAmendeType(e.target.value)} style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", outline: "none", width: "100%", fontFamily: "'Poppins', sans-serif" }}>
                       {amendeTypes.map(t => <option key={t.id} value={t.label}>{t.label}</option>)}
@@ -3237,7 +3237,7 @@ export default function App() {
                     </select>
                     <input type="date" value={amendeDateIncident} onChange={e => setAmendeDateIncident(e.target.value)} style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", outline: "none", width: "100%", boxSizing: "border-box", fontFamily: "'Poppins', sans-serif" }} />
                     <textarea value={amendeNote} onChange={e => setAmendeNote(e.target.value)} placeholder="Note (optionnel)..." rows={2} style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.9rem", outline: "none", width: "100%", boxSizing: "border-box", resize: "none", fontFamily: "'Poppins', sans-serif" }} />
-                    <button onClick={handleAddAmende} style={{ background: "#e8213a", color: "#fff", border: "none", padding: "0.9rem", borderRadius: "10px", fontWeight: "bold", fontSize: "1rem", cursor: "pointer", width: "100%", fontFamily: "'Poppins', sans-serif" }}>✅ Ajouter</button>
+                    <button onClick={handleAddAmende} style={{ background: "#e8213a", color: "#fff", border: "none", padding: "0.9rem", borderRadius: "10px", fontWeight: "bold", fontSize: "1rem", cursor: "pointer", width: "100%", fontFamily: "'Poppins', sans-serif" }}>Ajouter</button>
                   </div>
                 </div>
               )}
@@ -3299,7 +3299,7 @@ export default function App() {
                   const reglees = dettes.filter(d => d.statut === "regle" || parseFloat(d.montant_restant) <= 0);
                   return (
                     <>
-                      {actives.length === 0 && <div style={{ color: "#4caf50", textAlign: "center", padding: "2rem", fontSize: "0.9rem", fontWeight: "bold" }}>✅ Aucune dette en cours !</div>}
+                      {actives.length === 0 && <div style={{ color: "#4caf50", textAlign: "center", padding: "2rem", fontSize: "0.9rem", fontWeight: "bold" }}>Aucune dette en cours !</div>}
                       {actives.map(d => {
                         const montant = parseFloat(d.montant_initial) || 0;
                         const restant = parseFloat(d.montant_restant) || 0;
@@ -3345,7 +3345,7 @@ export default function App() {
                       })}
                       {reglees.length > 0 && (
                         <div style={{ background: "#f5fff8", border: "1.5px solid #4caf5033", borderRadius: "10px", padding: "0.7rem 1rem", marginTop: "0.5rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                          <div style={{ color: "#4caf50", fontSize: "0.85rem", fontWeight: "bold" }}>✅ {reglees.length} dette{reglees.length > 1 ? "s" : ""} réglée{reglees.length > 1 ? "s" : ""}</div>
+                          <div style={{ color: "#4caf50", fontSize: "0.85rem", fontWeight: "bold" }}>{reglees.length} dette{reglees.length > 1 ? "s" : ""} réglée{reglees.length > 1 ? "s" : ""}</div>
                           <button onClick={() => reglees.forEach(d => handleDeleteDette(d.id))} style={{ background: "none", color: "#c8a878", border: "none", fontSize: "0.72rem", cursor: "pointer" }}>Supprimer</button>
                         </div>
                       )}
@@ -3665,7 +3665,7 @@ export default function App() {
                         </div>
                       </div>
                     ) : (
-                      <div style={{ color: "#c8a878", textAlign: "center", padding: "2rem", fontSize: "0.85rem" }}>👆 Sélectionne une base pour voir le calcul</div>
+                      <div style={{ color: "#c8a878", textAlign: "center", padding: "2rem", fontSize: "0.85rem" }}>Sélectionne une base pour voir le calcul</div>
                     )}
                   </div>
                 );
@@ -3753,20 +3753,20 @@ export default function App() {
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "0.4rem" }}>
                         <div>
                           <div style={{ color: "#3d1a0a", fontSize: "0.95rem", fontWeight: "bold" }}>
-                            {rentable===true ? "✅ " : rentable===false ? "❌ " : "📅 "}{ev.nom}
+                            {rentable===true ? "" : rentable===false ? "" : ""}{ev.nom}
                           </div>
                           {ev.date_event && <div style={{ color: "#a07848", fontSize: "0.72rem" }}>{new Date(ev.date_event+"T12:00:00").toLocaleDateString("fr-BE", { day:"numeric", month:"long", year:"numeric" })}</div>}
                         </div>
                         <div style={{ display: "flex", gap: "0.3rem" }}>
-                          <button onClick={() => loadEventForm(ev, true)} style={{ background: "#faebd7", color: "#a07848", border: "1.5px solid #f5c842", borderRadius: "8px", padding: "0.3rem 0.6rem", fontSize: "0.72rem", cursor: "pointer", fontFamily: "'Poppins', sans-serif", fontWeight: "bold" }}>✏️ Modifier</button>
-                          <button onClick={() => loadEventForm(ev, false)} style={{ background: "#faebd7", color: "#a07848", border: "1.5px solid #f0d8b8", borderRadius: "8px", padding: "0.3rem 0.6rem", fontSize: "0.72rem", cursor: "pointer", fontFamily: "'Poppins', sans-serif", fontWeight: "bold" }}>📋 Copier</button>
+                          <button onClick={() => loadEventForm(ev, true)} style={{ background: "#faebd7", color: "#a07848", border: "1.5px solid #f5c842", borderRadius: "8px", padding: "0.3rem 0.6rem", fontSize: "0.72rem", cursor: "pointer", fontFamily: "'Poppins', sans-serif", fontWeight: "bold" }}>Modifier</button>
+                          <button onClick={() => loadEventForm(ev, false)} style={{ background: "#faebd7", color: "#a07848", border: "1.5px solid #f0d8b8", borderRadius: "8px", padding: "0.3rem 0.6rem", fontSize: "0.72rem", cursor: "pointer", fontFamily: "'Poppins', sans-serif", fontWeight: "bold" }}>Copier</button>
                           <button onClick={() => handleDeleteEventRenta(ev)} style={{ background: "none", color: "#c8a878", border: "none", cursor: "pointer" }}><Trash2 size={15} /></button>
                         </div>
                       </div>
                       {/* Tags résumé */}
                       <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap", marginBottom: ca == null ? "0.7rem" : "0" }}>
-                        <span style={{ background: "#faebd7", color: "#a07848", fontSize: "0.7rem", borderRadius: "6px", padding: "0.2rem 0.5rem" }}>💸 Coûts : {coutsFixes.toLocaleString("fr-BE")} €</span>
-                        <span style={{ background: "#faebd7", color: "#a07848", fontSize: "0.7rem", borderRadius: "6px", padding: "0.2rem 0.5rem" }}>🧾 Food cost : {(taux*100).toFixed(0)}%</span>
+                        <span style={{ background: "#faebd7", color: "#a07848", fontSize: "0.7rem", borderRadius: "6px", padding: "0.2rem 0.5rem" }}>Coûts : {coutsFixes.toLocaleString("fr-BE")} €</span>
+                        <span style={{ background: "#faebd7", color: "#a07848", fontSize: "0.7rem", borderRadius: "6px", padding: "0.2rem 0.5rem" }}>Food cost : {(taux*100).toFixed(0)}%</span>
                         {ca != null && <span style={{ background: ca >= seuilMin ? "#f5fff8" : "#fff5f5", color: ca >= seuilMin ? "#4caf50" : "#e8213a", fontSize: "0.7rem", borderRadius: "6px", padding: "0.2rem 0.5rem", fontWeight: "bold" }}>CA réel : {ca.toLocaleString("fr-BE")} €</span>}
                         {profit != null && <span style={{ background: profit >= 0 ? "#f5fff8" : "#fff5f5", color: profit >= 0 ? "#4caf50" : "#e8213a", fontSize: "0.75rem", borderRadius: "6px", padding: "0.2rem 0.5rem", fontWeight: "900" }}>{profit >= 0 ? "+" : ""}{Math.round(profit).toLocaleString("fr-BE")} €</span>}
                       </div>
@@ -3778,7 +3778,7 @@ export default function App() {
                         const foodCostObj = caObjectif * taux;
                         return (
                           <div style={{ background: "linear-gradient(135deg,#3d1a0a,#5a2a12)", borderRadius: "10px", padding: "0.8rem 1rem", marginBottom: "0.6rem", color: "#fff" }}>
-                            <div style={{ color: "#f5c842", fontSize: "0.68rem", fontWeight: "bold", marginBottom: "0.2rem" }}>🎯 POUR {obj.toLocaleString("fr-BE")} € DE BÉNÉFICE</div>
+                            <div style={{ color: "#f5c842", fontSize: "0.68rem", fontWeight: "bold", marginBottom: "0.2rem" }}>POUR {obj.toLocaleString("fr-BE")} € DE BÉNÉFICE</div>
                             <div style={{ fontSize: "1.5rem", fontWeight: "900" }}>{Math.ceil(caObjectif).toLocaleString("fr-BE")} € <span style={{ fontSize: "0.8rem", fontWeight: "normal", color: "#f0d8b8" }}>de CA à faire</span></div>
                             <div style={{ color: "#f0d8b8", fontSize: "0.68rem", marginTop: "0.2rem" }}>≈ {Math.ceil(foodCostObj).toLocaleString("fr-BE")} € de food cost · {Math.ceil(caObjectif/6).toLocaleString("fr-BE")} corndogs à 6€</div>
                           </div>
@@ -3787,7 +3787,7 @@ export default function App() {
                       {/* Event pas encore eu lieu → projection */}
                       {ca == null && (
                         <div style={{ background: "#faebd7", borderRadius: "10px", padding: "0.7rem 0.8rem" }}>
-                          <div style={{ color: "#a07848", fontSize: "0.68rem", fontWeight: "600", marginBottom: "0.5rem" }}>🎯 OBJECTIFS CA POUR ÊTRE RENTABLE</div>
+                          <div style={{ color: "#a07848", fontSize: "0.68rem", fontWeight: "600", marginBottom: "0.5rem" }}>OBJECTIFS CA POUR ÊTRE RENTABLE</div>
                           {[
                             { label: "Seuil minimum", mult: 1, color: "#e8213a" },
                             { label: "+25% marge", mult: 1.25, color: "#f5a623" },
@@ -3803,7 +3803,7 @@ export default function App() {
                                   <div style={{ color: "#a07848", fontSize: "0.65rem" }}>Food cost : {Math.ceil(foodCost).toLocaleString("fr-BE")} €</div>
                                 </div>
                                 <div style={{ color, fontSize: "0.85rem", fontWeight: "900" }}>
-                                  {mult === 1 ? "⚖️ 0 €" : `+${Math.round(profitObj).toLocaleString("fr-BE")} €`}
+                                  {mult === 1 ? "0 €" : `+${Math.round(profitObj).toLocaleString("fr-BE")} €`}
                                 </div>
                               </div>
                             );
@@ -3832,7 +3832,7 @@ export default function App() {
             {eventView === "form" && showEventForm && (
               <div>
                 <div style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "14px", padding: "1rem", marginBottom: "1rem" }}>
-                  <div style={{ color: "#e8213a", fontWeight: "bold", fontSize: "0.95rem", marginBottom: "0.8rem" }}>{editingEventId ? "✏️ Modifier l'event" : "🎪 Nouvel event"}</div>
+                  <div style={{ color: "#e8213a", fontWeight: "bold", fontSize: "0.95rem", marginBottom: "0.8rem" }}>{editingEventId ? "Modifier l'event" : "Nouvel event"}</div>
                   <div style={{ display: "flex", gap: "0.5rem", marginBottom: "0.5rem" }}>
                     <input value={eventNom} onChange={e => setEventNom(e.target.value)} placeholder="Nom de l'event *"
                       style={{ background: "#faebd7", border: "1.5px solid #f5c842", color: "#3d1a0a", padding: "0.7rem 1rem", borderRadius: "8px", fontSize: "0.9rem", outline: "none", flex: 2, fontFamily: "'Poppins', sans-serif" }} />
@@ -3883,7 +3883,7 @@ export default function App() {
                   ))}
                   <div style={{ margin: "0.6rem 0" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.4rem" }}>
-                      <div style={{ color: "#3d1a0a", fontSize: "0.82rem", flex: 1 }}>🧾 Food cost</div>
+                      <div style={{ color: "#3d1a0a", fontSize: "0.82rem", flex: 1 }}>Food cost</div>
                       <div style={{ display: "flex", background: "#faebd7", border: "1.5px solid #f0d8b8", borderRadius: "8px", overflow: "hidden" }}>
                         <button onClick={() => setEventFoodCostMode("pct")} style={{ background: eventFoodCostMode==="pct" ? "#f5c842" : "transparent", color: "#3d1a0a", border: "none", padding: "0.3rem 0.7rem", fontSize: "0.75rem", fontWeight: "bold", cursor: "pointer", fontFamily: "'Poppins', sans-serif" }}>%</button>
                         <button onClick={() => setEventFoodCostMode("eur")} style={{ background: eventFoodCostMode==="eur" ? "#f5c842" : "transparent", color: "#3d1a0a", border: "none", padding: "0.3rem 0.7rem", fontSize: "0.75rem", fontWeight: "bold", cursor: "pointer", fontFamily: "'Poppins', sans-serif" }}>€</button>
@@ -3903,7 +3903,7 @@ export default function App() {
                       </div>
                     )}
                   </div>
-                  <div style={{ color: "#a07848", fontSize: "0.72rem", fontWeight: "600", margin: "0.6rem 0 0.4rem" }}>🎯 OBJECTIF DE BÉNÉFICE (avant l'event)</div>
+                  <div style={{ color: "#a07848", fontSize: "0.72rem", fontWeight: "600", margin: "0.6rem 0 0.4rem" }}>OBJECTIF DE BÉNÉFICE (avant l'event)</div>
                   <div style={{ display: "flex", alignItems: "center", background: "#faebd7", border: "1.5px solid #f5c84266", borderRadius: "8px", overflow: "hidden", marginBottom: "0.3rem" }}>
                     <input value={eventObjectif} onChange={e => setEventObjectif(e.target.value.replace(",", "."))} inputMode="decimal" type="text" placeholder="Ex: 5000"
                       style={{ background: "transparent", border: "none", color: "#3d1a0a", padding: "0.7rem 1rem", fontSize: "0.95rem", outline: "none", flex: 1, fontFamily: "'Poppins', sans-serif" }} />
@@ -3918,8 +3918,8 @@ export default function App() {
                     <span style={{ color: "#a07848", paddingRight: "0.8rem", fontSize: "0.9rem" }}>€</span>
                   </div>
                   <div style={{ display: "flex", gap: "0.5rem" }}>
-                    <button onClick={calculerEvent} style={{ flex: 1, background: "#faebd7", color: "#3d1a0a", border: "1.5px solid #f0d8b8", padding: "0.8rem", borderRadius: "10px", fontWeight: "bold", fontSize: "0.9rem", cursor: "pointer", fontFamily: "'Poppins', sans-serif" }}>📊 Calculer</button>
-                    <button onClick={handleSaveEvent} style={{ flex: 2, background: "#e8213a", color: "#fff", border: "none", padding: "0.8rem", borderRadius: "10px", fontWeight: "bold", fontSize: "0.9rem", cursor: "pointer", fontFamily: "'Poppins', sans-serif" }}>💾 Sauvegarder</button>
+                    <button onClick={calculerEvent} style={{ flex: 1, background: "#faebd7", color: "#3d1a0a", border: "1.5px solid #f0d8b8", padding: "0.8rem", borderRadius: "10px", fontWeight: "bold", fontSize: "0.9rem", cursor: "pointer", fontFamily: "'Poppins', sans-serif" }}>Calculer</button>
+                    <button onClick={handleSaveEvent} style={{ flex: 2, background: "#e8213a", color: "#fff", border: "none", padding: "0.8rem", borderRadius: "10px", fontWeight: "bold", fontSize: "0.9rem", cursor: "pointer", fontFamily: "'Poppins', sans-serif" }}>Sauvegarder</button>
                   </div>
                 </div>
 
@@ -3938,7 +3938,7 @@ export default function App() {
                           <div style={{ color: eventResultat.profitRealise >= 0 ? "#4caf50" : "#e8213a", fontSize: "1.8rem", fontWeight: "900" }}>
                             {eventResultat.profitRealise >= 0 ? "+" : ""}{Math.round(eventResultat.profitRealise).toLocaleString("fr-BE")} €
                           </div>
-                          <div style={{ color: "#a07848", fontSize: "0.72rem" }}>{eventResultat.profitRealise >= 0 ? "✅ Rentable" : "❌ Non rentable"}</div>
+                          <div style={{ color: "#a07848", fontSize: "0.72rem" }}>{eventResultat.profitRealise >= 0 ? "Rentable" : "Non rentable"}</div>
                         </div>
                       )}
                     </div>
@@ -3954,7 +3954,7 @@ export default function App() {
                               <div style={{ color: "#a07848", fontSize: "0.67rem" }}>Ingr. : -{Math.ceil(ca*eventResultat.taux).toLocaleString("fr-BE")} €</div>
                             </div>
                             <div style={{ color: i===0?"#a07848":profit>0?"#4caf50":"#e8213a", fontSize: "1rem", fontWeight: "900" }}>
-                              {i===0 ? "⚖️ 0 €" : (profit>0?"+":"")+Math.round(profit).toLocaleString("fr-BE")+" €"}
+                              {i===0 ? "0 €" : (profit>0?"+":"")+Math.round(profit).toLocaleString("fr-BE")+" €"}
                             </div>
                           </div>
                         );
@@ -3981,12 +3981,12 @@ export default function App() {
                     <div style={{ flex: 1 }}>
                       <div style={{ color: "#3d1a0a", fontSize: "0.95rem", fontWeight: "bold" }}>{t.label}</div>
                       <div style={{ display: "flex", gap: "0.4rem", marginTop: "0.4rem", flexWrap: "wrap" }}>
-                        {t.deadline && <span style={{ background: enRetard ? "#fff0f0" : "#faebd7", color: enRetard ? "#e8213a" : "#a07848", fontSize: "0.72rem", borderRadius: "8px", padding: "0.2rem 0.5rem" }}>{enRetard ? "⚠️ " : "📅 "}{new Date(t.deadline + "T12:00:00").toLocaleDateString("fr-BE", { day: "numeric", month: "short" })}</span>}
-                        <span style={{ background: "#fff8e6", color: "#e8a623", fontSize: "0.72rem", borderRadius: "8px", padding: "0.2rem 0.5rem" }}>⭐ {t.points} pt{t.points > 1 ? "s" : ""}</span>
-                        {t.recurrente && <span style={{ background: "#e6f0ff", color: "#6ab0ff", fontSize: "0.72rem", borderRadius: "8px", padding: "0.2rem 0.5rem" }}>🔄 {t.frequence}</span>}
+                        {t.deadline && <span style={{ background: enRetard ? "#fff0f0" : "#faebd7", color: enRetard ? "#e8213a" : "#a07848", fontSize: "0.72rem", borderRadius: "8px", padding: "0.2rem 0.5rem" }}>{enRetard ? "" : ""}{new Date(t.deadline + "T12:00:00").toLocaleDateString("fr-BE", { day: "numeric", month: "short" })}</span>}
+                        <span style={{ background: "#fff8e6", color: "#e8a623", fontSize: "0.72rem", borderRadius: "8px", padding: "0.2rem 0.5rem" }}>{t.points} pt{t.points > 1 ? "s" : ""}</span>
+                        {t.recurrente && <span style={{ background: "#e6f0ff", color: "#6ab0ff", fontSize: "0.72rem", borderRadius: "8px", padding: "0.2rem 0.5rem" }}>{t.frequence}</span>}
                       </div>
                     </div>
-                    <button onClick={() => handleCompleteTodoTache(t)} style={{ background: "#4caf50", color: "#fff", border: "none", padding: "0.5rem 0.8rem", borderRadius: "8px", fontSize: "0.85rem", fontWeight: "bold", cursor: "pointer", whiteSpace: "nowrap", fontFamily: "'Poppins', sans-serif" }}>✅ J'ai fait</button>
+                    <button onClick={() => handleCompleteTodoTache(t)} style={{ background: "#4caf50", color: "#fff", border: "none", padding: "0.5rem 0.8rem", borderRadius: "8px", fontSize: "0.85rem", fontWeight: "bold", cursor: "pointer", whiteSpace: "nowrap", fontFamily: "'Poppins', sans-serif" }}>J'ai fait</button>
                   </div>
                 </div>
               );
@@ -3997,7 +3997,7 @@ export default function App() {
               <div key={t.id} style={{ background: "#f5fff8", border: "1.5px solid #4caf5033", borderRadius: "12px", padding: "0.8rem 1rem", marginBottom: "0.4rem" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <div>
-                    <div style={{ color: "#3d1a0a", fontSize: "0.9rem", fontWeight: "bold" }}>✅ {t.label}</div>
+                    <div style={{ color: "#3d1a0a", fontSize: "0.9rem", fontWeight: "bold" }}>{t.label}</div>
                     <div style={{ color: "#a07848", fontSize: "0.72rem", marginTop: "0.2rem" }}>{t.completed_by} · {t.completed_at ? new Date(t.completed_at).toLocaleDateString("fr-BE", { day: "numeric", month: "short" }) : ""}</div>
                   </div>
                   <span style={{ background: "#fff8e6", color: "#e8a623", fontSize: "0.78rem", borderRadius: "8px", padding: "0.2rem 0.5rem", fontWeight: "bold" }}>+{t.points} pt{t.points > 1 ? "s" : ""}</span>
@@ -4012,8 +4012,8 @@ export default function App() {
           <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", zIndex: 200, display: "flex", alignItems: "flex-end" }}>
             <div style={{ background: "#fff8f0", borderRadius: "16px 16px 0 0", padding: "1.2rem", width: "100%", display: "flex", flexDirection: "column", gap: "0.7rem", maxHeight: "90vh", overflowY: "auto" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <div style={{ color: "#e8213a", fontWeight: "bold", fontSize: "0.95rem" }}>➕ Nouvelle tâche</div>
-                <button onClick={() => setShowAddTodoTache(false)} style={{ background: "#2a2a2a", border: "none", color: "#c8a878", borderRadius: "50%", width: "2rem", height: "2rem", cursor: "pointer" }}>✕</button>
+                <div style={{ color: "#e8213a", fontWeight: "bold", fontSize: "0.95rem" }}>Nouvelle tâche</div>
+                <button onClick={() => setShowAddTodoTache(false)} style={{ background: "#2a2a2a", border: "none", color: "#c8a878", borderRadius: "50%", width: "2rem", height: "2rem", cursor: "pointer" }}><X size={16} /></button>
               </div>
               <input value={todoLabel} onChange={e => setTodoLabel(e.target.value)} placeholder="Titre de la tâche..." style={{ background: "#faebd7", border: "1px solid #f5c842", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", outline: "none", width: "100%", boxSizing: "border-box" as const, fontFamily: "'Poppins', sans-serif" }} />
               <div style={{ display: "flex", gap: "0.5rem" }}>
@@ -4030,7 +4030,7 @@ export default function App() {
                   <option value="mensuel">📅 Mensuel</option>
                 </select>
               )}
-              <button onClick={handleAddTodoTache} style={{ background: "#e8213a", color: "#fff", border: "none", padding: "0.9rem", borderRadius: "10px", fontWeight: "bold", fontSize: "1rem", cursor: "pointer", width: "100%", fontFamily: "'Poppins', sans-serif" }}>✅ Ajouter</button>
+              <button onClick={handleAddTodoTache} style={{ background: "#e8213a", color: "#fff", border: "none", padding: "0.9rem", borderRadius: "10px", fontWeight: "bold", fontSize: "1rem", cursor: "pointer", width: "100%", fontFamily: "'Poppins', sans-serif" }}>Ajouter</button>
             </div>
           </div>
         )}
@@ -4039,8 +4039,8 @@ export default function App() {
           <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", zIndex: 200, display: "flex", alignItems: "flex-end" }}>
             <div style={{ background: "#fff8f0", borderRadius: "16px 16px 0 0", padding: "1.2rem", width: "100%", display: "flex", flexDirection: "column", gap: "0.7rem", maxHeight: "90vh", overflowY: "auto" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <div style={{ color: "#e8213a", fontWeight: "bold", fontSize: "0.95rem" }}>➕ Nouvelle dette</div>
-                <button onClick={() => setShowAddDette(false)} style={{ background: "#2a2a2a", border: "none", color: "#c8a878", borderRadius: "50%", width: "2rem", height: "2rem", cursor: "pointer" }}>✕</button>
+                <div style={{ color: "#e8213a", fontWeight: "bold", fontSize: "0.95rem" }}>Nouvelle dette</div>
+                <button onClick={() => setShowAddDette(false)} style={{ background: "#2a2a2a", border: "none", color: "#c8a878", borderRadius: "50%", width: "2rem", height: "2rem", cursor: "pointer" }}><X size={16} /></button>
               </div>
               <input value={newDetteNom} onChange={e => setNewDetteNom(e.target.value)} placeholder="Nom (ex: TVA Monab)" style={{ background: "#faebd7", border: "1px solid #f5c842", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", outline: "none", width: "100%", boxSizing: "border-box" as const, fontFamily: "'Poppins', sans-serif" }} />
               <input value={newDetteMontant} onChange={e => setNewDetteMontant(e.target.value.replace(",", "."))} placeholder="Montant total dû (€)" inputMode="decimal" type="text" style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", outline: "none", width: "100%", boxSizing: "border-box" as const, fontFamily: "'Poppins', sans-serif" }} />
@@ -4059,7 +4059,7 @@ export default function App() {
               {newDetteAvecPlan && (
                 <input value={newDetteMensualite} onChange={e => setNewDetteMensualite(e.target.value.replace(",", "."))} placeholder="Mensualité (€/mois)" inputMode="decimal" type="text" style={{ background: "#faebd7", border: "1px solid #4caf5088", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", outline: "none", width: "100%", boxSizing: "border-box" as const, fontFamily: "'Poppins', sans-serif" }} />
               )}
-              <button onClick={handleAddDette} style={{ background: "#e8213a", color: "#fff", border: "none", padding: "0.9rem", borderRadius: "10px", fontWeight: "bold", fontSize: "1rem", cursor: "pointer", width: "100%", fontFamily: "'Poppins', sans-serif" }}>✅ Enregistrer</button>
+              <button onClick={handleAddDette} style={{ background: "#e8213a", color: "#fff", border: "none", padding: "0.9rem", borderRadius: "10px", fontWeight: "bold", fontSize: "1rem", cursor: "pointer", width: "100%", fontFamily: "'Poppins', sans-serif" }}>Enregistrer</button>
             </div>
           </div>
         )}
@@ -4068,8 +4068,8 @@ export default function App() {
           <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", zIndex: 200, display: "flex", alignItems: "flex-start", paddingTop: "10vh", justifyContent: "center" }} onClick={() => setShowAddCharge(false)}>
             <div style={{ background: "#fff8f0", borderRadius: "16px", padding: "1.2rem", width: "calc(100% - 2rem)", maxWidth: "420px", display: "flex", flexDirection: "column", gap: "0.7rem", maxHeight: "80vh", overflowY: "auto" }} onClick={e => e.stopPropagation()}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <div style={{ color: "#e8213a", fontWeight: "bold", fontSize: "0.95rem" }}>➕ Nouvelle charge fixe</div>
-                <button onClick={() => setShowAddCharge(false)} style={{ background: "#2a2a2a", border: "none", color: "#c8a878", borderRadius: "50%", width: "2rem", height: "2rem", cursor: "pointer" }}>✕</button>
+                <div style={{ color: "#e8213a", fontWeight: "bold", fontSize: "0.95rem" }}>Nouvelle charge fixe</div>
+                <button onClick={() => setShowAddCharge(false)} style={{ background: "#2a2a2a", border: "none", color: "#c8a878", borderRadius: "50%", width: "2rem", height: "2rem", cursor: "pointer" }}><X size={16} /></button>
               </div>
               <input autoFocus value={newChargeNom} onChange={e => setNewChargeNom(e.target.value)} placeholder="Nom (ex: Loyer)" style={{ background: "#faebd7", border: "1px solid #f5c842", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "1rem", outline: "none", width: "100%", boxSizing: "border-box" as const, fontFamily: "'Poppins', sans-serif" }} />
               <input value={newChargeMontant} onChange={e => setNewChargeMontant(e.target.value.replace(",", "."))} placeholder="Montant mensuel (€)" inputMode="decimal" type="text" style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "1rem", outline: "none", width: "100%", boxSizing: "border-box" as const, fontFamily: "'Poppins', sans-serif" }} />
@@ -4085,7 +4085,7 @@ export default function App() {
                 <option value="personnel">👥 Personnel</option>
                 <option value="autre">📦 Autre</option>
               </select>
-              <button onClick={handleAddCharge} style={{ background: "#e8213a", color: "#fff", border: "none", padding: "0.9rem", borderRadius: "10px", fontWeight: "bold", fontSize: "1rem", cursor: "pointer", width: "100%", fontFamily: "'Poppins', sans-serif" }}>✅ Enregistrer</button>
+              <button onClick={handleAddCharge} style={{ background: "#e8213a", color: "#fff", border: "none", padding: "0.9rem", borderRadius: "10px", fontWeight: "bold", fontSize: "1rem", cursor: "pointer", width: "100%", fontFamily: "'Poppins', sans-serif" }}>Enregistrer</button>
             </div>
           </div>
         )}
@@ -4094,13 +4094,13 @@ export default function App() {
         {editingDette && (
           <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: "1rem" }}>
             <div style={{ background: "#fff8f0", borderRadius: "16px", padding: "1.4rem", width: "100%", maxWidth: "380px", display: "flex", flexDirection: "column", gap: "0.8rem" }}>
-              <div style={{ color: "#e8213a", fontWeight: "bold", fontSize: "0.95rem" }}>💶 Paiement partiel — {editingDette.nom}</div>
+              <div style={{ color: "#e8213a", fontWeight: "bold", fontSize: "0.95rem" }}>Paiement partiel — {editingDette.nom}</div>
               <div style={{ color: "#a07848", fontSize: "0.82rem" }}>Restant: <strong>{parseFloat(editingDette.montant_restant).toLocaleString("fr-BE", { minimumFractionDigits: 2 })} €</strong></div>
               <input value={paiementPartiel} onChange={e => setPaiementPartiel(e.target.value.replace(",", "."))} placeholder="Montant payé (€)" inputMode="decimal" type="text"
                 style={{ background: "#faebd7", border: "1.5px solid #f5c842", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "1rem", outline: "none", width: "100%", boxSizing: "border-box" as const, fontFamily: "'Poppins', sans-serif" }} />
               <div style={{ display: "flex", gap: "0.6rem" }}>
                 <button onClick={() => setEditingDette(null)} style={{ flex: 1, background: "#faebd7", color: "#a07848", border: "1.5px solid #f0d8b8", padding: "0.8rem", borderRadius: "10px", fontWeight: "bold", cursor: "pointer", fontFamily: "'Poppins', sans-serif" }}>Annuler</button>
-                <button onClick={() => handlePayerPartielDette(editingDette)} style={{ flex: 2, background: "#e8213a", color: "#fff", border: "none", padding: "0.8rem", borderRadius: "10px", fontWeight: "bold", cursor: "pointer", fontFamily: "'Poppins', sans-serif" }}>✅ Confirmer</button>
+                <button onClick={() => handlePayerPartielDette(editingDette)} style={{ flex: 2, background: "#e8213a", color: "#fff", border: "none", padding: "0.8rem", borderRadius: "10px", fontWeight: "bold", cursor: "pointer", fontFamily: "'Poppins', sans-serif" }}>Confirmer</button>
               </div>
             </div>
           </div>
@@ -4111,8 +4111,8 @@ export default function App() {
           <div onClick={() => setEditDetteForm(null)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", zIndex: 200, display: "flex", alignItems: "flex-start", justifyContent: "center", paddingTop: "8vh", overflowY: "auto" }}>
             <div onClick={e => e.stopPropagation()} style={{ background: "#fff8f0", borderRadius: "16px", padding: "1.4rem", width: "90%", maxWidth: "380px", display: "flex", flexDirection: "column", gap: "0.7rem", marginBottom: "2rem" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <div style={{ color: "#e8213a", fontWeight: "bold", fontSize: "0.95rem" }}>✏️ Modifier la dette</div>
-                <button onClick={() => setEditDetteForm(null)} style={{ background: "#2a2a2a", border: "none", color: "#c8a878", borderRadius: "50%", width: "2rem", height: "2rem", cursor: "pointer" }}>✕</button>
+                <div style={{ color: "#e8213a", fontWeight: "bold", fontSize: "0.95rem" }}>Modifier la dette</div>
+                <button onClick={() => setEditDetteForm(null)} style={{ background: "#2a2a2a", border: "none", color: "#c8a878", borderRadius: "50%", width: "2rem", height: "2rem", cursor: "pointer" }}><X size={16} /></button>
               </div>
               <input value={editDetteForm.nom} onChange={e => setEditDetteForm({ ...editDetteForm, nom: e.target.value })} placeholder="Nom"
                 style={{ background: "#faebd7", border: "1px solid #f5c842", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", outline: "none", width: "100%", boxSizing: "border-box" as const, fontFamily: "'Poppins', sans-serif" }} />
@@ -4146,7 +4146,7 @@ export default function App() {
                 <input value={editDetteForm.mensualite || ""} onChange={e => setEditDetteForm({ ...editDetteForm, mensualite: e.target.value.replace(",", ".") })} placeholder="Mensualité (€/mois)" inputMode="decimal"
                   style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", outline: "none", width: "100%", boxSizing: "border-box" as const, fontFamily: "'Poppins', sans-serif" }} />
               )}
-              <button onClick={handleSaveEditDette} style={{ background: "#e8213a", color: "#fff", border: "none", padding: "0.9rem", borderRadius: "10px", fontWeight: "bold", fontSize: "1rem", cursor: "pointer", width: "100%", fontFamily: "'Poppins', sans-serif" }}>✅ Enregistrer</button>
+              <button onClick={handleSaveEditDette} style={{ background: "#e8213a", color: "#fff", border: "none", padding: "0.9rem", borderRadius: "10px", fontWeight: "bold", fontSize: "1rem", cursor: "pointer", width: "100%", fontFamily: "'Poppins', sans-serif" }}>Enregistrer</button>
             </div>
           </div>
         )}
@@ -4156,8 +4156,8 @@ export default function App() {
           <div onClick={() => setEditingCharge(null)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", zIndex: 200, display: "flex", alignItems: "flex-start", justifyContent: "center", paddingTop: "10vh" }}>
             <div onClick={e => e.stopPropagation()} style={{ background: "#fff8f0", borderRadius: "16px", padding: "1.4rem", width: "90%", maxWidth: "380px", display: "flex", flexDirection: "column", gap: "0.7rem" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <div style={{ color: "#e8213a", fontWeight: "bold", fontSize: "0.95rem" }}>✏️ Modifier la charge</div>
-                <button onClick={() => setEditingCharge(null)} style={{ background: "#2a2a2a", border: "none", color: "#c8a878", borderRadius: "50%", width: "2rem", height: "2rem", cursor: "pointer" }}>✕</button>
+                <div style={{ color: "#e8213a", fontWeight: "bold", fontSize: "0.95rem" }}>Modifier la charge</div>
+                <button onClick={() => setEditingCharge(null)} style={{ background: "#2a2a2a", border: "none", color: "#c8a878", borderRadius: "50%", width: "2rem", height: "2rem", cursor: "pointer" }}><X size={16} /></button>
               </div>
               <input value={editingCharge.nom} onChange={e => setEditingCharge({ ...editingCharge, nom: e.target.value })} placeholder="Nom"
                 style={{ background: "#faebd7", border: "1px solid #f5c842", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", outline: "none", width: "100%", boxSizing: "border-box" as const, fontFamily: "'Poppins', sans-serif" }} />
@@ -4177,7 +4177,7 @@ export default function App() {
                 <option value="telecom">📞 Télécom</option>
                 <option value="autre">📦 Autre</option>
               </select>
-              <button onClick={() => handleUpdateCharge(editingCharge)} style={{ background: "#e8213a", color: "#fff", border: "none", padding: "0.9rem", borderRadius: "10px", fontWeight: "bold", fontSize: "1rem", cursor: "pointer", width: "100%", fontFamily: "'Poppins', sans-serif" }}>✅ Enregistrer</button>
+              <button onClick={() => handleUpdateCharge(editingCharge)} style={{ background: "#e8213a", color: "#fff", border: "none", padding: "0.9rem", borderRadius: "10px", fontWeight: "bold", fontSize: "1rem", cursor: "pointer", width: "100%", fontFamily: "'Poppins', sans-serif" }}>Enregistrer</button>
             </div>
           </div>
         )}
@@ -4194,7 +4194,7 @@ export default function App() {
       <div style={{ background: "#e8213a", padding: "0.75rem 1rem", display: "flex", alignItems: "center", gap: "0.75rem", flexShrink: 0 }}>
         <button onClick={() => setPdfModal(null)} style={{ background: "rgba(255,255,255,0.2)", border: "none", color: "#fff", borderRadius: "8px", padding: "0.4rem 0.75rem", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", fontSize: "0.9rem", cursor: "pointer" }}>← Retour</button>
         <span style={{ color: "#fff", fontWeight: "bold", fontSize: "0.9rem", flex: 1 }}>Document PDF</span>
-        <button onClick={() => { if (iframeRef.current?.contentWindow) iframeRef.current.contentWindow.print(); }} style={{ background: "#f5c842", border: "none", color: "#111", borderRadius: "8px", padding: "0.4rem 0.9rem", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", fontSize: "0.9rem", cursor: "pointer" }}>🖨️ Imprimer</button>
+        <button onClick={() => { if (iframeRef.current?.contentWindow) iframeRef.current.contentWindow.print(); }} style={{ background: "#f5c842", border: "none", color: "#111", borderRadius: "8px", padding: "0.4rem 0.9rem", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", fontSize: "0.9rem", cursor: "pointer" }}>Imprimer</button>
       </div>
       <iframe ref={iframeRef} srcDoc={pdfModal} style={{ flex: 1, border: "none", width: "100%" }} title="Document PDF" />
     </div>
@@ -4257,7 +4257,7 @@ export default function App() {
           {paieView === "fiches" && (
             <div>
               <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.6rem", background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "8px", padding: "0.5rem 0.75rem" }}>
-                <span style={{ color: "#a07848", fontSize: "0.78rem", whiteSpace: "nowrap" }}>📅 Date du document</span>
+                <span style={{ color: "#a07848", fontSize: "0.78rem", whiteSpace: "nowrap" }}>Date du document</span>
                 <input type="date" value={paieDocDate} onChange={e => setPaieDocDate(e.target.value)} style={{ background: "transparent", border: "none", color: "#e8213a", fontFamily: "'Poppins', sans-serif", fontSize: "0.82rem", fontWeight: "bold", outline: "none", flex: 1 }} />
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
@@ -4271,15 +4271,15 @@ export default function App() {
                 <div key={f.id} style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "12px", padding: "1rem", marginBottom: "0.6rem" }}>
                   {editingFicheId === f.id ? (
                     <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-                      <div style={{ color: "#e8213a", fontWeight: "bold", fontSize: "0.9rem" }}>✏️ Modifier — {f.employe_nom}</div>
+                      <div style={{ color: "#e8213a", fontWeight: "bold", fontSize: "0.9rem" }}>Modifier — {f.employe_nom}</div>
                       <div style={{ display: "flex", gap: "0.5rem" }}>
                         <input type="date" value={editingFicheDebut} onChange={e => setEditingFicheDebut(e.target.value)} style={{ ...inpS, flex: 1 }} />
                         <input type="date" value={editingFicheFin} onChange={e => setEditingFicheFin(e.target.value)} style={{ ...inpS, flex: 1 }} />
                       </div>
                       <input value={editingFicheHeures} onChange={e => setEditingFicheHeures(e.target.value)} placeholder="Heures totales (ex: 76)" inputMode="decimal" style={inpS} />
                       <div style={{ display: "flex", gap: "0.5rem" }}>
-                        <button onClick={() => handleUpdateFiche(f.id)} style={{ flex: 1, background: "#e8213a", color: "#fff", border: "none", padding: "0.8rem", borderRadius: "8px", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", cursor: "pointer" }}>💾 Sauvegarder</button>
-                        <button onClick={() => setEditingFicheId(null)} style={{ background: "#faebd7", color: "#a07848", border: "none", padding: "0.8rem 1rem", borderRadius: "8px", cursor: "pointer" }}>✕</button>
+                        <button onClick={() => handleUpdateFiche(f.id)} style={{ flex: 1, background: "#e8213a", color: "#fff", border: "none", padding: "0.8rem", borderRadius: "8px", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", cursor: "pointer" }}>Sauvegarder</button>
+                        <button onClick={() => setEditingFicheId(null)} style={{ background: "#faebd7", color: "#a07848", border: "none", padding: "0.8rem 1rem", borderRadius: "8px", cursor: "pointer" }}><X size={16} /></button>
                       </div>
                     </div>
                   ) : (
@@ -4288,7 +4288,7 @@ export default function App() {
                         <div>
                           <div style={{ color: "#3d1a0a", fontSize: "0.95rem", fontWeight: "bold" }}>{f.employe_nom}</div>
                           <div style={{ color: "#a07848", fontSize: "0.75rem", marginTop: "0.15rem" }}>
-                            {f.type_contrat === "etudiant" ? "🎓 Étudiant" : f.type_contrat === "flexi" ? "⚡ Flexi" : "📋 CDI"} · {f.periode} · {f.heures_total}h
+                            {f.type_contrat === "etudiant" ? "Étudiant" : f.type_contrat === "flexi" ? "Flexi" : "CDI"} · {f.periode} · {f.heures_total}h
                           </div>
                           <div style={{ color: "#a07848", fontSize: "0.72rem" }}>
                             {f.date_debut ? new Date(f.date_debut).toLocaleDateString("fr-BE") : ""} → {f.date_fin ? new Date(f.date_fin).toLocaleDateString("fr-BE") : ""}
@@ -4305,8 +4305,8 @@ export default function App() {
                         <span style={{ background: "#f0fff4", color: "#4caf50", borderRadius: "6px", padding: "0.2rem 0.5rem", fontSize: "0.72rem" }}>Coût emp.: {fmt(f.cout_employeur)}€</span>
                       </div>
                       <div style={{ display: "flex", gap: "0.4rem", marginTop: "0.6rem" }}>
-                        <button onClick={() => setPdfModal(genererPDFFiche(f, allUsers.find(u => u.id === f.employe_id), paieDocDate))} style={{ flex: 1, background: "#e8213a", color: "#fff", border: "none", padding: "0.5rem", borderRadius: "8px", fontSize: "0.8rem", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", cursor: "pointer" }}>📄 Voir fiche</button>
-                        <button onClick={() => { setEditingFicheId(f.id); setEditingFicheHeures(String(f.heures_total)); setEditingFicheDebut(f.date_debut || ""); setEditingFicheFin(f.date_fin || ""); }} style={{ background: "#faebd7", border: "none", color: "#a07848", borderRadius: "8px", padding: "0.5rem 0.7rem", cursor: "pointer", fontSize: "0.85rem" }}>✏️</button>
+                        <button onClick={() => setPdfModal(genererPDFFiche(f, allUsers.find(u => u.id === f.employe_id), paieDocDate))} style={{ flex: 1, background: "#e8213a", color: "#fff", border: "none", padding: "0.5rem", borderRadius: "8px", fontSize: "0.8rem", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", cursor: "pointer" }}>Voir fiche</button>
+                        <button onClick={() => { setEditingFicheId(f.id); setEditingFicheHeures(String(f.heures_total)); setEditingFicheDebut(f.date_debut || ""); setEditingFicheFin(f.date_fin || ""); }} style={{ background: "#faebd7", border: "none", color: "#a07848", borderRadius: "8px", padding: "0.5rem 0.7rem", cursor: "pointer", fontSize: "0.85rem" }}></button>
                         <button onClick={() => handleDeleteFiche(f.id)} style={{ background: "#fff5f5", border: "none", color: "#e57373", borderRadius: "8px", padding: "0.5rem 0.7rem", cursor: "pointer" }}><Trash2 size={15} /></button>
                       </div>
                     </div>
@@ -4324,7 +4324,7 @@ export default function App() {
                 <div key={u.id} style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "12px", padding: "1rem", marginBottom: "0.6rem" }}>
                   {editingPaieUser?.id === u.id ? (
                     <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-                      <div style={{ color: "#e8213a", fontWeight: "bold", fontSize: "0.9rem" }}>✏️ {u.prenom} — Infos paie</div>
+                      <div style={{ color: "#e8213a", fontWeight: "bold", fontSize: "0.9rem" }}>{u.prenom} — Infos paie</div>
                       <select value={editingPaieUser.type_contrat || "etudiant"} onChange={e => setEditingPaieUser(p => ({ ...p, type_contrat: e.target.value }))} style={inpS}>
                         <option value="etudiant">🎓 Étudiant (cotis. solidarité 2,71%)</option>
                         <option value="flexi">⚡ Flexi-job (brut = net)</option>
@@ -4350,26 +4350,26 @@ export default function App() {
                       <input value={editingPaieUser.iban || ""} onChange={e => setEditingPaieUser(p => ({ ...p, iban: e.target.value }))} placeholder="IBAN (BE...)" style={inpS} />
                       <textarea value={editingPaieUser.adresse_employe || ""} onChange={e => setEditingPaieUser(p => ({ ...p, adresse_employe: e.target.value }))} placeholder={"Adresse (Rue...\nCode postal Ville)"} rows={2} style={{ ...inpS, resize: "none" }} />
                       <div style={{ display: "flex", gap: "0.5rem" }}>
-                        <button onClick={handleSavePaieUser} style={{ flex: 1, background: "#e8213a", color: "#fff", border: "none", padding: "0.8rem", borderRadius: "8px", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", cursor: "pointer" }}>💾 Sauvegarder</button>
-                        <button onClick={() => setEditingPaieUser(null)} style={{ background: "#faebd7", color: "#a07848", border: "none", padding: "0.8rem 1rem", borderRadius: "8px", cursor: "pointer" }}>✕</button>
+                        <button onClick={handleSavePaieUser} style={{ flex: 1, background: "#e8213a", color: "#fff", border: "none", padding: "0.8rem", borderRadius: "8px", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", cursor: "pointer" }}>Sauvegarder</button>
+                        <button onClick={() => setEditingPaieUser(null)} style={{ background: "#faebd7", color: "#a07848", border: "none", padding: "0.8rem 1rem", borderRadius: "8px", cursor: "pointer" }}><X size={16} /></button>
                       </div>
-                      <button onClick={async () => { const snap = editingPaieUser; await handleSavePaieUser(); await handleGenererContratEmploye(snap); }} style={{ background: "#3d1a0a", color: "#fff", border: "none", padding: "0.8rem", borderRadius: "8px", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", cursor: "pointer" }}>📄 Sauvegarder + générer le contrat</button>
+                      <button onClick={async () => { const snap = editingPaieUser; await handleSavePaieUser(); await handleGenererContratEmploye(snap); }} style={{ background: "#3d1a0a", color: "#fff", border: "none", padding: "0.8rem", borderRadius: "8px", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", cursor: "pointer" }}>Sauvegarder + générer le contrat</button>
                     </div>
                   ) : (
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                       <div>
                         <div style={{ color: "#3d1a0a", fontWeight: "bold", fontSize: "0.95rem" }}>{u.prenom}</div>
                         <div style={{ color: "#a07848", fontSize: "0.75rem", marginTop: "0.2rem" }}>
-                          {u.type_contrat === "flexi" ? "⚡ Flexi" : u.type_contrat === "cdi" ? "📋 CDI" : "🎓 Étudiant"}
+                          {u.type_contrat === "flexi" ? "Flexi" : u.type_contrat === "cdi" ? "CDI" : "Étudiant"}
                           {u.age_employe ? ` · ${u.age_employe} ans` : ""}
                           {u.anciennete_ans ? ` · Anc. ${u.anciennete_ans}a` : ""}
                         </div>
                         <div style={{ color: "#a07848", fontSize: "0.72rem" }}>
                           Taux: {fmt(u.salaire_horaire || getTauxCP302(u.anciennete_ans || 0) * getFacteurAge(u.age_employe, u.type_contrat || "etudiant"))}€/h
-                          {u.iban ? ` · ${u.iban.slice(0, 12)}...` : " · ⚠️ Pas d'IBAN"}
+                          {u.iban ? ` · ${u.iban.slice(0, 12)}...` : " · Pas d'IBAN"}
                         </div>
                       </div>
-                      <button onClick={() => setEditingPaieUser({ ...u })} style={{ background: "#faebd7", border: "none", color: "#e8213a", borderRadius: "8px", padding: "0.4rem 0.7rem", cursor: "pointer", fontSize: "0.85rem" }}>✏️</button>
+                      <button onClick={() => setEditingPaieUser({ ...u })} style={{ background: "#faebd7", border: "none", color: "#e8213a", borderRadius: "8px", padding: "0.4rem 0.7rem", cursor: "pointer", fontSize: "0.85rem" }}></button>
                     </div>
                   )}
                 </div>
@@ -4428,7 +4428,7 @@ export default function App() {
                 ) : (<>
                   {/* Bloc ONSS à verser */}
                   <div style={{ background: "#fff0f0", border: "1.5px solid #f5c8c8", borderRadius: "12px", padding: "1rem", marginBottom: "0.6rem" }}>
-                    <div style={{ color: "#e8213a", fontWeight: "bold", fontSize: "0.88rem", marginBottom: "0.6rem" }}>🏦 ONSS à verser à l'ONSS</div>
+                    <div style={{ color: "#e8213a", fontWeight: "bold", fontSize: "0.88rem", marginBottom: "0.6rem" }}>ONSS à verser à l'ONSS</div>
                     <div style={{ display: "flex", justifyContent: "space-between", padding: "0.3rem 0", borderBottom: "1px solid #f5c8c8" }}>
                       <span style={{ color: "#3d1a0a", fontSize: "0.82rem" }}>Cotisations ouvrières (CDI)</span>
                       <span style={{ color: "#e8213a", fontWeight: "bold", fontSize: "0.82rem" }}>{fmt(totalCotisWorker)} €</span>
@@ -4445,7 +4445,7 @@ export default function App() {
 
                   {/* Bloc salaires à payer */}
                   <div style={{ background: "#f0fff4", border: "1.5px solid #c8e6c9", borderRadius: "12px", padding: "1rem", marginBottom: "0.6rem" }}>
-                    <div style={{ color: "#388e3c", fontWeight: "bold", fontSize: "0.88rem", marginBottom: "0.6rem" }}>💳 Salaires à virer aux employés</div>
+                    <div style={{ color: "#388e3c", fontWeight: "bold", fontSize: "0.88rem", marginBottom: "0.6rem" }}>Salaires à virer aux employés</div>
                     {fichesFiltered.map(f => (
                       <div key={f.id} style={{ display: "flex", justifyContent: "space-between", padding: "0.25rem 0", borderBottom: "1px solid #c8e6c9" }}>
                         <span style={{ color: "#3d1a0a", fontSize: "0.82rem" }}>{f.employe_nom}</span>
@@ -4460,10 +4460,10 @@ export default function App() {
 
                   {/* Récap par type */}
                   <div style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "12px", padding: "1rem", marginBottom: "0.6rem" }}>
-                    <div style={{ color: "#a07848", fontWeight: "bold", fontSize: "0.88rem", marginBottom: "0.6rem" }}>📋 Détail par type de contrat</div>
+                    <div style={{ color: "#a07848", fontWeight: "bold", fontSize: "0.88rem", marginBottom: "0.6rem" }}>Détail par type de contrat</div>
                     {etudFiches.length > 0 && (
                       <div style={{ marginBottom: "0.4rem" }}>
-                        <div style={{ color: "#3d1a0a", fontSize: "0.8rem", fontWeight: "bold" }}>🎓 Étudiants ({etudFiches.length})</div>
+                        <div style={{ color: "#3d1a0a", fontSize: "0.8rem", fontWeight: "bold" }}>Étudiants ({etudFiches.length})</div>
                         <div style={{ color: "#a07848", fontSize: "0.75rem" }}>
                           Cotis. solidarité (2,71%): {fmt(etudFiches.reduce((s,f) => s + Number(f.cotisation_onss||0), 0))} €
                           · Charges patron (5,42%): {fmt(etudFiches.reduce((s,f) => s + Number(f.cout_employeur||0) - Number(f.salaire_brut||0), 0))} €
@@ -4472,7 +4472,7 @@ export default function App() {
                     )}
                     {flexiFiches.length > 0 && (
                       <div style={{ marginBottom: "0.4rem" }}>
-                        <div style={{ color: "#3d1a0a", fontSize: "0.8rem", fontWeight: "bold" }}>⚡ Flexi ({flexiFiches.length})</div>
+                        <div style={{ color: "#3d1a0a", fontSize: "0.8rem", fontWeight: "bold" }}>Flexi ({flexiFiches.length})</div>
                         <div style={{ color: "#a07848", fontSize: "0.75rem" }}>
                           Charges patron (28%): {fmt(flexiFiches.reduce((s,f) => s + Number(f.cout_employeur||0) - Number(f.salaire_brut||0), 0))} €
                         </div>
@@ -4480,7 +4480,7 @@ export default function App() {
                     )}
                     {cdiFiches.length > 0 && (
                       <div>
-                        <div style={{ color: "#3d1a0a", fontSize: "0.8rem", fontWeight: "bold" }}>📋 CDI ({cdiFiches.length})</div>
+                        <div style={{ color: "#3d1a0a", fontSize: "0.8rem", fontWeight: "bold" }}>CDI ({cdiFiches.length})</div>
                         <div style={{ color: "#a07848", fontSize: "0.75rem" }}>
                           ONSS ouvrier (13,07%): {fmt(cdiFiches.reduce((s,f) => s + Number(f.cotisation_onss||0), 0))} €
                           · Charges patron (25%): {fmt(cdiFiches.reduce((s,f) => s + Number(f.cout_employeur||0) - Number(f.salaire_brut||0), 0))} €
@@ -4535,7 +4535,7 @@ export default function App() {
                     </div>
                   </div>
                   <button onClick={() => setPdfModal(genererPDFComptable(fichesMois, paieComptableMois, paieDocDate))} style={{ background: "#e8213a", color: "#fff", border: "none", padding: "0.9rem", borderRadius: "10px", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", fontSize: "0.95rem", cursor: "pointer", width: "100%" }}>
-                    📊 Générer document comptable (PDF)
+                    Générer document comptable (PDF)
                   </button>
                 </>
               )}
@@ -4548,8 +4548,8 @@ export default function App() {
           <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", zIndex: 200, display: "flex", alignItems: "flex-end" }}>
             <div style={{ background: "#fff8f0", borderRadius: "16px 16px 0 0", padding: "1.2rem", width: "100%", display: "flex", flexDirection: "column", gap: "0.7rem", maxHeight: "92vh", overflowY: "auto" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <div style={{ color: "#e8213a", fontWeight: "bold", fontSize: "0.95rem" }}>💶 Nouvelle fiche de paie</div>
-                <button onClick={() => setShowNouvelleFiche(false)} style={{ background: "#2a2a2a", border: "none", color: "#c8a878", borderRadius: "50%", width: "2rem", height: "2rem", cursor: "pointer" }}>✕</button>
+                <div style={{ color: "#e8213a", fontWeight: "bold", fontSize: "0.95rem" }}>Nouvelle fiche de paie</div>
+                <button onClick={() => setShowNouvelleFiche(false)} style={{ background: "#2a2a2a", border: "none", color: "#c8a878", borderRadius: "50%", width: "2rem", height: "2rem", cursor: "pointer" }}><X size={16} /></button>
               </div>
               <select value={paieEmployeId} onChange={e => { setPaieEmployeId(e.target.value); }} style={inpS}>
                 <option value="">— Sélectionner un employé —</option>
@@ -4585,7 +4585,7 @@ export default function App() {
               <button onClick={handleGenererFiche}
                 disabled={!paieEmployeId || !paieHeures || !paieDebut || !paieFin}
                 style={{ background: "#e8213a", color: "#fff", border: "none", padding: "0.9rem", borderRadius: "10px", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", fontSize: "1rem", cursor: "pointer", width: "100%", opacity: (!paieEmployeId || !paieHeures || !paieDebut || !paieFin) ? 0.5 : 1 }}>
-                💶 Générer la fiche de paie
+                Générer la fiche de paie
               </button>
             </div>
           </div>
@@ -4628,10 +4628,10 @@ export default function App() {
               <input value={newPwd2} onChange={e => setNewPwd2(e.target.value)} placeholder="Confirmer le nouveau mot de passe" type={showNewPwd2 ? "text" : "password"} style={{ ...inputStyle, paddingRight: "3rem" }} />
               <button onClick={() => setShowNewPwd2(p => !p)} style={{ position: "absolute", right: "0.75rem", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", fontSize: "1.1rem", padding: 0 }}>{showNewPwd2 ? <EyeOff size={18} color="#c8a878" /> : <Eye size={18} color="#c8a878" />}</button>
             </div>
-            {pwdMsg && <p style={{ color: pwdMsg.startsWith("✅") ? "#5cb85c" : "#e57373", fontSize: "0.85rem", margin: 0 }}>{pwdMsg}</p>}
+            {pwdMsg && <p style={{ color: pwdMsg.startsWith("") ? "#5cb85c" : "#e57373", fontSize: "0.85rem", margin: 0 }}>{pwdMsg}</p>}
             <div style={{ display: "flex", gap: "0.5rem" }}>
               <button onClick={handleChangePwd} style={{ ...btnPrimary, flex: 1 }}>Confirmer</button>
-              <button onClick={() => { setShowChangePwd(false); setOldPwd(""); setNewPwd(""); setNewPwd2(""); setPwdMsg(""); }} style={{ background: "#faebd7", color: "#c8a878", border: "none", padding: "0.9rem 1rem", borderRadius: "10px", cursor: "pointer" }}>✕</button>
+              <button onClick={() => { setShowChangePwd(false); setOldPwd(""); setNewPwd(""); setNewPwd2(""); setPwdMsg(""); }} style={{ background: "#faebd7", color: "#c8a878", border: "none", padding: "0.9rem 1rem", borderRadius: "10px", cursor: "pointer" }}><X size={16} /></button>
             </div>
           </div>
         )}
@@ -4654,7 +4654,7 @@ export default function App() {
                   <FileText size={20} color="#e8213a" />
                   <div>
                     <div style={{ color: "#3d1a0a", fontSize: "0.88rem", fontWeight: "600" }}>{d.titre}</div>
-                    <div style={{ color: "#a07848", fontSize: "0.7rem" }}>{isAdmin && <span>👤 {d.employe_nom} · </span>}{d.taille ? Math.round(d.taille/1024) + " Ko" : "PDF"}</div>
+                    <div style={{ color: "#a07848", fontSize: "0.7rem" }}>{isAdmin && <span>{d.employe_nom} · </span>}{d.taille ? Math.round(d.taille/1024) + " Ko" : "PDF"}</div>
                   </div>
                 </button>
                 {isAdmin && (
@@ -4670,14 +4670,14 @@ export default function App() {
             if (mesFiches.length === 0) return null;
             return (
               <>
-                <div style={{ color: "#a07848", fontSize: "0.72rem", fontWeight: "bold", marginTop: "0.9rem", marginBottom: "0.2rem", borderTop: "1.5px dashed #f0d8b8", paddingTop: "0.7rem" }}>💶 FICHES DE SALAIRE</div>
+                <div style={{ color: "#a07848", fontSize: "0.72rem", fontWeight: "bold", marginTop: "0.9rem", marginBottom: "0.2rem", borderTop: "1.5px dashed #f0d8b8", paddingTop: "0.7rem" }}>FICHES DE SALAIRE</div>
                 {mesFiches.map((f: any) => (
                   <div key={f.id} style={{ display: "flex", alignItems: "center", gap: "0.6rem", padding: "0.6rem 0", borderTop: "1px solid #f0d8b8" }}>
                     <button onClick={() => setPdfModal(genererPDFFiche(f, isAdmin ? allUsers.find((u: any) => u.id === f.employe_id) : currentUser, paieDocDate))} style={{ flex: 1, background: "none", border: "none", textAlign: "left", cursor: "pointer", display: "flex", alignItems: "center", gap: "0.6rem", padding: 0, fontFamily: "'Poppins', sans-serif" }}>
                       <FileText size={20} color="#4caf50" />
                       <div>
                         <div style={{ color: "#3d1a0a", fontSize: "0.88rem", fontWeight: "600" }}>Fiche de paie {f.periode || ""}</div>
-                        <div style={{ color: "#a07848", fontSize: "0.7rem" }}>{isAdmin && <span>👤 {f.employe_nom} · </span>}{f.heures_total}h · Net {fmt(f.salaire_net)} €</div>
+                        <div style={{ color: "#a07848", fontSize: "0.7rem" }}>{isAdmin && <span>{f.employe_nom} · </span>}{f.heures_total}h · Net {fmt(f.salaire_net)} €</div>
                       </div>
                     </button>
                   </div>
@@ -4698,8 +4698,8 @@ export default function App() {
           <div onClick={() => setShowDocUpload(false)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", zIndex: 200, display: "flex", alignItems: "flex-start", justifyContent: "center", paddingTop: "12vh" }}>
             <div onClick={e => e.stopPropagation()} style={{ background: "#fff8f0", borderRadius: "16px", padding: "1.4rem", width: "90%", maxWidth: "380px", display: "flex", flexDirection: "column", gap: "0.8rem" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <div style={{ color: "#e8213a", fontWeight: "bold", fontSize: "0.95rem" }}>📄 Ajouter un document</div>
-                <button onClick={() => setShowDocUpload(false)} style={{ background: "#2a2a2a", border: "none", color: "#c8a878", borderRadius: "50%", width: "2rem", height: "2rem", cursor: "pointer" }}>✕</button>
+                <div style={{ color: "#e8213a", fontWeight: "bold", fontSize: "0.95rem" }}>Ajouter un document</div>
+                <button onClick={() => setShowDocUpload(false)} style={{ background: "#2a2a2a", border: "none", color: "#c8a878", borderRadius: "50%", width: "2rem", height: "2rem", cursor: "pointer" }}><X size={16} /></button>
               </div>
               {isAdmin && (
                 <select value={docUploadEmploye} onChange={e => setDocUploadEmploye(e.target.value)} style={inputStyle}>
@@ -4734,7 +4734,7 @@ export default function App() {
       </div>
       {showNewUser && (
         <div style={{ margin: "1rem", background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "12px", padding: "1rem", display: "flex", flexDirection: "column", gap: "0.6rem" }}>
-          <div style={{ color: "#e8213a", fontWeight: "bold", fontSize: "0.9rem" }}>➕ Nouveau compte</div>
+          <div style={{ color: "#e8213a", fontWeight: "bold", fontSize: "0.9rem" }}>Nouveau compte</div>
           <input value={newUserPrenom} onChange={e => setNewUserPrenom(e.target.value)} placeholder="Prénom..." style={inputStyle} />
           <input value={newUserPassword} onChange={e => setNewUserPassword(e.target.value)} placeholder="Mot de passe..." style={inputStyle} />
           <select value={newUserRole} onChange={e => setNewUserRole(e.target.value)} style={inputStyle}>
@@ -4747,7 +4747,7 @@ export default function App() {
             {RESTAURANTS.map(r => <option key={r.id} value={r.id}>{r.emoji} {r.name}</option>)}
           </select>
 
-          <div style={{ color: "#a07848", fontSize: "0.72rem", fontWeight: "bold", marginTop: "0.3rem", borderTop: "1px dashed #f0d8b8", paddingTop: "0.6rem" }}>📄 INFOS CONTRAT (pour générer la fiche)</div>
+          <div style={{ color: "#a07848", fontSize: "0.72rem", fontWeight: "bold", marginTop: "0.3rem", borderTop: "1px dashed #f0d8b8", paddingTop: "0.6rem" }}>INFOS CONTRAT (pour générer la fiche)</div>
           <input value={newUserNom} onChange={e => setNewUserNom(e.target.value)} placeholder="Nom de famille" style={inputStyle} />
           <input value={newUserNaissance} onChange={e => setNewUserNaissance(e.target.value)} placeholder="Date de naissance (JJ/MM/AAAA)" style={inputStyle} />
           <input value={newUserAdresse} onChange={e => setNewUserAdresse(e.target.value)} placeholder="Adresse (rue, code postal ville)" style={inputStyle} />
@@ -4760,12 +4760,12 @@ export default function App() {
           </select>
           <label style={{ display: "flex", alignItems: "center", gap: "0.6rem", color: "#3d1a0a", fontSize: "0.85rem", cursor: "pointer" }}>
             <input type="checkbox" checked={newUserGenContrat} onChange={e => setNewUserGenContrat(e.target.checked)} style={{ width: "1.1rem", height: "1.1rem", accentColor: "#e8213a" }} />
-            📄 Générer automatiquement le contrat rempli
+            Générer automatiquement le contrat rempli
           </label>
 
           <div style={{ display: "flex", gap: "0.5rem" }}>
             <button onClick={handleCreateUser} style={{ ...btnPrimary, flex: 1 }}>Créer</button>
-            <button onClick={() => setShowNewUser(false)} style={{ background: "#faebd7", color: "#c8a878", border: "none", padding: "0.9rem 1rem", borderRadius: "10px", cursor: "pointer" }}>✕</button>
+            <button onClick={() => setShowNewUser(false)} style={{ background: "#faebd7", color: "#c8a878", border: "none", padding: "0.9rem 1rem", borderRadius: "10px", cursor: "pointer" }}><X size={16} /></button>
           </div>
         </div>
       )}
@@ -4785,8 +4785,8 @@ export default function App() {
                   {RESTAURANTS.map(r => <option key={r.id} value={r.id}>{r.emoji} {r.name}</option>)}
                 </select>
                 <div style={{ display: "flex", gap: "0.5rem" }}>
-                  <button onClick={handleUpdateUser} style={{ ...btnPrimary, flex: 1 }}>💾 Sauvegarder</button>
-                  <button onClick={() => setEditingUser(null)} style={{ background: "#faebd7", color: "#c8a878", border: "none", padding: "0.9rem 1rem", borderRadius: "10px", cursor: "pointer" }}>✕</button>
+                  <button onClick={handleUpdateUser} style={{ ...btnPrimary, flex: 1 }}>Sauvegarder</button>
+                  <button onClick={() => setEditingUser(null)} style={{ background: "#faebd7", color: "#c8a878", border: "none", padding: "0.9rem 1rem", borderRadius: "10px", cursor: "pointer" }}><X size={16} /></button>
                 </div>
               </div>
             ) : (
@@ -4801,7 +4801,7 @@ export default function App() {
                 <div style={{ display: "flex", gap: "0.4rem" }}>
                   {isAdmin && (
                     <>
-                      <button onClick={() => setEditingUser(u)} style={{ background: "#faebd7", border: "none", color: "#e8213a", borderRadius: "8px", padding: "0.4rem 0.7rem", cursor: "pointer", fontSize: "0.85rem" }}>✏️</button>
+                      <button onClick={() => setEditingUser(u)} style={{ background: "#faebd7", border: "none", color: "#e8213a", borderRadius: "8px", padding: "0.4rem 0.7rem", cursor: "pointer", fontSize: "0.85rem" }}></button>
                       {isSuperAdmin && u.id !== currentUser.id && (
                         <button onClick={() => handleDeleteUser(u.id)} style={{ background: "#fff5f5", border: "none", color: "#e57373", borderRadius: "8px", padding: "0.4rem 0.7rem", cursor: "pointer", fontSize: "0.85rem" }}><Trash2 size={15} /></button>
                       )}
@@ -4825,7 +4825,7 @@ export default function App() {
         {toast && <div style={{ position: "fixed", top: "1rem", left: "50%", transform: "translateX(-50%)", background: toast.type === "success" ? "#f0fff4" : toast.type === "warn" ? "#fffbe6" : "#fff0f0", color: toast.type === "success" ? "#2e7d32" : toast.type === "warn" ? "#b45309" : "#e8213a", padding: "0.6rem 1.4rem", borderRadius: "20px", fontSize: "0.88rem", zIndex: 999, border: `1.5px solid ${toast.type === "success" ? "#a5d6a7" : toast.type === "warn" ? "#fde68a" : "#f5c8c8"}`, whiteSpace: "nowrap", pointerEvents: "none", fontWeight: "600", boxShadow: "0 2px 12px rgba(0,0,0,0.12)" }}>{toast.msg}</div>}
         <div style={{ background: "#fff8f0", padding: "1rem 1.2rem", borderBottom: "1.5px solid #f0d8b8", position: "sticky", top: 0, zIndex: 30 }}>
           <div style={{ display: "flex", gap: "0.4rem", overflowX: "auto", WebkitOverflowScrolling: "touch", marginBottom: "0.5rem" }}>
-            {[{id:"week",label:"Semaine"},{id:"remplacements",label:"Remplacements"},{id:"events",label:"Events"},{id:"stats",label:"Stats"},{id:"suivi",label:"🏆 Suivi"},{id:"fermeture",label:"🔒 Fermeture"}].map(tab => (
+            {[{id:"week",label:"Semaine"},{id:"remplacements",label:"Remplacements"},{id:"events",label:"Events"},{id:"stats",label:"Stats"},{id:"suivi",label:"Suivi"},{id:"fermeture",label:"Fermeture"}].map(tab => (
               <button key={tab.id} onClick={() => { if (tab.id === "fermeture") return; setPage("horaires"); setHoraireView(tab.id); if (tab.id === "suivi") loadAmendes(); }} style={{ background: tab.id === "fermeture" ? "#f5c842" : "#1e1e1e", color: tab.id === "fermeture" ? "#111" : "#555", border: "none", borderRadius: "8px", padding: "0.35rem 0.9rem", fontSize: "0.78rem", fontFamily: "'Poppins', sans-serif", fontWeight: tab.id === "fermeture" ? "bold" : "normal", cursor: "pointer", flexShrink: 0, whiteSpace: "nowrap" }}>{tab.label}</button>
             ))}
           </div>
@@ -4858,8 +4858,8 @@ export default function App() {
                     style={{ background: "#fff8f0", border: "1.5px solid " + (isComplete ? "#4caf5033" : "#f5a62355"), borderRadius: "12px", padding: "1rem", marginBottom: "0.5rem", cursor: "pointer" }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                       <div>
-                        <div style={{ color: isComplete ? "#4caf50" : "#e8213a", fontSize: "0.95rem", fontWeight: "bold" }}>{isComplete ? "✅" : "⏳"} {new Date(f.date + "T12:00:00").toLocaleDateString("fr-BE", { weekday: "short", day: "numeric", month: "short" })}</div>
-                        <div style={{ color: "#a07848", fontSize: "0.78rem", marginTop: "0.2rem" }}>👤 {f.nom_personne}</div>
+                        <div style={{ color: isComplete ? "#4caf50" : "#e8213a", fontSize: "0.95rem", fontWeight: "bold" }}>{isComplete ? "" : "⏳"} {new Date(f.date + "T12:00:00").toLocaleDateString("fr-BE", { weekday: "short", day: "numeric", month: "short" })}</div>
+                        <div style={{ color: "#a07848", fontSize: "0.78rem", marginTop: "0.2rem" }}>{f.nom_personne}</div>
                       </div>
                       <div style={{ textAlign: "right" }}>
                         <div style={{ color: "#3d1a0a", fontSize: "0.85rem", fontWeight: "bold" }}>{validees} validation{validees > 1 ? "s" : ""}</div>
@@ -4875,7 +4875,7 @@ export default function App() {
                             <div key={sec} style={{ marginBottom: "0.5rem" }}>
                               <div style={{ color: "#a07848", fontSize: "0.72rem", fontWeight: "bold", marginBottom: "0.25rem" }}>{sec}</div>
                               {inSec.map((v: any) => (
-                                <div key={v.id} style={{ color: "#3d1a0a", fontSize: "0.8rem", padding: "0.15rem 0" }}>✅ {v.tache_label} <span style={{ color: "#c8a878", fontSize: "0.7rem" }}>· {new Date(v.valide_at).toLocaleTimeString("fr-BE", { hour: "2-digit", minute: "2-digit" })}</span></div>
+                                <div key={v.id} style={{ color: "#3d1a0a", fontSize: "0.8rem", padding: "0.15rem 0" }}>{v.tache_label} <span style={{ color: "#c8a878", fontSize: "0.7rem" }}>· {new Date(v.valide_at).toLocaleTimeString("fr-BE", { hour: "2-digit", minute: "2-digit" })}</span></div>
                               ))}
                             </div>
                           );
@@ -4931,8 +4931,8 @@ export default function App() {
           <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", zIndex: 200, display: "flex", alignItems: "flex-end" }}>
             <div style={{ background: "#fff8f0", borderRadius: "16px 16px 0 0", padding: "1.2rem", width: "100%", display: "flex", flexDirection: "column", gap: "0.7rem", maxHeight: "90vh", overflowY: "auto" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <div style={{ color: "#e8213a", fontWeight: "bold", fontSize: "0.95rem" }}>➕ Nouvelle tâche</div>
-                <button onClick={() => setShowAddTache(false)} style={{ background: "#2a2a2a", border: "none", color: "#c8a878", borderRadius: "50%", width: "2rem", height: "2rem", cursor: "pointer" }}>✕</button>
+                <div style={{ color: "#e8213a", fontWeight: "bold", fontSize: "0.95rem" }}>Nouvelle tâche</div>
+                <button onClick={() => setShowAddTache(false)} style={{ background: "#2a2a2a", border: "none", color: "#c8a878", borderRadius: "50%", width: "2rem", height: "2rem", cursor: "pointer" }}><X size={16} /></button>
               </div>
               <select value={newTacheSection} onChange={e => setNewTacheSection(e.target.value)} style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", fontFamily: "'Poppins', sans-serif", outline: "none", width: "100%" }}>
                 {sectionsOrder.map(sec => <option key={sec} value={sec}>{sec}</option>)}
@@ -4945,7 +4945,7 @@ export default function App() {
                 <input type="checkbox" id="newOpt" checked={newTacheOptionnelle} onChange={e => setNewTacheOptionnelle(e.target.checked)} style={{ width: "1.1rem", height: "1.1rem", accentColor: "#f5c842", cursor: "pointer" }} />
                 <label htmlFor="newOpt" style={{ color: "#3d1a0a", fontSize: "0.85rem", cursor: "pointer" }}>Tâche optionnelle (ne bloque pas le bouton Terminer)</label>
               </div>
-              <button onClick={handleCreateTache} style={{ background: "#e8213a", color: "#fff", border: "none", padding: "0.9rem", borderRadius: "10px", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", fontSize: "1rem", cursor: "pointer", width: "100%" }}>✅ Ajouter</button>
+              <button onClick={handleCreateTache} style={{ background: "#e8213a", color: "#fff", border: "none", padding: "0.9rem", borderRadius: "10px", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", fontSize: "1rem", cursor: "pointer", width: "100%" }}>Ajouter</button>
             </div>
           </div>
         )}
@@ -4953,8 +4953,8 @@ export default function App() {
           <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", zIndex: 200, display: "flex", alignItems: "flex-end" }}>
             <div style={{ background: "#fff8f0", borderRadius: "16px 16px 0 0", padding: "1.2rem", width: "100%", display: "flex", flexDirection: "column", gap: "0.7rem", maxHeight: "90vh", overflowY: "auto" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <div style={{ color: "#e8213a", fontWeight: "bold", fontSize: "0.95rem" }}>✏️ Modifier la tâche</div>
-                <button onClick={() => setEditingTache(null)} style={{ background: "#2a2a2a", border: "none", color: "#c8a878", borderRadius: "50%", width: "2rem", height: "2rem", cursor: "pointer" }}>✕</button>
+                <div style={{ color: "#e8213a", fontWeight: "bold", fontSize: "0.95rem" }}>Modifier la tâche</div>
+                <button onClick={() => setEditingTache(null)} style={{ background: "#2a2a2a", border: "none", color: "#c8a878", borderRadius: "50%", width: "2rem", height: "2rem", cursor: "pointer" }}><X size={16} /></button>
               </div>
               <select value={editingTache.section} onChange={e => setEditingTache((prev: any) => ({ ...prev, section: e.target.value }))}
                 style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", fontFamily: "'Poppins', sans-serif", outline: "none", width: "100%" }}>
@@ -4968,7 +4968,7 @@ export default function App() {
                 <input type="checkbox" id="editOpt" checked={!!editingTache.optionnelle} onChange={e => setEditingTache((prev: any) => ({ ...prev, optionnelle: e.target.checked }))} style={{ width: "1.1rem", height: "1.1rem", accentColor: "#f5c842", cursor: "pointer" }} />
                 <label htmlFor="editOpt" style={{ color: "#3d1a0a", fontSize: "0.85rem", cursor: "pointer" }}>Tâche optionnelle</label>
               </div>
-              <button onClick={handleUpdateTache} style={{ background: "#e8213a", color: "#fff", border: "none", padding: "0.9rem", borderRadius: "10px", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", fontSize: "1rem", cursor: "pointer", width: "100%" }}>💾 Sauvegarder</button>
+              <button onClick={handleUpdateTache} style={{ background: "#e8213a", color: "#fff", border: "none", padding: "0.9rem", borderRadius: "10px", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", fontSize: "1rem", cursor: "pointer", width: "100%" }}>Sauvegarder</button>
             </div>
           </div>
         )}
@@ -5000,7 +5000,7 @@ export default function App() {
 
   if (!restaurant) return (
     <div style={{ ...s, minHeight: "100vh", background: "#faebd7", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "2rem", paddingBottom: isAdmin ? "5rem" : "2rem" }}>
-      <p style={{ color: "#e8213a", fontSize: "1rem", fontWeight: "600", marginBottom: "0.5rem" }}>👋 Bonjour {currentUser.prenom} !</p>
+      <p style={{ color: "#e8213a", fontSize: "1rem", fontWeight: "600", marginBottom: "0.5rem" }}>Bonjour {currentUser.prenom} !</p>
       <h2 style={{ color: "#3d1a0a", fontSize: "1.2rem", margin: "0 0 0.5rem", textAlign: "center" }}>Quel point de vente ?</h2>
       <p style={{ color: "#a07848", fontSize: "0.8rem", margin: "0 0 2rem" }}>{getTodayStr()}</p>
       <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem", width: "100%", maxWidth: "320px" }}>
@@ -5026,7 +5026,7 @@ export default function App() {
       <div style={{ ...s, minHeight: "100vh", background: "#faebd7", paddingBottom: isAdmin ? "5rem" : "2rem" }}>
         <div style={{ background: "#e8213a", padding: "1.2rem", borderBottom: "none", position: "sticky", top: 0, zIndex: 10, display: "flex", alignItems: "center", gap: "0.75rem" }}>
           <button onClick={() => setShowAlerts(false)} style={{ background: "none", border: "none", color: "#ffffff", fontSize: "1.6rem", cursor: "pointer", padding: 0 }}><ArrowLeft size={20} /></button>
-          <h2 style={{ color: "#ffffff", fontSize: "1.05rem", fontWeight: "bold", margin: 0 }}>⚠️ {totalAlerts} à commander</h2>
+          <h2 style={{ color: "#ffffff", fontSize: "1.05rem", fontWeight: "bold", margin: 0 }}>{totalAlerts} à commander</h2>
         </div>
         <div style={{ padding: "0.8rem 1.1rem" }}>
           {storeOrder.map(store => {
@@ -5039,7 +5039,7 @@ export default function App() {
                   <div key={item.id} style={{ background: "#fff5f5", border: "1.5px solid #e8213a44", borderRadius: "10px", padding: "0.85rem 1rem", marginBottom: "0.4rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <div>
                       <div style={{ color: "#e8213a", fontSize: "0.95rem" }}>{item.name}</div>
-                      {item.note && <div style={{ color: "#a07848", fontSize: "0.7rem" }}>📌 {item.note}</div>}
+                      {item.note && <div style={{ color: "#a07848", fontSize: "0.7rem" }}>{item.note}</div>}
                       <div style={{ color: "#a07848", fontSize: "0.72rem" }}>Seuil : {item.threshold_label}</div>
                     </div>
                     <span style={{ background: "#fff0f0", color: "#e57373", padding: "0.35rem 0.75rem", borderRadius: "6px", fontSize: "0.92rem", fontWeight: "bold" }}>{item.qty === "" ? "—" : item.qty}</span>
@@ -5068,7 +5068,7 @@ export default function App() {
           <div style={{ display: "flex", gap: "0.5rem" }}>
             <button onClick={() => loadData(restaurant)} style={{ background: "none", border: "1.5px solid #f0d8b8", color: "#a07848", borderRadius: "8px", padding: "0.35rem 0.6rem", fontSize: "0.8rem", cursor: "pointer", fontFamily: "'Poppins', sans-serif" }}><RefreshCw size={16} /></button>
             {totalAlerts > 0 && <button onClick={() => setShowAlerts(true)} style={{ background: "#ffffff", color: "#e8213a", border: "none", borderRadius: "20px", padding: "0.4rem 0.85rem", fontSize: "0.78rem", fontWeight: "bold", cursor: "pointer", fontFamily: "'Poppins', sans-serif", display: "flex", alignItems: "center", gap: "4px" }}><AlertTriangle size={13} /> {totalAlerts}</button>}
-            {isAdmin && <button onClick={() => setShowResetConfirm(true)} style={{ background: "#1a1a2a", color: "#8888ff", border: "1px solid #2a2a4a", borderRadius: "8px", padding: "0.35rem 0.6rem", fontSize: "0.78rem", cursor: "pointer", fontFamily: "'Poppins', sans-serif" }}>🔄 RAZ</button>}
+            {isAdmin && <button onClick={() => setShowResetConfirm(true)} style={{ background: "#1a1a2a", color: "#8888ff", border: "1px solid #2a2a4a", borderRadius: "8px", padding: "0.35rem 0.6rem", fontSize: "0.78rem", cursor: "pointer", fontFamily: "'Poppins', sans-serif" }}>RAZ</button>}
           </div>
         </div>
       </div>
@@ -5076,7 +5076,7 @@ export default function App() {
       {showResetConfirm && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: "2rem" }}>
           <div style={{ background: "#fff8f0", borderRadius: "16px", padding: "1.5rem", width: "100%", maxWidth: "320px", border: "1px solid #3a1a1a" }}>
-            <div style={{ color: "#e57373", fontSize: "1.1rem", fontWeight: "bold", marginBottom: "0.5rem" }}>⚠️ Remettre à zéro ?</div>
+            <div style={{ color: "#e57373", fontSize: "1.1rem", fontWeight: "bold", marginBottom: "0.5rem" }}>Remettre à zéro ?</div>
             <p style={{ color: "#c8a878", fontSize: "0.85rem", marginBottom: "1.2rem" }}>Toutes les quantités de {restaurant?.name} seront vidées. Cette action est irréversible.</p>
             <div style={{ display: "flex", gap: "0.5rem" }}>
               <button onClick={handleResetAll} style={{ flex: 1, background: "#e57373", color: "#3d1a0a", border: "none", padding: "0.9rem", borderRadius: "10px", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", cursor: "pointer" }}>Confirmer</button>
@@ -5086,7 +5086,7 @@ export default function App() {
         </div>
       )}
 
-      {lastSave && <div style={{ margin: "0.8rem 1.1rem 0", background: "#f5fff8", border: "1.5px solid #4caf5033", borderRadius: "8px", padding: "0.6rem 1rem", fontSize: "0.78rem", color: "#4caf50" }}>✅ {lastSave.time} · {lastSave.who}</div>}
+      {lastSave && <div style={{ margin: "0.8rem 1.1rem 0", background: "#f5fff8", border: "1.5px solid #4caf5033", borderRadius: "8px", padding: "0.6rem 1rem", fontSize: "0.78rem", color: "#4caf50" }}>{lastSave.time} · {lastSave.who}</div>}
       <div style={{ padding: "0.8rem 1.1rem", display: "flex", flexDirection: "column", gap: "0.55rem" }}>
         {stores.map(store => {
           const alerts = stock[store].filter(i => isLow(i)).length;
@@ -5097,7 +5097,7 @@ export default function App() {
                 <div style={{ color: "#a07848", fontSize: "0.73rem", marginTop: "0.15rem" }}>{stock[store].length} articles</div>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                {alerts > 0 && <span style={{ background: "#e8213a22", color: "#e8213a", borderRadius: "10px", padding: "0.2rem 0.6rem", fontSize: "0.75rem", fontWeight: "bold" }}>{alerts} ⚠️</span>}
+                {alerts > 0 && <span style={{ background: "#e8213a22", color: "#e8213a", borderRadius: "10px", padding: "0.2rem 0.6rem", fontSize: "0.75rem", fontWeight: "bold" }}>{alerts} </span>}
                 <span style={{ color: "#c8a878", fontSize: "1.3rem" }}>›</span>
               </div>
             </button>
@@ -5128,24 +5128,24 @@ export default function App() {
             <div key={item.id} style={{ background: "#fff8f0", border: `1.5px solid ${low ? "#e8213a44" : "#f0d8b8"}`, borderRadius: "12px", overflow: "hidden" }}>
               {editingId === item.id ? (
                 <div style={{ padding: "0.9rem 1rem" }}>
-                  <div style={{ color: "#e8213a", fontSize: "0.85rem", marginBottom: "0.2rem", fontWeight: "bold" }}>✏️ {item.name}</div>
-                  {item.note && <div style={{ color: "#7a6a2a", fontSize: "0.72rem", marginBottom: "0.3rem" }}>📌 {item.note}</div>}
+                  <div style={{ color: "#e8213a", fontSize: "0.85rem", marginBottom: "0.2rem", fontWeight: "bold" }}>{item.name}</div>
+                  {item.note && <div style={{ color: "#7a6a2a", fontSize: "0.72rem", marginBottom: "0.3rem" }}>{item.note}</div>}
                   <div style={{ color: "#a07848", fontSize: "0.73rem", marginBottom: "0.6rem" }}>Seuil : {item.threshold_label} {item.unit}</div>
                   <input ref={inputRef} value={editVal} onChange={e => setEditVal(e.target.value)} onKeyDown={e => e.key === "Enter" && saveQty(item.id)} placeholder="Quantité..." inputMode="decimal"
                     style={{ background: "#faebd7", border: "2px solid #f5c842", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "1.2rem", width: "100%", fontFamily: "'Poppins', sans-serif", outline: "none", boxSizing: "border-box" }} />
                   <div style={{ display: "flex", gap: "0.4rem", marginTop: "0.6rem", flexWrap: "wrap" }}>
-                    {["0","1","2","3","4","5","6","8","10","12","15","20","✅ OK","assez","plein"].map(v => (
+                    {["0","1","2","3","4","5","6","8","10","12","15","20","OK","assez","plein"].map(v => (
                       <button key={v} onClick={() => setEditVal(v)} style={{ background: editVal === v ? "#f5c842" : "#1e1e1e", color: editVal === v ? "#111" : "#777", border: "none", borderRadius: "6px", padding: "0.4rem 0.6rem", fontSize: "0.82rem", cursor: "pointer", fontFamily: "'Poppins', sans-serif", fontWeight: editVal === v ? "bold" : "normal" }}>{v}</button>
                     ))}
                   </div>
                   <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.75rem" }}>
                     <button onClick={() => saveQty(item.id)} disabled={saving} style={{ flex: 1, background: saving ? "#c8a878" : "#e8213a", color: "#ffffff", border: "none", padding: "0.8rem", borderRadius: "8px", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", fontSize: "0.95rem", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}>{saving ? "..." : <><Save size={15} /> Enregistrer</>}</button>
-                    <button onClick={() => setEditingId(null)} style={{ background: "#faebd7", color: "#c8a878", border: "none", padding: "0.8rem 1rem", borderRadius: "8px", cursor: "pointer" }}>✕</button>
+                    <button onClick={() => setEditingId(null)} style={{ background: "#faebd7", color: "#c8a878", border: "none", padding: "0.8rem 1rem", borderRadius: "8px", cursor: "pointer" }}><X size={16} /></button>
                   </div>
                 </div>
               ) : editItemId === item.id ? (
                   <div style={{ padding: "0.9rem 1rem", display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-                    <div style={{ color: "#e8213a", fontSize: "0.85rem", fontWeight: "bold" }}>⚙️ Modifier l'article</div>
+                    <div style={{ color: "#e8213a", fontSize: "0.85rem", fontWeight: "bold" }}>Modifier l'article</div>
                     <input value={editItemName} onChange={e => setEditItemName(e.target.value)} placeholder="Nom..."
                       style={{ background: "#faebd7", border: "1px solid #f5c842", color: "#3d1a0a", padding: "0.7rem 1rem", borderRadius: "8px", fontSize: "0.95rem", fontFamily: "'Poppins', sans-serif", outline: "none", boxSizing: "border-box" as const, width: "100%" }} />
                     <input value={editItemThreshold} onChange={e => setEditItemThreshold(e.target.value)} placeholder="Seuil (ex: 5)..." inputMode="decimal"
@@ -5153,8 +5153,8 @@ export default function App() {
                     <input value={editItemThresholdLabel} onChange={e => setEditItemThresholdLabel(e.target.value)} placeholder="Label seuil (ex: < 5 paquets)..."
                       style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.7rem 1rem", borderRadius: "8px", fontSize: "0.95rem", fontFamily: "'Poppins', sans-serif", outline: "none", boxSizing: "border-box" as const, width: "100%" }} />
                     <div style={{ display: "flex", gap: "0.5rem" }}>
-                      <button onClick={() => handleSaveItemMeta(item.id)} style={{ flex: 1, background: "#e8213a", color: "#ffffff", border: "none", padding: "0.8rem", borderRadius: "8px", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", cursor: "pointer" }}>💾 Sauvegarder</button>
-                      <button onClick={() => setEditItemId(null)} style={{ background: "#faebd7", color: "#c8a878", border: "none", padding: "0.8rem 1rem", borderRadius: "8px", cursor: "pointer" }}>✕</button>
+                      <button onClick={() => handleSaveItemMeta(item.id)} style={{ flex: 1, background: "#e8213a", color: "#ffffff", border: "none", padding: "0.8rem", borderRadius: "8px", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", cursor: "pointer" }}>Sauvegarder</button>
+                      <button onClick={() => setEditItemId(null)} style={{ background: "#faebd7", color: "#c8a878", border: "none", padding: "0.8rem 1rem", borderRadius: "8px", cursor: "pointer" }}><X size={16} /></button>
                     </div>
                   </div>
                 ) : (
@@ -5162,12 +5162,12 @@ export default function App() {
                     <div style={{ flex: 1 }}>
                       <div style={{ color: low ? "#e8213a" : "#3d1a0a", fontSize: "0.95rem" }}>{item.name}</div>
                       <div style={{ color: "#c8a878", fontSize: "0.7rem", marginTop: "0.1rem" }}>
-                        {item.note && <span style={{ color: "#a07848" }}>📌 {item.note} · </span>}
+                        {item.note && <span style={{ color: "#a07848" }}>{item.note} · </span>}
                         Seuil : {item.threshold_label} {item.unit}
                       </div>
                     </div>
                     <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                      {low && <span>⚠️</span>}
+                      {low && <span></span>}
                       <span style={{ background: low ? "#fff0f0" : "#faebd7", color: low ? "#e8213a" : "#f5a623", padding: "0.35rem 0.75rem", borderRadius: "6px", fontSize: "0.92rem", fontWeight: "bold", minWidth: "2.2rem", textAlign: "center" }}>{item.qty === "" ? "—" : item.qty}</span>
                       {isAdmin && <button onClick={e => { e.stopPropagation(); setEditItemId(item.id); setEditItemName(item.name); setEditItemThreshold(String(item.threshold)); setEditItemThresholdLabel(item.threshold_label); }} style={{ background: "none", border: "none", color: "#a07848", cursor: "pointer", fontSize: "0.85rem", padding: 0 }}><Settings size={14} /></button>}
                     </div>
@@ -5185,8 +5185,8 @@ export default function App() {
             <input value={newThreshold} onChange={e => setNewThreshold(e.target.value)} placeholder="Seuil d'alerte (ex: 3)..." inputMode="decimal"
               style={{ background: "#faebd7", border: "1px solid #f5c842", color: "#3d1a0a", padding: "0.75rem 1rem", borderRadius: "8px", fontSize: "1rem", width: "100%", fontFamily: "'Poppins', sans-serif", outline: "none", boxSizing: "border-box", marginBottom: "0.75rem" }} />
             <div style={{ display: "flex", gap: "0.5rem" }}>
-              <button onClick={() => addItem(activeStore)} style={{ flex: 1, background: "#e8213a", color: "#ffffff", border: "none", padding: "0.8rem", borderRadius: "8px", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", fontSize: "0.95rem", cursor: "pointer" }}>➕ Ajouter</button>
-              <button onClick={() => setAddMode(false)} style={{ background: "#faebd7", color: "#c8a878", border: "none", padding: "0.8rem 1rem", borderRadius: "8px", cursor: "pointer" }}>✕</button>
+              <button onClick={() => addItem(activeStore)} style={{ flex: 1, background: "#e8213a", color: "#ffffff", border: "none", padding: "0.8rem", borderRadius: "8px", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", fontSize: "0.95rem", cursor: "pointer" }}>Ajouter</button>
+              <button onClick={() => setAddMode(false)} style={{ background: "#faebd7", color: "#c8a878", border: "none", padding: "0.8rem 1rem", borderRadius: "8px", cursor: "pointer" }}><X size={16} /></button>
             </div>
           </div>
         ) : (
@@ -5194,9 +5194,9 @@ export default function App() {
         )}
       </div>
       <div style={{ position: "fixed", bottom: isAdmin ? "3.5rem" : 0, left: 0, right: 0, background: "#fff8f0", borderTop: "1.5px solid #f0d8b8", padding: "0.75rem 1.2rem", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <div style={{ color: "#a07848", fontSize: "0.73rem" }}>{lastSave ? `💾 ${lastSave.time} · ${lastSave.who}` : "Pas encore sauvegardé"}</div>
+        <div style={{ color: "#a07848", fontSize: "0.73rem" }}>{lastSave ? `${lastSave.time} · ${lastSave.who}` : "Pas encore sauvegardé"}</div>
         <div style={{ fontSize: "0.78rem", fontWeight: "bold", color: storeItems.filter(i => isLow(i)).length > 0 ? "#e57373" : "#5cb85c" }}>
-          {storeItems.filter(i => isLow(i)).length > 0 ? `⚠️ ${storeItems.filter(i => isLow(i)).length} à commander` : "✅ Tout est OK"}
+          {storeItems.filter(i => isLow(i)).length > 0 ? `${storeItems.filter(i => isLow(i)).length} à commander` : "Tout est OK"}
         </div>
       </div>
       <BottomNav />
