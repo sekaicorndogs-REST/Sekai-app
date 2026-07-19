@@ -875,6 +875,7 @@ export default function App() {
   const [menuRecettes, setMenuRecettes] = useState<any[]>([]);
   const [menuLoading, setMenuLoading] = useState(false);
   const [carteView, setCarteView] = useState<"analyse"|"simu">("simu");
+  const [simuFormule, setSimuFormule] = useState<string>("Corndog seul");
   const [simuProduitId, setSimuProduitId] = useState<number|null>(null);
   const [simuChap, setSimuChap] = useState("Panko (simple)");
   const [simuSauce, setSimuSauce] = useState("Ketchup");
@@ -1530,6 +1531,8 @@ export default function App() {
     try {
       const [p, r] = await Promise.all([fetchMenuProduits(), fetchMenuRecettes()]);
       setMenuProduits(p);
+      const prem = p.find((x: any) => x.categorie === "Corndog seul") || p[0];
+      if (prem) { setSimuFormule(prem.categorie); setSimuProduitId(prem.id); }
       setMenuRecettes(r);
     } catch { flash("❌ Erreur chargement carte"); }
     finally { setMenuLoading(false); }
@@ -3975,6 +3978,8 @@ export default function App() {
 
               // ── SIMULATEUR ──
               if (carteView === "simu") {
+                const formules = Array.from(new Set(menuProduits.map(p => p.categorie))).filter(c => menuProduits.filter(p => p.categorie === c).length > 1 || /corndog|menu/i.test(c));
+                const produitsFormule = menuProduits.filter(p => p.categorie === simuFormule);
                 const prodSelectionne = simuProduitId ? menuProduits.find(p => p.id === simuProduitId) : null;
                 const chapSelectionnee = CHAPELURES.find(c => c.nom === simuChap) || CHAPELURES[0];
                 const coutBase = prodSelectionne ? getCoutBase(prodSelectionne.id) : 0;
@@ -3988,18 +3993,29 @@ export default function App() {
                   <div>
                     {/* Sélecteurs */}
                     <div style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "14px", padding: "1rem", marginBottom: "0.8rem" }}>
-                      <div style={{ color: "#a07848", fontSize: "0.72rem", fontWeight: "bold", marginBottom: "0.6rem" }}>1 · BASE</div>
+                      <div style={{ color: "#a07848", fontSize: "0.72rem", fontWeight: "bold", marginBottom: "0.6rem" }}>1 · FORMULE</div>
+                      <div style={{ display: "flex", flexWrap: "wrap" as const, gap: "0.4rem", marginBottom: "1rem" }}>
+                        {formules.map(f => (
+                          <button key={f} onClick={() => { setSimuFormule(f); const prem = menuProduits.find(p => p.categorie === f); setSimuProduitId(prem ? prem.id : null); }}
+                            style={{ background: simuFormule===f ? "#3d1a0a" : "#faebd7", color: simuFormule===f ? "#fff" : "#3d1a0a", border: simuFormule===f ? "none" : "1.5px solid #f0d8b8", borderRadius: "20px", padding: "0.5rem 0.9rem", fontFamily: "'Poppins', sans-serif", fontWeight: 600, fontSize: "0.8rem", cursor: "pointer" }}>
+                            {f}
+                          </button>
+                        ))}
+                      </div>
+
+                      <div style={{ color: "#a07848", fontSize: "0.72rem", fontWeight: "bold", marginBottom: "0.6rem" }}>2 · BASE</div>
                       <div style={{ display: "flex", flexDirection: "column" as const, gap: "0.4rem", marginBottom: "1rem" }}>
-                        {menuProduits.map(p => (
+                        {produitsFormule.map(p => (
                           <button key={p.id} onClick={() => setSimuProduitId(p.id)}
                             style={{ background: simuProduitId===p.id ? "#e8213a" : "#faebd7", color: simuProduitId===p.id ? "#fff" : "#3d1a0a", border: simuProduitId===p.id ? "none" : "1.5px solid #f0d8b8", borderRadius: "10px", padding: "0.7rem 1rem", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", fontSize: "0.88rem", cursor: "pointer", textAlign: "left" as const, display: "flex", justifyContent: "space-between" }}>
                             <span>{p.nom}</span>
                             <span style={{ opacity: 0.8 }}>{p.prix_vente.toFixed(2)} €</span>
                           </button>
                         ))}
+                        {produitsFormule.length === 0 && <div style={{ color: "#c8a878", fontSize: "0.8rem" }}>Aucune base pour cette formule</div>}
                       </div>
 
-                      <div style={{ color: "#a07848", fontSize: "0.72rem", fontWeight: "bold", marginBottom: "0.6rem" }}>2 · CHAPELURE</div>
+                      <div style={{ color: "#a07848", fontSize: "0.72rem", fontWeight: "bold", marginBottom: "0.6rem" }}>3 · CHAPELURE</div>
                       <div style={{ display: "flex", flexWrap: "wrap" as const, gap: "0.4rem" }}>
                         {CHAPELURES.map(chap => (
                           <button key={chap.nom} onClick={() => setSimuChap(chap.nom)}
@@ -4009,7 +4025,7 @@ export default function App() {
                         ))}
                       </div>
 
-                      <div style={{ color: "#a07848", fontSize: "0.72rem", fontWeight: "bold", margin: "0.8rem 0 0.6rem" }}>3 · SAUCE <span style={{ color: "#c8a878", fontWeight: "normal" }}>(0.15€ moy.)</span></div>
+                      <div style={{ color: "#a07848", fontSize: "0.72rem", fontWeight: "bold", margin: "0.8rem 0 0.6rem" }}>4 · SAUCE <span style={{ color: "#c8a878", fontWeight: "normal" }}>(0.15€ moy.)</span></div>
                       <div style={{ display: "flex", flexWrap: "wrap" as const, gap: "0.4rem" }}>
                         {["Ketchup","Mayonnaise","Spicy Mayo","Sriracha","BBQ","Aigre douce","Samouraï","Andalouse","Sekai"].map(s => (
                           <button key={s} onClick={() => setSimuSauce(s)}
@@ -4024,7 +4040,7 @@ export default function App() {
                     {prodSelectionne ? (
                       <div style={{ background: color + "11", border: `2px solid ${color}44`, borderRadius: "16px", padding: "1.2rem" }}>
                         <div style={{ color: "#3d1a0a", fontWeight: "bold", fontSize: "1rem", marginBottom: "0.3rem" }}>
-                          {prodSelectionne.nom} — {chapSelectionnee.nom} — {simuSauce}
+                          {simuFormule} · {prodSelectionne.nom} — {chapSelectionnee.nom} — {simuSauce}
                         </div>
                         <div style={{ color: "#888", fontSize: "0.75rem", marginBottom: "1rem" }}>
                           Prix de vente : <strong style={{ color: "#3d1a0a" }}>{prixVente.toFixed(2)} €</strong>
@@ -4085,7 +4101,7 @@ export default function App() {
                     return (
                       <div key={p.id} style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "14px", padding: "1rem", marginBottom: "0.8rem" }}>
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.7rem" }}>
-                          <div style={{ color: "#3d1a0a", fontWeight: "bold", fontSize: "1rem" }}>{p.nom}</div>
+                          <div style={{ color: "#3d1a0a", fontWeight: "bold", fontSize: "1rem" }}>{p.categorie} · {p.nom}</div>
                           <div style={{ color: "#e8213a", fontWeight: "bold" }}>{p.prix_vente.toFixed(2)} €</div>
                         </div>
                         <div style={{ background: "#faebd7", borderRadius: "8px", padding: "0.5rem 0.8rem", marginBottom: "0.6rem" }}>
