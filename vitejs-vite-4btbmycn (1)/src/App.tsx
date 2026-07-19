@@ -3469,7 +3469,30 @@ export default function App() {
           const panierTable = nbTable ? caTable / nbTable : 0;
           const panierEmporter = nbEmporter ? caEmporter / nbEmporter : 0;
 
+          // Tendance : 7 derniers jours vs 7 précédents
+          const parDate: Record<string, { ca: number; n: number }> = {};
+          V.forEach(v => {
+            const k = v.d.toISOString().slice(0, 10);
+            (parDate[k] = parDate[k] || { ca: 0, n: 0 });
+            parDate[k].ca += v.p; parDate[k].n++;
+          });
+          const datesTri = Object.keys(parDate).sort();
+          const d7 = datesTri.slice(-7), d7prec = datesTri.slice(-14, -7);
+          const moy = (ds: string[]) => ds.length ? ds.reduce((s, k) => s + parDate[k].ca, 0) / ds.length : 0;
+          const moyCmd = (ds: string[]) => ds.length ? ds.reduce((s, k) => s + parDate[k].n, 0) / ds.length : 0;
+          const ca7 = moy(d7), ca7p = moy(d7prec);
+          const cmd7 = moyCmd(d7), cmd7p = moyCmd(d7prec);
+          const tendance = ca7p > 0 ? ((ca7 - ca7p) / ca7p) * 100 : 0;
+          const aTendance = d7.length >= 3 && d7prec.length >= 3;
+
           // Points liés aux ventes
+          if (vNb > 0) {
+            if (aTendance && tendance < -15) {
+              const cause = cmd7p > 0 && (cmd7 / cmd7p) < 0.9 ? "C'est la fréquentation qui baisse (moins de clients), pas le panier." : "Le panier moyen baisse.";
+              points.push({ titre: `Ventes en baisse de ${Math.abs(tendance).toFixed(0)} %`, detail: `${fmt(ca7)} €/jour sur 7 jours contre ${fmt(ca7p)} € la semaine d'avant. ${cause}`, niveau: "danger" });
+            }
+            if (aTendance && ca7 < objJour) points.push({ titre: "Tendance sous le seuil", detail: `Sur les 7 derniers jours tu fais ${fmt(ca7)} €/jour, il t'en faut ${fmt(objJour)}.`, niveau: "danger" });
+          }
           if (vNb > 0) {
             if (caJourReel < objJour) points.push({ titre: "Ventes réelles sous l'objectif", detail: `Tu fais ${fmt(caJourReel)} €/jour en moyenne, il en faut ${fmt(objJour)}.`, niveau: "danger" });
             if (pireJour && meilleurJour && pireJour.moy < meilleurJour.moy * 0.45) points.push({ titre: `${JN[pireJour.j]} très faible`, detail: `${fmt(pireJour.moy)} €/jour contre ${fmt(meilleurJour.moy)} € le ${JN[meilleurJour.j].toLowerCase()}. Vaut-il le coup d'ouvrir ?`, niveau: "warn" });
@@ -3510,6 +3533,25 @@ export default function App() {
                     <span style={{ color: "#c8a878", fontSize: "0.7rem", fontWeight: 400 }}>{vNb} commandes · {nbJours} j</span>
                   </div>
 
+                  {/* Tendance 7 jours */}
+                  {aTendance && (
+                    <div style={{ ...CARD, padding: "1rem", borderColor: tendance < -15 ? "#f5c8c8" : tendance > 10 ? "#bfe3ca" : "#efe0c9" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.6rem" }}>
+                        <div style={LBL}>Tendance 7 jours</div>
+                        <span style={{ background: (tendance < -15 ? "#e8213a" : tendance > 10 ? "#1f6e42" : "#c98a17") + "1a", color: tendance < -15 ? "#e8213a" : tendance > 10 ? "#1f6e42" : "#c98a17", fontSize: "0.78rem", fontWeight: 700, padding: "0.2rem 0.6rem", borderRadius: "20px" }}>
+                          {tendance >= 0 ? "+" : ""}{tendance.toFixed(0)} %
+                        </span>
+                      </div>
+                      <div style={{ display: "flex", alignItems: "baseline", gap: "0.5rem" }}>
+                        <span style={{ color: "#3d1a0a", fontSize: "1.5rem", fontWeight: 800 }}>{fmt(ca7)} €</span>
+                        <span style={{ color: "#a07848", fontSize: "0.78rem" }}>/jour · avant {fmt(ca7p)} €</span>
+                      </div>
+                      <div style={{ color: "#a07848", fontSize: "0.73rem", marginTop: "0.3rem" }}>
+                        {Math.round(cmd7)} commandes/jour {cmd7 < cmd7p ? `au lieu de ${Math.round(cmd7p)}` : `contre ${Math.round(cmd7p)}`}
+                      </div>
+                    </div>
+                  )}
+
                   {/* Panier moyen — mis en avant */}
                   <div style={{ ...CARD, padding: "1.1rem", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                     <div>
@@ -3523,7 +3565,7 @@ export default function App() {
                   </div>
 
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.6rem" }}>
-                    {kpi("CA réel / jour", `${fmt(caJourReel)} €`, caJourReel >= objJour ? `objectif atteint` : `objectif ${fmt(objJour)} €`, caJourReel >= objJour ? "#1f6e42" : "#e8213a")}
+                    {kpi("CA moyen / jour", `${fmt(caJourReel)} €`, `moyenne sur ${nbJours} jours`, caJourReel >= objJour ? "#1f6e42" : "#e8213a")}
                     {kpi("Commandes / jour", `${Math.round(cmdJour)}`, `${(cmdJour/11).toFixed(0)}/h environ`, "#3d1a0a")}
                     {meilleurJour && kpi("Meilleur jour", JN[meilleurJour.j], `${fmt(meilleurJour.moy)} € en moyenne`, "#1f6e42")}
                     {heurePic && kpi("Heure de pointe", `${heurePic[0]}h`, `${heurePic[1]} commandes`, "#c98a17")}
