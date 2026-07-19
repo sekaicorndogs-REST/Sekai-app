@@ -262,6 +262,13 @@ async function fetchVentes() {
   return res.json();
 }
 
+// ── SAISONNALITÉ (CA attendu + effectif par mois) ──────────
+async function fetchSaisonnalite() {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/saisonnalite?select=*&order=mois.asc`, { headers: HEADERS });
+  if (!res.ok) throw new Error("Fetch saisonnalite failed");
+  return res.json();
+}
+
 // ── PÉRIODES API (vacances, soldes, events…) ───────────────
 async function fetchPeriodes() {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/periodes?select=*&order=date_debut.desc`, { headers: HEADERS });
@@ -773,6 +780,7 @@ export default function App() {
   const [allUsers, setAllUsers] = useState([]);
   const [ventes, setVentes] = useState<any[]>([]);
   const [periodes, setPeriodes] = useState<any[]>([]);
+  const [saisonnalite, setSaisonnalite] = useState<any[]>([]);
   const [joursSpeciaux, setJoursSpeciaux] = useState<any[]>([]);
   const [jourSpecialDate, setJourSpecialDate] = useState("");
   const [jourSpecialMotif, setJourSpecialMotif] = useState("greve");
@@ -1181,6 +1189,7 @@ export default function App() {
     catch { /* silencieux : les ventes sont optionnelles */ }
     try { setPeriodes(await fetchPeriodes()); } catch {}
     try { setJoursSpeciaux(await fetchJoursSpeciaux()); } catch {}
+    try { setSaisonnalite(await fetchSaisonnalite()); } catch {}
   }
   async function handleMarquerJour(date: string, motif: string) {
     const labels: Record<string, string> = { greve: "Grève / manifestation", meteo: "Mauvaise météo", ferie: "Jour férié", travaux: "Travaux / accès bloqué", panne: "Panne borne / incident", autre: "Autre" };
@@ -3611,6 +3620,17 @@ export default function App() {
             if (panierTable > panierEmporter * 1.15 && nbEmporter > 20) points.push({ titre: "Panier à emporter plus faible", detail: `${panierEmporter.toFixed(2)} € contre ${panierTable.toFixed(2)} € sur place. Propose boisson/sauce au comptoir pour combler l'écart.`, niveau: "warn" });
           }
 
+          // Diagnostic saisonnier
+          if (saisonnalite.length > 0) {
+            const moisNow = new Date().getMonth() + 1;
+            const suiv = saisonnalite.find(m => m.mois === (moisNow % 12) + 1);
+            const cur = saisonnalite.find(m => m.mois === moisNow);
+            if (suiv?.fiabilite === "inconnu") points.push({ titre: `${suiv.nom} : aucune donnée`, detail: "Tu n'as jamais mesuré ce mois. Exporte-le dès qu'il est passé pour pouvoir l'anticiper l'an prochain.", niveau: "warn" });
+            else if (suiv?.ca_jour_bornes != null && cur?.ca_jour_bornes != null && Number(suiv.ca_jour_bornes) < Number(cur.ca_jour_bornes) * 0.85) {
+              points.push({ titre: `${suiv.nom} sera plus calme`, detail: `Environ ${fmt(Number(suiv.ca_jour_bornes) + hb)} €/jour attendu contre ${fmt(Number(cur.ca_jour_bornes) + hb)} € ce mois-ci. Réduis l'effectif en semaine.`, niveau: "warn" });
+            }
+          }
+
           const nivColor = (n: string) => n === "danger" ? "#e8213a" : n === "warn" ? "#c98a17" : "#1f6e42";
           const kpi = (label: string, val: string, sub: string, color: string) => (
             <div style={{ ...CARD, padding: "0.85rem", textAlign: "center" as const }}>
@@ -3815,6 +3835,62 @@ export default function App() {
                 {kpi("Loyer", loyer > 0 ? `${pctLoyer.toFixed(1)} %` : "—", "idéal < 10 %", pctLoyer > 10 ? "#c98a17" : "#1f6e42")}
                 {kpi("Prime cost", primeCost > 0 ? `${pctPrime.toFixed(1)} %` : "—", "matières + perso, max 65 %", pctPrime > 65 ? "#e8213a" : "#1f6e42")}
               </div>
+
+              {/* ── ANNÉE & PLANNING ── */}
+              {saisonnalite.length > 0 && (() => {
+                const moisNow = new Date().getMonth() + 1;
+                const tot = (m: any) => m.ca_jour_bornes != null ? Number(m.ca_jour_bornes) + hb : null;
+                const bas = saisonnalite.filter(m => tot(m) != null && tot(m)! < objJour);
+                return (
+                  <>
+                    <div style={{ color: "#3d1a0a", fontSize: "0.92rem", fontWeight: 700, margin: "0.3rem 0 0", display: "flex", alignItems: "center", gap: "6px" }}>
+                      <Calendar size={17} color="#e8213a" /> Ton année · CA attendu / jour
+                    </div>
+                    <div style={{ ...CARD, padding: "0.9rem" }}>
+                      {saisonnalite.map(m => {
+                        const t = tot(m);
+                        const pct = t ? Math.min(100, (t / 1400) * 100) : 0;
+                        const sous = t != null && t < objJour;
+                        const now = m.mois === moisNow;
+                        return (
+                          <div key={m.mois} style={{ padding: "0.35rem 0", borderTop: m.mois === 1 ? "none" : "1px solid #f4e8d6" }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: "7px" }}>
+                              <span style={{ width: "62px", flexShrink: 0, color: now ? "#e8213a" : "#3d1a0a", fontSize: "0.78rem", fontWeight: now ? 700 : 500 }}>{m.nom}</span>
+                              <div style={{ flex: 1, background: "#f4e8d6", borderRadius: "20px", height: "9px", position: "relative" as const }}>
+                                {t != null && <div style={{ width: `${pct}%`, height: "9px", borderRadius: "20px", background: sous ? "#e8213a" : now ? "#f5c842" : "#1f6e42" }} />}
+                                <div style={{ position: "absolute" as const, left: `${(objJour/1400)*100}%`, top: "-3px", width: "2px", height: "15px", background: "#3d1a0a" }} />
+                              </div>
+                              <span style={{ width: "58px", textAlign: "right" as const, fontSize: "0.78rem", fontWeight: 700, color: t == null ? "#c8a878" : sous ? "#e8213a" : "#1f6e42" }}>
+                                {t == null ? "?" : fmt(t) + " €"}
+                              </span>
+                              {m.effectif_semaine && <span style={{ width: "34px", textAlign: "right" as const, fontSize: "0.7rem", color: "#a07848" }}>{m.effectif_semaine}/{m.effectif_weekend}p</span>}
+                            </div>
+                            {(now || m.fiabilite === "inconnu") && m.note && (
+                              <div style={{ color: m.fiabilite === "inconnu" ? "#e8213a" : "#a07848", fontSize: "0.68rem", marginLeft: "69px", marginTop: "1px" }}>{m.note}</div>
+                            )}
+                          </div>
+                        );
+                      })}
+                      <div style={{ color: "#c8a878", fontSize: "0.66rem", marginTop: "0.6rem", lineHeight: 1.5 }}>
+                        Trait vertical = ton seuil de {fmt(objJour)} €/jour · <strong>Xp/Yp</strong> = effectif conseillé semaine/week-end · basé sur 16 mois de ventes
+                      </div>
+                    </div>
+
+                    {bas.length > 0 && (
+                      <div style={{ ...CARD, padding: "1rem", borderColor: "#f5c8c8" }}>
+                        <div style={{ ...LBL, marginBottom: "0.4rem", display: "flex", alignItems: "center", gap: "5px" }}>
+                          <AlertTriangle size={13} color="#e8213a" /> Mois sous ton seuil
+                        </div>
+                        <div style={{ color: "#3d1a0a", fontSize: "0.82rem", lineHeight: 1.5 }}>
+                          <strong>{bas.map(m => m.nom).join(", ")}</strong> — il te manquera environ{" "}
+                          <strong style={{ color: "#e8213a" }}>{fmt(bas.reduce((s, m) => s + (objJour - tot(m)!) * 30, 0))} €</strong> au total.
+                          <br />Mets cette somme de côté sur juillet et décembre, tes deux meilleurs mois.
+                        </div>
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
 
               {/* Points à améliorer */}
               <div style={{ ...CARD, padding: "1rem" }}>
