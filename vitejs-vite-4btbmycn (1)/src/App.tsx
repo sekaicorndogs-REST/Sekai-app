@@ -255,6 +255,13 @@ async function deleteUser(id) {
   if (!res.ok) throw new Error("Delete user failed");
 }
 
+// ── VENTES API (import CSV caisse/bornes) ──────────────────
+async function fetchVentes() {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/ventes?select=date_commande,prix,mode_livraison&order=date_commande.desc&limit=5000`, { headers: HEADERS });
+  if (!res.ok) throw new Error("Fetch ventes failed");
+  return res.json();
+}
+
 // ── DOCUMENTS API ──────────────────────────────────────────
 // Liste sans le fichier (léger)
 async function fetchDocumentsMeta() {
@@ -734,6 +741,7 @@ export default function App() {
   const [editItemThresholdLabel, setEditItemThresholdLabel] = useState("");
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [allUsers, setAllUsers] = useState([]);
+  const [ventes, setVentes] = useState<any[]>([]);
   const [documents, setDocuments] = useState<any[]>([]);
   const [documentsLoading, setDocumentsLoading] = useState(false);
   const [showDocUpload, setShowDocUpload] = useState(false);
@@ -1126,6 +1134,10 @@ export default function App() {
   }
 
   // ── Documents handlers ──
+  async function loadVentes() {
+    try { setVentes(await fetchVentes()); }
+    catch { /* silencieux : les ventes sont optionnelles */ }
+  }
   async function loadDocuments() {
     setDocumentsLoading(true);
     try { setDocuments(await fetchDocumentsMeta()); }
@@ -2062,7 +2074,7 @@ export default function App() {
         { id: "paie", label: "Paie", icon: "paie", adminOnly: true },
         { id: "profil", label: "Profil", icon: "profil", adminOnly: false }
       ].filter(tab => !tab.adminOnly || isAdmin).map(tab => (
-        <button key={tab.id} onClick={() => { setPage(tab.id); if (tab.id === "profil") { loadDocuments(); loadFichesPaie(); if (isAdmin && !allUsers.length) loadUsers(); } if (tab.id === "comptes") loadUsers(); if (tab.id === "horaires") { if (!horaires.length) fetchHoraires(horaireRestaurant); fetchHeuresJours(horaireRestaurant); if (isAdmin && !allUsers.length) loadUsers(); } if (tab.id === "finances") { setFinancesView("resume"); loadFinances(); loadTodoTaches(); loadEvents(); } if (tab.id === "fermetures") { loadFermetureHistorique(); loadFermetureData(); } if (tab.id === "paie") { loadFichesPaie(); loadUsers(); } }} style={{ flex: 1, background: "none", border: "none", padding: "0.7rem 0", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: "0.15rem" }}>
+        <button key={tab.id} onClick={() => { setPage(tab.id); if (tab.id === "profil") { loadDocuments(); loadFichesPaie(); if (isAdmin && !allUsers.length) loadUsers(); } if (tab.id === "comptes") loadUsers(); if (tab.id === "horaires") { if (!horaires.length) fetchHoraires(horaireRestaurant); fetchHeuresJours(horaireRestaurant); if (isAdmin && !allUsers.length) loadUsers(); } if (tab.id === "finances") { setFinancesView("resume"); loadFinances(); loadTodoTaches(); loadEvents(); loadVentes(); } if (tab.id === "fermetures") { loadFermetureHistorique(); loadFermetureData(); } if (tab.id === "paie") { loadFichesPaie(); loadUsers(); } }} style={{ flex: 1, background: "none", border: "none", padding: "0.7rem 0", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: "0.15rem" }}>
           <span style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
             {tab.icon === "stock" && <Package size={20} color={page === tab.id ? "#e8213a" : "#c8a878"} />}
             {tab.icon === "horaires" && <Calendar size={20} color={page === tab.id ? "#e8213a" : "#c8a878"} />}
@@ -3431,6 +3443,39 @@ export default function App() {
           if (gerant > 0 && ca > 0 && (gerant / ca) * 100 > 15) points.push({ titre: "Salaire gérant important", detail: `${((gerant/ca)*100).toFixed(1)} % du CA. Le baisser accélérerait fortement le remboursement des dettes.`, niveau: "warn" });
           if (moisDettes && moisDettes > 24) points.push({ titre: "Remboursement long", detail: `${moisDettes} mois au rythme actuel. Augmenter le reste mensuel raccourcirait beaucoup ce délai.`, niveau: "warn" });
 
+          // ── Ventes réelles (import caisse/bornes) ──
+          const V = ventes.map(v => ({ p: parseFloat(v.prix) || 0, d: new Date(v.date_commande), m: v.mode_livraison }));
+          const vNb = V.length;
+          const vCA = V.reduce((s, v) => s + v.p, 0);
+          const panierMoyen = vNb ? vCA / vNb : 0;
+          const jours = new Set(V.map(v => v.d.toDateString()));
+          const nbJours = jours.size || 1;
+          const caJourReel = vCA / nbJours;
+          const cmdJour = vNb / nbJours;
+          const JN = ["Dimanche","Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"];
+          const parJourSem: Record<number, number> = {}; const joursVus: Record<number, Set<string>> = {};
+          const parHeure: Record<number, number> = {};
+          let caTable = 0, nbTable = 0, caEmporter = 0, nbEmporter = 0;
+          V.forEach(v => {
+            const wd = v.d.getDay();
+            parJourSem[wd] = (parJourSem[wd] || 0) + v.p;
+            (joursVus[wd] = joursVus[wd] || new Set()).add(v.d.toDateString());
+            parHeure[v.d.getHours()] = (parHeure[v.d.getHours()] || 0) + 1;
+            if (/table|place/i.test(v.m || "")) { caTable += v.p; nbTable++; } else { caEmporter += v.p; nbEmporter++; }
+          });
+          const moyJour = Object.entries(parJourSem).map(([k, tot]) => ({ j: +k, moy: tot / (joursVus[+k]?.size || 1) })).sort((a, b) => b.moy - a.moy);
+          const meilleurJour = moyJour[0], pireJour = moyJour[moyJour.length - 1];
+          const heurePic = Object.entries(parHeure).sort((a, b) => b[1] - a[1])[0];
+          const panierTable = nbTable ? caTable / nbTable : 0;
+          const panierEmporter = nbEmporter ? caEmporter / nbEmporter : 0;
+
+          // Points liés aux ventes
+          if (vNb > 0) {
+            if (caJourReel < objJour) points.push({ titre: "Ventes réelles sous l'objectif", detail: `Tu fais ${fmt(caJourReel)} €/jour en moyenne, il en faut ${fmt(objJour)}.`, niveau: "danger" });
+            if (pireJour && meilleurJour && pireJour.moy < meilleurJour.moy * 0.45) points.push({ titre: `${JN[pireJour.j]} très faible`, detail: `${fmt(pireJour.moy)} €/jour contre ${fmt(meilleurJour.moy)} € le ${JN[meilleurJour.j].toLowerCase()}. Vaut-il le coup d'ouvrir ?`, niveau: "warn" });
+            if (panierTable > panierEmporter * 1.15 && nbEmporter > 20) points.push({ titre: "Panier à emporter plus faible", detail: `${panierEmporter.toFixed(2)} € contre ${panierTable.toFixed(2)} € sur place. Propose boisson/sauce au comptoir pour combler l'écart.`, niveau: "warn" });
+          }
+
           const nivColor = (n: string) => n === "danger" ? "#e8213a" : n === "warn" ? "#c98a17" : "#1f6e42";
           const kpi = (label: string, val: string, sub: string, color: string) => (
             <div style={{ ...CARD, padding: "0.85rem", textAlign: "center" as const }}>
@@ -3456,6 +3501,54 @@ export default function App() {
                   </div>
                 )}
               </div>
+
+              {/* ── VENTES RÉELLES ── */}
+              {vNb > 0 && (
+                <>
+                  <div style={{ color: "#3d1a0a", fontSize: "0.92rem", fontWeight: 700, margin: "0.3rem 0 0", display: "flex", alignItems: "center", gap: "6px" }}>
+                    <Receipt size={17} color="#e8213a" /> Ventes réelles
+                    <span style={{ color: "#c8a878", fontSize: "0.7rem", fontWeight: 400 }}>{vNb} commandes · {nbJours} j</span>
+                  </div>
+
+                  {/* Panier moyen — mis en avant */}
+                  <div style={{ ...CARD, padding: "1.1rem", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                    <div>
+                      <div style={LBL}>Panier moyen</div>
+                      <div style={{ color: "#e8213a", fontSize: "2.1rem", fontWeight: 800, lineHeight: 1.1 }}>{panierMoyen.toFixed(2)} €</div>
+                    </div>
+                    <div style={{ textAlign: "right" as const }}>
+                      <div style={{ color: "#a07848", fontSize: "0.75rem" }}>Sur place <strong style={{ color: "#3d1a0a" }}>{panierTable.toFixed(2)} €</strong></div>
+                      <div style={{ color: "#a07848", fontSize: "0.75rem" }}>À emporter <strong style={{ color: "#3d1a0a" }}>{panierEmporter.toFixed(2)} €</strong></div>
+                    </div>
+                  </div>
+
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.6rem" }}>
+                    {kpi("CA réel / jour", `${fmt(caJourReel)} €`, caJourReel >= objJour ? `objectif atteint` : `objectif ${fmt(objJour)} €`, caJourReel >= objJour ? "#1f6e42" : "#e8213a")}
+                    {kpi("Commandes / jour", `${Math.round(cmdJour)}`, `${(cmdJour/11).toFixed(0)}/h environ`, "#3d1a0a")}
+                    {meilleurJour && kpi("Meilleur jour", JN[meilleurJour.j], `${fmt(meilleurJour.moy)} € en moyenne`, "#1f6e42")}
+                    {heurePic && kpi("Heure de pointe", `${heurePic[0]}h`, `${heurePic[1]} commandes`, "#c98a17")}
+                  </div>
+
+                  {/* Répartition sur place / à emporter */}
+                  <div style={{ ...CARD, padding: "1rem" }}>
+                    <div style={{ ...LBL, marginBottom: "0.6rem" }}>Sur place vs à emporter</div>
+                    <div style={{ display: "flex", height: "12px", borderRadius: "20px", overflow: "hidden", marginBottom: "0.5rem" }}>
+                      <div style={{ width: `${vNb ? (nbTable/vNb)*100 : 0}%`, background: "#e8213a" }} />
+                      <div style={{ width: `${vNb ? (nbEmporter/vNb)*100 : 0}%`, background: "#f5c842" }} />
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.76rem" }}>
+                      <span style={{ color: "#3d1a0a", display: "flex", alignItems: "center", gap: "5px" }}>
+                        <span style={{ width: "9px", height: "9px", borderRadius: "50%", background: "#e8213a" }} />
+                        Sur place {vNb ? Math.round((nbTable/vNb)*100) : 0} %
+                      </span>
+                      <span style={{ color: "#3d1a0a", display: "flex", alignItems: "center", gap: "5px" }}>
+                        <span style={{ width: "9px", height: "9px", borderRadius: "50%", background: "#f5c842" }} />
+                        À emporter {vNb ? Math.round((nbEmporter/vNb)*100) : 0} %
+                      </span>
+                    </div>
+                  </div>
+                </>
+              )}
 
               {/* CA modifiable */}
               <div style={{ ...CARD, padding: "1.1rem" }}>
