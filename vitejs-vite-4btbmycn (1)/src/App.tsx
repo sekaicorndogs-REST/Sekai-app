@@ -277,6 +277,21 @@ async function deletePeriode(id: number) {
   if (!res.ok) throw new Error("Delete periode failed");
 }
 
+// ── JOURS SPÉCIAUX (grèves, météo, incidents) ──────────────
+async function fetchJoursSpeciaux() {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/jours_speciaux?select=*&order=date.desc`, { headers: HEADERS });
+  if (!res.ok) throw new Error("Fetch jours_speciaux failed");
+  return res.json();
+}
+async function createJourSpecial(data: any) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/jours_speciaux`, { method: "POST", headers: HEADERS, body: JSON.stringify(data) });
+  if (!res.ok) throw new Error("Create jour_special failed");
+}
+async function deleteJourSpecial(id: number) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/jours_speciaux?id=eq.${id}`, { method: "DELETE", headers: HEADERS });
+  if (!res.ok) throw new Error("Delete jour_special failed");
+}
+
 // ── DOCUMENTS API ──────────────────────────────────────────
 // Liste sans le fichier (léger)
 async function fetchDocumentsMeta() {
@@ -758,6 +773,9 @@ export default function App() {
   const [allUsers, setAllUsers] = useState([]);
   const [ventes, setVentes] = useState<any[]>([]);
   const [periodes, setPeriodes] = useState<any[]>([]);
+  const [joursSpeciaux, setJoursSpeciaux] = useState<any[]>([]);
+  const [jourSpecialDate, setJourSpecialDate] = useState("");
+  const [jourSpecialMotif, setJourSpecialMotif] = useState("greve");
   const [showAddPeriode, setShowAddPeriode] = useState(false);
   const [newPeriodeNom, setNewPeriodeNom] = useState("");
   const [newPeriodeType, setNewPeriodeType] = useState("vacances");
@@ -1161,6 +1179,19 @@ export default function App() {
     try { setVentes(await fetchVentes()); }
     catch { /* silencieux : les ventes sont optionnelles */ }
     try { setPeriodes(await fetchPeriodes()); } catch {}
+    try { setJoursSpeciaux(await fetchJoursSpeciaux()); } catch {}
+  }
+  async function handleMarquerJour(date: string, motif: string) {
+    const labels: Record<string, string> = { greve: "Grève / manifestation", meteo: "Mauvaise météo", ferie: "Jour férié", travaux: "Travaux / accès bloqué", panne: "Panne borne / incident", autre: "Autre" };
+    try {
+      await createJourSpecial({ date, motif: labels[motif] || motif, type: motif });
+      setJoursSpeciaux(await fetchJoursSpeciaux());
+      flash("✅ Journée marquée");
+    } catch { flash("❌ Erreur"); }
+  }
+  async function handleDeleteJourSpecial(id: number) {
+    try { await deleteJourSpecial(id); setJoursSpeciaux(await fetchJoursSpeciaux()); flash("✅ Retiré"); }
+    catch { flash("❌ Erreur"); }
   }
   async function handleAddPeriode() {
     if (!newPeriodeNom.trim() || !newPeriodeDebut || !newPeriodeFin) { flash("❌ Nom et dates requis"); return; }
@@ -3509,6 +3540,19 @@ export default function App() {
           const panierTable = nbTable ? caTable / nbTable : 0;
           const panierEmporter = nbEmporter ? caEmporter / nbEmporter : 0;
 
+          // ── Jours spéciaux (grèves, météo…) ──
+          const setSpeciaux = new Set(joursSpeciaux.map((j: any) => j.date));
+          const caParJour: Record<string, number> = {};
+          V.forEach(v => { const k = v.d.toISOString().slice(0, 10); caParJour[k] = (caParJour[k] || 0) + v.p; });
+          const joursNormaux = Object.entries(caParJour).filter(([k]) => !setSpeciaux.has(k));
+          const moyNormale = joursNormaux.length ? joursNormaux.reduce((s, [, c]) => s + c, 0) / joursNormaux.length : 0;
+          const joursSpxAvecCA = Object.entries(caParJour).filter(([k]) => setSpeciaux.has(k));
+          const perteSpeciaux = joursSpxAvecCA.reduce((s, [, c]) => s + Math.max(0, moyNormale - c), 0);
+          // Journées anormalement basses PAS encore expliquées (< 65 % de la normale, hors week-end)
+          const aExpliquer = joursNormaux
+            .filter(([k, c]) => { const jd = new Date(k + "T12:00:00").getDay(); return jd >= 1 && jd <= 5 && c < moyNormale * 0.65; })
+            .sort((a, b) => a[1] - b[1]).slice(0, 6);
+
           // ── Segmentation par période (vacances, soldes…) ──
           const jourDansPeriode = (d: Date, p: any) => {
             const k = d.toISOString().slice(0, 10);
@@ -3648,6 +3692,58 @@ export default function App() {
                     {meilleurJour && kpi("Meilleur jour", JN[meilleurJour.j], `${fmt(meilleurJour.moy)} € en moyenne`, "#1f6e42")}
                     {heurePic && kpi("Heure de pointe", `${heurePic[0]}h`, `${heurePic[1]} commandes`, "#c98a17")}
                   </div>
+
+                  {/* Jours spéciaux : impact */}
+                  {joursSpxAvecCA.length > 0 && (
+                    <div style={{ ...CARD, padding: "1rem", borderColor: "#f5c8c8" }}>
+                      <div style={{ ...LBL, marginBottom: "0.5rem", display: "flex", alignItems: "center", gap: "5px" }}>
+                        <AlertTriangle size={13} color="#e8213a" /> Journées perturbées
+                      </div>
+                      <div style={{ display: "flex", alignItems: "baseline", gap: "0.5rem", marginBottom: "0.6rem" }}>
+                        <span style={{ color: "#e8213a", fontSize: "1.5rem", fontWeight: 800 }}>−{fmt(perteSpeciaux)} €</span>
+                        <span style={{ color: "#a07848", fontSize: "0.78rem" }}>de CA perdu sur {joursSpxAvecCA.length} jours</span>
+                      </div>
+                      <div style={{ color: "#a07848", fontSize: "0.73rem", marginBottom: "0.5rem" }}>
+                        Ta moyenne hors perturbations : <strong style={{ color: "#3d1a0a" }}>{fmt(moyNormale + hb)} €/jour</strong>
+                      </div>
+                      {joursSpeciaux.slice(0, 10).map((j: any) => (
+                        <div key={j.id} style={{ display: "flex", alignItems: "center", gap: "7px", padding: "0.3rem 0", borderTop: "1px solid #f4e8d6", fontSize: "0.78rem" }}>
+                          <span style={{ color: "#3d1a0a" }}>{new Date(j.date + "T12:00:00").toLocaleDateString("fr-BE", { day: "2-digit", month: "short" })}</span>
+                          <span style={{ color: "#a07848", flex: 1 }}>{j.motif}</span>
+                          {caParJour[j.date] != null && <span style={{ color: "#e8213a", fontWeight: 600 }}>{fmt(caParJour[j.date])} €</span>}
+                          <button onClick={() => handleDeleteJourSpecial(j.id)} style={{ background: "none", border: "none", color: "#c8a878", cursor: "pointer", padding: 0 }}><Trash2 size={12} /></button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Journées anormales à expliquer */}
+                  {aExpliquer.length > 0 && (
+                    <div style={{ ...CARD, padding: "1rem", borderColor: "#f5e0b8" }}>
+                      <div style={{ ...LBL, marginBottom: "0.3rem" }}>Journées anormalement basses</div>
+                      <div style={{ color: "#a07848", fontSize: "0.73rem", marginBottom: "0.6rem" }}>
+                        Que s'est-il passé ? Marque-les pour qu'elles ne faussent plus tes moyennes.
+                      </div>
+                      {aExpliquer.map(([k, c]) => (
+                        <div key={k} style={{ display: "flex", alignItems: "center", gap: "6px", padding: "0.45rem 0", borderTop: "1px solid #f4e8d6" }}>
+                          <div style={{ flex: 1 }}>
+                            <div style={{ color: "#3d1a0a", fontSize: "0.8rem", fontWeight: 600 }}>{new Date(k + "T12:00:00").toLocaleDateString("fr-BE", { weekday: "short", day: "2-digit", month: "short" })}</div>
+                            <div style={{ color: "#e8213a", fontSize: "0.72rem" }}>{fmt(c)} € au lieu de {fmt(moyNormale)} €</div>
+                          </div>
+                          <select value="" onChange={e => { if (e.target.value) handleMarquerJour(k, e.target.value); }}
+                            style={{ background: "#faebd7", border: "1px solid #efe0c9", color: "#a07848", borderRadius: "8px", padding: "0.35rem 0.5rem", fontSize: "0.72rem", fontFamily: "'Poppins', sans-serif", cursor: "pointer" }}>
+                            <option value="">Marquer…</option>
+                            <option value="greve">Grève / manif</option>
+                            <option value="meteo">Météo</option>
+                            <option value="ferie">Jour férié</option>
+                            <option value="travaux">Travaux</option>
+                            <option value="panne">Panne borne</option>
+                            <option value="autre">Autre</option>
+                          </select>
+                        </div>
+                      ))}
+                    </div>
+                  )}
 
                   {/* Comparaison par période */}
                   {toutesPeriodes.length > 0 && (
