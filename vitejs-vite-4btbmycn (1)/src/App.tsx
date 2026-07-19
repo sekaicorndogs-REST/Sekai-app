@@ -3636,8 +3636,8 @@ export default function App() {
             const suiv = saisonnalite.find(m => m.mois === (moisNow % 12) + 1);
             const cur = saisonnalite.find(m => m.mois === moisNow);
             if (suiv?.fiabilite === "inconnu") points.push({ titre: `${suiv.nom} : aucune donnée`, detail: "Tu n'as jamais mesuré ce mois. Exporte-le dès qu'il est passé pour pouvoir l'anticiper l'an prochain.", niveau: "warn" });
-            else if (suiv?.ca_jour_bornes != null && cur?.ca_jour_bornes != null && Number(suiv.ca_jour_bornes) < Number(cur.ca_jour_bornes) * 0.85) {
-              points.push({ titre: `${suiv.nom} sera plus calme`, detail: `Environ ${fmt(Number(suiv.ca_jour_bornes) + hb)} €/jour attendu contre ${fmt(Number(cur.ca_jour_bornes) + hb)} € ce mois-ci. Réduis l'effectif en semaine.`, niveau: "warn" });
+            else if (suiv?.ca_total_jour != null && cur?.ca_total_jour != null && Number(suiv.ca_total_jour) < Number(cur.ca_total_jour) * 0.85) {
+              points.push({ titre: `${suiv.nom} sera plus calme`, detail: `Environ ${fmt(Number(suiv.ca_total_jour))} €/jour attendu contre ${fmt(Number(cur.ca_total_jour))} € ce mois-ci. Réduis l'effectif en semaine.`, niveau: "warn" });
             }
           }
 
@@ -3925,7 +3925,7 @@ export default function App() {
               {/* ── ANNÉE & PLANNING ── */}
               {saisonnalite.length > 0 && (() => {
                 const moisNow = new Date().getMonth() + 1;
-                const tot = (m: any) => m.ca_jour_bornes != null ? Number(m.ca_jour_bornes) + hb : null;
+                const tot = (m: any) => m.ca_total_jour != null ? Number(m.ca_total_jour) : (m.ca_jour_bornes != null ? Number(m.ca_jour_bornes) + hb : null);
                 const bas = saisonnalite.filter(m => tot(m) != null && tot(m)! < objJour);
                 return (
                   <>
@@ -4038,7 +4038,7 @@ export default function App() {
                 const mNow = new Date().getMonth() + 1;
                 const cur = saisonnalite.find(m => m.mois === mNow);
                 const nxt = saisonnalite.find(m => m.mois === (mNow % 12) + 1);
-                const tot = (m: any) => m?.ca_jour_bornes != null ? Number(m.ca_jour_bornes) + hb : null;
+                const tot = (m: any) => m?.ca_total_jour != null ? Number(m.ca_total_jour) : (m?.ca_jour_bornes != null ? Number(m.ca_jour_bornes) + hb : null);
                 const prevMois = (m: any) => { const t = tot(m); return t ? t * 30 : null; };
                 const sortiesMois = totalChargesFixes + totalMensualites;
                 const ecartSem = cur && nxt ? null : null;
