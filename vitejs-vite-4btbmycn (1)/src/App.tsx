@@ -830,6 +830,8 @@ export default function App() {
   const [charges, setCharges] = useState<any[]>([]);
   const [financesView, setFinancesView] = useState<"dettes"|"charges"|"resume"|"taches"|"event"|"carte"|"sante">("resume");
   const [caMoyen, setCaMoyen] = useState(() => localStorage.getItem("sekai_ca_moyen") || "30000");
+  // CA quotidien qui ne passe PAS par les bornes (caisse + Uber Eats)
+  const [caHorsBornes, setCaHorsBornes] = useState(() => localStorage.getItem("sekai_ca_hors_bornes") || "250");
   const [menuProduits, setMenuProduits] = useState<any[]>([]);
   const [menuRecettes, setMenuRecettes] = useState<any[]>([]);
   const [menuLoading, setMenuLoading] = useState(false);
@@ -3450,7 +3452,9 @@ export default function App() {
           const panierMoyen = vNb ? vCA / vNb : 0;
           const jours = new Set(V.map(v => v.d.toDateString()));
           const nbJours = jours.size || 1;
-          const caJourReel = vCA / nbJours;
+          const hb = parseFloat(caHorsBornes) || 0;   // caisse + Uber, par jour
+          const caJourBornes = vCA / nbJours;
+          const caJourReel = caJourBornes + hb;
           const cmdJour = vNb / nbJours;
           const JN = ["Dimanche","Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"];
           const parJourSem: Record<number, number> = {}; const joursVus: Record<number, Set<string>> = {};
@@ -3480,7 +3484,7 @@ export default function App() {
           const d7 = datesTri.slice(-7), d7prec = datesTri.slice(-14, -7);
           const moy = (ds: string[]) => ds.length ? ds.reduce((s, k) => s + parDate[k].ca, 0) / ds.length : 0;
           const moyCmd = (ds: string[]) => ds.length ? ds.reduce((s, k) => s + parDate[k].n, 0) / ds.length : 0;
-          const ca7 = moy(d7), ca7p = moy(d7prec);
+          const ca7 = moy(d7) + hb, ca7p = moy(d7prec) + hb;
           const cmd7 = moyCmd(d7), cmd7p = moyCmd(d7prec);
           const tendance = ca7p > 0 ? ((ca7 - ca7p) / ca7p) * 100 : 0;
           const aTendance = d7.length >= 3 && d7prec.length >= 3;
@@ -3530,7 +3534,20 @@ export default function App() {
                 <>
                   <div style={{ color: "#3d1a0a", fontSize: "0.92rem", fontWeight: 700, margin: "0.3rem 0 0", display: "flex", alignItems: "center", gap: "6px" }}>
                     <Receipt size={17} color="#e8213a" /> Ventes réelles
-                    <span style={{ color: "#c8a878", fontSize: "0.7rem", fontWeight: 400 }}>{vNb} commandes · {nbJours} j</span>
+                    <span style={{ color: "#c8a878", fontSize: "0.7rem", fontWeight: 400 }}>{vNb} commandes bornes · {nbJours} j</span>
+                  </div>
+
+                  {/* CA hors bornes (caisse + Uber) */}
+                  <div style={{ ...CARD, padding: "0.85rem 1rem", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "0.6rem" }}>
+                    <div>
+                      <div style={LBL}>+ Caisse & Uber / jour</div>
+                      <div style={{ color: "#c8a878", fontSize: "0.68rem", marginTop: "0.15rem" }}>ce qui ne passe pas par les bornes</div>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", background: "#faf3e8", border: "1.5px solid #efe0c9", borderRadius: "10px", padding: "0 0.7rem" }}>
+                      <input value={caHorsBornes} onChange={e => { const v = e.target.value.replace(/[^0-9]/g, ""); setCaHorsBornes(v); localStorage.setItem("sekai_ca_hors_bornes", v); }} inputMode="numeric"
+                        style={{ background: "transparent", border: "none", color: "#e8213a", padding: "0.5rem 0", fontSize: "1.15rem", fontWeight: 800, outline: "none", width: "62px", textAlign: "right" as const, fontFamily: "'Poppins', sans-serif" }} />
+                      <span style={{ color: "#e8213a", fontSize: "1rem", fontWeight: 800, marginLeft: "3px" }}>€</span>
+                    </div>
                   </div>
 
                   {/* Tendance 7 jours */}
@@ -3555,7 +3572,7 @@ export default function App() {
                   {/* Panier moyen — mis en avant */}
                   <div style={{ ...CARD, padding: "1.1rem", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                     <div>
-                      <div style={LBL}>Panier moyen</div>
+                      <div style={LBL}>Panier moyen <span style={{ textTransform: "none" as const, color: "#c8a878", fontWeight: 400 }}>(bornes)</span></div>
                       <div style={{ color: "#e8213a", fontSize: "2.1rem", fontWeight: 800, lineHeight: 1.1 }}>{panierMoyen.toFixed(2)} €</div>
                     </div>
                     <div style={{ textAlign: "right" as const }}>
@@ -3565,8 +3582,8 @@ export default function App() {
                   </div>
 
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.6rem" }}>
-                    {kpi("CA moyen / jour", `${fmt(caJourReel)} €`, `moyenne sur ${nbJours} jours`, caJourReel >= objJour ? "#1f6e42" : "#e8213a")}
-                    {kpi("Commandes / jour", `${Math.round(cmdJour)}`, `${(cmdJour/11).toFixed(0)}/h environ`, "#3d1a0a")}
+                    {kpi("CA total / jour", `${fmt(caJourReel)} €`, `bornes ${fmt(caJourBornes)} € + ${fmt(hb)} €`, caJourReel >= objJour ? "#1f6e42" : "#e8213a")}
+                    {kpi("Commandes / jour", `${Math.round(cmdJour)}`, `bornes · ${(cmdJour/11).toFixed(0)}/h environ`, "#3d1a0a")}
                     {meilleurJour && kpi("Meilleur jour", JN[meilleurJour.j], `${fmt(meilleurJour.moy)} € en moyenne`, "#1f6e42")}
                     {heurePic && kpi("Heure de pointe", `${heurePic[0]}h`, `${heurePic[1]} commandes`, "#c98a17")}
                   </div>
