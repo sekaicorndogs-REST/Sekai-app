@@ -11,107 +11,107 @@ const HEADERS = {
 };
 
 const RESTAURANTS = [
-  { id: "rue-neuve", name: "Sekai Corndogs", subtitle: "Rue Neuve", emoji: "🏪" },
-  { id: "event-1", name: "Sekai Event 1", subtitle: "Point de vente", emoji: "🎪" },
-  { id: "event-2", name: "Sekai Event 2", subtitle: "Point de vente", emoji: "🎪" },
+  { id: "rue-neuve", name: "Sekai Corndogs", subtitle: "Rue Neuve", Icon: Home },
+  { id: "event-1", name: "Sekai Event 1", subtitle: "Point de vente", Icon: PartyPopper },
+  { id: "event-2", name: "Sekai Event 2", subtitle: "Point de vente", Icon: PartyPopper },
 ];
 
 const RUE_NEUVE_STOCK = [
-  { store: "🧃 OZ FOOD", name: "Saucisse", qty: "23", unit: "", threshold: 10, threshold_label: "< 10" },
-  { store: "🧃 OZ FOOD", name: "Frites", qty: "6", unit: "", threshold: 6, threshold_label: "< 6" },
-  { store: "🧃 OZ FOOD", name: "Huile", qty: "2", unit: "", threshold: 4, threshold_label: "< 4" },
-  { store: "🧃 OZ FOOD", name: "Ketchup", qty: "3", unit: "bidons", threshold: 2, threshold_label: "< 2 bidons" },
-  { store: "🧃 OZ FOOD", name: "Mayonnaise", qty: "1", unit: "", threshold: 1, threshold_label: "< 1" },
-  { store: "🧃 OZ FOOD", name: "Spicy Mayo", qty: "1", unit: "", threshold: 10, threshold_label: "< 10" },
-  { store: "🧃 OZ FOOD", name: "Sriracha", qty: "3", unit: "", threshold: 6, threshold_label: "< 6" },
-  { store: "🧃 OZ FOOD", name: "BBQ", qty: "2", unit: "", threshold: 6, threshold_label: "< 6" },
-  { store: "🧃 OZ FOOD", name: "Aigre douce", qty: "2", unit: "", threshold: 6, threshold_label: "< 6" },
-  { store: "🧃 OZ FOOD", name: "Samouraï", qty: "1 haut/1 bas", unit: "pots", threshold: 1, threshold_label: "< 1 pot" },
-  { store: "🧃 OZ FOOD", name: "Andalouse", qty: "1 haut/1 bas", unit: "pots", threshold: 1, threshold_label: "< 1 pot" },
-  { store: "🧃 OZ FOOD", name: "Ice tea pêche", qty: "", unit: "paquets", threshold: 3, threshold_label: "< 3 paquets" },
-  { store: "🧃 OZ FOOD", name: "Ice tea pétillant", qty: "", unit: "paquets", threshold: 2, threshold_label: "< 2 paquets" },
-  { store: "🧃 OZ FOOD", name: "Coca Turca", qty: "", unit: "paquets", threshold: 3, threshold_label: "< 3 paquets" },
-  { store: "🧃 OZ FOOD", name: "Eau Spa", qty: "", unit: "paquets", threshold: 3, threshold_label: "< 3 paquets" },
-  { store: "🧃 OZ FOOD", name: "Oasis rouge", qty: "", unit: "paquets", threshold: 2, threshold_label: "< 2 paquets" },
-  { store: "🧃 OZ FOOD", name: "Oasis mauve", qty: "", unit: "paquets", threshold: 2, threshold_label: "< 2 paquets" },
-  { store: "🧃 OZ FOOD", name: "Oasis tropical", qty: "", unit: "paquets", threshold: 2, threshold_label: "< 2 paquets" },
-  { store: "🥟 FOOD EX", name: "Gyoza", qty: "en haut", unit: "", threshold: 4, threshold_label: "< 4" },
-  { store: "🥟 FOOD EX", name: "Croquette citrouille", qty: "en haut", unit: "", threshold: 4, threshold_label: "< 4" },
-  { store: "🧀 TADAL", name: "Fromage", qty: "4", unit: "paquets", threshold: 20, threshold_label: "< 20 paquets" },
-  { store: "🧀 TADAL", name: "Takis", qty: "0", unit: "cartons", threshold: 1, threshold_label: "< 1 carton" },
-  { store: "🛒 COLRUYT", name: "Farine", qty: "1", unit: "paquets", threshold: 15, threshold_label: "< 15 paquets" },
-  { store: "🛒 COLRUYT", name: "Levure", qty: "assez", unit: "", threshold: 3, threshold_label: "< 3" },
-  { store: "🛒 COLRUYT", name: "Sucre", qty: "1", unit: "paquets", threshold: 8, threshold_label: "< 8 paquets" },
-  { store: "🛒 COLRUYT", name: "Sel", qty: "1", unit: "paquets", threshold: 5, threshold_label: "< 5 paquets" },
-  { store: "🛒 COLRUYT", name: "Céréales", qty: "0", unit: "cartons", threshold: 6, threshold_label: "< 6 cartons" },
-  { store: "🛒 COLRUYT", name: "Doritos", qty: "1", unit: "cartons", threshold: 1, threshold_label: "< 1 carton" },
-  { store: "🛒 COLRUYT", name: "Papier toilette", qty: "0", unit: "", threshold: 6, threshold_label: "< 6" },
-  { store: "🛒 COLRUYT", name: "Papier pour les mains", qty: "", unit: "", threshold: 6, threshold_label: "< 6" },
-  { store: "🛒 COLRUYT", name: "Sac poubelle 100L", qty: "2", unit: "", threshold: 1, threshold_label: "< 1" },
-  { store: "🥔 SILGRO", name: "Patates", qty: "4", unit: "paquets", threshold: 6, threshold_label: "< 6 paquets" },
-  { store: "🥔 SILGRO", name: "Oignon frié", qty: "1", unit: "paquets", threshold: 1, threshold_label: "< 1 paquet" },
-  { store: "🥔 SILGRO", name: "Barquette frites", qty: "", unit: "paquets", threshold: 6, threshold_label: "< 6 paquets" },
-  { store: "🥔 SILGRO", name: "Gants pour les mains", qty: "", unit: "cartons", threshold: 2, threshold_label: "< 2 cartons" },
-  { store: "🍜 MAGASIN CHINOIS", name: "Nouilles", qty: "0", unit: "cartons", threshold: 1, threshold_label: "< 1 carton" },
-  { store: "🍜 MAGASIN CHINOIS", name: "Baguette", qty: "1", unit: "cartons", threshold: 1, threshold_label: "< 1 carton" },
-  { store: "🍶 SAUCE MAISON", name: "Sekai", qty: "0", unit: "", threshold: 3, threshold_label: "< 3" },
+  { store: "OZ FOOD", name: "Saucisse", qty: "23", unit: "", threshold: 10, threshold_label: "< 10" },
+  { store: "OZ FOOD", name: "Frites", qty: "6", unit: "", threshold: 6, threshold_label: "< 6" },
+  { store: "OZ FOOD", name: "Huile", qty: "2", unit: "", threshold: 4, threshold_label: "< 4" },
+  { store: "OZ FOOD", name: "Ketchup", qty: "3", unit: "bidons", threshold: 2, threshold_label: "< 2 bidons" },
+  { store: "OZ FOOD", name: "Mayonnaise", qty: "1", unit: "", threshold: 1, threshold_label: "< 1" },
+  { store: "OZ FOOD", name: "Spicy Mayo", qty: "1", unit: "", threshold: 10, threshold_label: "< 10" },
+  { store: "OZ FOOD", name: "Sriracha", qty: "3", unit: "", threshold: 6, threshold_label: "< 6" },
+  { store: "OZ FOOD", name: "BBQ", qty: "2", unit: "", threshold: 6, threshold_label: "< 6" },
+  { store: "OZ FOOD", name: "Aigre douce", qty: "2", unit: "", threshold: 6, threshold_label: "< 6" },
+  { store: "OZ FOOD", name: "Samouraï", qty: "1 haut/1 bas", unit: "pots", threshold: 1, threshold_label: "< 1 pot" },
+  { store: "OZ FOOD", name: "Andalouse", qty: "1 haut/1 bas", unit: "pots", threshold: 1, threshold_label: "< 1 pot" },
+  { store: "OZ FOOD", name: "Ice tea pêche", qty: "", unit: "paquets", threshold: 3, threshold_label: "< 3 paquets" },
+  { store: "OZ FOOD", name: "Ice tea pétillant", qty: "", unit: "paquets", threshold: 2, threshold_label: "< 2 paquets" },
+  { store: "OZ FOOD", name: "Coca Turca", qty: "", unit: "paquets", threshold: 3, threshold_label: "< 3 paquets" },
+  { store: "OZ FOOD", name: "Eau Spa", qty: "", unit: "paquets", threshold: 3, threshold_label: "< 3 paquets" },
+  { store: "OZ FOOD", name: "Oasis rouge", qty: "", unit: "paquets", threshold: 2, threshold_label: "< 2 paquets" },
+  { store: "OZ FOOD", name: "Oasis mauve", qty: "", unit: "paquets", threshold: 2, threshold_label: "< 2 paquets" },
+  { store: "OZ FOOD", name: "Oasis tropical", qty: "", unit: "paquets", threshold: 2, threshold_label: "< 2 paquets" },
+  { store: "FOOD EX", name: "Gyoza", qty: "en haut", unit: "", threshold: 4, threshold_label: "< 4" },
+  { store: "FOOD EX", name: "Croquette citrouille", qty: "en haut", unit: "", threshold: 4, threshold_label: "< 4" },
+  { store: "TADAL", name: "Fromage", qty: "4", unit: "paquets", threshold: 20, threshold_label: "< 20 paquets" },
+  { store: "TADAL", name: "Takis", qty: "0", unit: "cartons", threshold: 1, threshold_label: "< 1 carton" },
+  { store: "COLRUYT", name: "Farine", qty: "1", unit: "paquets", threshold: 15, threshold_label: "< 15 paquets" },
+  { store: "COLRUYT", name: "Levure", qty: "assez", unit: "", threshold: 3, threshold_label: "< 3" },
+  { store: "COLRUYT", name: "Sucre", qty: "1", unit: "paquets", threshold: 8, threshold_label: "< 8 paquets" },
+  { store: "COLRUYT", name: "Sel", qty: "1", unit: "paquets", threshold: 5, threshold_label: "< 5 paquets" },
+  { store: "COLRUYT", name: "Céréales", qty: "0", unit: "cartons", threshold: 6, threshold_label: "< 6 cartons" },
+  { store: "COLRUYT", name: "Doritos", qty: "1", unit: "cartons", threshold: 1, threshold_label: "< 1 carton" },
+  { store: "COLRUYT", name: "Papier toilette", qty: "0", unit: "", threshold: 6, threshold_label: "< 6" },
+  { store: "COLRUYT", name: "Papier pour les mains", qty: "", unit: "", threshold: 6, threshold_label: "< 6" },
+  { store: "COLRUYT", name: "Sac poubelle 100L", qty: "2", unit: "", threshold: 1, threshold_label: "< 1" },
+  { store: "SILGRO", name: "Patates", qty: "4", unit: "paquets", threshold: 6, threshold_label: "< 6 paquets" },
+  { store: "SILGRO", name: "Oignon frié", qty: "1", unit: "paquets", threshold: 1, threshold_label: "< 1 paquet" },
+  { store: "SILGRO", name: "Barquette frites", qty: "", unit: "paquets", threshold: 6, threshold_label: "< 6 paquets" },
+  { store: "SILGRO", name: "Gants pour les mains", qty: "", unit: "cartons", threshold: 2, threshold_label: "< 2 cartons" },
+  { store: "MAGASIN CHINOIS", name: "Nouilles", qty: "0", unit: "cartons", threshold: 1, threshold_label: "< 1 carton" },
+  { store: "MAGASIN CHINOIS", name: "Baguette", qty: "1", unit: "cartons", threshold: 1, threshold_label: "< 1 carton" },
+  { store: "SAUCE MAISON", name: "Sekai", qty: "0", unit: "", threshold: 3, threshold_label: "< 3" },
 ];
 
 const EVENT_STOCK = [
-  { store: "🧃 OZ FOOD", name: "Saucisse", qty: "", unit: "", threshold: 8, threshold_label: "< 8" },
-  { store: "🧃 OZ FOOD", name: "Huile", qty: "", unit: "", threshold: 4, threshold_label: "< 4" },
-  { store: "🧃 OZ FOOD", name: "Ketchup", qty: "", unit: "", threshold: 2, threshold_label: "< 2" },
-  { store: "🧃 OZ FOOD", name: "Mayonnaise", qty: "", unit: "", threshold: 1, threshold_label: "< 1" },
-  { store: "🧃 OZ FOOD", name: "Spicy Mayo", qty: "", unit: "", threshold: 12, threshold_label: "< 12" },
-  { store: "🧃 OZ FOOD", name: "Sriracha", qty: "", unit: "", threshold: 8, threshold_label: "< 8" },
-  { store: "🧃 OZ FOOD", name: "Aigre douce", qty: "", unit: "", threshold: 10, threshold_label: "< 10" },
-  { store: "🧃 OZ FOOD", name: "Andalouse", qty: "", unit: "", threshold: 1, threshold_label: "< 1" },
-  { store: "🧀 TADAL", name: "Fromage", qty: "", unit: "cartons", threshold: 10, threshold_label: "< 10 cartons" },
-  { store: "🧀 TADAL", name: "Takis", qty: "", unit: "cartons", threshold: 1, threshold_label: "< 1 carton" },
-  { store: "🛒 COLRUYT", name: "Farine", qty: "", unit: "kg", threshold: 100, threshold_label: "< 100 kg" },
-  { store: "🛒 COLRUYT", name: "Levure", qty: "", unit: "paquets", threshold: 1, threshold_label: "< 1 paquet" },
-  { store: "🛒 COLRUYT", name: "Sucre", qty: "", unit: "", threshold: 12, threshold_label: "< 12" },
-  { store: "🛒 COLRUYT", name: "Sel", qty: "", unit: "", threshold: 6, threshold_label: "< 6" },
-  { store: "🛒 COLRUYT", name: "Céréales", qty: "", unit: "paquets", threshold: 12, threshold_label: "< 12 paquets" },
-  { store: "🛒 COLRUYT", name: "Doritos", qty: "", unit: "cartons", threshold: 1, threshold_label: "< 1 carton" },
-  { store: "🛒 COLRUYT", name: "Papier pour les mains", qty: "", unit: "", threshold: 5, threshold_label: "< 5" },
-  { store: "🛒 COLRUYT", name: "Sac poubelle 100L", qty: "", unit: "", threshold: 2, threshold_label: "< 2" },
-  { store: "🥔 SILGRO", name: "Gants pour les mains", qty: "", unit: "paquets", threshold: 3, threshold_label: "< 3 paquets" },
-  { store: "🍜 MAGASIN CHINOIS", name: "Baguette", qty: "", unit: "cartons", threshold: 1, threshold_label: "< 1 carton" },
-  { store: "🍶 SAUCE MAISON", name: "Sekai", qty: "", unit: "", threshold: 3, threshold_label: "< 3" },
-  { store: "🔧 MATÉRIEL", name: "Friteuses", qty: "", unit: "", threshold: 2, threshold_label: "< 2", note: "Prendre au restaurant" },
-  { store: "🔧 MATÉRIEL", name: "Vitrine chauffante", qty: "", unit: "", threshold: 1, threshold_label: "< 1", note: "Prendre au restaurant" },
-  { store: "🔧 MATÉRIEL", name: "Grille + bac corndogs", qty: "", unit: "", threshold: 2, threshold_label: "< 2", note: "Prendre au restaurant" },
-  { store: "🔧 MATÉRIEL", name: "Pinceaux pour sauces", qty: "", unit: "", threshold: 2, threshold_label: "< 2", note: "Prendre au restaurant" },
-  { store: "🔧 MATÉRIEL", name: "Sceau nettoyer friteuse", qty: "", unit: "", threshold: 2, threshold_label: "< 2", note: "Au restaurant" },
-  { store: "🔧 MATÉRIEL", name: "Pelle nettoyer friteuse", qty: "", unit: "", threshold: 2, threshold_label: "< 2", note: "Au restaurant" },
-  { store: "🔧 MATÉRIEL", name: "Hotte portable", qty: "", unit: "", threshold: 0, threshold_label: "Pas obligatoire", note: "" },
-  { store: "🔧 MATÉRIEL", name: "Couteaux", qty: "", unit: "", threshold: 2, threshold_label: "< 2", note: "Prendre au restaurant" },
-  { store: "🔧 MATÉRIEL", name: "Tapis couper fromage", qty: "", unit: "", threshold: 2, threshold_label: "< 2", note: "Prendre au restaurant" },
-  { store: "🔧 MATÉRIEL", name: "Frigo", qty: "", unit: "", threshold: 1, threshold_label: "< 1", note: "Chez Moha" },
-  { store: "🔧 MATÉRIEL", name: "Sceau poubelle", qty: "", unit: "", threshold: 1, threshold_label: "< 1", note: "" },
-  { store: "🔧 MATÉRIEL", name: "Extincteurs", qty: "", unit: "", threshold: 1, threshold_label: "< 1", note: "Vérifier péremption !" },
-  { store: "🔧 MATÉRIEL", name: "Couverture anti feu", qty: "", unit: "", threshold: 1, threshold_label: "< 1", note: "" },
-  { store: "🔧 MATÉRIEL", name: "Plastique protéger sol", qty: "", unit: "", threshold: 1, threshold_label: "< 1", note: "" },
-  { store: "🔧 MATÉRIEL", name: "Papier collant", qty: "", unit: "", threshold: 1, threshold_label: "< 1", note: "" },
-  { store: "🔧 MATÉRIEL", name: "Pot de sauce", qty: "", unit: "", threshold: 12, threshold_label: "< 12", note: "" },
-  { store: "🔧 MATÉRIEL", name: "SumUp", qty: "", unit: "", threshold: 1, threshold_label: "< 1", note: "" },
-  { store: "🔧 MATÉRIEL", name: "Décoration (Sakura etc)", qty: "", unit: "", threshold: 1, threshold_label: "< 1", note: "" },
-  { store: "🔧 MATÉRIEL", name: "Structure trust", qty: "", unit: "", threshold: 1, threshold_label: "< 1", note: "" },
-  { store: "🔧 MATÉRIEL", name: "Diable vert", qty: "", unit: "", threshold: 1, threshold_label: "< 1", note: "" },
-  { store: "🔧 MATÉRIEL", name: "Comptoirs", qty: "", unit: "", threshold: 1, threshold_label: "< 1", note: "" },
-  { store: "🔧 MATÉRIEL", name: "Caisse", qty: "", unit: "", threshold: 1, threshold_label: "< 1", note: "" },
-  { store: "🔧 MATÉRIEL", name: "Monnaie (100€ min)", qty: "", unit: "€", threshold: 100, threshold_label: "< 100€", note: "" },
-  { store: "🔧 MATÉRIEL", name: "T-Shirt employés", qty: "", unit: "", threshold: 4, threshold_label: "< 4", note: "" },
-  { store: "🔧 MATÉRIEL", name: "Hôtel", qty: "", unit: "", threshold: 0, threshold_label: "", note: "Nom de l'hôtel" },
-  { store: "🔧 MATÉRIEL", name: "Camionnettes", qty: "", unit: "", threshold: 0, threshold_label: "Obligatoire !", note: "Nom de la société" },
-  { store: "🔧 MATÉRIEL", name: "Eau / Citerne", qty: "", unit: "litres", threshold: 10, threshold_label: "< 10 litres", note: "" },
-  { store: "🔧 MATÉRIEL", name: "Machine à pâtes", qty: "", unit: "", threshold: 1, threshold_label: "< 1", note: "" },
-  { store: "🔧 MATÉRIEL", name: "Machine à chips", qty: "", unit: "", threshold: 1, threshold_label: "< 1", note: "" },
+  { store: "OZ FOOD", name: "Saucisse", qty: "", unit: "", threshold: 8, threshold_label: "< 8" },
+  { store: "OZ FOOD", name: "Huile", qty: "", unit: "", threshold: 4, threshold_label: "< 4" },
+  { store: "OZ FOOD", name: "Ketchup", qty: "", unit: "", threshold: 2, threshold_label: "< 2" },
+  { store: "OZ FOOD", name: "Mayonnaise", qty: "", unit: "", threshold: 1, threshold_label: "< 1" },
+  { store: "OZ FOOD", name: "Spicy Mayo", qty: "", unit: "", threshold: 12, threshold_label: "< 12" },
+  { store: "OZ FOOD", name: "Sriracha", qty: "", unit: "", threshold: 8, threshold_label: "< 8" },
+  { store: "OZ FOOD", name: "Aigre douce", qty: "", unit: "", threshold: 10, threshold_label: "< 10" },
+  { store: "OZ FOOD", name: "Andalouse", qty: "", unit: "", threshold: 1, threshold_label: "< 1" },
+  { store: "TADAL", name: "Fromage", qty: "", unit: "cartons", threshold: 10, threshold_label: "< 10 cartons" },
+  { store: "TADAL", name: "Takis", qty: "", unit: "cartons", threshold: 1, threshold_label: "< 1 carton" },
+  { store: "COLRUYT", name: "Farine", qty: "", unit: "kg", threshold: 100, threshold_label: "< 100 kg" },
+  { store: "COLRUYT", name: "Levure", qty: "", unit: "paquets", threshold: 1, threshold_label: "< 1 paquet" },
+  { store: "COLRUYT", name: "Sucre", qty: "", unit: "", threshold: 12, threshold_label: "< 12" },
+  { store: "COLRUYT", name: "Sel", qty: "", unit: "", threshold: 6, threshold_label: "< 6" },
+  { store: "COLRUYT", name: "Céréales", qty: "", unit: "paquets", threshold: 12, threshold_label: "< 12 paquets" },
+  { store: "COLRUYT", name: "Doritos", qty: "", unit: "cartons", threshold: 1, threshold_label: "< 1 carton" },
+  { store: "COLRUYT", name: "Papier pour les mains", qty: "", unit: "", threshold: 5, threshold_label: "< 5" },
+  { store: "COLRUYT", name: "Sac poubelle 100L", qty: "", unit: "", threshold: 2, threshold_label: "< 2" },
+  { store: "SILGRO", name: "Gants pour les mains", qty: "", unit: "paquets", threshold: 3, threshold_label: "< 3 paquets" },
+  { store: "MAGASIN CHINOIS", name: "Baguette", qty: "", unit: "cartons", threshold: 1, threshold_label: "< 1 carton" },
+  { store: "SAUCE MAISON", name: "Sekai", qty: "", unit: "", threshold: 3, threshold_label: "< 3" },
+  { store: "MATÉRIEL", name: "Friteuses", qty: "", unit: "", threshold: 2, threshold_label: "< 2", note: "Prendre au restaurant" },
+  { store: "MATÉRIEL", name: "Vitrine chauffante", qty: "", unit: "", threshold: 1, threshold_label: "< 1", note: "Prendre au restaurant" },
+  { store: "MATÉRIEL", name: "Grille + bac corndogs", qty: "", unit: "", threshold: 2, threshold_label: "< 2", note: "Prendre au restaurant" },
+  { store: "MATÉRIEL", name: "Pinceaux pour sauces", qty: "", unit: "", threshold: 2, threshold_label: "< 2", note: "Prendre au restaurant" },
+  { store: "MATÉRIEL", name: "Sceau nettoyer friteuse", qty: "", unit: "", threshold: 2, threshold_label: "< 2", note: "Au restaurant" },
+  { store: "MATÉRIEL", name: "Pelle nettoyer friteuse", qty: "", unit: "", threshold: 2, threshold_label: "< 2", note: "Au restaurant" },
+  { store: "MATÉRIEL", name: "Hotte portable", qty: "", unit: "", threshold: 0, threshold_label: "Pas obligatoire", note: "" },
+  { store: "MATÉRIEL", name: "Couteaux", qty: "", unit: "", threshold: 2, threshold_label: "< 2", note: "Prendre au restaurant" },
+  { store: "MATÉRIEL", name: "Tapis couper fromage", qty: "", unit: "", threshold: 2, threshold_label: "< 2", note: "Prendre au restaurant" },
+  { store: "MATÉRIEL", name: "Frigo", qty: "", unit: "", threshold: 1, threshold_label: "< 1", note: "Chez Moha" },
+  { store: "MATÉRIEL", name: "Sceau poubelle", qty: "", unit: "", threshold: 1, threshold_label: "< 1", note: "" },
+  { store: "MATÉRIEL", name: "Extincteurs", qty: "", unit: "", threshold: 1, threshold_label: "< 1", note: "Vérifier péremption !" },
+  { store: "MATÉRIEL", name: "Couverture anti feu", qty: "", unit: "", threshold: 1, threshold_label: "< 1", note: "" },
+  { store: "MATÉRIEL", name: "Plastique protéger sol", qty: "", unit: "", threshold: 1, threshold_label: "< 1", note: "" },
+  { store: "MATÉRIEL", name: "Papier collant", qty: "", unit: "", threshold: 1, threshold_label: "< 1", note: "" },
+  { store: "MATÉRIEL", name: "Pot de sauce", qty: "", unit: "", threshold: 12, threshold_label: "< 12", note: "" },
+  { store: "MATÉRIEL", name: "SumUp", qty: "", unit: "", threshold: 1, threshold_label: "< 1", note: "" },
+  { store: "MATÉRIEL", name: "Décoration (Sakura etc)", qty: "", unit: "", threshold: 1, threshold_label: "< 1", note: "" },
+  { store: "MATÉRIEL", name: "Structure trust", qty: "", unit: "", threshold: 1, threshold_label: "< 1", note: "" },
+  { store: "MATÉRIEL", name: "Diable vert", qty: "", unit: "", threshold: 1, threshold_label: "< 1", note: "" },
+  { store: "MATÉRIEL", name: "Comptoirs", qty: "", unit: "", threshold: 1, threshold_label: "< 1", note: "" },
+  { store: "MATÉRIEL", name: "Caisse", qty: "", unit: "", threshold: 1, threshold_label: "< 1", note: "" },
+  { store: "MATÉRIEL", name: "Monnaie (100€ min)", qty: "", unit: "€", threshold: 100, threshold_label: "< 100€", note: "" },
+  { store: "MATÉRIEL", name: "T-Shirt employés", qty: "", unit: "", threshold: 4, threshold_label: "< 4", note: "" },
+  { store: "MATÉRIEL", name: "Hôtel", qty: "", unit: "", threshold: 0, threshold_label: "", note: "Nom de l'hôtel" },
+  { store: "MATÉRIEL", name: "Camionnettes", qty: "", unit: "", threshold: 0, threshold_label: "Obligatoire !", note: "Nom de la société" },
+  { store: "MATÉRIEL", name: "Eau / Citerne", qty: "", unit: "litres", threshold: 10, threshold_label: "< 10 litres", note: "" },
+  { store: "MATÉRIEL", name: "Machine à pâtes", qty: "", unit: "", threshold: 1, threshold_label: "< 1", note: "" },
+  { store: "MATÉRIEL", name: "Machine à chips", qty: "", unit: "", threshold: 1, threshold_label: "< 1", note: "" },
 ];
 
-const STORE_ORDER_RUE_NEUVE = ["🧃 OZ FOOD","🥟 FOOD EX","🧀 TADAL","🛒 COLRUYT","🥔 SILGRO","🍜 MAGASIN CHINOIS","🍶 SAUCE MAISON"];
-const STORE_ORDER_EVENT = ["🧃 OZ FOOD","🧀 TADAL","🛒 COLRUYT","🥔 SILGRO","🍜 MAGASIN CHINOIS","🍶 SAUCE MAISON","🔧 MATÉRIEL"];
+const STORE_ORDER_RUE_NEUVE = ["OZ FOOD","FOOD EX","TADAL","COLRUYT","SILGRO","MAGASIN CHINOIS","SAUCE MAISON"];
+const STORE_ORDER_EVENT = ["OZ FOOD","TADAL","COLRUYT","SILGRO","MAGASIN CHINOIS","SAUCE MAISON","MATÉRIEL"];
 
 function isLow(item) {
   if (item.threshold === 0) return false;
@@ -2463,7 +2463,7 @@ export default function App() {
             <div style={{ display: "flex", gap: "0.4rem" }}>
               <select value={horaireRestaurant} onChange={e => { setHoraireRestaurant(e.target.value); setHoraires([]); fetchHoraires(e.target.value); }}
                 style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#e8213a", borderRadius: "8px", padding: "0.3rem 0.5rem", fontSize: "0.75rem", fontFamily: "'Poppins', sans-serif" }}>
-                {RESTAURANTS.map(r => <option key={r.id} value={r.id}>{r.emoji} {r.name}</option>)}
+                {RESTAURANTS.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
               </select>
               <button onClick={() => fetchHoraires(horaireRestaurant)}
                 style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#a07848", borderRadius: "8px", padding: "0.3rem 0.6rem", fontSize: "0.8rem", cursor: "pointer" }}><RefreshCw size={16} /></button>
@@ -2543,7 +2543,7 @@ export default function App() {
                 {isAdmin && (
                   <select value={heuresEmployeFilter} onChange={e => setHeuresEmployeFilter(e.target.value)}
                     style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", borderRadius: "10px", padding: "0.6rem 0.9rem", fontSize: "0.9rem", fontFamily: "'Poppins', sans-serif", width: "100%", marginBottom: "0.8rem", boxSizing: "border-box" as const }}>
-                    <option value="">👥 Tous les employés (récap)</option>
+                    <option value="">Tous les employés (récap)</option>
                     {nomsEmployes.map(n => <option key={n} value={n}>{n}</option>)}
                   </select>
                 )}
@@ -2865,8 +2865,8 @@ export default function App() {
                 <select value={newEventStand} onChange={e => setNewEventStand(e.target.value)}
                   style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", fontFamily: "'Poppins', sans-serif", outline: "none", width: "100%" }}>
                   <option value="">Aucun stand spécifique (optionnel)</option>
-                  <option value="event-1">🎪 Event 1</option>
-                  <option value="event-2">🎪 Event 2</option>
+                  <option value="event-1">Event 1</option>
+                  <option value="event-2">Event 2</option>
                 </select>
 
                 <div style={{ color: "#a07848", fontSize: "0.78rem", marginTop: "0.3rem", display: "flex", alignItems: "center", gap: "5px" }}><Users size={13} /> Pré-assigner des personnes <span style={{ color: "#c8a878" }}>(optionnel)</span></div>
@@ -3148,7 +3148,7 @@ export default function App() {
                       }}>
                         <div>
                           <div style={{ color: "#3d1a0a", fontSize: "0.85rem", fontWeight: "600", textTransform: "capitalize" }}>
-                            {j.dateStr === todayEmpStr ? "" : ""}{formatDateShort(j.dateStr)}
+                            {j.dateStr === todayEmpStr && <span style={{ display: "inline-block", width: "7px", height: "7px", borderRadius: "50%", background: "#4caf50", marginRight: "5px" }} />}{formatDateShort(j.dateStr)}
                           </div>
                           {j.estRemplace && <div style={{ color: "#e8213a", fontSize: "0.7rem" }}>Remplacé</div>}
                           {j.type === "extra" && <div style={{ color: "#4caf50", fontSize: "0.7rem" }}>Heure extra</div>}
@@ -3178,7 +3178,7 @@ export default function App() {
                   todoTaches.filter(t => t.statut === "fait" && t.completed_by).forEach(t => { pts[t.completed_by] = (pts[t.completed_by] || 0) + (t.points || 0); });
                   const sorted: any = Object.entries(pts).sort((a: any, b: any) => b[1] - a[1]).slice(0, 3);
                   if (sorted.length === 0) return <div style={{ color: "#c8a878", fontSize: "0.85rem" }}>Aucune tâche complétée</div>;
-                  const medals = ["🥇", "🥈", "🥉"];
+                  const medals = ["1er", "2e", "3e"];
                   return sorted.map(([nom, p]: any, i: number) => (
                     <div key={nom} style={{ display: "flex", justifyContent: "space-between", padding: "0.4rem 0", borderTop: i > 0 ? "1px solid #f0d8b8" : "none" }}>
                       <div style={{ color: "#3d1a0a", fontSize: "0.95rem", fontWeight: "bold" }}>{medals[i]} {nom}</div>
@@ -3753,7 +3753,7 @@ export default function App() {
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "0.4rem" }}>
                         <div>
                           <div style={{ color: "#3d1a0a", fontSize: "0.95rem", fontWeight: "bold" }}>
-                            {rentable===true ? "" : rentable===false ? "" : ""}{ev.nom}
+                            <span style={{ display: "inline-block", width: "8px", height: "8px", borderRadius: "50%", marginRight: "6px", background: rentable===true ? "#4caf50" : rentable===false ? "#e8213a" : "#c8a878" }} />{ev.nom}
                           </div>
                           {ev.date_event && <div style={{ color: "#a07848", fontSize: "0.72rem" }}>{new Date(ev.date_event+"T12:00:00").toLocaleDateString("fr-BE", { day:"numeric", month:"long", year:"numeric" })}</div>}
                         </div>
@@ -4026,8 +4026,8 @@ export default function App() {
               </div>
               {todoRecurrente && (
                 <select value={todoFrequence} onChange={e => setTodoFrequence(e.target.value)} style={{ background: "#faebd7", border: "1px solid #f5c842", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", outline: "none", width: "100%", fontFamily: "'Poppins', sans-serif" }}>
-                  <option value="hebdo">📅 Hebdomadaire</option>
-                  <option value="mensuel">📅 Mensuel</option>
+                  <option value="hebdo">Hebdomadaire</option>
+                  <option value="mensuel">Mensuel</option>
                 </select>
               )}
               <button onClick={handleAddTodoTache} style={{ background: "#e8213a", color: "#fff", border: "none", padding: "0.9rem", borderRadius: "10px", fontWeight: "bold", fontSize: "1rem", cursor: "pointer", width: "100%", fontFamily: "'Poppins', sans-serif" }}>Ajouter</button>
@@ -4074,16 +4074,16 @@ export default function App() {
               <input autoFocus value={newChargeNom} onChange={e => setNewChargeNom(e.target.value)} placeholder="Nom (ex: Loyer)" style={{ background: "#faebd7", border: "1px solid #f5c842", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "1rem", outline: "none", width: "100%", boxSizing: "border-box" as const, fontFamily: "'Poppins', sans-serif" }} />
               <input value={newChargeMontant} onChange={e => setNewChargeMontant(e.target.value.replace(",", "."))} placeholder="Montant mensuel (€)" inputMode="decimal" type="text" style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "1rem", outline: "none", width: "100%", boxSizing: "border-box" as const, fontFamily: "'Poppins', sans-serif" }} />
               <select value={newChargeCategorie} onChange={e => setNewChargeCategorie(e.target.value)} style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", fontFamily: "'Poppins', sans-serif", outline: "none", width: "100%" }}>
-                <option value="loyer">🏠 Loyer</option>
-                <option value="energie">⚡ Énergie</option>
-                <option value="telecom">📡 Télécom</option>
-                <option value="voiture">🚗 Voiture</option>
-                <option value="salaire">👤 Salaire gérant</option>
-                <option value="comptable">📊 Comptable</option>
-                <option value="cotisation">💼 Cotisation</option>
-                <option value="marketing">📣 Marketing</option>
-                <option value="personnel">👥 Personnel</option>
-                <option value="autre">📦 Autre</option>
+                <option value="loyer">Loyer</option>
+                <option value="energie">Énergie</option>
+                <option value="telecom">Télécom</option>
+                <option value="voiture">Voiture</option>
+                <option value="salaire">Salaire gérant</option>
+                <option value="comptable">Comptable</option>
+                <option value="cotisation">Cotisation</option>
+                <option value="marketing">Marketing</option>
+                <option value="personnel">Personnel</option>
+                <option value="autre">Autre</option>
               </select>
               <button onClick={handleAddCharge} style={{ background: "#e8213a", color: "#fff", border: "none", padding: "0.9rem", borderRadius: "10px", fontWeight: "bold", fontSize: "1rem", cursor: "pointer", width: "100%", fontFamily: "'Poppins', sans-serif" }}>Enregistrer</button>
             </div>
@@ -4165,17 +4165,17 @@ export default function App() {
                 style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", outline: "none", width: "100%", boxSizing: "border-box" as const, fontFamily: "'Poppins', sans-serif" }} />
               <select value={editingCharge.categorie} onChange={e => setEditingCharge({ ...editingCharge, categorie: e.target.value })}
                 style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", fontFamily: "'Poppins', sans-serif", outline: "none", width: "100%" }}>
-                <option value="salaire">💼 Salaire</option>
-                <option value="personnel">👥 Personnel</option>
-                <option value="loyer">🏠 Loyer</option>
-                <option value="voiture">🚗 Voiture</option>
-                <option value="tva">🧾 TVA</option>
-                <option value="cotisation">📋 Cotisation</option>
-                <option value="marketing">📣 Marketing</option>
-                <option value="comptable">🧮 Comptable</option>
-                <option value="energie">⚡ Énergie</option>
-                <option value="telecom">📞 Télécom</option>
-                <option value="autre">📦 Autre</option>
+                <option value="salaire">Salaire</option>
+                <option value="personnel">Personnel</option>
+                <option value="loyer">Loyer</option>
+                <option value="voiture">Voiture</option>
+                <option value="tva">TVA</option>
+                <option value="cotisation">Cotisation</option>
+                <option value="marketing">Marketing</option>
+                <option value="comptable">Comptable</option>
+                <option value="energie">Énergie</option>
+                <option value="telecom">Télécom</option>
+                <option value="autre">Autre</option>
               </select>
               <button onClick={() => handleUpdateCharge(editingCharge)} style={{ background: "#e8213a", color: "#fff", border: "none", padding: "0.9rem", borderRadius: "10px", fontWeight: "bold", fontSize: "1rem", cursor: "pointer", width: "100%", fontFamily: "'Poppins', sans-serif" }}>Enregistrer</button>
             </div>
@@ -4326,9 +4326,9 @@ export default function App() {
                     <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
                       <div style={{ color: "#e8213a", fontWeight: "bold", fontSize: "0.9rem" }}>{u.prenom} — Infos paie</div>
                       <select value={editingPaieUser.type_contrat || "etudiant"} onChange={e => setEditingPaieUser(p => ({ ...p, type_contrat: e.target.value }))} style={inpS}>
-                        <option value="etudiant">🎓 Étudiant (cotis. solidarité 2,71%)</option>
-                        <option value="flexi">⚡ Flexi-job (brut = net)</option>
-                        <option value="cdi">📋 CDI (ONSS 13,07%)</option>
+                        <option value="etudiant">Étudiant (cotis. solidarité 2,71%)</option>
+                        <option value="flexi">Flexi-job (brut = net)</option>
+                        <option value="cdi">CDI (ONSS 13,07%)</option>
                       </select>
                       <div style={{ display: "flex", gap: "0.5rem" }}>
                         <input value={editingPaieUser.age_employe || ""} onChange={e => setEditingPaieUser(p => ({ ...p, age_employe: e.target.value }))} placeholder="Âge (ex: 19)" inputMode="numeric" style={{ ...inpS, flex: 1 }} />
@@ -4628,7 +4628,7 @@ export default function App() {
               <input value={newPwd2} onChange={e => setNewPwd2(e.target.value)} placeholder="Confirmer le nouveau mot de passe" type={showNewPwd2 ? "text" : "password"} style={{ ...inputStyle, paddingRight: "3rem" }} />
               <button onClick={() => setShowNewPwd2(p => !p)} style={{ position: "absolute", right: "0.75rem", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", fontSize: "1.1rem", padding: 0 }}>{showNewPwd2 ? <EyeOff size={18} color="#c8a878" /> : <Eye size={18} color="#c8a878" />}</button>
             </div>
-            {pwdMsg && <p style={{ color: pwdMsg.startsWith("") ? "#5cb85c" : "#e57373", fontSize: "0.85rem", margin: 0 }}>{pwdMsg}</p>}
+            {pwdMsg && <p style={{ color: pwdMsg.startsWith("✅") ? "#5cb85c" : "#e57373", fontSize: "0.85rem", margin: 0 }}>{pwdMsg.replace(/^[^A-Za-zÀ-ÿ0-9]+/, "").trim()}</p>}
             <div style={{ display: "flex", gap: "0.5rem" }}>
               <button onClick={handleChangePwd} style={{ ...btnPrimary, flex: 1 }}>Confirmer</button>
               <button onClick={() => { setShowChangePwd(false); setOldPwd(""); setNewPwd(""); setNewPwd2(""); setPwdMsg(""); }} style={{ background: "#faebd7", color: "#c8a878", border: "none", padding: "0.9rem 1rem", borderRadius: "10px", cursor: "pointer" }}><X size={16} /></button>
@@ -4703,7 +4703,7 @@ export default function App() {
               </div>
               {isAdmin && (
                 <select value={docUploadEmploye} onChange={e => setDocUploadEmploye(e.target.value)} style={inputStyle}>
-                  <option value="">👤 Choisir l'employé...</option>
+                  <option value="">Choisir l'employé...</option>
                   {allUsers.map((u: any) => <option key={u.id} value={u.prenom}>{u.prenom}</option>)}
                 </select>
               )}
@@ -4738,13 +4738,13 @@ export default function App() {
           <input value={newUserPrenom} onChange={e => setNewUserPrenom(e.target.value)} placeholder="Prénom..." style={inputStyle} />
           <input value={newUserPassword} onChange={e => setNewUserPassword(e.target.value)} placeholder="Mot de passe..." style={inputStyle} />
           <select value={newUserRole} onChange={e => setNewUserRole(e.target.value)} style={inputStyle}>
-            <option value="employe">👤 Employé</option>
-            <option value="admin">🔑 Admin</option>
-            {isSuperAdmin && <option value="superadmin">👑 Super Admin</option>}
+            <option value="employe">Employé</option>
+            <option value="admin">Admin</option>
+            {isSuperAdmin && <option value="superadmin">Super Admin</option>}
           </select>
           <select value={newUserRestaurant} onChange={e => setNewUserRestaurant(e.target.value)} style={inputStyle}>
             <option value="">Tous les restaurants</option>
-            {RESTAURANTS.map(r => <option key={r.id} value={r.id}>{r.emoji} {r.name}</option>)}
+            {RESTAURANTS.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
           </select>
 
           <div style={{ color: "#a07848", fontSize: "0.72rem", fontWeight: "bold", marginTop: "0.3rem", borderTop: "1px dashed #f0d8b8", paddingTop: "0.6rem" }}>INFOS CONTRAT (pour générer la fiche)</div>
@@ -4754,9 +4754,9 @@ export default function App() {
           <input value={newUserNrn} onChange={e => setNewUserNrn(e.target.value)} placeholder="No. Registre National (optionnel)" style={inputStyle} />
           <input value={newUserIban} onChange={e => setNewUserIban(e.target.value)} placeholder="IBAN (BE...)" style={inputStyle} />
           <select value={newUserType} onChange={e => setNewUserType(e.target.value)} style={inputStyle}>
-            <option value="etudiant">🎓 Étudiant</option>
-            <option value="flexi">⚡ Flexi-job</option>
-            <option value="cdi">📋 CDI</option>
+            <option value="etudiant">Étudiant</option>
+            <option value="flexi">Flexi-job</option>
+            <option value="cdi">CDI</option>
           </select>
           <label style={{ display: "flex", alignItems: "center", gap: "0.6rem", color: "#3d1a0a", fontSize: "0.85rem", cursor: "pointer" }}>
             <input type="checkbox" checked={newUserGenContrat} onChange={e => setNewUserGenContrat(e.target.checked)} style={{ width: "1.1rem", height: "1.1rem", accentColor: "#e8213a" }} />
@@ -4776,13 +4776,13 @@ export default function App() {
               <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
                 <input value={editingUser.prenom} onChange={e => setEditingUser(prev => ({ ...prev, prenom: e.target.value }))} style={inputStyle} />
                 <select value={editingUser.role} onChange={e => setEditingUser(prev => ({ ...prev, role: e.target.value }))} style={inputStyle}>
-                  <option value="employe">👤 Employé</option>
-                  <option value="admin">🔑 Admin</option>
-                  {isSuperAdmin && <option value="superadmin">👑 Super Admin</option>}
+                  <option value="employe">Employé</option>
+                  <option value="admin">Admin</option>
+                  {isSuperAdmin && <option value="superadmin">Super Admin</option>}
                 </select>
                 <select value={editingUser.restaurant_id || ""} onChange={e => setEditingUser(prev => ({ ...prev, restaurant_id: e.target.value }))} style={inputStyle}>
                   <option value="">Tous les restaurants</option>
-                  {RESTAURANTS.map(r => <option key={r.id} value={r.id}>{r.emoji} {r.name}</option>)}
+                  {RESTAURANTS.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
                 </select>
                 <div style={{ display: "flex", gap: "0.5rem" }}>
                   <button onClick={handleUpdateUser} style={{ ...btnPrimary, flex: 1 }}>Sauvegarder</button>
@@ -4858,7 +4858,7 @@ export default function App() {
                     style={{ background: "#fff8f0", border: "1.5px solid " + (isComplete ? "#4caf5033" : "#f5a62355"), borderRadius: "12px", padding: "1rem", marginBottom: "0.5rem", cursor: "pointer" }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                       <div>
-                        <div style={{ color: isComplete ? "#4caf50" : "#e8213a", fontSize: "0.95rem", fontWeight: "bold" }}>{isComplete ? "" : "⏳"} {new Date(f.date + "T12:00:00").toLocaleDateString("fr-BE", { weekday: "short", day: "numeric", month: "short" })}</div>
+                        <div style={{ color: isComplete ? "#4caf50" : "#e8213a", fontSize: "0.95rem", fontWeight: "bold", display: "flex", alignItems: "center", gap: "6px" }}>{isComplete ? <CheckCircle size={15} /> : <Clock size={15} />} {new Date(f.date + "T12:00:00").toLocaleDateString("fr-BE", { weekday: "short", day: "numeric", month: "short" })}</div>
                         <div style={{ color: "#a07848", fontSize: "0.78rem", marginTop: "0.2rem" }}>{f.nom_personne}</div>
                       </div>
                       <div style={{ textAlign: "right" }}>
@@ -5007,7 +5007,7 @@ export default function App() {
         {RESTAURANTS.map(r => (
           <button key={r.id} onClick={() => { setRestaurant(r); loadData(r); }}
             style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "12px", padding: "1.1rem 1.2rem", display: "flex", alignItems: "center", gap: "1rem", cursor: "pointer", textAlign: "left", width: "100%" }}>
-            <div style={{ fontSize: "2rem" }}>{r.emoji}</div>
+            <div style={{ width: "2.6rem", height: "2.6rem", borderRadius: "12px", background: "#fff0f0", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><r.Icon size={22} color="#e8213a" /></div>
             <div>
               <div style={{ color: "#3d1a0a", fontSize: "1rem", fontWeight: "700" }}>{r.name}</div>
               <div style={{ color: "#a07848", fontSize: "0.78rem" }}>{r.subtitle}</div>
@@ -5061,7 +5061,7 @@ export default function App() {
           <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
             <button onClick={() => { setRestaurant(null); setItems([]); }} style={{ background: "none", border: "none", color: "#ffffff", fontSize: "1.4rem", cursor: "pointer", padding: 0 }}><ArrowLeft size={20} /></button>
             <div>
-              <h1 style={{ color: "#ffffff", fontSize: "1.1rem", fontWeight: "bold", margin: 0 }}>{restaurant?.emoji} {restaurant?.name}</h1>
+              <h1 style={{ color: "#ffffff", fontSize: "1.1rem", fontWeight: "bold", margin: 0 }}>{restaurant?.name}</h1>
               <p style={{ color: "#ffffff99", fontSize: "0.72rem", margin: 0 }}>{getTodayStr()} · {currentUser.prenom}</p>
             </div>
           </div>
