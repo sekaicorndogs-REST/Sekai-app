@@ -3280,7 +3280,7 @@ export default function App() {
         {/* ── DETTES ── */}
         {financesView === "dettes" && (
           <div style={{ padding: "0.8rem 1.1rem" }}>
-            {financesLoading && <div style={{ textAlign: "center", padding: "2rem", color: "#e8213a" }}>⏳ Chargement...</div>}
+            {financesLoading && <div style={{ textAlign: "center", padding: "2rem", color: "#e8213a" }}>Chargement...</div>}
             {!financesLoading && (
               <>
                 <div style={{ background: "#fff5f5", border: "1.5px solid #e8213a44", borderRadius: "12px", padding: "0.9rem 1rem", marginBottom: "1rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -3538,14 +3538,14 @@ export default function App() {
           <div style={{ padding: "0.8rem 1.1rem" }}>
             {/* Sub-tabs */}
             <div style={{ display: "flex", gap: "0.4rem", marginBottom: "0.8rem" }}>
-              {([{id:"simu",label:"🧮 Simulateur"},{id:"analyse",label:"📊 Analyse"}] as const).map(t => (
+              {([{id:"simu",label:"Simulateur",Icon:Percent},{id:"analyse",label:"Analyse",Icon:TrendingUp}] as const).map(t => (
                 <button key={t.id} onClick={() => setCarteView(t.id)}
-                  style={{ background: carteView===t.id ? "#e8213a" : "#1e1e1e", color: carteView===t.id ? "#fff" : "#888", border: "none", borderRadius: "8px", padding: "0.35rem 0.9rem", fontSize: "0.78rem", fontFamily: "'Poppins', sans-serif", fontWeight: carteView===t.id ? "bold" : "normal", cursor: "pointer" }}>
-                  {t.label}
+                  style={{ background: carteView===t.id ? "#e8213a" : "#fff", color: carteView===t.id ? "#fff" : "#a07848", border: `1px solid ${carteView===t.id ? "#e8213a" : "#efe0c9"}`, borderRadius: "20px", padding: "0.4rem 0.85rem", fontSize: "0.78rem", fontFamily: "'Poppins', sans-serif", fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: "5px" }}>
+                  <t.Icon size={14} /> {t.label}
                 </button>
               ))}
             </div>
-            {menuLoading && <div style={{ textAlign: "center", padding: "2rem", color: "#e8213a" }}>⏳ Chargement...</div>}
+            {menuLoading && <div style={{ textAlign: "center", padding: "2rem", color: "#e8213a" }}>Chargement...</div>}
             {!menuLoading && (() => {
               // Chapelures connues (par nom)
               const CHAPELURES: {nom: string, supplement: number, cout: number}[] = [
@@ -3558,7 +3558,7 @@ export default function App() {
                 { nom: "Ultra Spicy",     supplement: 1,   cout: 0.07 },
               ];
               const fcColor = (pct: number) => pct < 20 ? "#4caf50" : pct < 28 ? "#2196f3" : pct < 35 ? "#f5a623" : "#e8213a";
-              const fcLabel = (pct: number) => pct < 20 ? "🏆" : pct < 28 ? "✅" : pct < 35 ? "⚠️" : "❌";
+              const fcLabel = (pct: number) => pct < 20 ? "Excellent" : pct < 28 ? "Bon" : pct < 35 ? "Limite" : "À revoir";
 
               // Calcul coût base pour un produit (sans chapelure)
               const getCoutBase = (produitId: number) => {
@@ -3701,7 +3701,7 @@ export default function App() {
                           const color = fcColor(pct);
                           return (
                             <div key={chap.nom} style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.3rem 0.5rem", borderRadius: "7px", marginBottom: "0.2rem", background: color + "11", border: `1px solid ${color}22` }}>
-                              <span style={{ fontSize: "0.78rem" }}>{fcLabel(pct)}</span>
+                              <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: color, flexShrink: 0 }} />
                               <span style={{ color: "#3d1a0a", fontSize: "0.8rem", fontWeight: "600", flex: 1 }}>
                                 {chap.nom}{chap.supplement > 0 && <span style={{ color: "#e8213a", fontSize: "0.68rem" }}> +{chap.supplement}€</span>}
                               </span>
@@ -3726,10 +3726,10 @@ export default function App() {
           <div style={{ padding: "0.8rem 1.1rem" }}>
             {/* Sub-tabs */}
             <div style={{ display: "flex", gap: "0.4rem", marginBottom: "0.8rem" }}>
-              {[{id:"historique",label:"📋 Historique"},{id:"form",label:"➕ Nouvel event"}].map(t => (
+              {[{id:"historique",label:"Historique",Icon:ListChecks},{id:"form",label:"Nouvel event",Icon:Plus}].map(t => (
                 <button key={t.id} onClick={() => { setEventView(t.id as any); if (t.id==="historique") loadEvents(); if (t.id==="form") { resetEventForm(); setShowEventForm(true); } }}
-                  style={{ background: eventView===t.id ? "#e8213a" : "#1e1e1e", color: eventView===t.id ? "#fff" : "#888", border: "none", borderRadius: "8px", padding: "0.35rem 0.9rem", fontSize: "0.78rem", fontFamily: "'Poppins', sans-serif", fontWeight: eventView===t.id ? "bold" : "normal", cursor: "pointer" }}>
-                  {t.label}
+                  style={{ background: eventView===t.id ? "#e8213a" : "#fff", color: eventView===t.id ? "#fff" : "#a07848", border: `1px solid ${eventView===t.id ? "#e8213a" : "#efe0c9"}`, borderRadius: "20px", padding: "0.4rem 0.85rem", fontSize: "0.78rem", fontFamily: "'Poppins', sans-serif", fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: "5px" }}>
+                  <t.Icon size={14} /> {t.label}
                 </button>
               ))}
             </div>
@@ -3737,7 +3737,7 @@ export default function App() {
             {/* Historique */}
             {eventView === "historique" && (
               <div>
-                {eventsLoading && <div style={{ textAlign: "center", padding: "2rem", color: "#e8213a" }}>⏳ Chargement...</div>}
+                {eventsLoading && <div style={{ textAlign: "center", padding: "2rem", color: "#e8213a" }}>Chargement...</div>}
                 {!eventsLoading && events.length === 0 && <div style={{ color: "#c8a878", textAlign: "center", padding: "3rem", fontSize: "0.85rem" }}>Aucun event enregistré</div>}
                 {events.map(ev => {
                   const locPct = ev.cout_location_mode === "pct" ? (parseFloat(ev.cout_location_pct)||0)/100 : 0;
@@ -4265,7 +4265,7 @@ export default function App() {
                 <button onClick={() => { setPaieEmployeId(""); setPaieHeures(""); const now = new Date(); const y = now.getFullYear(); const m = String(now.getMonth()+1).padStart(2,"0"); const firstDay = `${y}-${m}-01`; const lastDay = new Date(y, now.getMonth()+1, 0).toISOString().slice(0,10); setPaieDebut(firstDay); setPaieFin(lastDay); setPaiePeriode(`${y}-${m}`); setPaieNote(""); setShowNouvelleFiche(true); }}
                   style={{ background: "#e8213a", border: "none", color: "#fff", borderRadius: "8px", padding: "0.4rem 0.9rem", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", fontSize: "0.82rem", cursor: "pointer" }}>+ Nouvelle fiche</button>
               </div>
-              {paieLoading && <div style={{ textAlign: "center", padding: "2rem", color: "#e8213a" }}>⏳ Chargement...</div>}
+              {paieLoading && <div style={{ textAlign: "center", padding: "2rem", color: "#e8213a" }}>Chargement...</div>}
               {!paieLoading && fichesPaie.length === 0 && <div style={{ textAlign: "center", padding: "2rem", color: "#c8a878", fontSize: "0.85rem" }}>Aucune fiche générée</div>}
               {fichesPaie.map(f => (
                 <div key={f.id} style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "12px", padding: "1rem", marginBottom: "0.6rem" }}>
@@ -4644,7 +4644,7 @@ export default function App() {
               <Plus size={13} /> Ajouter
             </button>
           </div>
-          {documentsLoading && <div style={{ color: "#c8a878", fontSize: "0.82rem", textAlign: "center", padding: "0.8rem" }}>⏳ Chargement...</div>}
+          {documentsLoading && <div style={{ color: "#c8a878", fontSize: "0.82rem", textAlign: "center", padding: "0.8rem" }}>Chargement...</div>}
           {(() => {
             const mesDocs = isAdmin ? documents : documents.filter(d => d.employe_nom === currentUser.prenom);
             if (!documentsLoading && mesDocs.length === 0) return <div style={{ color: "#c8a878", fontSize: "0.82rem", textAlign: "center", padding: "0.8rem" }}>Aucun document</div>;
@@ -4709,7 +4709,7 @@ export default function App() {
               )}
               <input value={docUploadTitre} onChange={e => setDocUploadTitre(e.target.value)} placeholder="Titre (ex: Contrat) — optionnel" style={inputStyle} />
               <label style={{ background: "#e8213a", color: "#fff", padding: "0.9rem", borderRadius: "10px", fontWeight: "bold", fontSize: "0.95rem", cursor: "pointer", textAlign: "center", fontFamily: "'Poppins', sans-serif" }}>
-                {docUploading ? "⏳ Envoi..." : "📎 Choisir un PDF"}
+                {docUploading ? "Envoi..." : "Choisir un PDF"}
                 <input type="file" accept="application/pdf" disabled={docUploading} onChange={e => { const f = e.target.files?.[0]; if (f) handleUploadDocument(f); }} style={{ display: "none" }} />
               </label>
               <div style={{ color: "#a07848", fontSize: "0.7rem", textAlign: "center" }}>PDF · max 8 Mo</div>
@@ -5139,7 +5139,7 @@ export default function App() {
                     ))}
                   </div>
                   <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.75rem" }}>
-                    <button onClick={() => saveQty(item.id)} disabled={saving} style={{ flex: 1, background: saving ? "#c8a878" : "#e8213a", color: "#ffffff", border: "none", padding: "0.8rem", borderRadius: "8px", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", fontSize: "0.95rem", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}>{saving ? "⏳..." : <><Save size={15} /> Enregistrer</>}</button>
+                    <button onClick={() => saveQty(item.id)} disabled={saving} style={{ flex: 1, background: saving ? "#c8a878" : "#e8213a", color: "#ffffff", border: "none", padding: "0.8rem", borderRadius: "8px", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", fontSize: "0.95rem", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}>{saving ? "..." : <><Save size={15} /> Enregistrer</>}</button>
                     <button onClick={() => setEditingId(null)} style={{ background: "#faebd7", color: "#c8a878", border: "none", padding: "0.8rem 1rem", borderRadius: "8px", cursor: "pointer" }}>✕</button>
                   </div>
                 </div>
