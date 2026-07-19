@@ -820,7 +820,7 @@ export default function App() {
   // Finances
   const [dettes, setDettes] = useState<any[]>([]);
   const [charges, setCharges] = useState<any[]>([]);
-  const [financesView, setFinancesView] = useState<"dettes"|"charges"|"resume"|"taches"|"event"|"carte"|"sante">("dettes");
+  const [financesView, setFinancesView] = useState<"dettes"|"charges"|"resume"|"taches"|"event"|"carte"|"sante">("resume");
   const [caMoyen, setCaMoyen] = useState(() => localStorage.getItem("sekai_ca_moyen") || "30000");
   const [menuProduits, setMenuProduits] = useState<any[]>([]);
   const [menuRecettes, setMenuRecettes] = useState<any[]>([]);
@@ -2062,7 +2062,7 @@ export default function App() {
         { id: "paie", label: "Paie", icon: "paie", adminOnly: true },
         { id: "profil", label: "Profil", icon: "profil", adminOnly: false }
       ].filter(tab => !tab.adminOnly || isAdmin).map(tab => (
-        <button key={tab.id} onClick={() => { setPage(tab.id); if (tab.id === "profil") { loadDocuments(); loadFichesPaie(); if (isAdmin && !allUsers.length) loadUsers(); } if (tab.id === "comptes") loadUsers(); if (tab.id === "horaires") { if (!horaires.length) fetchHoraires(horaireRestaurant); fetchHeuresJours(horaireRestaurant); if (isAdmin && !allUsers.length) loadUsers(); } if (tab.id === "finances") { loadFinances(); loadTodoTaches(); loadEvents(); } if (tab.id === "fermetures") { loadFermetureHistorique(); loadFermetureData(); } if (tab.id === "paie") { loadFichesPaie(); loadUsers(); } }} style={{ flex: 1, background: "none", border: "none", padding: "0.7rem 0", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: "0.15rem" }}>
+        <button key={tab.id} onClick={() => { setPage(tab.id); if (tab.id === "profil") { loadDocuments(); loadFichesPaie(); if (isAdmin && !allUsers.length) loadUsers(); } if (tab.id === "comptes") loadUsers(); if (tab.id === "horaires") { if (!horaires.length) fetchHoraires(horaireRestaurant); fetchHeuresJours(horaireRestaurant); if (isAdmin && !allUsers.length) loadUsers(); } if (tab.id === "finances") { setFinancesView("resume"); loadFinances(); loadTodoTaches(); loadEvents(); } if (tab.id === "fermetures") { loadFermetureHistorique(); loadFermetureData(); } if (tab.id === "paie") { loadFichesPaie(); loadUsers(); } }} style={{ flex: 1, background: "none", border: "none", padding: "0.7rem 0", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: "0.15rem" }}>
           <span style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
             {tab.icon === "stock" && <Package size={20} color={page === tab.id ? "#e8213a" : "#c8a878"} />}
             {tab.icon === "horaires" && <Calendar size={20} color={page === tab.id ? "#e8213a" : "#c8a878"} />}
@@ -3268,7 +3268,7 @@ export default function App() {
             <button onClick={() => { loadFinances(); loadTodoTaches(); }} style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#a07848", borderRadius: "8px", padding: "0.3rem 0.6rem", fontSize: "0.8rem", cursor: "pointer" }}><RefreshCw size={16} /></button>
           </div>
           <div style={{ display: "flex", gap: "0.4rem", overflowX: "auto", paddingBottom: "0.5rem" }}>
-            {[{id:"dettes",label:"Dettes",Icon:Banknote},{id:"charges",label:"Charges",Icon:Receipt},{id:"resume",label:"Résumé",Icon:Heart},{id:"event",label:"Event",Icon:PartyPopper},{id:"carte",label:"Carte",Icon:Utensils},{id:"taches",label:"Tâches",Icon:ListChecks}].map(tab => (
+            {[{id:"resume",label:"Résumé",Icon:Heart},{id:"dettes",label:"Dettes",Icon:Banknote},{id:"charges",label:"Charges",Icon:Receipt},{id:"event",label:"Event",Icon:PartyPopper},{id:"carte",label:"Carte",Icon:Utensils},{id:"taches",label:"Tâches",Icon:ListChecks}].map(tab => (
               <button key={tab.id} onClick={() => { setFinancesView(tab.id as any); if(tab.id==="carte") loadMenu(); if(tab.id==="sante"||tab.id==="resume") loadFinances(); if(tab.id==="event") { setEventView("historique"); setShowEventForm(false); loadEvents(); } }}
                 style={{ background: financesView === tab.id ? "#e8213a" : "#fff", color: financesView === tab.id ? "#fff" : "#a07848", border: `1px solid ${financesView === tab.id ? "#e8213a" : "#efe0c9"}`, borderRadius: "20px", padding: "0.4rem 0.85rem", fontSize: "0.78rem", fontFamily: "'Poppins', sans-serif", fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap", display: "flex", alignItems: "center", gap: "5px" }}>
                 <tab.Icon size={14} /> {tab.label}
@@ -3404,8 +3404,59 @@ export default function App() {
 
           const CARD = { background: "#ffffff", border: "1px solid #efe0c9", borderRadius: "16px", boxShadow: "0 1px 3px rgba(61,26,10,0.05)" } as const;
           const LBL = { color: "#a07848", fontSize: "0.68rem", fontWeight: 600, letterSpacing: "0.4px", textTransform: "uppercase" as const };
+
+          // ── Indicateurs entreprise ──
+          const caJour = ca / 30;
+          const objJour = (totalChargesFixes + totalMensualites) / 30;
+          const ecartJour = caJour - objJour;
+          const loyer = charges.filter(c => c.categorie === "loyer").reduce((s, c) => s + (parseFloat(c.montant) || 0), 0);
+          const matieres = charges.filter(c => /course|mati|marchandise|achat/i.test(c.nom)).reduce((s, c) => s + (parseFloat(c.montant) || 0), 0);
+          const pctLoyer = ca > 0 ? (loyer / ca) * 100 : 0;
+          const pctMatieres = ca > 0 ? (matieres / ca) * 100 : 0;
+          const pctMarge = ca > 0 ? (reste / ca) * 100 : 0;
+          const primeCost = matieres + masseSalariale;
+          const pctPrime = ca > 0 ? (primeCost / ca) * 100 : 0;
+          const dettesSansPlan = dettes.filter(d => !d.avec_plan).length;
+          const moisDettes = reste > 0 ? Math.ceil(totalDettes / reste) : null;
+
+          // Points à améliorer (générés automatiquement)
+          const points: { titre: string; detail: string; niveau: "danger"|"warn"|"ok" }[] = [];
+          if (ca > 0 && caJour < objJour) points.push({ titre: "Sous le seuil de rentabilité", detail: `Il te manque ${fmt(objJour - caJour)} €/jour pour couvrir charges + dettes.`, niveau: "danger" });
+          if (pctMasse > 35) points.push({ titre: "Masse salariale trop élevée", detail: `${pctMasse.toFixed(1)} % du CA (max conseillé 35 %). Réduire de ${fmt(masseSalariale - ca * 0.35)} €/mois.`, niveau: "danger" });
+          else if (pctMasse > 30) points.push({ titre: "Masse salariale à surveiller", detail: `${pctMasse.toFixed(1)} % du CA — tu approches du plafond de 35 %.`, niveau: "warn" });
+          if (pctLoyer > 10 && loyer > 0) points.push({ titre: "Loyer élevé", detail: `${pctLoyer.toFixed(1)} % du CA (idéal < 10 %). Il faudrait ${fmt(loyer / 0.10)} € de CA pour l'absorber.`, niveau: "warn" });
+          if (pctPrime > 65 && primeCost > 0) points.push({ titre: "Prime cost trop haut", detail: `Matières + personnel = ${pctPrime.toFixed(1)} % du CA (max sain 65 %).`, niveau: "danger" });
+          if (ca > 0 && pctMarge < 10) points.push({ titre: "Marge nette faible", detail: `${pctMarge.toFixed(1)} % du CA. Vise au moins 10-15 % pour encaisser les imprévus.`, niveau: "warn" });
+          if (dettesSansPlan > 0) points.push({ titre: `${dettesSansPlan} dette${dettesSansPlan > 1 ? "s" : ""} sans plan`, detail: "Négocie un échéancier : ça évite les majorations et lisse la trésorerie.", niveau: "warn" });
+          if (gerant > 0 && ca > 0 && (gerant / ca) * 100 > 15) points.push({ titre: "Salaire gérant important", detail: `${((gerant/ca)*100).toFixed(1)} % du CA. Le baisser accélérerait fortement le remboursement des dettes.`, niveau: "warn" });
+          if (moisDettes && moisDettes > 24) points.push({ titre: "Remboursement long", detail: `${moisDettes} mois au rythme actuel. Augmenter le reste mensuel raccourcirait beaucoup ce délai.`, niveau: "warn" });
+
+          const nivColor = (n: string) => n === "danger" ? "#e8213a" : n === "warn" ? "#c98a17" : "#1f6e42";
+          const kpi = (label: string, val: string, sub: string, color: string) => (
+            <div style={{ ...CARD, padding: "0.85rem", textAlign: "center" as const }}>
+              <div style={LBL}>{label}</div>
+              <div style={{ color, fontSize: "1.35rem", fontWeight: 800, marginTop: "0.15rem" }}>{val}</div>
+              <div style={{ color: "#c8a878", fontSize: "0.65rem" }}>{sub}</div>
+            </div>
+          );
+
           return (
             <div style={{ padding: "0.9rem 1rem", display: "flex", flexDirection: "column", gap: "0.7rem" }}>
+              {/* HERO — objectif journalier */}
+              <div style={{ background: "#3d1a0a", borderRadius: "18px", padding: "1.3rem", color: "#fff", textAlign: "center", boxShadow: "0 6px 18px rgba(61,26,10,0.25)" }}>
+                <div style={{ color: "#f5c842", fontSize: "0.72rem", fontWeight: 600, letterSpacing: "0.3px" }}>À FAIRE CHAQUE JOUR</div>
+                <div style={{ fontSize: "2.9rem", fontWeight: 800, lineHeight: 1.1 }}>{fmt(objJour)} €</div>
+                <div style={{ color: "#e6d3b6", fontSize: "0.72rem" }}>pour couvrir charges + mensualités dettes</div>
+                {ca > 0 && (
+                  <div style={{ marginTop: "0.8rem", background: ecartJour >= 0 ? "rgba(76,175,80,0.25)" : "rgba(232,33,58,0.3)", borderRadius: "10px", padding: "0.55rem" }}>
+                    <span style={{ color: ecartJour >= 0 ? "#8ff0a0" : "#ff9999", fontSize: "0.8rem", fontWeight: 700 }}>
+                      {ecartJour >= 0 ? `+${fmt(ecartJour)} €/jour d'avance` : `${fmt(Math.abs(ecartJour))} €/jour manquants`}
+                    </span>
+                    <div style={{ color: "#e6d3b6", fontSize: "0.66rem" }}>tu fais actuellement {fmt(caJour)} €/jour</div>
+                  </div>
+                )}
+              </div>
+
               {/* CA modifiable */}
               <div style={{ ...CARD, padding: "1.1rem" }}>
                 <div style={{ ...LBL, marginBottom: "0.6rem", display: "flex", alignItems: "center", gap: "5px" }}><Wallet size={13} /> Chiffre d'affaires / mois</div>
@@ -3414,17 +3465,32 @@ export default function App() {
                     style={{ background: "transparent", border: "none", color: "#e8213a", padding: "0.5rem 0", fontSize: "1.7rem", fontWeight: "800", outline: "none", width: "100%", boxSizing: "border-box" as const, fontFamily: "'Poppins', sans-serif" }} />
                   <span style={{ color: "#e8213a", fontSize: "1.5rem", fontWeight: "800" }}>€</span>
                 </div>
-                <div style={{ color: "#c8a878", fontSize: "0.7rem", marginTop: "0.5rem" }}>≈ {fmt(ca/30)} €/jour · modifie pour tout recalculer</div>
+                <div style={{ color: "#c8a878", fontSize: "0.7rem", marginTop: "0.5rem" }}>≈ {fmt(caJour)} €/jour · modifie pour tout recalculer</div>
               </div>
 
-              {/* Reste après charges — HERO */}
-              <div style={{ background: reste >= 0 ? "#1f6e42" : "#e8213a", borderRadius: "18px", padding: "1.3rem", color: "#fff", boxShadow: `0 6px 18px ${reste >= 0 ? "rgba(31,110,66,0.28)" : "rgba(232,33,58,0.28)"}` }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                  <div style={{ fontSize: "0.72rem", fontWeight: 600, opacity: 0.9, letterSpacing: "0.3px" }}>RESTE APRÈS CHARGES</div>
-                  <span style={{ background: "rgba(255,255,255,0.18)", fontSize: "0.68rem", fontWeight: 600, padding: "0.2rem 0.6rem", borderRadius: "20px" }}>{ca > 0 ? ((reste/ca)*100).toFixed(0) : 0} % du CA</span>
-                </div>
-                <div style={{ fontSize: "2.6rem", fontWeight: "800", lineHeight: 1.1, marginTop: "0.2rem" }}>{fmt(reste)} €</div>
-                <div style={{ fontSize: "0.7rem", opacity: 0.85, marginTop: "0.2rem" }}>CA {fmt(ca)} € − charges {fmt(totalCharges)} € · hors dettes</div>
+              {/* KPI entreprise */}
+              <div style={{ color: "#3d1a0a", fontSize: "0.92rem", fontWeight: 700, margin: "0.3rem 0 0", display: "flex", alignItems: "center", gap: "6px" }}><TrendingUp size={17} color="#e8213a" /> Bilan de l'entreprise</div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.6rem" }}>
+                {kpi("Marge nette", `${pctMarge.toFixed(1)} %`, `${fmt(reste)} €/mois`, pctMarge >= 15 ? "#1f6e42" : pctMarge >= 10 ? "#c98a17" : "#e8213a")}
+                {kpi("Personnel", `${pctMasse.toFixed(1)} %`, "max sain 35 %", masseColor)}
+                {kpi("Loyer", loyer > 0 ? `${pctLoyer.toFixed(1)} %` : "—", "idéal < 10 %", pctLoyer > 10 ? "#c98a17" : "#1f6e42")}
+                {kpi("Prime cost", primeCost > 0 ? `${pctPrime.toFixed(1)} %` : "—", "matières + perso, max 65 %", pctPrime > 65 ? "#e8213a" : "#1f6e42")}
+              </div>
+
+              {/* Points à améliorer */}
+              <div style={{ ...CARD, padding: "1rem" }}>
+                <div style={{ ...LBL, marginBottom: "0.7rem", display: "flex", alignItems: "center", gap: "5px" }}><Lightbulb size={13} /> Points à améliorer</div>
+                {points.length === 0 ? (
+                  <div style={{ color: "#1f6e42", fontSize: "0.85rem", display: "flex", alignItems: "center", gap: "7px" }}><CheckCircle size={16} /> Tous tes ratios sont sains. Continue comme ça !</div>
+                ) : points.map((p, i) => (
+                  <div key={i} style={{ display: "flex", gap: "9px", padding: "0.55rem 0", borderTop: i === 0 ? "none" : "1px solid #f4e8d6" }}>
+                    <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: nivColor(p.niveau), marginTop: "6px", flexShrink: 0 }} />
+                    <div>
+                      <div style={{ color: "#3d1a0a", fontSize: "0.85rem", fontWeight: 600 }}>{p.titre}</div>
+                      <div style={{ color: "#a07848", fontSize: "0.75rem", lineHeight: 1.45 }}>{p.detail}</div>
+                    </div>
+                  </div>
+                ))}
               </div>
 
               {/* Liaison avec les charges */}
@@ -3496,11 +3562,14 @@ export default function App() {
 
               {/* ═══ RÉCAP DETTES ═══ */}
               <div style={{ color: "#3d1a0a", fontSize: "0.92rem", fontWeight: 700, margin: "0.6rem 0 0.1rem", display: "flex", alignItems: "center", gap: "6px" }}><CreditCard size={17} color="#e8213a" /> Récap dettes & mensualités</div>
-              <div style={{ background: "#3d1a0a", borderRadius: "18px", padding: "1.3rem", color: "#fff", textAlign: "center", boxShadow: "0 6px 18px rgba(61,26,10,0.25)" }}>
-                <div style={{ color: "#f5c842", fontSize: "0.72rem", fontWeight: 600, letterSpacing: "0.3px" }}>CA MINIMUM PAR JOUR</div>
-                <div style={{ fontSize: "2.6rem", fontWeight: "800", lineHeight: 1.1 }}>{caMinParJour} €</div>
-                <div style={{ color: "#e6d3b6", fontSize: "0.72rem" }}>pour couvrir charges + mensualités dettes</div>
-              </div>
+              {moisDettes && (
+                <div style={{ ...CARD, padding: "0.9rem 1rem", display: "flex", alignItems: "center", gap: "9px" }}>
+                  <Clock size={17} color="#c98a17" />
+                  <div style={{ color: "#3d1a0a", fontSize: "0.83rem" }}>
+                    Dettes soldées en <strong>{moisDettes} mois</strong> <span style={{ color: "#a07848" }}>au rythme de {fmt(reste)} €/mois</span>
+                  </div>
+                </div>
+              )}
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.6rem" }}>
                 <div style={{ ...CARD, padding: "0.9rem", textAlign: "center" }}>
                   <div style={LBL}>Dettes totales</div>
