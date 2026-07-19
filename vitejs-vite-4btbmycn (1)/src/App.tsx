@@ -3892,6 +3892,44 @@ export default function App() {
                 );
               })()}
 
+              {/* ── RAPPORT & CONSEILS ── */}
+              {saisonnalite.length > 0 && (() => {
+                const mNow = new Date().getMonth() + 1;
+                const cur = saisonnalite.find(m => m.mois === mNow);
+                const nxt = saisonnalite.find(m => m.mois === (mNow % 12) + 1);
+                const tot = (m: any) => m?.ca_jour_bornes != null ? Number(m.ca_jour_bornes) + hb : null;
+                const prevMois = (m: any) => { const t = tot(m); return t ? t * 30 : null; };
+                const sortiesMois = totalChargesFixes + totalMensualites;
+                const ecartSem = cur && nxt ? null : null;
+                // écart semaine/week-end du mois suivant depuis la note
+                const num = (s: string, i: number) => { const r = (s || "").match(/(\d+)\s*€/g); return r && r[i] ? parseInt(r[i]) : null; };
+                const semN = nxt ? num(nxt.note, 0) : null, weN = nxt ? num(nxt.note, 1) : null;
+                const conseils: { t: string; d: string }[] = [];
+                if (nxt && prevMois(nxt)) {
+                  const p = prevMois(nxt)!;
+                  conseils.push({ t: `${nxt.nom} : ~${fmt(p)} € de CA attendu`, d: `Soit ${fmt(tot(nxt)!)} €/jour. Tes sorties du mois sont de ${fmt(sortiesMois)} € → ${p >= sortiesMois ? `tu dégages ~${fmt(p - sortiesMois)} €` : `il te manquera ~${fmt(sortiesMois - p)} €, puise dans la réserve`}.` });
+                }
+                if (semN && weN && semN < weN * 0.8) conseils.push({ t: `${nxt!.nom} : allège la semaine`, d: `${semN} €/j en semaine contre ${weN} € le week-end. Passe à ${nxt!.effectif_semaine} personnes du lundi au jeudi et garde ${nxt!.effectif_weekend} le week-end.` });
+                if (mNow >= 11 || mNow <= 3) conseils.push({ t: "Période creuse en semaine", d: "De novembre à mars tes semaines chutent de 30 %. Ouvre à 14h en semaine plutôt qu'à 12h : ton créneau 12h ne pèse que 7 % du CA." });
+                const meilleurs = [...saisonnalite].filter(m => tot(m)).sort((a, b) => tot(b)! - tot(a)!).slice(0, 2);
+                if (meilleurs.length === 2) conseils.push({ t: "Provisionne sur tes 2 meilleurs mois", d: `${meilleurs[0].nom} et ${meilleurs[1].nom} sont tes pics. Mets de côté sur ces mois pour couvrir les creux.` });
+                conseils.push({ t: "Pousse les menus, pas les produits seuls", d: "Un menu rapporte ~8,50 € de marge contre ~5,50 € pour un corndog seul. Convertir 10 clients/jour = +800 €/mois." });
+                return (
+                  <div style={{ ...CARD, padding: "1rem" }}>
+                    <div style={{ ...LBL, marginBottom: "0.7rem", display: "flex", alignItems: "center", gap: "5px" }}><FileText size={13} /> Rapport & conseils</div>
+                    {conseils.map((c, i) => (
+                      <div key={i} style={{ display: "flex", gap: "9px", padding: "0.55rem 0", borderTop: i === 0 ? "none" : "1px solid #f4e8d6" }}>
+                        <span style={{ width: "22px", height: "22px", borderRadius: "50%", background: "#fdf0d5", color: "#c98a17", fontSize: "0.7rem", fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{i + 1}</span>
+                        <div>
+                          <div style={{ color: "#3d1a0a", fontSize: "0.85rem", fontWeight: 600 }}>{c.t}</div>
+                          <div style={{ color: "#a07848", fontSize: "0.75rem", lineHeight: 1.45 }}>{c.d}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()}
+
               {/* Points à améliorer */}
               <div style={{ ...CARD, padding: "1rem" }}>
                 <div style={{ ...LBL, marginBottom: "0.7rem", display: "flex", alignItems: "center", gap: "5px" }}><Lightbulb size={13} /> Points à améliorer</div>
