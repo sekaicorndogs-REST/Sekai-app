@@ -789,6 +789,7 @@ export default function App() {
   const [periodes, setPeriodes] = useState<any[]>([]);
   const [saisonnalite, setSaisonnalite] = useState<any[]>([]);
   const [topProduits, setTopProduits] = useState<any[]>([]);
+  const [resumeSection, setResumeSection] = useState<string>("essentiel");
   const [joursSpeciaux, setJoursSpeciaux] = useState<any[]>([]);
   const [jourSpecialDate, setJourSpecialDate] = useState("");
   const [jourSpecialMotif, setJourSpecialMotif] = useState("greve");
@@ -3649,8 +3650,56 @@ export default function App() {
             </div>
           );
 
+          // Filtre de sections
+          const SECTIONS = [
+            { id: "essentiel", label: "Essentiel", Icon: Heart },
+            { id: "ventes", label: "Ventes", Icon: Receipt },
+            { id: "annee", label: "Année", Icon: Calendar },
+            { id: "produits", label: "Produits", Icon: Utensils },
+            { id: "personnel", label: "Personnel", Icon: Users },
+            { id: "dettes", label: "Dettes", Icon: Banknote },
+          ];
+          const show = (s: string) => resumeSection === s;
+
+          // CA moyen par jour de semaine (données réelles)
+          const JOURS_N = ["Dimanche","Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"];
+          const caParDow: Record<number, { tot: number; jours: Set<string> }> = {};
+          V.forEach(v => {
+            const wd = v.d.getDay();
+            (caParDow[wd] = caParDow[wd] || { tot: 0, jours: new Set() });
+            caParDow[wd].tot += v.p; caParDow[wd].jours.add(v.d.toDateString());
+          });
+          const dowStats = Object.entries(caParDow)
+            .map(([k, o]) => ({ j: +k, moy: o.tot / o.jours.size + hb, n: o.jours.size }))
+            .sort((a, b) => b.moy - a.moy);
+          const maxDow = dowStats.length ? dowStats[0].moy : 1;
+
+          // Productivité : CA par heure travaillée (croise ventes et heures déclarées)
+          const heuresParMois: Record<string, number> = {};
+          heuresJours.forEach((h: any) => {
+            const k = String(h.date).slice(0, 7);
+            heuresParMois[k] = (heuresParMois[k] || 0) + (parseFloat(h.heures) || 0);
+          });
+          const caParMois: Record<string, number> = {};
+          V.forEach(v => { const k = v.d.toISOString().slice(0, 7); caParMois[k] = (caParMois[k] || 0) + v.p; });
+          const prod = Object.keys(heuresParMois)
+            .filter(k => caParMois[k] && heuresParMois[k] > 5)
+            .map(k => ({ mois: k, h: heuresParMois[k], ca: caParMois[k], parH: caParMois[k] / heuresParMois[k] }))
+            .sort((a, b) => a.mois.localeCompare(b.mois));
+
           return (
             <div style={{ padding: "0.9rem 1rem", display: "flex", flexDirection: "column", gap: "0.7rem" }}>
+              {/* Filtres de section */}
+              <div style={{ display: "flex", gap: "0.35rem", overflowX: "auto", paddingBottom: "0.2rem", margin: "-0.2rem -0.2rem 0" }}>
+                {SECTIONS.map(s => (
+                  <button key={s.id} onClick={() => setResumeSection(s.id)}
+                    style={{ background: resumeSection === s.id ? "#e8213a" : "#fff", color: resumeSection === s.id ? "#fff" : "#a07848", border: `1px solid ${resumeSection === s.id ? "#e8213a" : "#efe0c9"}`, borderRadius: "20px", padding: "0.4rem 0.8rem", fontSize: "0.75rem", fontWeight: 600, cursor: "pointer", fontFamily: "'Poppins', sans-serif", display: "flex", alignItems: "center", gap: "4px", flexShrink: 0, whiteSpace: "nowrap" as const }}>
+                    <s.Icon size={13} /> {s.label}
+                  </button>
+                ))}
+              </div>
+
+              {show("essentiel") && (<>
               {/* HERO — objectif journalier */}
               <div style={{ background: "#3d1a0a", borderRadius: "18px", padding: "1.3rem", color: "#fff", textAlign: "center", boxShadow: "0 6px 18px rgba(61,26,10,0.25)" }}>
                 <div style={{ color: "#f5c842", fontSize: "0.72rem", fontWeight: 600, letterSpacing: "0.3px" }}>À FAIRE CHAQUE JOUR</div>
@@ -3666,6 +3715,8 @@ export default function App() {
                 )}
               </div>
 
+              </>)}
+              {show("ventes") && (<>
               {/* ── VENTES RÉELLES ── */}
               {vNb > 0 && (
                 <>
@@ -3825,6 +3876,28 @@ export default function App() {
                 </>
               )}
 
+              </>)}
+              {show("ventes") && dowStats.length > 3 && (<>
+              {/* CA par jour de semaine */}
+              <div style={{ ...CARD, padding: "1rem" }}>
+                <div style={{ ...LBL, marginBottom: "0.7rem" }}>CA moyen par jour de semaine</div>
+                {dowStats.map(d => (
+                  <div key={d.j} style={{ display: "flex", alignItems: "center", gap: "8px", padding: "0.28rem 0" }}>
+                    <span style={{ width: "68px", flexShrink: 0, color: "#3d1a0a", fontSize: "0.78rem" }}>{JOURS_N[d.j]}</span>
+                    <div style={{ flex: 1, background: "#f4e8d6", borderRadius: "20px", height: "10px", position: "relative" as const }}>
+                      <div style={{ width: `${(d.moy / maxDow) * 100}%`, height: "10px", borderRadius: "20px", background: d.moy >= objJour ? "#1f6e42" : "#e8213a" }} />
+                      <div style={{ position: "absolute" as const, left: `${Math.min(100, (objJour / maxDow) * 100)}%`, top: "-3px", width: "2px", height: "16px", background: "#3d1a0a" }} />
+                    </div>
+                    <span style={{ width: "56px", textAlign: "right" as const, fontSize: "0.78rem", fontWeight: 700, color: d.moy >= objJour ? "#1f6e42" : "#e8213a" }}>{fmt(d.moy)} €</span>
+                  </div>
+                ))}
+                <div style={{ color: "#c8a878", fontSize: "0.66rem", marginTop: "0.5rem" }}>
+                  Trait = ton seuil de {fmt(objJour)} €/jour · caisse et Uber inclus
+                </div>
+              </div>
+              </>)}
+
+              {show("ventes") && (<>
               {/* CA modifiable */}
               <div style={{ ...CARD, padding: "1.1rem" }}>
                 <div style={{ ...LBL, marginBottom: "0.6rem", display: "flex", alignItems: "center", gap: "5px" }}><Wallet size={13} /> Chiffre d'affaires / mois</div>
@@ -3836,6 +3909,8 @@ export default function App() {
                 <div style={{ color: "#c8a878", fontSize: "0.7rem", marginTop: "0.5rem" }}>≈ {fmt(caJour)} €/jour · modifie pour tout recalculer</div>
               </div>
 
+              </>)}
+              {show("essentiel") && (<>
               {/* KPI entreprise */}
               <div style={{ color: "#3d1a0a", fontSize: "0.92rem", fontWeight: 700, margin: "0.3rem 0 0", display: "flex", alignItems: "center", gap: "6px" }}><TrendingUp size={17} color="#e8213a" /> Bilan de l'entreprise</div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.6rem" }}>
@@ -3845,6 +3920,8 @@ export default function App() {
                 {kpi("Prime cost", primeCost > 0 ? `${pctPrime.toFixed(1)} %` : "—", "matières + perso, max 65 %", pctPrime > 65 ? "#e8213a" : "#1f6e42")}
               </div>
 
+              </>)}
+              {show("annee") && (<>
               {/* ── ANNÉE & PLANNING ── */}
               {saisonnalite.length > 0 && (() => {
                 const moisNow = new Date().getMonth() + 1;
@@ -3901,6 +3978,8 @@ export default function App() {
                 );
               })()}
 
+              </>)}
+              {show("produits") && (<>
               {/* ── TOP PRODUITS ── */}
               {topProduits.length > 0 && (() => {
                 const margeTot = topProduits.reduce((s, p) => s + Number(p.marge_jour || 0), 0);
@@ -3952,6 +4031,8 @@ export default function App() {
                 );
               })()}
 
+              </>)}
+              {show("essentiel") && (<>
               {/* ── RAPPORT & CONSEILS ── */}
               {saisonnalite.length > 0 && (() => {
                 const mNow = new Date().getMonth() + 1;
@@ -3990,6 +4071,8 @@ export default function App() {
                 );
               })()}
 
+              </>)}
+              {show("essentiel") && (<>
               {/* Points à améliorer */}
               <div style={{ ...CARD, padding: "1rem" }}>
                 <div style={{ ...LBL, marginBottom: "0.7rem", display: "flex", alignItems: "center", gap: "5px" }}><Lightbulb size={13} /> Points à améliorer</div>
@@ -4006,12 +4089,41 @@ export default function App() {
                 ))}
               </div>
 
+              </>)}
+              {show("personnel") && (<>
               {/* Liaison avec les charges */}
               <button onClick={() => setFinancesView("charges")} style={{ ...CARD, width: "100%", padding: "0.7rem 0.9rem", display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer", fontFamily: "'Poppins', sans-serif" }}>
                 <span style={{ color: "#a07848", fontSize: "0.78rem", display: "flex", alignItems: "center", gap: "6px" }}><CreditCard size={15} color="#e8213a" /> {charges.length} charges = <strong style={{ color: "#3d1a0a" }}>{fmt(totalCharges)} €</strong></span>
                 <span style={{ color: "#e8213a", fontSize: "0.75rem", fontWeight: 600, display: "flex", alignItems: "center" }}>Modifier <ChevronRight size={15} /></span>
               </button>
 
+              </>)}
+              {show("personnel") && prod.length > 0 && (<>
+              {/* Productivité : CA par heure travaillée */}
+              <div style={{ ...CARD, padding: "1rem" }}>
+                <div style={{ ...LBL, marginBottom: "0.3rem" }}>CA par heure travaillée</div>
+                <div style={{ color: "#c8a878", fontSize: "0.68rem", marginBottom: "0.6rem" }}>
+                  Croise tes ventes avec les heures déclarées par l'équipe
+                </div>
+                {prod.map(m => {
+                  const bon = m.parH >= 60;
+                  return (
+                    <div key={m.mois} style={{ display: "flex", alignItems: "center", gap: "8px", padding: "0.35rem 0", borderTop: "1px solid #f4e8d6" }}>
+                      <span style={{ width: "62px", flexShrink: 0, color: "#3d1a0a", fontSize: "0.78rem" }}>
+                        {new Date(m.mois + "-01T12:00:00").toLocaleDateString("fr-BE", { month: "long" })}
+                      </span>
+                      <span style={{ flex: 1, color: "#a07848", fontSize: "0.72rem" }}>{Math.round(m.h)} h · {fmt(m.ca)} €</span>
+                      <span style={{ color: bon ? "#1f6e42" : "#c98a17", fontSize: "0.9rem", fontWeight: 800 }}>{m.parH.toFixed(0)} €/h</span>
+                    </div>
+                  );
+                })}
+                <div style={{ color: "#a07848", fontSize: "0.7rem", marginTop: "0.6rem", lineHeight: 1.45 }}>
+                  Une heure de travail te coûte ~16,40 € (coût employeur). Au-dessus de <strong>60 €/h</strong> de CA généré, tu es largement rentable.
+                </div>
+              </div>
+              </>)}
+
+              {show("personnel") && (<>
               {/* Masse salariale gauge */}
               <div style={{ ...CARD, padding: "1.1rem" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.6rem" }}>
@@ -4042,6 +4154,8 @@ export default function App() {
                 </div>
               </div>
 
+              </>)}
+              {show("personnel") && (<>
               {/* Budget employé MAX — la carte clé */}
               <div style={{ background: "linear-gradient(135deg, #3d1a0a, #5a2a12)", borderRadius: "18px", padding: "1.3rem", color: "#fff", boxShadow: "0 6px 18px rgba(61,26,10,0.25)" }}>
                 <div style={{ color: "#f5c842", fontSize: "0.72rem", fontWeight: "bold", marginBottom: "0.3rem", display: "flex", alignItems: "center", gap: "6px" }}><Target size={14} /> BUDGET EMPLOYÉS MAX / MOIS</div>
@@ -4064,6 +4178,8 @@ export default function App() {
                 )}
               </div>
 
+              </>)}
+              {show("personnel") && (<>
               {/* Règle simple */}
               <div style={{ background: "#fdf6e9", border: "1px solid #efe0c9", borderRadius: "16px", padding: "1rem" }}>
                 <div style={{ ...LBL, marginBottom: "0.5rem", display: "flex", alignItems: "center", gap: "5px" }}><Lightbulb size={13} /> Règle simple à retenir</div>
@@ -4073,6 +4189,8 @@ export default function App() {
                 </div>
               </div>
 
+              </>)}
+              {show("dettes") && (<>
               {/* ═══ RÉCAP DETTES ═══ */}
               <div style={{ color: "#3d1a0a", fontSize: "0.92rem", fontWeight: 700, margin: "0.6rem 0 0.1rem", display: "flex", alignItems: "center", gap: "6px" }}><CreditCard size={17} color="#e8213a" /> Récap dettes & mensualités</div>
               {moisDettes && (
@@ -4111,6 +4229,7 @@ export default function App() {
                 ))}
                 {dettes.filter(d => d.avec_plan && d.mensualite).length === 0 && <div style={{ color: "#c8a878", fontSize: "0.82rem" }}>Aucun plan de paiement actif</div>}
               </div>
+              </>)}
             </div>
           );
         })()}
