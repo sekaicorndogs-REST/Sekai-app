@@ -262,6 +262,19 @@ async function fetchVentes() {
   return res.json();
 }
 
+// ── ACTIONS DE CONVERSION (faire commander plus de menus) ──
+async function fetchActionsConversion() {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/actions_conversion?select=*&order=priorite.asc`, { headers: HEADERS });
+  if (!res.ok) throw new Error("Fetch actions failed");
+  return res.json();
+}
+async function toggleActionFaite(id, fait) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/actions_conversion?id=eq.${id}`, {
+    method: "PATCH", headers: HEADERS, body: JSON.stringify({ fait })
+  });
+  if (!res.ok) throw new Error("Update action failed");
+}
+
 // ── PROPOSITIONS DE MENUS ──────────────────────────────────
 async function fetchPropositions() {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/propositions_menu?select=*&order=ordre.asc`, { headers: HEADERS });
@@ -906,6 +919,8 @@ export default function App() {
   const [analyseOpen, setAnalyseOpen] = useState<number|null>(null);
   const [propositions, setPropositions] = useState<any[]>([]);
   const [propOpen, setPropOpen] = useState<number|null>(null);
+  const [actionsConv, setActionsConv] = useState<any[]>([]);
+  const [actionOpen, setActionOpen] = useState<number|null>(null);
   const [analyseFamille, setAnalyseFamille] = useState<string>("Tout");
   const [eventNom, setEventNom] = useState("");
   const [eventDate, setEventDate] = useState("");
@@ -1556,6 +1571,12 @@ export default function App() {
       loadEvents();
     } catch { flash("❌ Erreur"); }
   }
+  async function handleToggleAction(a: any) {
+    try {
+      await toggleActionFaite(a.id, !a.fait);
+      setActionsConv(await fetchActionsConversion());
+    } catch { flash("❌ Erreur"); }
+  }
   async function loadMenu() {
     setMenuLoading(true);
     try {
@@ -1565,6 +1586,7 @@ export default function App() {
       if (prem) { setSimuFormule(prem.categorie); setSimuProduitId(prem.id); }
       setMenuRecettes(r);
       try { setPropositions(await fetchPropositions()); } catch {}
+      try { setActionsConv(await fetchActionsConversion()); } catch {}
     } catch { flash("❌ Erreur chargement carte"); }
     finally { setMenuLoading(false); }
   }
@@ -4425,6 +4447,62 @@ export default function App() {
                         </table>
                       </div>
                     </div>
+
+                    {actionsConv.length > 0 && (() => {
+                      const restants = actionsConv.filter(x => !x.fait);
+                      const pmin = restants.reduce((t, x) => t + Number(x.impact_min || 0), 0);
+                      const pmax = restants.reduce((t, x) => t + Number(x.impact_max || 0), 0);
+                      return (
+                        <div style={{ marginBottom: "1.1rem" }}>
+                          <div style={{ background: "#1f6e42", borderRadius: "16px", padding: "1.1rem", color: "#fff", marginBottom: "0.7rem" }}>
+                            <div style={{ color: "#c8f0d4", fontSize: "0.7rem", fontWeight: 700 }}>FAIRE COMMANDER PLUS DE MENUS</div>
+                            <div style={{ fontSize: "1.75rem", fontWeight: 800, lineHeight: 1.2 }}>+{pmin.toLocaleString("fr-BE")} a {pmax.toLocaleString("fr-BE")} &euro;<span style={{ fontSize: "0.85rem", fontWeight: 400 }}>/mois</span></div>
+                            <div style={{ color: "#c8f0d4", fontSize: "0.72rem", lineHeight: 1.5 }}>
+                              Sans remise, sans nouveau produit, sans cannibalisation.<br/>
+                              <strong>45 % de tes commandes = 1 seul corndog</strong> (37,4/jour a 6,50 &euro;).
+                            </div>
+                          </div>
+
+                          {actionsConv.map(a => {
+                            const ouv = actionOpen === a.id;
+                            return (
+                              <div key={a.id} style={{ background: "#fff", border: a.fait ? "1px solid #bfe3ca" : "1px solid #efe0c9", borderRadius: "14px", marginBottom: "0.5rem", overflow: "hidden", opacity: a.fait ? 0.65 : 1 }}>
+                                <div style={{ display: "flex", alignItems: "flex-start", gap: "9px", padding: "0.8rem" }}>
+                                  <button onClick={() => handleToggleAction(a)}
+                                    style={{ width: "22px", height: "22px", borderRadius: "50%", border: a.fait ? "none" : "2px solid #c8a878", background: a.fait ? "#1f6e42" : "transparent", cursor: "pointer", padding: 0, flexShrink: 0, marginTop: "2px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                                    {a.fait && <Check size={13} color="#fff" strokeWidth={3} />}
+                                  </button>
+                                  <button onClick={() => setActionOpen(ouv ? null : a.id)}
+                                    style={{ flex: 1, background: "none", border: "none", padding: 0, cursor: "pointer", textAlign: "left", fontFamily: "Poppins, sans-serif", minWidth: 0 }}>
+                                    <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "0.15rem" }}>
+                                      <span style={{ background: "#faebd7", color: "#a07848", fontSize: "0.64rem", fontWeight: 700, padding: "0.1rem 0.4rem", borderRadius: "20px" }}>{a.priorite}</span>
+                                      <span style={{ color: "#3d1a0a", fontSize: "0.86rem", fontWeight: 700, flex: 1, textDecoration: a.fait ? "line-through" : "none" }}>{a.titre}</span>
+                                      <ChevronRight size={14} color="#c8a878" style={{ transform: ouv ? "rotate(90deg)" : "none", transition: "transform 0.15s" }} />
+                                    </div>
+                                    <div style={{ color: "#a07848", fontSize: "0.74rem", marginBottom: "0.4rem" }}>{a.description}</div>
+                                    <div style={{ display: "flex", gap: "0.35rem", flexWrap: "wrap" }}>
+                                      <span style={{ background: "#f0fff4", color: "#1f6e42", fontSize: "0.7rem", fontWeight: 700, padding: "0.15rem 0.5rem", borderRadius: "20px" }}>+{Number(a.impact_min)} a {Number(a.impact_max)} &euro;/mois</span>
+                                      <span style={{ background: "#faf3e8", color: "#a07848", fontSize: "0.7rem", padding: "0.15rem 0.5rem", borderRadius: "20px" }}>{a.effort}</span>
+                                      <span style={{ background: "#fdf0d5", color: "#c98a17", fontSize: "0.7rem", padding: "0.15rem 0.5rem", borderRadius: "20px" }}>{a.cout}</span>
+                                    </div>
+                                  </button>
+                                </div>
+                                {ouv && (
+                                  <div style={{ background: "#faf3e8", borderTop: "1px solid #efe0c9", padding: "0.8rem" }}>
+                                    {String(a.detail).split("\n\n").map((par, k) => (
+                                      <div key={k} style={{ color: "#3d1a0a", fontSize: "0.79rem", lineHeight: 1.55, marginBottom: "0.45rem" }}>{par}</div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                          <div style={{ color: "#3d1a0a", fontSize: "0.92rem", fontWeight: 700, margin: "1.2rem 0 0.5rem", display: "flex", alignItems: "center", gap: "6px" }}>
+                            <Utensils size={16} color="#e8213a" /> Nouveaux menus propos&eacute;s
+                          </div>
+                        </div>
+                      );
+                    })()}
 
                     {propositions.map(pr => {
                       const marge = Number(pr.prix) - Number(pr.cout);
