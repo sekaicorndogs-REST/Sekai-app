@@ -4271,8 +4271,11 @@ export default function App() {
 
   if (!currentUser) return (
     <div style={{ ...s, minHeight: "100vh", background: "#faebd7", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "2rem" }}>
-      <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
-      <img src="/Fichier-source-logo-Sekai-_1_.png" alt="Sekai Corndogs" style={{ width: "160px", marginBottom: "1rem", borderRadius: "20px", boxShadow: "0 8px 24px #e8213a22" }} />
+      <picture style={{ flexShrink: 0, lineHeight: 0 }}>
+        <source type="image/webp" srcSet="/logo-sekai.webp 1x, /logo-sekai@2x.webp 2x" />
+        <img src="/logo-sekai.png" alt="Sekai Corndogs" width={168} height={171}
+          style={{ width: "168px", height: "auto", marginBottom: "1rem", flexShrink: 0, display: "block" }} />
+      </picture>
       <h1 style={{ color: "#3d1a0a", fontSize: "1.4rem", fontWeight: "700", margin: "0 0 0.25rem", textAlign: "center" }}>SEKAI STOCK</h1>
       <p style={{ color: "#c8a878", fontSize: "0.82rem", margin: "0 0 1.5rem", textAlign: "center" }}>{getTodayStr()}</p>
       <div style={{ width: "100%", maxWidth: "300px", display: "flex", flexDirection: "column", gap: "0.75rem" }}>
