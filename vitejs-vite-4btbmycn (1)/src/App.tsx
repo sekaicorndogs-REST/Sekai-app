@@ -4411,10 +4411,18 @@ export default function App() {
                     <div style={{ background: "#fdf6e9", border: "1px solid #efe0c9", borderRadius: "14px", padding: "0.9rem", marginBottom: "0.8rem" }}>
                       <div style={{ color: "#a07848", fontSize: "0.68rem", fontWeight: 700, marginBottom: "0.4rem" }}>SUR QUOI C&apos;EST BAS&Eacute;</div>
                       <div style={{ color: "#3d1a0a", fontSize: "0.78rem", lineHeight: 1.55 }}>
-                        Analyse de <strong>2 477 commandes</strong> (avril) :<br/>
-                        &bull; <strong>63 %</strong> des commandes ne contiennent qu&apos;<strong>un seul article</strong><br/>
-                        &bull; <strong>25 %</strong> contiennent <strong>2 corndogs ou plus</strong><br/>
-                        &bull; Associations fr&eacute;quentes : Mozza + Saucisse/Mozza (94x), Saucisse + Saucisse/Mozza (62x)
+                        Analyse de <strong>2 477 commandes</strong> (avril 2026) :
+                        <table style={{ width: "100%", fontSize: "0.75rem", marginTop: "0.4rem", borderCollapse: "collapse" }}>
+                          <tbody>
+                            {[["1 corndog seul","37,4/j","45,3 %"],["2 corndogs","16,2/j","19,7 %"],["1 menu seul","13,0/j","15,7 %"],["3 corndogs et +","4,4/j","5,3 %"],["2 menus (deja duo)","3,6/j","4,4 %"],["1 menu + corndog","2,5/j","3,0 %"]].map((r,k) => (
+                              <tr key={k} style={{ borderTop: k === 0 ? "none" : "1px solid #efe0c9" }}>
+                                <td style={{ color: "#3d1a0a", padding: "0.18rem 0" }}>{r[0]}</td>
+                                <td style={{ color: "#e8213a", fontWeight: 700, textAlign: "right", padding: "0.18rem 0" }}>{r[1]}</td>
+                                <td style={{ color: "#a07848", textAlign: "right", width: "48px", padding: "0.18rem 0" }}>{r[2]}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
                       </div>
                     </div>
 
