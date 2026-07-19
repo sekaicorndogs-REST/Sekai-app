@@ -3583,7 +3583,7 @@ export default function App() {
                   <div>
                     {/* Sélecteurs */}
                     <div style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "14px", padding: "1rem", marginBottom: "0.8rem" }}>
-                      <div style={{ color: "#a07848", fontSize: "0.72rem", fontWeight: "bold", marginBottom: "0.6rem" }}>① 🌽 BASE</div>
+                      <div style={{ color: "#a07848", fontSize: "0.72rem", fontWeight: "bold", marginBottom: "0.6rem" }}>1 · BASE</div>
                       <div style={{ display: "flex", flexDirection: "column" as const, gap: "0.4rem", marginBottom: "1rem" }}>
                         {menuProduits.map(p => (
                           <button key={p.id} onClick={() => setSimuProduitId(p.id)}
@@ -3594,7 +3594,7 @@ export default function App() {
                         ))}
                       </div>
 
-                      <div style={{ color: "#a07848", fontSize: "0.72rem", fontWeight: "bold", marginBottom: "0.6rem" }}>② 🍞 CHAPELURE</div>
+                      <div style={{ color: "#a07848", fontSize: "0.72rem", fontWeight: "bold", marginBottom: "0.6rem" }}>2 · CHAPELURE</div>
                       <div style={{ display: "flex", flexWrap: "wrap" as const, gap: "0.4rem" }}>
                         {CHAPELURES.map(chap => (
                           <button key={chap.nom} onClick={() => setSimuChap(chap.nom)}
@@ -3604,7 +3604,7 @@ export default function App() {
                         ))}
                       </div>
 
-                      <div style={{ color: "#a07848", fontSize: "0.72rem", fontWeight: "bold", margin: "0.8rem 0 0.6rem" }}>③ 🥫 SAUCE <span style={{ color: "#c8a878", fontWeight: "normal" }}>(0.15€ moy.)</span></div>
+                      <div style={{ color: "#a07848", fontSize: "0.72rem", fontWeight: "bold", margin: "0.8rem 0 0.6rem" }}>3 · SAUCE <span style={{ color: "#c8a878", fontWeight: "normal" }}>(0.15€ moy.)</span></div>
                       <div style={{ display: "flex", flexWrap: "wrap" as const, gap: "0.4rem" }}>
                         {["Ketchup","Mayonnaise","Spicy Mayo","Sriracha","BBQ","Aigre douce","Samouraï","Andalouse","Sekai"].map(s => (
                           <button key={s} onClick={() => setSimuSauce(s)}
@@ -3655,11 +3655,11 @@ export default function App() {
                             </div>
                           ))}
                           <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.78rem", padding: "0.1rem 0", borderTop: "1px dashed #f0d8b8", marginTop: "0.3rem" }}>
-                            <span style={{ color: "#6b4c2a", fontWeight: "600" }}>🍞 {chapSelectionnee.nom}</span>
+                            <span style={{ color: "#6b4c2a", fontWeight: "600" }}>{chapSelectionnee.nom}</span>
                             <span style={{ color: "#a07848", fontWeight: "600" }}>{chapSelectionnee.cout.toFixed(3)} €</span>
                           </div>
                           <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.78rem", padding: "0.1rem 0" }}>
-                            <span style={{ color: "#6b4c2a" }}>🥫 {simuSauce}</span>
+                            <span style={{ color: "#6b4c2a" }}>{simuSauce}</span>
                             <span style={{ color: "#a07848" }}>inclus (moy.)</span>
                           </div>
                         </div>
@@ -3692,7 +3692,7 @@ export default function App() {
                             </div>
                           ))}
                         </div>
-                        <div style={{ color: "#a07848", fontSize: "0.68rem", fontWeight: "bold", marginBottom: "0.3rem" }}>🍞 PAR CHAPELURE</div>
+                        <div style={{ color: "#a07848", fontSize: "0.68rem", fontWeight: "bold", marginBottom: "0.3rem" }}>PAR CHAPELURE</div>
                         {CHAPELURES.map(chap => {
                           const totalCout = coutBase + chap.cout;
                           const prixVente = p.prix_vente + chap.supplement;
@@ -3842,7 +3842,7 @@ export default function App() {
                   <div style={{ color: "#a07848", fontSize: "0.72rem", fontWeight: "600", margin: "0.6rem 0 0.4rem" }}>COÛTS DE L'EVENT</div>
                   {/* Location / loyer : € fixe ou % du CA */}
                   <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.45rem" }}>
-                    <div style={{ color: "#3d1a0a", fontSize: "0.82rem", flex: 1 }}>📍 Location / place</div>
+                    <div style={{ color: "#3d1a0a", fontSize: "0.82rem", flex: 1 }}>Location / place</div>
                     <div style={{ display: "flex", background: "#faebd7", border: "1.5px solid #f0d8b8", borderRadius: "8px", overflow: "hidden", marginRight: "0.3rem" }}>
                       <button onClick={() => setEventLocationMode("eur")} style={{ background: eventLocationMode==="eur" ? "#f5c842" : "transparent", color: "#3d1a0a", border: "none", padding: "0.3rem 0.55rem", fontSize: "0.72rem", fontWeight: "bold", cursor: "pointer", fontFamily: "'Poppins', sans-serif" }}>€</button>
                       <button onClick={() => setEventLocationMode("pct")} style={{ background: eventLocationMode==="pct" ? "#f5c842" : "transparent", color: "#3d1a0a", border: "none", padding: "0.3rem 0.55rem", fontSize: "0.72rem", fontWeight: "bold", cursor: "pointer", fontFamily: "'Poppins', sans-serif" }}>%</button>
@@ -3864,13 +3864,13 @@ export default function App() {
                     </div>
                   </div>
                   {[
-                    { label: "👥 Personnel", val: eventPersonnel, set: setEventPersonnel },
-                    { label: "🚗 Transport", val: eventTransport, set: setEventTransport },
-                    { label: "🔧 Matériel", val: eventMateriel, set: setEventMateriel },
-                    { label: "📦 Autres frais", val: eventAutres, set: setEventAutres },
-                    { label: "🏨 Hôtel", val: eventHotel, set: setEventHotel },
-                    { label: "🔩 Location matériel", val: eventLocationMateriel, set: setEventLocationMateriel },
-                    { label: "⛽ Essence", val: eventEssence, set: setEventEssence },
+                    { label: "Personnel", val: eventPersonnel, set: setEventPersonnel },
+                    { label: "Transport", val: eventTransport, set: setEventTransport },
+                    { label: "Matériel", val: eventMateriel, set: setEventMateriel },
+                    { label: "Autres frais", val: eventAutres, set: setEventAutres },
+                    { label: "Hôtel", val: eventHotel, set: setEventHotel },
+                    { label: "Location matériel", val: eventLocationMateriel, set: setEventLocationMateriel },
+                    { label: "Essence", val: eventEssence, set: setEventEssence },
                   ].map(({ label, val, set }) => (
                     <div key={label} style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.45rem" }}>
                       <div style={{ color: "#3d1a0a", fontSize: "0.82rem", flex: 1 }}>{label}</div>
