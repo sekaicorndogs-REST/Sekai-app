@@ -262,6 +262,13 @@ async function fetchVentes() {
   return res.json();
 }
 
+// ── PROPOSITIONS DE MENUS ──────────────────────────────────
+async function fetchPropositions() {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/propositions_menu?select=*&order=ordre.asc`, { headers: HEADERS });
+  if (!res.ok) throw new Error("Fetch propositions failed");
+  return res.json();
+}
+
 // ── TOP PRODUITS (volumes réels croisés avec les marges) ───
 async function fetchTopProduits() {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/top_produits?select=*&order=marge_jour.desc`, { headers: HEADERS });
@@ -891,12 +898,14 @@ export default function App() {
   const [menuProduits, setMenuProduits] = useState<any[]>([]);
   const [menuRecettes, setMenuRecettes] = useState<any[]>([]);
   const [menuLoading, setMenuLoading] = useState(false);
-  const [carteView, setCarteView] = useState<"analyse"|"simu">("simu");
+  const [carteView, setCarteView] = useState<"analyse"|"simu"|"propositions">("simu");
   const [simuFormule, setSimuFormule] = useState<string>("Corndog seul");
   const [simuProduitId, setSimuProduitId] = useState<number|null>(null);
   const [simuChap, setSimuChap] = useState("Panko (simple)");
   const [simuSauce, setSimuSauce] = useState("Ketchup");
   const [analyseOpen, setAnalyseOpen] = useState<number|null>(null);
+  const [propositions, setPropositions] = useState<any[]>([]);
+  const [propOpen, setPropOpen] = useState<number|null>(null);
   const [analyseFamille, setAnalyseFamille] = useState<string>("Tout");
   const [eventNom, setEventNom] = useState("");
   const [eventDate, setEventDate] = useState("");
@@ -1555,6 +1564,7 @@ export default function App() {
       const prem = p.find((x: any) => x.categorie === "Corndog seul") || p[0];
       if (prem) { setSimuFormule(prem.categorie); setSimuProduitId(prem.id); }
       setMenuRecettes(r);
+      try { setPropositions(await fetchPropositions()); } catch {}
     } catch { flash("❌ Erreur chargement carte"); }
     finally { setMenuLoading(false); }
   }
@@ -4241,7 +4251,7 @@ export default function App() {
           <div style={{ padding: "0.8rem 1.1rem" }}>
             {/* Sub-tabs */}
             <div style={{ display: "flex", gap: "0.4rem", marginBottom: "0.8rem" }}>
-              {([{id:"simu",label:"Simulateur",Icon:Percent},{id:"analyse",label:"Analyse",Icon:TrendingUp}] as const).map(t => (
+              {([{id:"simu",label:"Simulateur",Icon:Percent},{id:"analyse",label:"Analyse",Icon:TrendingUp},{id:"propositions",label:"Propositions",Icon:Lightbulb}] as const).map(t => (
                 <button key={t.id} onClick={() => setCarteView(t.id)}
                   style={{ background: carteView===t.id ? "#e8213a" : "#fff", color: carteView===t.id ? "#fff" : "#a07848", border: `1px solid ${carteView===t.id ? "#e8213a" : "#efe0c9"}`, borderRadius: "20px", padding: "0.4rem 0.85rem", fontSize: "0.78rem", fontFamily: "'Poppins', sans-serif", fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: "5px" }}>
                   <t.Icon size={14} /> {t.label}
@@ -4383,6 +4393,93 @@ export default function App() {
                     ) : (
                       <div style={{ color: "#c8a878", textAlign: "center", padding: "2rem", fontSize: "0.85rem" }}>Sélectionne une base pour voir le calcul</div>
                     )}
+                  </div>
+                );
+              }
+
+              // PROPOSITIONS DE MENUS
+              if (carteView === "propositions") {
+                const totImpact = propositions.reduce((acc, x) => acc + Number(x.impact_mois || 0), 0);
+                return (
+                  <div>
+                    <div style={{ background: "#3d1a0a", borderRadius: "16px", padding: "1.1rem", color: "#fff", marginBottom: "0.8rem" }}>
+                      <div style={{ color: "#f5c842", fontSize: "0.7rem", fontWeight: 700 }}>POTENTIEL TOTAL SI TOUT EST LANCE</div>
+                      <div style={{ fontSize: "2rem", fontWeight: 800, lineHeight: 1.15 }}>+{totImpact.toLocaleString("fr-BE")} &euro;<span style={{ fontSize: "0.9rem", fontWeight: 400 }}>/mois</span></div>
+                      <div style={{ color: "#e6d3b6", fontSize: "0.7rem" }}>de marge suppl&eacute;mentaire &middot; hypoth&egrave;ses d&eacute;taill&eacute;es dans chaque fiche</div>
+                    </div>
+
+                    <div style={{ background: "#fdf6e9", border: "1px solid #efe0c9", borderRadius: "14px", padding: "0.9rem", marginBottom: "0.8rem" }}>
+                      <div style={{ color: "#a07848", fontSize: "0.68rem", fontWeight: 700, marginBottom: "0.4rem" }}>SUR QUOI C&apos;EST BAS&Eacute;</div>
+                      <div style={{ color: "#3d1a0a", fontSize: "0.78rem", lineHeight: 1.55 }}>
+                        Analyse de <strong>2 477 commandes</strong> (avril) :<br/>
+                        &bull; <strong>63 %</strong> des commandes ne contiennent qu&apos;<strong>un seul article</strong><br/>
+                        &bull; <strong>25 %</strong> contiennent <strong>2 corndogs ou plus</strong><br/>
+                        &bull; Associations fr&eacute;quentes : Mozza + Saucisse/Mozza (94x), Saucisse + Saucisse/Mozza (62x)
+                      </div>
+                    </div>
+
+                    {propositions.map(pr => {
+                      const marge = Number(pr.prix) - Number(pr.cout);
+                      const fc = (Number(pr.cout) / Number(pr.prix)) * 100;
+                      const ouvert = propOpen === pr.id;
+                      const remise = pr.prix_separe ? Number(pr.prix_separe) - Number(pr.prix) : 0;
+                      return (
+                        <div key={pr.id} style={{ background: "#fff", border: (pr.recommande ? "2px solid #1f6e42" : "1px solid #efe0c9"), borderRadius: "14px", marginBottom: "0.6rem", overflow: "hidden" }}>
+                          <button onClick={() => setPropOpen(ouvert ? null : pr.id)}
+                            style={{ width: "100%", background: "none", border: "none", padding: "0.9rem", cursor: "pointer", fontFamily: "Poppins, sans-serif", textAlign: "left" }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "0.4rem" }}>
+                              <span style={{ background: pr.recommande ? "#1f6e42" : "#faebd7", color: pr.recommande ? "#fff" : "#a07848", fontSize: "0.68rem", fontWeight: 700, padding: "0.15rem 0.5rem", borderRadius: "20px" }}>{pr.code}</span>
+                              <span style={{ color: "#3d1a0a", fontSize: "0.95rem", fontWeight: 700, flex: 1 }}>{pr.nom}</span>
+                              <span style={{ color: "#e8213a", fontSize: "1.05rem", fontWeight: 800 }}>{Number(pr.prix).toFixed(2)} &euro;</span>
+                              <ChevronRight size={15} color="#c8a878" style={{ transform: ouvert ? "rotate(90deg)" : "none", transition: "transform 0.15s" }} />
+                            </div>
+                            {pr.recommande && <div style={{ color: "#1f6e42", fontSize: "0.7rem", fontWeight: 700, marginBottom: "0.3rem" }}>RECOMMANDE</div>}
+                            <div style={{ color: "#a07848", fontSize: "0.75rem", marginBottom: "0.5rem" }}>{pr.composition}</div>
+                            <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap" }}>
+                              <span style={{ background: "#f0fff4", color: "#1f6e42", fontSize: "0.72rem", fontWeight: 700, padding: "0.2rem 0.55rem", borderRadius: "20px" }}>Marge {marge.toFixed(2)} &euro;</span>
+                              <span style={{ background: "#faf3e8", color: "#a07848", fontSize: "0.72rem", padding: "0.2rem 0.55rem", borderRadius: "20px" }}>FC {fc.toFixed(1)} %</span>
+                              <span style={{ background: "#fdf0d5", color: "#c98a17", fontSize: "0.72rem", fontWeight: 700, padding: "0.2rem 0.55rem", borderRadius: "20px" }}>+{Number(pr.impact_mois).toLocaleString("fr-BE")} &euro;/mois</span>
+                            </div>
+                          </button>
+
+                          {ouvert && (
+                            <div style={{ background: "#faf3e8", padding: "0.9rem", borderTop: "1px solid #efe0c9" }}>
+                              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.5rem", marginBottom: "0.7rem" }}>
+                                <div style={{ background: "#fff", borderRadius: "10px", padding: "0.6rem", textAlign: "center" }}>
+                                  <div style={{ color: "#a07848", fontSize: "0.62rem" }}>COUT MATIERES</div>
+                                  <div style={{ color: "#3d1a0a", fontSize: "1rem", fontWeight: 800 }}>{Number(pr.cout).toFixed(2)} &euro;</div>
+                                </div>
+                                <div style={{ background: "#fff", borderRadius: "10px", padding: "0.6rem", textAlign: "center" }}>
+                                  <div style={{ color: "#a07848", fontSize: "0.62rem" }}>VENDU SEPAREMENT</div>
+                                  <div style={{ color: "#3d1a0a", fontSize: "1rem", fontWeight: 800 }}>{pr.prix_separe ? Number(pr.prix_separe).toFixed(2) + " \u20AC" : "-"}</div>
+                                </div>
+                              </div>
+                              {remise > 0 && (
+                                <div style={{ color: "#3d1a0a", fontSize: "0.78rem", marginBottom: "0.6rem" }}>
+                                  Tu offres <strong style={{ color: "#e8213a" }}>{remise.toFixed(2)} &euro;</strong> ({((remise / Number(pr.prix_separe)) * 100).toFixed(0)} % de remise)
+                                </div>
+                              )}
+                              <div style={{ marginBottom: "0.6rem" }}>
+                                <div style={{ color: "#a07848", fontSize: "0.66rem", fontWeight: 700 }}>CIBLE</div>
+                                <div style={{ color: "#3d1a0a", fontSize: "0.78rem" }}>{pr.cible}</div>
+                              </div>
+                              <div style={{ marginBottom: "0.6rem" }}>
+                                <div style={{ color: "#a07848", fontSize: "0.66rem", fontWeight: 700 }}>HYPOTHESE DE CALCUL</div>
+                                <div style={{ color: "#3d1a0a", fontSize: "0.78rem", lineHeight: 1.5 }}>{pr.hypothese}</div>
+                                <div style={{ color: "#1f6e42", fontSize: "0.8rem", fontWeight: 700, marginTop: "0.2rem" }}>+{Number(pr.impact_jour)} &euro;/jour &middot; +{Number(pr.impact_mois).toLocaleString("fr-BE")} &euro;/mois</div>
+                              </div>
+                              <div style={{ background: "#fff5f5", borderRadius: "10px", padding: "0.6rem" }}>
+                                <div style={{ color: "#e8213a", fontSize: "0.66rem", fontWeight: 700 }}>RISQUE</div>
+                                <div style={{ color: "#3d1a0a", fontSize: "0.78rem", lineHeight: 1.5 }}>{pr.risque}</div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                    <div style={{ color: "#c8a878", fontSize: "0.68rem", textAlign: "center", marginTop: "0.6rem", lineHeight: 1.5 }}>
+                      Couts calcules sur la base Saucisse/Mozza (ton produit n1).<br/>Les impacts sont des estimations, pas des garanties.
+                    </div>
                   </div>
                 );
               }
