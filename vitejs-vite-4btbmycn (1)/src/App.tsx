@@ -262,6 +262,13 @@ async function fetchVentes() {
   return res.json();
 }
 
+// ── TOP PRODUITS (volumes réels croisés avec les marges) ───
+async function fetchTopProduits() {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/top_produits?select=*&order=marge_jour.desc`, { headers: HEADERS });
+  if (!res.ok) throw new Error("Fetch top_produits failed");
+  return res.json();
+}
+
 // ── SAISONNALITÉ (CA attendu + effectif par mois) ──────────
 async function fetchSaisonnalite() {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/saisonnalite?select=*&order=mois.asc`, { headers: HEADERS });
@@ -781,6 +788,7 @@ export default function App() {
   const [ventes, setVentes] = useState<any[]>([]);
   const [periodes, setPeriodes] = useState<any[]>([]);
   const [saisonnalite, setSaisonnalite] = useState<any[]>([]);
+  const [topProduits, setTopProduits] = useState<any[]>([]);
   const [joursSpeciaux, setJoursSpeciaux] = useState<any[]>([]);
   const [jourSpecialDate, setJourSpecialDate] = useState("");
   const [jourSpecialMotif, setJourSpecialMotif] = useState("greve");
@@ -1190,6 +1198,7 @@ export default function App() {
     try { setPeriodes(await fetchPeriodes()); } catch {}
     try { setJoursSpeciaux(await fetchJoursSpeciaux()); } catch {}
     try { setSaisonnalite(await fetchSaisonnalite()); } catch {}
+    try { setTopProduits(await fetchTopProduits()); } catch {}
   }
   async function handleMarquerJour(date: string, motif: string) {
     const labels: Record<string, string> = { greve: "Grève / manifestation", meteo: "Mauvaise météo", ferie: "Jour férié", travaux: "Travaux / accès bloqué", panne: "Panne borne / incident", autre: "Autre" };
@@ -3888,6 +3897,57 @@ export default function App() {
                         </div>
                       </div>
                     )}
+                  </>
+                );
+              })()}
+
+              {/* ── TOP PRODUITS ── */}
+              {topProduits.length > 0 && (() => {
+                const margeTot = topProduits.reduce((s, p) => s + Number(p.marge_jour || 0), 0);
+                const famCol: Record<string, string> = { Corndog: "#e8213a", Menu: "#1f6e42", Signature: "#7b4bc4", "Bubble tea": "#c98a17", Side: "#2b6cb0", Boisson: "#a07848" };
+                const parFam: Record<string, number> = {};
+                topProduits.forEach(p => { parFam[p.famille] = (parFam[p.famille] || 0) + Number(p.marge_jour || 0); });
+                const fams = Object.entries(parFam).sort((a, b) => b[1] - a[1]);
+                return (
+                  <>
+                    <div style={{ color: "#3d1a0a", fontSize: "0.92rem", fontWeight: 700, margin: "0.3rem 0 0", display: "flex", alignItems: "center", gap: "6px" }}>
+                      <Utensils size={17} color="#e8213a" /> Produits · qui fait ta marge
+                    </div>
+
+                    {/* Répartition par famille */}
+                    <div style={{ ...CARD, padding: "1rem" }}>
+                      <div style={{ ...LBL, marginBottom: "0.6rem" }}>Marge par famille · {fmt(margeTot)} €/jour</div>
+                      <div style={{ display: "flex", height: "13px", borderRadius: "20px", overflow: "hidden", marginBottom: "0.6rem" }}>
+                        {fams.map(([f, v]) => <div key={f} style={{ width: `${(v / margeTot) * 100}%`, background: famCol[f] || "#c8a878" }} />)}
+                      </div>
+                      {fams.map(([f, v]) => (
+                        <div key={f} style={{ display: "flex", alignItems: "center", gap: "7px", padding: "0.22rem 0", fontSize: "0.79rem" }}>
+                          <span style={{ width: "9px", height: "9px", borderRadius: "50%", background: famCol[f] || "#c8a878", flexShrink: 0 }} />
+                          <span style={{ color: "#3d1a0a", flex: 1 }}>{f}</span>
+                          <span style={{ color: "#a07848" }}>{Math.round((v / margeTot) * 100)} %</span>
+                          <span style={{ color: "#3d1a0a", fontWeight: 600, width: "62px", textAlign: "right" as const }}>{fmt(v)} €/j</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Classement produits */}
+                    <div style={{ ...CARD, padding: "1rem" }}>
+                      <div style={{ ...LBL, marginBottom: "0.6rem" }}>Classement par marge générée</div>
+                      {topProduits.slice(0, 10).map((p, i) => (
+                        <div key={p.produit} style={{ display: "flex", alignItems: "center", gap: "8px", padding: "0.45rem 0", borderTop: i === 0 ? "none" : "1px solid #f4e8d6" }}>
+                          <span style={{ width: "20px", color: i < 3 ? "#e8213a" : "#c8a878", fontSize: "0.78rem", fontWeight: 700, flexShrink: 0 }}>{i + 1}</span>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ color: "#3d1a0a", fontSize: "0.8rem", fontWeight: 600, whiteSpace: "nowrap" as const, overflow: "hidden", textOverflow: "ellipsis" }}>{p.produit}</div>
+                            <div style={{ color: "#a07848", fontSize: "0.68rem" }}>{Number(p.qte_jour).toFixed(1)}/j · {Number(p.marge_unitaire).toFixed(2)} € de marge</div>
+                          </div>
+                          <div style={{ textAlign: "right" as const, flexShrink: 0 }}>
+                            <div style={{ color: "#1f6e42", fontSize: "0.85rem", fontWeight: 700 }}>{fmt(p.marge_jour)} €/j</div>
+                            <div style={{ color: "#c8a878", fontSize: "0.66rem" }}>{Number(p.part_marge).toFixed(1)} %</div>
+                          </div>
+                        </div>
+                      ))}
+                      <div style={{ color: "#c8a878", fontSize: "0.66rem", marginTop: "0.5rem" }}>Moyenne sur 474 jours de ventes · hors suppléments chapelure</div>
+                    </div>
                   </>
                 );
               })()}
