@@ -4704,6 +4704,16 @@ export default function App() {
             </div>
           </div>
         )}
+        {isAdmin && (
+          <button onClick={() => { setPage("comptes"); loadUsers(); }} style={{ background: "#fff", border: "1px solid #efe0c9", color: "#3d1a0a", borderRadius: "14px", padding: "1rem", fontFamily: "'Poppins', sans-serif", fontSize: "0.95rem", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "9px" }}>
+            <Users size={17} color="#e8213a" /> Gestion des comptes
+          </button>
+        )}
+
+        <button onClick={handleLogout} style={{ background: "#fff5f5", border: "1px solid #f5c8c8", color: "#e8213a", borderRadius: "14px", padding: "1rem", fontFamily: "'Poppins', sans-serif", fontSize: "0.95rem", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", fontWeight: 600 }}>
+          <LogOut size={17} /> Se déconnecter
+        </button>
+
         {/* ── MES DOCUMENTS ── */}
         <div style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "12px", padding: "1rem" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.6rem" }}>
@@ -4756,12 +4766,6 @@ export default function App() {
           })()}
         </div>
 
-        {isAdmin && (
-          <button onClick={() => { setPage("comptes"); loadUsers(); }} style={{ background: "#fff", border: "1px solid #efe0c9", color: "#3d1a0a", borderRadius: "14px", padding: "1rem", fontFamily: "'Poppins', sans-serif", fontSize: "0.95rem", cursor: "pointer", textAlign: "left", display: "flex", alignItems: "center", gap: "9px" }}>
-            <Users size={17} color="#e8213a" /> Gestion des comptes
-          </button>
-        )}
-
         {/* Modal upload document */}
         {showDocUpload && (
           <div onClick={() => setShowDocUpload(false)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", zIndex: 200, display: "flex", alignItems: "flex-start", justifyContent: "center", paddingTop: "12vh" }}>
@@ -4785,9 +4789,6 @@ export default function App() {
             </div>
           </div>
         )}
-        <button onClick={handleLogout} style={{ background: "#fff5f5", border: "1px solid #f5c8c8", color: "#e8213a", borderRadius: "14px", padding: "1rem", fontFamily: "'Poppins', sans-serif", fontSize: "0.95rem", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", fontWeight: 600 }}>
-          <LogOut size={17} /> Se déconnecter
-        </button>
       </div>
       <BottomNav />
     </div>
@@ -5069,10 +5070,10 @@ export default function App() {
 
   if (!restaurant) return (
     <div style={{ ...s, minHeight: "100svh", background: "#faebd7", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "2rem", paddingTop: isAdmin ? "5rem" : "2rem", paddingBottom: isAdmin ? "5rem" : "2rem", boxSizing: "border-box" as const }}>
-      <picture>
+      <picture style={{ flexShrink: 0, lineHeight: 0 }}>
         <source type="image/webp" srcSet="/logo-sekai.webp 1x, /logo-sekai@2x.webp 2x" />
         <img src="/logo-sekai.png" alt="Sekai Corndogs" width={168} height={171}
-          style={{ width: "168px", height: "auto", objectFit: "contain", marginBottom: "1rem" }} />
+          style={{ width: "168px", height: "auto", objectFit: "contain", marginBottom: "1rem", flexShrink: 0, display: "block" }} />
       </picture>
       <p style={{ color: "#e8213a", fontSize: "1rem", fontWeight: "600", marginBottom: "0.5rem" }}>Bonjour {currentUser.prenom} !</p>
       <h2 style={{ color: "#3d1a0a", fontSize: "1.2rem", margin: "0 0 0.5rem", textAlign: "center" }}>Quel point de vente ?</h2>
