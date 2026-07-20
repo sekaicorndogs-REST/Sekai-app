@@ -289,6 +289,13 @@ async function fetchTopProduits() {
   return res.json();
 }
 
+// ── JOURS FÉRIÉS (impact mesuré + prévisions) ──────────────
+async function fetchJoursFeries() {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/jours_feries?select=*&order=date.asc`, { headers: HEADERS });
+  if (!res.ok) throw new Error("Fetch feries failed");
+  return res.json();
+}
+
 // ── SAISONNALITÉ (CA attendu + effectif par mois) ──────────
 async function fetchSaisonnalite() {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/saisonnalite?select=*&order=mois.asc`, { headers: HEADERS });
@@ -808,6 +815,7 @@ export default function App() {
   const [ventes, setVentes] = useState<any[]>([]);
   const [periodes, setPeriodes] = useState<any[]>([]);
   const [saisonnalite, setSaisonnalite] = useState<any[]>([]);
+  const [joursFeries, setJoursFeries] = useState<any[]>([]);
   const [topProduits, setTopProduits] = useState<any[]>([]);
   const [resumeSection, setResumeSection] = useState<string>("essentiel");
   const [joursSpeciaux, setJoursSpeciaux] = useState<any[]>([]);
@@ -1225,6 +1233,7 @@ export default function App() {
     try { setPeriodes(await fetchPeriodes()); } catch {}
     try { setJoursSpeciaux(await fetchJoursSpeciaux()); } catch {}
     try { setSaisonnalite(await fetchSaisonnalite()); } catch {}
+    try { setJoursFeries(await fetchJoursFeries()); } catch {}
     try { setTopProduits(await fetchTopProduits()); } catch {}
   }
   async function handleMarquerJour(date: string, motif: string) {
@@ -3995,6 +4004,44 @@ export default function App() {
                         Trait vertical = ton seuil de {fmt(objJour)} €/jour · <strong>Xp/Yp</strong> = effectif conseillé semaine/week-end · basé sur 16 mois de ventes
                       </div>
                     </div>
+
+                    {joursFeries.length > 0 && (() => {
+                      const auj = new Date().toISOString().slice(0, 10);
+                      const prochains = joursFeries.filter(f => f.date >= auj).slice(0, 6);
+                      const passes = joursFeries.filter(f => f.mesure);
+                      const coul = (e) => Number(e) <= -25 ? "#e8213a" : Number(e) < 0 ? "#c98a17" : "#1f6e42";
+                      return (
+                        <div style={{ ...CARD, padding: "1rem" }}>
+                          <div style={{ ...LBL, marginBottom: "0.6rem" }}>Jours f&eacute;ri&eacute;s &agrave; venir</div>
+                          {prochains.map(f => {
+                            const estAuj = f.date === auj;
+                            return (
+                              <div key={f.id} style={{ padding: "0.5rem 0", borderTop: "1px solid #f4e8d6", background: estAuj ? "#fff5f5" : "transparent", borderRadius: estAuj ? "8px" : 0, paddingLeft: estAuj ? "0.5rem" : 0, paddingRight: estAuj ? "0.5rem" : 0 }}>
+                                <div style={{ display: "flex", alignItems: "center", gap: "7px" }}>
+                                  <span style={{ color: estAuj ? "#e8213a" : "#3d1a0a", fontSize: "0.8rem", fontWeight: estAuj ? 700 : 600, flex: 1 }}>
+                                    {estAuj ? "AUJOURD&apos;HUI &middot; " : ""}{f.nom}
+                                  </span>
+                                  <span style={{ color: "#a07848", fontSize: "0.7rem" }}>
+                                    {new Date(f.date + "T12:00:00").toLocaleDateString("fr-BE", { day: "2-digit", month: "short", year: "2-digit" })}
+                                  </span>
+                                  <span style={{ color: coul(f.ecart_pct), fontSize: "0.85rem", fontWeight: 800, width: "48px", textAlign: "right" }}>
+                                    {Number(f.ecart_pct) > 0 ? "+" : ""}{Number(f.ecart_pct)} %
+                                  </span>
+                                </div>
+                                <div style={{ color: "#a07848", fontSize: "0.68rem", marginTop: "0.1rem" }}>
+                                  Commerces {f.commerces} &middot; <strong style={{ color: "#3d1a0a" }}>{f.effectif}</strong> &middot; {f.conseil}
+                                  {!f.mesure && <span style={{ color: "#c8a878" }}> (pr&eacute;vision)</span>}
+                                </div>
+                              </div>
+                            );
+                          })}
+                          <div style={{ color: "#3d1a0a", fontSize: "0.75rem", marginTop: "0.7rem", paddingTop: "0.6rem", borderTop: "1px solid #f4e8d6", lineHeight: 1.5 }}>
+                            <strong>La r&egrave;gle :</strong> ce n&apos;est pas le f&eacute;ri&eacute; qui compte, c&apos;est si les commerces de la Rue Neuve sont ouverts. Commerces ferm&eacute;s &rarr; &minus;30 &agrave; &minus;76 %. Commerces ouverts &rarr; jusqu&apos;&agrave; +14 %.
+                            <br/><span style={{ color: "#c8a878" }}>{passes.length} f&eacute;ri&eacute;s mesur&eacute;s sur tes donn&eacute;es r&eacute;elles.</span>
+                          </div>
+                        </div>
+                      );
+                    })()}
 
                     {bas.length > 0 && (
                       <div style={{ ...CARD, padding: "1rem", borderColor: "#f5c8c8" }}>
