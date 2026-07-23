@@ -446,6 +446,36 @@ async function deleteCharge(id) {
   if (!res.ok) throw new Error("Delete charge failed");
 }
 
+// ── PROJET MAROC API (privé) ──────────────────────────────
+async function fetchProjetMaroc() {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/projet_maroc?select=*&limit=1`, { headers: HEADERS });
+  if (!res.ok) throw new Error("Fetch projet maroc failed");
+  const rows = await res.json();
+  return rows[0] || null;
+}
+async function updateProjetMaroc(id, data) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/projet_maroc?id=eq.${id}`, { method: "PATCH", headers: HEADERS, body: JSON.stringify({ ...data, updated_at: new Date().toISOString() }) });
+  if (!res.ok) throw new Error("Update projet maroc failed");
+}
+async function fetchMarocLignes(projetId) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/projet_maroc_lignes?select=*&projet_id=eq.${projetId}&order=type.asc,ordre.asc`, { headers: HEADERS });
+  if (!res.ok) throw new Error("Fetch lignes maroc failed");
+  return res.json();
+}
+async function createMarocLigne(data) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/projet_maroc_lignes`, { method: "POST", headers: HEADERS, body: JSON.stringify(data) });
+  if (!res.ok) { const e = await res.text(); throw new Error(e); }
+  return res.json();
+}
+async function updateMarocLigne(id, data) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/projet_maroc_lignes?id=eq.${id}`, { method: "PATCH", headers: HEADERS, body: JSON.stringify(data) });
+  if (!res.ok) throw new Error("Update ligne maroc failed");
+}
+async function deleteMarocLigne(id) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/projet_maroc_lignes?id=eq.${id}`, { method: "DELETE", headers: HEADERS });
+  if (!res.ok) throw new Error("Delete ligne maroc failed");
+}
+
 // ── EVENTS API ────────────────────────────────────────────
 async function fetchEvents() {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/events_rentabilite?select=*&order=date_event.desc,created_at.desc`, { headers: HEADERS });
@@ -912,7 +942,12 @@ export default function App() {
   // Finances
   const [dettes, setDettes] = useState<any[]>([]);
   const [charges, setCharges] = useState<any[]>([]);
-  const [financesView, setFinancesView] = useState<"dettes"|"charges"|"resume"|"taches"|"event"|"carte"|"sante">("resume");
+  const [financesView, setFinancesView] = useState<"dettes"|"charges"|"resume"|"taches"|"event"|"carte"|"sante"|"maroc">("resume");
+  // Projet Maroc (privé — Abdel & Mohammed uniquement)
+  const [marocProjet, setMarocProjet] = useState<any>(null);
+  const [marocLignes, setMarocLignes] = useState<any[]>([]);
+  const [marocLoading, setMarocLoading] = useState(false);
+  const [marocSection, setMarocSection] = useState<"investissement"|"charge_fixe"|"charge_variable"|"revenu">("investissement");
   const [caMoyen, setCaMoyen] = useState(() => localStorage.getItem("sekai_ca_moyen") || "30000");
   // CA quotidien qui ne passe PAS par les bornes (caisse + Uber Eats)
   const [caHorsBornes, setCaHorsBornes] = useState(() => localStorage.getItem("sekai_ca_hors_bornes") || "250");
@@ -1051,6 +1086,9 @@ export default function App() {
 
   const isAdmin = currentUser?.role === "admin" || currentUser?.role === "superadmin";
   const isSuperAdmin = currentUser?.role === "superadmin";
+  // Accès au projet Maroc : réservé à Abdel & Mohammed (admins)
+  const MAROC_ALLOWED = ["abdel", "mohammed"];
+  const canSeeMaroc = isAdmin && MAROC_ALLOWED.includes((currentUser?.prenom || "").trim().toLowerCase());
 
   const s = { fontFamily: "'Poppins', sans-serif", color: '#3d1a0a' };
   const inputStyle: React.CSSProperties = { background: "#fff8f0", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.9rem 1.2rem", borderRadius: "12px", fontSize: "1rem", width: "100%", fontFamily: "'Poppins', sans-serif", outline: "none", boxSizing: "border-box" };
@@ -1477,6 +1515,45 @@ export default function App() {
     } catch { flash("❌ Erreur chargement finances"); }
     finally { setFinancesLoading(false); }
   }
+  // ── Projet Maroc ──
+  async function loadMaroc() {
+    setMarocLoading(true);
+    try {
+      const p = await fetchProjetMaroc();
+      setMarocProjet(p);
+      setMarocLignes(p ? await fetchMarocLignes(p.id) : []);
+    } catch { flash("❌ Erreur chargement projet Maroc"); }
+    finally { setMarocLoading(false); }
+  }
+  async function saveMarocChamp(champ: string, valeur: any) {
+    if (!marocProjet) return;
+    const prev = marocProjet[champ];
+    if (String(prev ?? "") === String(valeur ?? "")) return;
+    setMarocProjet({ ...marocProjet, [champ]: valeur });
+    try { await updateProjetMaroc(marocProjet.id, { [champ]: valeur }); }
+    catch { setMarocProjet({ ...marocProjet, [champ]: prev }); flash("❌ Enregistrement échoué"); }
+  }
+  async function saveMarocLigne(ligne: any, patch: any) {
+    const prev = marocLignes;
+    setMarocLignes(prev.map(l => l.id === ligne.id ? { ...l, ...patch } : l));
+    try { await updateMarocLigne(ligne.id, patch); }
+    catch { setMarocLignes(prev); flash("❌ Enregistrement échoué"); }
+  }
+  async function ajouterMarocLigne(type: string) {
+    if (!marocProjet) return;
+    try {
+      const ordre = marocLignes.filter(l => l.type === type).length + 1;
+      const [created] = await createMarocLigne({ projet_id: marocProjet.id, type, nom: "", montant: 0, ordre });
+      setMarocLignes([...marocLignes, created]);
+    } catch { flash("❌ Ajout échoué"); }
+  }
+  async function supprimerMarocLigne(id: string) {
+    const prev = marocLignes;
+    setMarocLignes(prev.filter(l => l.id !== id));
+    try { await deleteMarocLigne(id); }
+    catch { setMarocLignes(prev); flash("❌ Suppression échouée"); }
+  }
+
   function resetEventForm() {
     setEventNom(""); setEventDate(""); setEventLocation(""); setEventPersonnel("");
     setEventTransport(""); setEventMateriel(""); setEventAutres("");
@@ -3414,14 +3491,196 @@ export default function App() {
             <button onClick={() => { loadFinances(); loadTodoTaches(); }} style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#a07848", borderRadius: "8px", padding: "0.3rem 0.6rem", fontSize: "0.8rem", cursor: "pointer" }}><RefreshCw size={16} /></button>
           </div>
           <div style={{ display: "flex", gap: "0.4rem", overflowX: "auto", paddingBottom: "0.5rem" }}>
-            {[{id:"resume",label:"Résumé",Icon:Heart},{id:"dettes",label:"Dettes",Icon:Banknote},{id:"charges",label:"Charges",Icon:Receipt},{id:"event",label:"Event",Icon:PartyPopper},{id:"carte",label:"Carte",Icon:Utensils},{id:"taches",label:"Tâches",Icon:ListChecks}].map(tab => (
-              <button key={tab.id} onClick={() => { setFinancesView(tab.id as any); if(tab.id==="carte") loadMenu(); if(tab.id==="sante"||tab.id==="resume") loadFinances(); if(tab.id==="event") { setEventView("historique"); setShowEventForm(false); loadEvents(); } }}
+            {[{id:"resume",label:"Résumé",Icon:Heart},{id:"dettes",label:"Dettes",Icon:Banknote},{id:"charges",label:"Charges",Icon:Receipt},{id:"event",label:"Event",Icon:PartyPopper},{id:"carte",label:"Carte",Icon:Utensils},{id:"taches",label:"Tâches",Icon:ListChecks}, ...(canSeeMaroc ? [{id:"maroc",label:"Maroc",Icon:Target}] : [])].map(tab => (
+              <button key={tab.id} onClick={() => { setFinancesView(tab.id as any); if(tab.id==="maroc") loadMaroc(); if(tab.id==="carte") loadMenu();if(tab.id==="sante"||tab.id==="resume") loadFinances(); if(tab.id==="event") { setEventView("historique"); setShowEventForm(false); loadEvents(); } }}
                 style={{ background: financesView === tab.id ? "#e8213a" : "#fff", color: financesView === tab.id ? "#fff" : "#a07848", border: `1px solid ${financesView === tab.id ? "#e8213a" : "#efe0c9"}`, borderRadius: "20px", padding: "0.4rem 0.85rem", fontSize: "0.78rem", fontFamily: "'Poppins', sans-serif", fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap", display: "flex", alignItems: "center", gap: "5px" }}>
                 <tab.Icon size={14} /> {tab.label}
               </button>
             ))}
           </div>
         </div>
+
+        {/* ── PROJET MAROC (privé : Abdel & Mohammed) ── */}
+        {financesView === "maroc" && canSeeMaroc && (() => {
+          const p = marocProjet;
+          const num = (v: any) => parseFloat(String(v ?? "").replace(",", ".")) || 0;
+          const eur = (v: number) => v.toLocaleString("fr-BE", { minimumFractionDigits: 0, maximumFractionDigits: 0 }) + " €";
+          const somme = (t: string) => marocLignes.filter(l => l.type === t).reduce((s, l) => s + num(l.montant), 0);
+
+          const invest = somme("investissement");
+          const fixes = somme("charge_fixe");
+          const variablesFixes = somme("charge_variable");
+          const revenusLignes = somme("revenu");
+
+          const jours = num(p?.jours_ouverts_mois);
+          const caEstime = num(p?.couverts_jour) * num(p?.ticket_moyen) * jours;
+          const ca = revenusLignes > 0 ? revenusLignes : caEstime;
+          const caSource = revenusLignes > 0 ? "lignes de revenus" : "couverts × ticket × jours";
+
+          const foodCost = ca * num(p?.food_cost_pct) / 100;
+          const variables = variablesFixes + foodCost;
+          const margeBrute = ca - variables;
+          const tauxMarge = ca > 0 ? margeBrute / ca : 0;
+
+          const tx = num(p?.emprunt_taux) / 100 / 12;
+          const n = num(p?.emprunt_duree_mois);
+          const cap = num(p?.emprunt_montant);
+          const mensualite = cap > 0 && n > 0 ? (tx > 0 ? cap * tx / (1 - Math.pow(1 + tx, -n)) : cap / n) : 0;
+
+          const fixesTotal = fixes + mensualite;
+          const resultat = margeBrute - fixesTotal;
+          const seuilCa = tauxMarge > 0 ? fixesTotal / tauxMarge : 0;
+          const seuilJour = jours > 0 ? seuilCa / jours : 0;
+          const seuilCouverts = num(p?.ticket_moyen) > 0 ? seuilJour / num(p?.ticket_moyen) : 0;
+          const financement = num(p?.apport_personnel) + cap;
+          const ecart = financement - invest;
+          const roiMois = resultat > 0 ? invest / resultat : 0;
+
+          const SECTIONS: { id: any; label: string; hint: string }[] = [
+            { id: "investissement", label: "Investissement", hint: "Dépenses one-shot avant ouverture (€)" },
+            { id: "charge_fixe", label: "Charges fixes", hint: "Montant par mois (€)" },
+            { id: "charge_variable", label: "Charges variables", hint: "Montant par mois (€), hors food cost %" },
+            { id: "revenu", label: "Revenus", hint: "CA par mois (€) — laisse à 0 pour utiliser l'estimation couverts × ticket" },
+          ];
+
+          const champ = (label: string, key: string, suffixe = "", mode: "num" | "texte" | "date" = "num") => (
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
+              <label style={{ color: "#a07848", fontSize: "0.72rem", fontWeight: 600 }}>{label}{suffixe && ` (${suffixe})`}</label>
+              <input
+                key={`${p?.id}-${key}`}
+                defaultValue={p?.[key] ?? ""}
+                type={mode === "date" ? "date" : "text"}
+                inputMode={mode === "num" ? "decimal" : undefined}
+                onBlur={e => saveMarocChamp(key, mode === "num" ? (parseFloat(e.target.value.replace(",", ".")) || 0) : (e.target.value || (mode === "date" ? null : "")))}
+                style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.6rem 0.75rem", borderRadius: "8px", fontSize: "0.9rem", outline: "none", width: "100%", boxSizing: "border-box" as const, fontFamily: "'Poppins', sans-serif" }} />
+            </div>
+          );
+
+          const stat = (label: string, valeur: string, couleur = "#3d1a0a", sousTitre?: string) => (
+            <div style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "12px", padding: "0.7rem 0.8rem" }}>
+              <div style={{ color: "#a07848", fontSize: "0.7rem", fontWeight: 600 }}>{label}</div>
+              <div style={{ color: couleur, fontSize: "1.05rem", fontWeight: "bold", marginTop: "0.15rem" }}>{valeur}</div>
+              {sousTitre && <div style={{ color: "#c8a878", fontSize: "0.66rem", marginTop: "0.15rem" }}>{sousTitre}</div>}
+            </div>
+          );
+
+          return (
+            <div style={{ padding: "0.8rem 1.1rem" }}>
+              {marocLoading && <div style={{ textAlign: "center", padding: "2rem", color: "#e8213a" }}>Chargement...</div>}
+              {!marocLoading && !p && <div style={{ textAlign: "center", padding: "2rem", color: "#a07848" }}>Aucun projet trouvé.</div>}
+              {!marocLoading && p && (<>
+                <div style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "12px", padding: "0.6rem 0.8rem", marginBottom: "0.8rem", display: "flex", alignItems: "center", gap: "7px", color: "#a07848", fontSize: "0.74rem" }}>
+                  <Lock size={14} color="#e8213a" /> Projet privé — visible uniquement par Abdel & Mohammed. Chaque champ s'enregistre quand tu quittes la case.
+                </div>
+
+                {/* Identité du projet */}
+                <div style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "14px", padding: "0.9rem", marginBottom: "0.8rem" }}>
+                  <div style={{ color: "#e8213a", fontWeight: "bold", fontSize: "0.9rem", marginBottom: "0.7rem" }}>Le projet</div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.6rem" }}>
+                    {champ("Nom", "nom", "", "texte")}
+                    {champ("Ville", "ville", "", "texte")}
+                    {champ("Ouverture prévue", "ouverture_prevue", "", "date")}
+                    {champ("Surface", "surface_m2", "m²")}
+                    {champ("Places assises", "places_assises")}
+                    {champ("Jours ouverts", "jours_ouverts_mois", "/mois")}
+                  </div>
+                </div>
+
+                {/* Hypothèses */}
+                <div style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "14px", padding: "0.9rem", marginBottom: "0.8rem" }}>
+                  <div style={{ color: "#e8213a", fontWeight: "bold", fontSize: "0.9rem", marginBottom: "0.7rem" }}>Hypothèses d'activité</div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.6rem" }}>
+                    {champ("Couverts", "couverts_jour", "/jour")}
+                    {champ("Ticket moyen", "ticket_moyen", "€")}
+                    {champ("Food cost", "food_cost_pct", "% du CA")}
+                  </div>
+                </div>
+
+                {/* Financement */}
+                <div style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "14px", padding: "0.9rem", marginBottom: "0.8rem" }}>
+                  <div style={{ color: "#e8213a", fontWeight: "bold", fontSize: "0.9rem", marginBottom: "0.7rem" }}>Financement</div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.6rem" }}>
+                    {champ("Apport personnel", "apport_personnel", "€")}
+                    {champ("Emprunt", "emprunt_montant", "€")}
+                    {champ("Taux annuel", "emprunt_taux", "%")}
+                    {champ("Durée", "emprunt_duree_mois", "mois")}
+                  </div>
+                  <div style={{ marginTop: "0.7rem", color: "#a07848", fontSize: "0.76rem" }}>
+                    Mensualité de crédit : <strong style={{ color: "#3d1a0a" }}>{eur(mensualite)}</strong> / mois
+                  </div>
+                </div>
+
+                {/* Lignes */}
+                <div style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "14px", padding: "0.9rem", marginBottom: "0.8rem" }}>
+                  <div style={{ display: "flex", gap: "0.35rem", overflowX: "auto", marginBottom: "0.7rem" }}>
+                    {SECTIONS.map(sec => (
+                      <button key={sec.id} onClick={() => setMarocSection(sec.id)}
+                        style={{ background: marocSection === sec.id ? "#e8213a" : "#faebd7", color: marocSection === sec.id ? "#fff" : "#a07848", border: `1px solid ${marocSection === sec.id ? "#e8213a" : "#efe0c9"}`, borderRadius: "18px", padding: "0.35rem 0.7rem", fontSize: "0.72rem", fontFamily: "'Poppins', sans-serif", fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap" }}>
+                        {sec.label}
+                      </button>
+                    ))}
+                  </div>
+                  <div style={{ color: "#c8a878", fontSize: "0.7rem", marginBottom: "0.6rem" }}>{SECTIONS.find(s2 => s2.id === marocSection)?.hint}</div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "0.45rem" }}>
+                    {marocLignes.filter(l => l.type === marocSection).map(l => (
+                      <div key={l.id} style={{ display: "flex", gap: "0.4rem", alignItems: "center" }}>
+                        <input key={`${l.id}-nom`} defaultValue={l.nom} placeholder="Libellé"
+                          onBlur={e => saveMarocLigne(l, { nom: e.target.value })}
+                          style={{ flex: 1, minWidth: 0, background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.55rem 0.7rem", borderRadius: "8px", fontSize: "0.85rem", outline: "none", fontFamily: "'Poppins', sans-serif" }} />
+                        <input key={`${l.id}-montant`} defaultValue={l.montant} inputMode="decimal"
+                          onBlur={e => saveMarocLigne(l, { montant: parseFloat(e.target.value.replace(",", ".")) || 0 })}
+                          style={{ width: "5.5rem", background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.55rem 0.6rem", borderRadius: "8px", fontSize: "0.85rem", outline: "none", textAlign: "right" as const, fontFamily: "'Poppins', sans-serif" }} />
+                        <button onClick={() => supprimerMarocLigne(l.id)} style={{ background: "none", border: "none", color: "#e8213a", cursor: "pointer", padding: "0.2rem" }}><Trash2 size={16} /></button>
+                      </div>
+                    ))}
+                  </div>
+                  <button onClick={() => ajouterMarocLigne(marocSection)}
+                    style={{ marginTop: "0.6rem", background: "#faebd7", border: "1.5px dashed #e8213a88", color: "#e8213a", borderRadius: "10px", padding: "0.55rem", width: "100%", cursor: "pointer", fontSize: "0.82rem", fontWeight: 600, fontFamily: "'Poppins', sans-serif", display: "flex", alignItems: "center", justifyContent: "center", gap: "5px" }}>
+                    <Plus size={15} /> Ajouter une ligne
+                  </button>
+                  <div style={{ marginTop: "0.7rem", textAlign: "right" as const, color: "#3d1a0a", fontSize: "0.85rem", fontWeight: "bold" }}>
+                    Total {SECTIONS.find(s2 => s2.id === marocSection)?.label.toLowerCase()} : {eur(somme(marocSection))}
+                  </div>
+                </div>
+
+                {/* Rentabilité */}
+                <div style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "14px", padding: "0.9rem", marginBottom: "0.8rem" }}>
+                  <div style={{ color: "#e8213a", fontWeight: "bold", fontSize: "0.9rem", marginBottom: "0.2rem", display: "flex", alignItems: "center", gap: "6px" }}><TrendingUp size={17} /> Rentabilité</div>
+                  <div style={{ color: "#c8a878", fontSize: "0.68rem", marginBottom: "0.7rem" }}>CA basé sur : {caSource}</div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.5rem" }}>
+                    {stat("CA mensuel", eur(ca))}
+                    {stat("Charges variables", eur(variables), "#3d1a0a", `dont food cost ${eur(foodCost)}`)}
+                    {stat("Marge brute", eur(margeBrute), "#2e7d32", `${(tauxMarge * 100).toFixed(1)} % du CA`)}
+                    {stat("Charges fixes", eur(fixesTotal), "#3d1a0a", `dont crédit ${eur(mensualite)}`)}
+                    {stat("Résultat mensuel", eur(resultat), resultat >= 0 ? "#2e7d32" : "#e8213a")}
+                    {stat("Résultat annuel", eur(resultat * 12), resultat >= 0 ? "#2e7d32" : "#e8213a")}
+                    {stat("Seuil de rentabilité", eur(seuilCa), "#b45309", "CA mensuel à atteindre")}
+                    {stat("Soit par jour", eur(seuilJour), "#b45309", `≈ ${seuilCouverts.toFixed(0)} couverts/jour`)}
+                  </div>
+                </div>
+
+                {/* Investissement & financement */}
+                <div style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "14px", padding: "0.9rem", marginBottom: "0.8rem" }}>
+                  <div style={{ color: "#e8213a", fontWeight: "bold", fontSize: "0.9rem", marginBottom: "0.7rem", display: "flex", alignItems: "center", gap: "6px" }}><PiggyBank size={17} /> Investissement & financement</div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.5rem" }}>
+                    {stat("Investissement total", eur(invest))}
+                    {stat("Financement dispo", eur(financement), "#3d1a0a", "apport + emprunt")}
+                    {stat(ecart >= 0 ? "Marge de manœuvre" : "Manque à financer", eur(Math.abs(ecart)), ecart >= 0 ? "#2e7d32" : "#e8213a")}
+                    {stat("Retour sur invest.", roiMois > 0 ? `${roiMois.toFixed(1)} mois` : "—", "#b45309", roiMois > 0 ? `≈ ${(roiMois / 12).toFixed(1)} an(s)` : "résultat négatif")}
+                  </div>
+                </div>
+
+                {/* Notes */}
+                <div style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "14px", padding: "0.9rem" }}>
+                  <div style={{ color: "#e8213a", fontWeight: "bold", fontSize: "0.9rem", marginBottom: "0.6rem" }}>Notes</div>
+                  <textarea key={`${p.id}-notes`} defaultValue={p.notes || ""} rows={5} placeholder="Emplacement, concurrence, partenaires, démarches administratives..."
+                    onBlur={e => saveMarocChamp("notes", e.target.value)}
+                    style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.7rem", borderRadius: "8px", fontSize: "0.85rem", outline: "none", width: "100%", boxSizing: "border-box" as const, fontFamily: "'Poppins', sans-serif", resize: "vertical" as const }} />
+                </div>
+              </>)}
+            </div>
+          );
+        })()}
 
         {/* ── DETTES ── */}
         {financesView === "dettes" && (
