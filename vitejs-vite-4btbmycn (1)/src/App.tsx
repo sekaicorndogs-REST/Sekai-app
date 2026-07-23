@@ -476,6 +476,25 @@ async function deleteMarocLigne(id) {
   if (!res.ok) throw new Error("Delete ligne maroc failed");
 }
 
+async function fetchMarocScenarios(projetId) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/projet_maroc_scenarios?select=*&projet_id=eq.${projetId}&order=created_at.desc`, { headers: HEADERS });
+  if (!res.ok) throw new Error("Fetch scenarios maroc failed");
+  return res.json();
+}
+async function createMarocScenario(data) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/projet_maroc_scenarios`, { method: "POST", headers: HEADERS, body: JSON.stringify(data) });
+  if (!res.ok) { const e = await res.text(); throw new Error(e); }
+  return res.json();
+}
+async function updateMarocScenario(id, data) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/projet_maroc_scenarios?id=eq.${id}`, { method: "PATCH", headers: HEADERS, body: JSON.stringify({ ...data, updated_at: new Date().toISOString() }) });
+  if (!res.ok) throw new Error("Update scenario maroc failed");
+}
+async function deleteMarocScenario(id) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/projet_maroc_scenarios?id=eq.${id}`, { method: "DELETE", headers: HEADERS });
+  if (!res.ok) throw new Error("Delete scenario maroc failed");
+}
+
 // ── EVENTS API ────────────────────────────────────────────
 async function fetchEvents() {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/events_rentabilite?select=*&order=date_event.desc,created_at.desc`, { headers: HEADERS });
@@ -948,6 +967,9 @@ export default function App() {
   const [marocLignes, setMarocLignes] = useState<any[]>([]);
   const [marocLoading, setMarocLoading] = useState(false);
   const [marocSection, setMarocSection] = useState<"investissement"|"charge_fixe"|"charge_variable"|"revenu">("investissement");
+  const [marocOnglet, setMarocOnglet] = useState<"projet"|"simulations">("projet");
+  const [marocScenarios, setMarocScenarios] = useState<any[]>([]);
+  const [marocScenarioOpen, setMarocScenarioOpen] = useState<number|null>(null);
   const [caMoyen, setCaMoyen] = useState(() => localStorage.getItem("sekai_ca_moyen") || "30000");
   // CA quotidien qui ne passe PAS par les bornes (caisse + Uber Eats)
   const [caHorsBornes, setCaHorsBornes] = useState(() => localStorage.getItem("sekai_ca_hors_bornes") || "250");
@@ -1521,7 +1543,10 @@ export default function App() {
     try {
       const p = await fetchProjetMaroc();
       setMarocProjet(p);
-      setMarocLignes(p ? await fetchMarocLignes(p.id) : []);
+      if (p) {
+        const [lignes, scenarios] = await Promise.all([fetchMarocLignes(p.id), fetchMarocScenarios(p.id)]);
+        setMarocLignes(lignes); setMarocScenarios(scenarios);
+      } else { setMarocLignes([]); setMarocScenarios([]); }
     } catch { flash("❌ Erreur chargement projet Maroc"); }
     finally { setMarocLoading(false); }
   }
@@ -1552,6 +1577,37 @@ export default function App() {
     setMarocLignes(prev.filter(l => l.id !== id));
     try { await deleteMarocLigne(id); }
     catch { setMarocLignes(prev); flash("❌ Suppression échouée"); }
+  }
+
+  async function saveMarocScenario(sc: any, patch: any) {
+    const prev = marocScenarios;
+    setMarocScenarios(prev.map(x => x.id === sc.id ? { ...x, ...patch } : x));
+    try { await updateMarocScenario(sc.id, patch); }
+    catch { setMarocScenarios(prev); flash("❌ Enregistrement échoué"); }
+  }
+  async function ajouterMarocScenario() {
+    if (!marocProjet) return;
+    try {
+      const [created] = await createMarocScenario({
+        projet_id: marocProjet.id,
+        nom: `Simulation ${marocScenarios.length + 1}`,
+        ca_jour: 0,
+        jours_ouverts_mois: marocProjet.jours_ouverts_mois || 0,
+        food_cost_pct: marocProjet.food_cost_pct || 0,
+        charges_fixes: marocLignes.filter(l => l.type === "charge_fixe").reduce((s, l) => s + (parseFloat(l.montant) || 0), 0),
+        charges_variables: marocLignes.filter(l => l.type === "charge_variable").reduce((s, l) => s + (parseFloat(l.montant) || 0), 0),
+        objectif_benefice: marocProjet.objectif_benefice || 0,
+      });
+      setMarocScenarios([created, ...marocScenarios]);
+      setMarocScenarioOpen(created.id);
+      flash("✅ Simulation créée");
+    } catch { flash("❌ Création échouée"); }
+  }
+  async function supprimerMarocScenario(id: number) {
+    const prev = marocScenarios;
+    setMarocScenarios(prev.filter(x => x.id !== id));
+    try { await deleteMarocScenario(id); flash("✅ Simulation supprimée"); }
+    catch { setMarocScenarios(prev); flash("❌ Suppression échouée"); }
   }
 
   function resetEventForm() {
@@ -3532,6 +3588,9 @@ export default function App() {
           const seuilCa = tauxMarge > 0 ? fixesTotal / tauxMarge : 0;
           const seuilJour = jours > 0 ? seuilCa / jours : 0;
           const seuilCouverts = num(p?.ticket_moyen) > 0 ? seuilJour / num(p?.ticket_moyen) : 0;
+          const objectif = num(p?.objectif_benefice);
+          const caObjectif = tauxMarge > 0 ? (fixesTotal + objectif) / tauxMarge : 0;
+          const caObjectifJour = jours > 0 ? caObjectif / jours : 0;
           const financement = num(p?.apport_personnel) + cap;
           const ecart = financement - invest;
           const roiMois = resultat > 0 ? invest / resultat : 0;
@@ -3573,6 +3632,16 @@ export default function App() {
                   <Lock size={14} color="#e8213a" /> Projet privé — visible uniquement par Abdel & Mohammed. Chaque champ s'enregistre quand tu quittes la case.
                 </div>
 
+                <div style={{ display: "flex", gap: "0.4rem", marginBottom: "0.8rem" }}>
+                  {[{ id: "projet", label: "Le projet", Icon: Target }, { id: "simulations", label: "Simulations", Icon: TrendingUp }].map(o => (
+                    <button key={o.id} onClick={() => setMarocOnglet(o.id as any)}
+                      style={{ flex: 1, background: marocOnglet === o.id ? "#e8213a" : "#fff8f0", color: marocOnglet === o.id ? "#fff" : "#a07848", border: `1.5px solid ${marocOnglet === o.id ? "#e8213a" : "#f0d8b8"}`, borderRadius: "10px", padding: "0.55rem", fontSize: "0.8rem", fontFamily: "'Poppins', sans-serif", fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "5px" }}>
+                      <o.Icon size={15} /> {o.label}
+                    </button>
+                  ))}
+                </div>
+
+                {marocOnglet === "projet" && (<>
                 {/* Identité du projet */}
                 <div style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "14px", padding: "0.9rem", marginBottom: "0.8rem" }}>
                   <div style={{ color: "#e8213a", fontWeight: "bold", fontSize: "0.9rem", marginBottom: "0.7rem" }}>Le projet</div>
@@ -3593,6 +3662,7 @@ export default function App() {
                     {champ("Couverts", "couverts_jour", "/jour")}
                     {champ("Ticket moyen", "ticket_moyen", "€")}
                     {champ("Food cost", "food_cost_pct", "% du CA")}
+                    {champ("Objectif bénéfice", "objectif_benefice", "€/mois")}
                   </div>
                 </div>
 
@@ -3657,6 +3727,16 @@ export default function App() {
                     {stat("Seuil de rentabilité", eur(seuilCa), "#b45309", "CA mensuel à atteindre")}
                     {stat("Soit par jour", eur(seuilJour), "#b45309", `≈ ${seuilCouverts.toFixed(0)} couverts/jour`)}
                   </div>
+                  {objectif > 0 && (
+                    <div style={{ marginTop: "0.6rem", background: resultat >= objectif ? "#f0fff4" : "#fffbe6", border: `1.5px solid ${resultat >= objectif ? "#a5d6a7" : "#fde68a"}`, borderRadius: "12px", padding: "0.7rem 0.8rem" }}>
+                      <div style={{ color: resultat >= objectif ? "#2e7d32" : "#b45309", fontSize: "0.8rem", fontWeight: "bold" }}>
+                        Objectif {eur(objectif)}/mois — {resultat >= objectif ? `atteint (+${eur(resultat - objectif)})` : `il manque ${eur(objectif - resultat)}`}
+                      </div>
+                      <div style={{ color: "#a07848", fontSize: "0.72rem", marginTop: "0.25rem" }}>
+                        Pour l'atteindre : {eur(caObjectif)} de CA/mois, soit {eur(caObjectifJour)}/jour
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Investissement & financement */}
@@ -3677,6 +3757,118 @@ export default function App() {
                     onBlur={e => saveMarocChamp("notes", e.target.value)}
                     style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.7rem", borderRadius: "8px", fontSize: "0.85rem", outline: "none", width: "100%", boxSizing: "border-box" as const, fontFamily: "'Poppins', sans-serif", resize: "vertical" as const }} />
                 </div>
+                </>)}
+
+                {marocOnglet === "simulations" && (<>
+                  <div style={{ color: "#a07848", fontSize: "0.74rem", marginBottom: "0.7rem" }}>
+                    Teste un scénario : « avec X € par jour, ça donne combien de bénéfice ? ». Chaque simulation est enregistrée et reste modifiable.
+                  </div>
+                  <button onClick={ajouterMarocScenario}
+                    style={{ background: "#e8213a", color: "#fff", border: "none", borderRadius: "12px", padding: "0.75rem", width: "100%", cursor: "pointer", fontSize: "0.9rem", fontWeight: "bold", fontFamily: "'Poppins', sans-serif", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", marginBottom: "0.9rem" }}>
+                    <Plus size={17} /> Nouvelle simulation
+                  </button>
+
+                  {marocScenarios.length === 0 && (
+                    <div style={{ textAlign: "center", padding: "2rem", color: "#c8a878", fontSize: "0.85rem" }}>Aucune simulation enregistrée.</div>
+                  )}
+
+                  <div style={{ display: "flex", flexDirection: "column", gap: "0.7rem" }}>
+                    {marocScenarios.map(sc => {
+                      const jrs = num(sc.jours_ouverts_mois);
+                      const caSc = num(sc.ca_jour) * jrs;
+                      const varSc = caSc * num(sc.food_cost_pct) / 100 + num(sc.charges_variables);
+                      const margeSc = caSc - varSc;
+                      const tauxSc = caSc > 0 ? margeSc / caSc : 0;
+                      const fixesSc = num(sc.charges_fixes) + (sc.inclure_credit ? mensualite : 0);
+                      const benefSc = margeSc - fixesSc;
+                      const objSc = num(sc.objectif_benefice);
+                      const caReqJour = tauxSc > 0 && jrs > 0 ? (fixesSc + objSc) / tauxSc / jrs : 0;
+                      const roiSc = benefSc > 0 && invest > 0 ? invest / benefSc : 0;
+                      const ouvert = marocScenarioOpen === sc.id;
+
+                      const champSc = (label: string, key: string, suffixe = "") => (
+                        <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
+                          <label style={{ color: "#a07848", fontSize: "0.7rem", fontWeight: 600 }}>{label}{suffixe && ` (${suffixe})`}</label>
+                          <input key={`sc-${sc.id}-${key}`} defaultValue={sc[key]} inputMode="decimal"
+                            onBlur={e => saveMarocScenario(sc, { [key]: parseFloat(e.target.value.replace(",", ".")) || 0 })}
+                            style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.55rem 0.7rem", borderRadius: "8px", fontSize: "0.88rem", outline: "none", width: "100%", boxSizing: "border-box" as const, fontFamily: "'Poppins', sans-serif" }} />
+                        </div>
+                      );
+
+                      return (
+                        <div key={sc.id} style={{ background: "#fff8f0", border: `1.5px solid ${benefSc >= 0 ? "#f0d8b8" : "#f5c8c8"}`, borderRadius: "14px", overflow: "hidden" }}>
+                          <div onClick={() => setMarocScenarioOpen(ouvert ? null : sc.id)} style={{ padding: "0.8rem 0.9rem", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "0.6rem" }}>
+                            <div style={{ minWidth: 0 }}>
+                              <div style={{ color: "#3d1a0a", fontWeight: "bold", fontSize: "0.88rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{sc.nom || "Sans nom"}</div>
+                              <div style={{ color: "#a07848", fontSize: "0.72rem", marginTop: "0.15rem" }}>{eur(num(sc.ca_jour))}/jour × {jrs || 0} j = {eur(caSc)}/mois</div>
+                            </div>
+                            <div style={{ textAlign: "right" as const, flexShrink: 0 }}>
+                              <div style={{ color: benefSc >= 0 ? "#2e7d32" : "#e8213a", fontWeight: "bold", fontSize: "0.95rem" }}>{eur(benefSc)}</div>
+                              <div style={{ color: "#c8a878", fontSize: "0.66rem" }}>bénéfice / mois</div>
+                            </div>
+                            <ChevronRight size={17} color="#c8a878" style={{ transform: ouvert ? "rotate(90deg)" : "none", transition: "transform 0.15s", flexShrink: 0 }} />
+                          </div>
+
+                          {ouvert && (
+                            <div style={{ padding: "0 0.9rem 0.9rem", borderTop: "1.5px solid #f0d8b8" }}>
+                              <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem", margin: "0.8rem 0" }}>
+                                <label style={{ color: "#a07848", fontSize: "0.7rem", fontWeight: 600 }}>Nom de la simulation</label>
+                                <input key={`sc-${sc.id}-nom`} defaultValue={sc.nom} placeholder="ex: Scénario prudent"
+                                  onBlur={e => saveMarocScenario(sc, { nom: e.target.value })}
+                                  style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.55rem 0.7rem", borderRadius: "8px", fontSize: "0.88rem", outline: "none", width: "100%", boxSizing: "border-box" as const, fontFamily: "'Poppins', sans-serif" }} />
+                              </div>
+                              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.6rem" }}>
+                                {champSc("CA par jour", "ca_jour", "€")}
+                                {champSc("Jours ouverts", "jours_ouverts_mois", "/mois")}
+                                {champSc("Food cost", "food_cost_pct", "% du CA")}
+                                {champSc("Autres charges variables", "charges_variables", "€/mois")}
+                                {champSc("Charges fixes", "charges_fixes", "€/mois")}
+                                {champSc("Objectif bénéfice", "objectif_benefice", "€/mois")}
+                              </div>
+                              <label style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginTop: "0.7rem", cursor: "pointer" }}>
+                                <input type="checkbox" checked={!!sc.inclure_credit} onChange={e => saveMarocScenario(sc, { inclure_credit: e.target.checked })}
+                                  style={{ width: "1.05rem", height: "1.05rem", accentColor: "#e8213a", cursor: "pointer" }} />
+                                <span style={{ color: "#3d1a0a", fontSize: "0.8rem" }}>Inclure la mensualité de crédit ({eur(mensualite)}/mois)</span>
+                              </label>
+
+                              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.5rem", marginTop: "0.9rem" }}>
+                                {stat("CA mensuel", eur(caSc))}
+                                {stat("Marge brute", eur(margeSc), "#2e7d32", `${(tauxSc * 100).toFixed(1)} % du CA`)}
+                                {stat("Charges totales", eur(fixesSc + varSc))}
+                                {stat("Bénéfice / mois", eur(benefSc), benefSc >= 0 ? "#2e7d32" : "#e8213a")}
+                                {stat("Bénéfice / an", eur(benefSc * 12), benefSc >= 0 ? "#2e7d32" : "#e8213a")}
+                                {stat("Retour sur invest.", roiSc > 0 ? `${roiSc.toFixed(1)} mois` : "—", "#b45309", roiSc > 0 ? `≈ ${(roiSc / 12).toFixed(1)} an(s)` : "invest. ou bénéf. à 0")}
+                              </div>
+
+                              {objSc > 0 && (
+                                <div style={{ marginTop: "0.7rem", background: benefSc >= objSc ? "#f0fff4" : "#fffbe6", border: `1.5px solid ${benefSc >= objSc ? "#a5d6a7" : "#fde68a"}`, borderRadius: "12px", padding: "0.7rem 0.8rem" }}>
+                                  <div style={{ color: benefSc >= objSc ? "#2e7d32" : "#b45309", fontSize: "0.8rem", fontWeight: "bold" }}>
+                                    Objectif {eur(objSc)}/mois — {benefSc >= objSc ? `atteint (+${eur(benefSc - objSc)})` : `il manque ${eur(objSc - benefSc)}`}
+                                  </div>
+                                  <div style={{ color: "#a07848", fontSize: "0.72rem", marginTop: "0.25rem" }}>
+                                    CA nécessaire : {eur(caReqJour)} par jour
+                                  </div>
+                                </div>
+                              )}
+
+                              <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem", marginTop: "0.8rem" }}>
+                                <label style={{ color: "#a07848", fontSize: "0.7rem", fontWeight: 600 }}>Notes</label>
+                                <textarea key={`sc-${sc.id}-notes`} defaultValue={sc.notes || ""} rows={3} placeholder="Hypothèses, remarques..."
+                                  onBlur={e => saveMarocScenario(sc, { notes: e.target.value })}
+                                  style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.6rem", borderRadius: "8px", fontSize: "0.83rem", outline: "none", width: "100%", boxSizing: "border-box" as const, fontFamily: "'Poppins', sans-serif", resize: "vertical" as const }} />
+                              </div>
+
+                              <button onClick={() => supprimerMarocScenario(sc.id)}
+                                style={{ marginTop: "0.8rem", background: "none", border: "1.5px solid #f5c8c8", color: "#e8213a", borderRadius: "10px", padding: "0.5rem", width: "100%", cursor: "pointer", fontSize: "0.8rem", fontWeight: 600, fontFamily: "'Poppins', sans-serif", display: "flex", alignItems: "center", justifyContent: "center", gap: "5px" }}>
+                                <Trash2 size={15} /> Supprimer cette simulation
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </>)}
               </>)}
             </div>
           );
