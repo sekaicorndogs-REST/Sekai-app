@@ -209,6 +209,13 @@ async function updateItemMeta(id, name, threshold, threshold_label) {
   return res.json();
 }
 
+async function deleteItem(id) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/stock?id=eq.${id}`, {
+    method: "DELETE", headers: HEADERS
+  });
+  if (!res.ok) throw new Error("Delete failed");
+}
+
 async function resetAllQty(restaurantId) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/stock?restaurant_id=eq.${restaurantId}`, {
     method: "PATCH", headers: HEADERS,
@@ -1280,6 +1287,16 @@ export default function App() {
       setEditItemId(null);
       flash("✅ Article modifié !");
     } catch { flash("❌ Erreur"); }
+  }
+
+  async function handleDeleteItem(id, name) {
+    if (!window.confirm(`Supprimer « ${name} » de l'inventaire ? Cette action est définitive.`)) return;
+    try {
+      await deleteItem(id);
+      setItems(prev => prev.filter(i => i.id !== id));
+      setEditItemId(null);
+      flash("🗑️ Article supprimé");
+    } catch { flash("❌ Erreur suppression"); }
   }
 
   async function loadUsers() {
@@ -6645,6 +6662,7 @@ export default function App() {
                       <button onClick={() => handleSaveItemMeta(item.id)} style={{ flex: 1, background: "#e8213a", color: "#ffffff", border: "none", padding: "0.8rem", borderRadius: "8px", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", cursor: "pointer" }}>Sauvegarder</button>
                       <button onClick={() => setEditItemId(null)} style={{ background: "#faebd7", color: "#c8a878", border: "none", padding: "0.8rem 1rem", borderRadius: "8px", cursor: "pointer" }}><X size={16} /></button>
                     </div>
+                    <button onClick={() => handleDeleteItem(item.id, item.name)} style={{ background: "#fff0f0", color: "#e8213a", border: "1px solid #f5c2c2", padding: "0.7rem", borderRadius: "8px", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", fontSize: "0.85rem", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}><Trash2 size={15} /> Supprimer l'article</button>
                   </div>
                 ) : (
                   <div style={{ display: "flex", alignItems: "center", padding: "0.9rem 1rem", gap: "0.75rem", cursor: "pointer" }} onClick={() => { setEditingId(item.id); setEditVal(item.qty); }}>
