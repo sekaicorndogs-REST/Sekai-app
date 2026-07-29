@@ -1005,7 +1005,7 @@ export default function App() {
   const [marocScenarioOpen, setMarocScenarioOpen] = useState<number|null>(null);
   const [caMoyen, setCaMoyen] = useState(() => localStorage.getItem("sekai_ca_moyen") || "30000");
   // CA quotidien qui ne passe PAS par les bornes (caisse + Uber Eats)
-  const [caHorsBornes, setCaHorsBornes] = useState(() => localStorage.getItem("sekai_ca_hors_bornes") || "250");
+  const [caHorsBornes, setCaHorsBornes] = useState(() => localStorage.getItem("sekai_ca_hors_bornes") || "150");
   const [menuProduits, setMenuProduits] = useState<any[]>([]);
   const [menuRecettes, setMenuRecettes] = useState<any[]>([]);
   const [menuLoading, setMenuLoading] = useState(false);
