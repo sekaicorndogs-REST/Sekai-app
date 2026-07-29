@@ -4088,10 +4088,14 @@ export default function App() {
           const totalJoursVP = Array.from(periodesVP.values()).reduce((s, n) => s + n, 0) || 1;
           const totalCorndogs = ventesProduits.filter((r: any) => /corndog/i.test(r.produit || "")).reduce((s: number, r: any) => s + (Number(r.quantite) || 0), 0);
           const totalMenus = ventesProduits.filter((r: any) => /menu/i.test(r.produit || "")).reduce((s: number, r: any) => s + (Number(r.quantite) || 0), 0);
+          const totalCorndogCA = ventesProduits.filter((r: any) => /corndog/i.test(r.produit || "")).reduce((s: number, r: any) => s + (Number(r.ca) || 0), 0);
+          const prixCorndogMoyen = totalCorndogs > 0 ? totalCorndogCA / totalCorndogs : 0;
           const factorHB = caJourBornes > 0 ? caJourReel / caJourBornes : 1; // prise en compte caisse + Uber
-          // Chaque menu contient un corndog → les corndogs réellement cuits =
-          // corndogs vendus seuls + un corndog par menu vendu.
-          const corndogsJour = ((totalCorndogs + totalMenus) / totalJoursVP) * factorHB;
+          // Corndogs bornes : corndogs vendus seuls + un corndog par menu (chaque menu en contient un).
+          const corndogsBornesJour = (totalCorndogs + totalMenus) / totalJoursVP;
+          // Les ventes caisse + Uber (hb €/jour) converties en corndogs au prix moyen d'un corndog.
+          const corndogsDepuisHB = prixCorndogMoyen > 0 ? hb / prixCorndogMoyen : 0;
+          const corndogsJour = corndogsBornesJour + corndogsDepuisHB;
           const menusJour = (totalMenus / totalJoursVP) * factorHB;
 
           const JN = ["Dimanche","Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"];
