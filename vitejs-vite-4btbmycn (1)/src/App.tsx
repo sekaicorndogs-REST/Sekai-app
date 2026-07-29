@@ -4030,6 +4030,10 @@ export default function App() {
           if (gerant > 0 && ca > 0 && (gerant / ca) * 100 > 15) points.push({ titre: "Salaire gérant important", detail: `${((gerant/ca)*100).toFixed(1)} % du CA. Le baisser accélérerait fortement le remboursement des dettes.`, niveau: "warn" });
           if (moisDettes && moisDettes > 24) points.push({ titre: "Remboursement long", detail: `${moisDettes} mois au rythme actuel. Augmenter le reste mensuel raccourcirait beaucoup ce délai.`, niveau: "warn" });
 
+          // Alerte prioritaire : le point le plus grave (danger avant warn)
+          const pointsTries = [...points].sort((a, b) => (a.niveau === "danger" ? 0 : 1) - (b.niveau === "danger" ? 0 : 1));
+          const alertePrincipale = pointsTries[0] || null;
+
           // ── Ventes réelles (import caisse/bornes) ──
           const V = ventes.map(v => ({ p: parseFloat(v.prix) || 0, d: new Date(v.date_commande), m: v.mode_livraison }));
           const vNb = V.length;
@@ -4194,6 +4198,44 @@ export default function App() {
                   </button>
                 ))}
               </div>
+
+              {/* ── BANDEAU PRIORITAIRE (toujours visible) ── */}
+              {ca > 0 && (
+                <div style={{ ...CARD, padding: "0.9rem 1rem", background: "linear-gradient(135deg,#fff 0%,#fff8f0 100%)" }}>
+                  <div style={{ ...LBL, marginBottom: "0.6rem", display: "flex", alignItems: "center", gap: "5px" }}><Target size={13} /> L'essentiel en un coup d'œil</div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "0.5rem" }}>
+                    <div style={{ textAlign: "center" }}>
+                      <div style={{ color: "#a07848", fontSize: "0.6rem", fontWeight: 600, textTransform: "uppercase" as const }}>Objectif/jour</div>
+                      <div style={{ color: "#3d1a0a", fontSize: "1.25rem", fontWeight: 800, lineHeight: 1.2 }}>{fmt(objJour)} €</div>
+                    </div>
+                    <div style={{ textAlign: "center", borderLeft: "1px solid #f0e0cc", borderRight: "1px solid #f0e0cc" }}>
+                      <div style={{ color: "#a07848", fontSize: "0.6rem", fontWeight: 600, textTransform: "uppercase" as const }}>Marge nette</div>
+                      <div style={{ color: pctMarge >= 15 ? "#1f6e42" : pctMarge >= 10 ? "#c98a17" : "#e8213a", fontSize: "1.25rem", fontWeight: 800, lineHeight: 1.2 }}>{pctMarge.toFixed(0)} %</div>
+                      <div style={{ color: "#c8a878", fontSize: "0.58rem" }}>{fmt(reste)} €/mois</div>
+                    </div>
+                    <div style={{ textAlign: "center" }}>
+                      <div style={{ color: "#a07848", fontSize: "0.6rem", fontWeight: 600, textTransform: "uppercase" as const }}>Personnel</div>
+                      <div style={{ color: masseColor, fontSize: "1.25rem", fontWeight: 800, lineHeight: 1.2 }}>{pctMasse.toFixed(0)} %</div>
+                      <div style={{ color: "#c8a878", fontSize: "0.58rem" }}>{masseLabel}</div>
+                    </div>
+                  </div>
+                  {alertePrincipale && (
+                    <div style={{ marginTop: "0.7rem", background: alertePrincipale.niveau === "danger" ? "#fff0f0" : "#fff8ec", border: `1px solid ${alertePrincipale.niveau === "danger" ? "#f5c2c2" : "#f0d8a8"}`, borderRadius: "10px", padding: "0.55rem 0.7rem", display: "flex", alignItems: "flex-start", gap: "7px" }}>
+                      <AlertTriangle size={15} color={alertePrincipale.niveau === "danger" ? "#e8213a" : "#c98a17"} style={{ flexShrink: 0, marginTop: "1px" }} />
+                      <div>
+                        <div style={{ color: alertePrincipale.niveau === "danger" ? "#e8213a" : "#a97a17", fontSize: "0.78rem", fontWeight: 700 }}>{alertePrincipale.titre}</div>
+                        <div style={{ color: "#7a5a3a", fontSize: "0.7rem", marginTop: "1px" }}>{alertePrincipale.detail}</div>
+                      </div>
+                    </div>
+                  )}
+                  {!alertePrincipale && (
+                    <div style={{ marginTop: "0.7rem", background: "#f0faf2", border: "1px solid #bfe6c8", borderRadius: "10px", padding: "0.55rem 0.7rem", display: "flex", alignItems: "center", gap: "7px" }}>
+                      <CheckCircle size={15} color="#1f6e42" style={{ flexShrink: 0 }} />
+                      <div style={{ color: "#1f6e42", fontSize: "0.76rem", fontWeight: 600 }}>Tous les indicateurs sont dans le vert 👍</div>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {show("essentiel") && (<>
               {/* HERO — objectif journalier */}
