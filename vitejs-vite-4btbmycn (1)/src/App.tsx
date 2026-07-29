@@ -314,6 +314,13 @@ async function fetchTopProduits() {
   return res.json();
 }
 
+// ── VENTES PAR PRODUIT (volumes par période) ───────────────
+async function fetchVentesProduits() {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/ventes_produits?select=*`, { headers: HEADERS });
+  if (!res.ok) throw new Error("Fetch ventes_produits failed");
+  return res.json();
+}
+
 // ── JOURS FÉRIÉS (impact mesuré + prévisions) ──────────────
 async function fetchJoursFeries() {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/jours_feries?select=*&order=date.asc`, { headers: HEADERS });
@@ -891,6 +898,7 @@ export default function App() {
   const [saisonnalite, setSaisonnalite] = useState<any[]>([]);
   const [joursFeries, setJoursFeries] = useState<any[]>([]);
   const [topProduits, setTopProduits] = useState<any[]>([]);
+  const [ventesProduits, setVentesProduits] = useState<any[]>([]);
   const [resumeSection, setResumeSection] = useState<string>("essentiel");
   const [joursSpeciaux, setJoursSpeciaux] = useState<any[]>([]);
   const [jourSpecialDate, setJourSpecialDate] = useState("");
@@ -1337,6 +1345,7 @@ export default function App() {
     try { setSaisonnalite(await fetchSaisonnalite()); } catch {}
     try { setJoursFeries(await fetchJoursFeries()); } catch {}
     try { setTopProduits(await fetchTopProduits()); } catch {}
+    try { setVentesProduits(await fetchVentesProduits()); } catch {}
   }
   async function handleMarquerJour(date: string, motif: string) {
     const labels: Record<string, string> = { greve: "Grève / manifestation", meteo: "Mauvaise météo", ferie: "Jour férié", travaux: "Travaux / accès bloqué", panne: "Panne borne / incident", autre: "Autre" };
@@ -4069,6 +4078,20 @@ export default function App() {
           const caJourBornes = vCA / nbJours;
           const caJourReel = caJourBornes + hb;
           const cmdJour = vNb / nbJours;
+
+          // ── Volumes moyens par jour : corndogs & menus ──
+          // Base : ventes_produits (volumes par période via les bornes).
+          // On ajoute la part caisse + Uber (hb) au prorata du CA, en supposant
+          // le même mix produits, pour estimer le VRAI volume journalier total.
+          const periodesVP = new Map<string, number>();
+          ventesProduits.forEach((r: any) => { periodesVP.set(`${r.periode_debut}|${r.periode_fin}`, Number(r.nb_jours) || 0); });
+          const totalJoursVP = Array.from(periodesVP.values()).reduce((s, n) => s + n, 0) || 1;
+          const totalCorndogs = ventesProduits.filter((r: any) => /corndog/i.test(r.produit || "")).reduce((s: number, r: any) => s + (Number(r.quantite) || 0), 0);
+          const totalMenus = ventesProduits.filter((r: any) => /menu/i.test(r.produit || "")).reduce((s: number, r: any) => s + (Number(r.quantite) || 0), 0);
+          const factorHB = caJourBornes > 0 ? caJourReel / caJourBornes : 1; // prise en compte caisse + Uber
+          const corndogsJour = (totalCorndogs / totalJoursVP) * factorHB;
+          const menusJour = (totalMenus / totalJoursVP) * factorHB;
+
           const JN = ["Dimanche","Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"];
           const parJourSem: Record<number, number> = {}; const joursVus: Record<number, Set<string>> = {};
           const parHeure: Record<number, number> = {};
@@ -4243,6 +4266,20 @@ export default function App() {
                       <div style={{ color: "#c8a878", fontSize: "0.58rem" }}>{masseLabel}</div>
                     </div>
                   </div>
+                  {corndogsJour > 0 && (
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.5rem", marginTop: "0.6rem", paddingTop: "0.6rem", borderTop: "1px dashed #f0e0cc" }}>
+                      <div style={{ textAlign: "center" }}>
+                        <div style={{ color: "#a07848", fontSize: "0.6rem", fontWeight: 600, textTransform: "uppercase" as const }}>🌭 Corndogs / jour</div>
+                        <div style={{ color: "#3d1a0a", fontSize: "1.25rem", fontWeight: 800, lineHeight: 1.2 }}>≈ {Math.round(corndogsJour)}</div>
+                        <div style={{ color: "#c8a878", fontSize: "0.58rem" }}>caisse & Uber inclus</div>
+                      </div>
+                      <div style={{ textAlign: "center", borderLeft: "1px solid #f0e0cc" }}>
+                        <div style={{ color: "#a07848", fontSize: "0.6rem", fontWeight: 600, textTransform: "uppercase" as const }}>🍔 Menus / jour</div>
+                        <div style={{ color: "#3d1a0a", fontSize: "1.25rem", fontWeight: 800, lineHeight: 1.2 }}>≈ {Math.round(menusJour)}</div>
+                        <div style={{ color: "#c8a878", fontSize: "0.58rem" }}>caisse & Uber inclus</div>
+                      </div>
+                    </div>
+                  )}
                   {alertePrincipale && (
                     <div style={{ marginTop: "0.7rem", background: alertePrincipale.niveau === "danger" ? "#fff0f0" : "#fff8ec", border: `1px solid ${alertePrincipale.niveau === "danger" ? "#f5c2c2" : "#f0d8a8"}`, borderRadius: "10px", padding: "0.55rem 0.7rem", display: "flex", alignItems: "flex-start", gap: "7px" }}>
                       <AlertTriangle size={15} color={alertePrincipale.niveau === "danger" ? "#e8213a" : "#c98a17"} style={{ flexShrink: 0, marginTop: "1px" }} />
