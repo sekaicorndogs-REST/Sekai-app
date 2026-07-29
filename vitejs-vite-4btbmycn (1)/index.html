@@ -3,6 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
     <meta name="theme-color" content="#e8213a" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -10,11 +11,55 @@
     <meta name="apple-mobile-web-app-title" content="Sekai" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <!-- Police chargée sans bloquer le premier affichage -->
+    <link
+      rel="preload"
+      as="style"
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap"
+      onload="this.onload=null;this.rel='stylesheet'"
+    />
+    <noscript>
+      <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    </noscript>
     <title>Sekai Corndogs</title>
+    <style>
+      /* Écran de démarrage affiché instantanément, remplacé dès que React démarre */
+      #splash {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 1.1rem;
+        background: #faebd7;
+        font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        z-index: 9999;
+      }
+      #splash .sk-logo {
+        color: #e8213a;
+        font-size: 2rem;
+        font-weight: 800;
+        letter-spacing: 0.5px;
+      }
+      #splash .sk-spin {
+        width: 32px;
+        height: 32px;
+        border: 3px solid #f0d8b8;
+        border-top-color: #e8213a;
+        border-radius: 50%;
+        animation: sk-rot 0.8s linear infinite;
+      }
+      @keyframes sk-rot { to { transform: rotate(360deg); } }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div id="splash">
+        <div class="sk-logo">Sekai Corndogs</div>
+        <div class="sk-spin"></div>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
