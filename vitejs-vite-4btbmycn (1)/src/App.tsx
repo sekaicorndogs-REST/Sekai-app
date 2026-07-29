@@ -4098,6 +4098,14 @@ export default function App() {
           const corndogsJour = corndogsBornesJour + corndogsDepuisHB;
           const menusJour = (totalMenus / totalJoursVP) * factorHB;
 
+          // ── Répartition du CA/jour des bornes (pour l'explication) ──
+          const totalMenuCA = ventesProduits.filter((r: any) => /menu/i.test(r.produit || "")).reduce((s: number, r: any) => s + (Number(r.ca) || 0), 0);
+          const totalAutresCA = ventesProduits.filter((r: any) => !/menu|corndog/i.test(r.produit || "")).reduce((s: number, r: any) => s + (Number(r.ca) || 0), 0);
+          const totalVPCA = totalCorndogCA + totalMenuCA + totalAutresCA || 1;
+          const caCorndogsJour = caJourBornes * (totalCorndogCA / totalVPCA);
+          const caMenusJour = caJourBornes * (totalMenuCA / totalVPCA);
+          const caAutresJour = caJourBornes * (totalAutresCA / totalVPCA);
+
           const JN = ["Dimanche","Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"];
           const parJourSem: Record<number, number> = {}; const joursVus: Record<number, Set<string>> = {};
           const parHeure: Record<number, number> = {};
@@ -4302,6 +4310,46 @@ export default function App() {
                     </div>
                   )}
                 </div>
+              )}
+
+              {/* ── Explication : d'où vient le CA/jour ── */}
+              {ca > 0 && caJourBornes > 0 && (
+                <details style={{ ...CARD, padding: "0.9rem 1rem" }}>
+                  <summary style={{ cursor: "pointer", color: "#a07848", fontSize: "0.72rem", fontWeight: 700, textTransform: "uppercase" as const, letterSpacing: "0.3px", listStyle: "none", display: "flex", alignItems: "center", gap: "6px" }}>
+                    <Lightbulb size={14} color="#e8213a" /> D'où viennent les {fmt(caJourReel)} €/jour ?
+                  </summary>
+                  <div style={{ marginTop: "0.8rem", display: "flex", flexDirection: "column", gap: "0.45rem" }}>
+                    <div style={{ color: "#7a5a3a", fontSize: "0.72rem", lineHeight: 1.4 }}>
+                      Ton CA journalier vient de <b>deux sources</b> : les bornes de commande + ce qui passe par la caisse et Uber.
+                    </div>
+                    {/* Bornes détaillées */}
+                    <div style={{ background: "#faf3e8", borderRadius: "10px", padding: "0.6rem 0.75rem" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.72rem", fontWeight: 700, color: "#3d1a0a", marginBottom: "0.35rem" }}>
+                        <span>🖥️ Bornes</span><span>≈ {fmt(caJourBornes)} €/jour</span>
+                      </div>
+                      {[
+                        { label: "🌭 Corndogs seuls", val: caCorndogsJour },
+                        { label: "🍔 Menus", val: caMenusJour },
+                        { label: "🥤 Boissons, sauces, extras", val: caAutresJour },
+                      ].map(l => (
+                        <div key={l.label} style={{ display: "flex", justifyContent: "space-between", fontSize: "0.7rem", color: "#7a5a3a", padding: "0.12rem 0" }}>
+                          <span>{l.label}</span><span>≈ {fmt(l.val)} € <span style={{ color: "#c8a878" }}>({Math.round((l.val / caJourBornes) * 100)} %)</span></span>
+                        </div>
+                      ))}
+                    </div>
+                    {/* Caisse + Uber */}
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.72rem", fontWeight: 700, color: "#3d1a0a", padding: "0 0.75rem" }}>
+                      <span>💳 Caisse + Uber</span><span>+ {fmt(hb)} €/jour</span>
+                    </div>
+                    {/* Total */}
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.82rem", fontWeight: 800, color: "#e8213a", borderTop: "1px solid #efe0c9", paddingTop: "0.45rem", marginTop: "0.15rem", padding: "0.45rem 0.75rem 0" }}>
+                      <span>= CA réel / jour</span><span>≈ {fmt(caJourReel)} €</span>
+                    </div>
+                    <div style={{ color: "#a07848", fontSize: "0.64rem", lineHeight: 1.4, marginTop: "0.2rem" }}>
+                      ⚠️ Estimation : les bornes sont mesurées (tes commandes réelles), la part caisse + Uber est la valeur saisie plus haut. Les % sont calculés sur la répartition réelle des produits vendus.
+                    </div>
+                  </div>
+                </details>
               )}
 
               {show("essentiel") && (<>
