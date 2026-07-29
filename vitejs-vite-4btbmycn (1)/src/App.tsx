@@ -4089,7 +4089,9 @@ export default function App() {
           const totalCorndogs = ventesProduits.filter((r: any) => /corndog/i.test(r.produit || "")).reduce((s: number, r: any) => s + (Number(r.quantite) || 0), 0);
           const totalMenus = ventesProduits.filter((r: any) => /menu/i.test(r.produit || "")).reduce((s: number, r: any) => s + (Number(r.quantite) || 0), 0);
           const factorHB = caJourBornes > 0 ? caJourReel / caJourBornes : 1; // prise en compte caisse + Uber
-          const corndogsJour = (totalCorndogs / totalJoursVP) * factorHB;
+          // Chaque menu contient un corndog → les corndogs réellement cuits =
+          // corndogs vendus seuls + un corndog par menu vendu.
+          const corndogsJour = ((totalCorndogs + totalMenus) / totalJoursVP) * factorHB;
           const menusJour = (totalMenus / totalJoursVP) * factorHB;
 
           const JN = ["Dimanche","Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"];
@@ -4271,7 +4273,7 @@ export default function App() {
                       <div style={{ textAlign: "center" }}>
                         <div style={{ color: "#a07848", fontSize: "0.6rem", fontWeight: 600, textTransform: "uppercase" as const }}>🌭 Corndogs / jour</div>
                         <div style={{ color: "#3d1a0a", fontSize: "1.25rem", fontWeight: 800, lineHeight: 1.2 }}>≈ {Math.round(corndogsJour)}</div>
-                        <div style={{ color: "#c8a878", fontSize: "0.58rem" }}>caisse & Uber inclus</div>
+                        <div style={{ color: "#c8a878", fontSize: "0.58rem" }}>menus + caisse/Uber inclus</div>
                       </div>
                       <div style={{ textAlign: "center", borderLeft: "1px solid #f0e0cc" }}>
                         <div style={{ color: "#a07848", fontSize: "0.6rem", fontWeight: 600, textTransform: "uppercase" as const }}>🍔 Menus / jour</div>
