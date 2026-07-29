@@ -226,6 +226,23 @@ async function resetAllQty(restaurantId) {
   return res.json();
 }
 
+// ── PARAMÈTRES PARTAGÉS (clé/valeur, communs à tous) ──────────
+async function fetchParametre(cle) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/parametres?select=valeur&cle=eq.${encodeURIComponent(cle)}`, { headers: HEADERS });
+  if (!res.ok) throw new Error("Fetch parametre failed");
+  const rows = await res.json();
+  return rows.length ? rows[0].valeur : null;
+}
+
+async function upsertParametre(cle, valeur, updatedBy) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/parametres`, {
+    method: "POST",
+    headers: { ...HEADERS, "Prefer": "resolution=merge-duplicates" },
+    body: JSON.stringify({ cle, valeur: String(valeur), updated_by: updatedBy || null, updated_at: new Date().toISOString() }),
+  });
+  if (!res.ok) throw new Error("Upsert parametre failed");
+}
+
 async function loginUser(prenom, password) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/users?select=*&prenom=eq.${encodeURIComponent(prenom)}&password=eq.${encodeURIComponent(password)}`, { headers: HEADERS });
   if (!res.ok) throw new Error("Login failed");
@@ -1112,6 +1129,13 @@ export default function App() {
         loadFermetureData();
       } catch {}
     }
+  }, []);
+
+  // Charge la valeur partagée « caisse + Uber / jour » (commune à tous)
+  useEffect(() => {
+    fetchParametre("ca_hors_bornes")
+      .then(v => { if (v != null) { setCaHorsBornes(v); localStorage.setItem("sekai_ca_hors_bornes", v); } })
+      .catch(() => { /* on garde la valeur locale par défaut */ });
   }, []);
 
   const isAdmin = currentUser?.role === "admin" || currentUser?.role === "superadmin";
@@ -4270,7 +4294,10 @@ export default function App() {
                       <div style={{ color: "#c8a878", fontSize: "0.68rem", marginTop: "0.15rem" }}>ce qui ne passe pas par les bornes</div>
                     </div>
                     <div style={{ display: "flex", alignItems: "center", background: "#faf3e8", border: "1.5px solid #efe0c9", borderRadius: "10px", padding: "0 0.7rem" }}>
-                      <input value={caHorsBornes} onChange={e => { const v = e.target.value.replace(/[^0-9]/g, ""); setCaHorsBornes(v); localStorage.setItem("sekai_ca_hors_bornes", v); }} inputMode="numeric"
+                      <input value={caHorsBornes}
+                        onChange={e => { const v = e.target.value.replace(/[^0-9]/g, ""); setCaHorsBornes(v); localStorage.setItem("sekai_ca_hors_bornes", v); }}
+                        onBlur={e => { const v = e.target.value.replace(/[^0-9]/g, ""); upsertParametre("ca_hors_bornes", v, currentUser?.prenom).then(() => flash("✅ Enregistré pour tout le monde")).catch(() => flash("❌ Erreur enregistrement")); }}
+                        inputMode="numeric"
                         style={{ background: "transparent", border: "none", color: "#e8213a", padding: "0.5rem 0", fontSize: "1.15rem", fontWeight: 800, outline: "none", width: "62px", textAlign: "right" as const, fontFamily: "'Poppins', sans-serif" }} />
                       <span style={{ color: "#e8213a", fontSize: "1rem", fontWeight: 800, marginLeft: "3px" }}>€</span>
                     </div>
