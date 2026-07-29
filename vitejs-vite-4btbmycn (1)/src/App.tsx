@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Package, Calendar, CreditCard, Users, UserCircle, ArrowLeft, RefreshCw, AlertTriangle, AlertCircle, CheckCircle, Pencil, Save, Eye, EyeOff, Check, Lock, User, ArrowRight, Trash2, Plus, ChevronRight, Settings, LogOut, Shield, Star, ListChecks, FileText, Wallet, Target, Lightbulb, Banknote, Receipt, PartyPopper, Utensils, Heart, TrendingUp, Coins, PiggyBank, HandCoins, Percent, Moon, Clock, Box, Home, X } from "lucide-react";
+import { computeIndicateurs, masseColor as calcMasseColor, masseLabel as calcMasseLabel } from "./finances";
 
 const SUPABASE_URL = "https://ldpxgfgcnlzktaymtnwd.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkcHhnZmdjbmx6a3RheW10bndkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxOTgyMTAsImV4cCI6MjA5MTc3NDIxMH0.N_yUwjRvBM9rfxu0Xj-FCCGJ9eJ3UomPZdcUYAb8B8s";
@@ -4004,34 +4005,18 @@ export default function App() {
         {/* ── RÉSUMÉ + SANTÉ FINANCIÈRE ── */}
         {financesView === "resume" && (() => {
           const ca = parseFloat(caMoyen) || 0;
-          const totalCharges = charges.reduce((s, c) => s + (parseFloat(c.montant) || 0), 0);
-          const gerant = charges.filter(c => c.categorie === "salaire").reduce((s, c) => s + (parseFloat(c.montant) || 0), 0);
-          const masseSalariale = charges.filter(c => c.categorie === "salaire" || c.categorie === "personnel").reduce((s, c) => s + (parseFloat(c.montant) || 0), 0);
-          const employesReels = masseSalariale - gerant;
-          const reste = ca - totalCharges;
-          const pctMasse = ca > 0 ? (masseSalariale / ca) * 100 : 0;
-          const budgetEmployeMax = Math.max(0, ca * 0.35 - gerant); // plafond 35% - gérant
-          const margeEmbauche = budgetEmployeMax - employesReels;
-          const masseColor = pctMasse < 30 ? "#4caf50" : pctMasse < 35 ? "#f5a623" : "#e8213a";
-          const masseLabel = pctMasse < 30 ? "Sain" : pctMasse < 35 ? "Limite" : "Trop élevé";
+          const {
+            totalCharges, gerant, masseSalariale, employesReels, reste, pctMasse,
+            budgetEmployeMax, margeEmbauche, caJour, objJour, ecartJour, loyer,
+            matieres, pctLoyer, pctMatieres, pctMarge, primeCost, pctPrime,
+            dettesSansPlan, moisDettes,
+          } = computeIndicateurs({ ca, charges, dettes, totalChargesFixes, totalMensualites, totalDettes });
+          const masseColor = calcMasseColor(pctMasse);
+          const masseLabel = calcMasseLabel(pctMasse);
           const fmt = (n: number) => n.toLocaleString("fr-BE", { maximumFractionDigits: 0 });
 
           const CARD = { background: "#ffffff", border: "1px solid #efe0c9", borderRadius: "16px", boxShadow: "0 1px 3px rgba(61,26,10,0.05)" } as const;
           const LBL = { color: "#a07848", fontSize: "0.68rem", fontWeight: 600, letterSpacing: "0.4px", textTransform: "uppercase" as const };
-
-          // ── Indicateurs entreprise ──
-          const caJour = ca / 30;
-          const objJour = (totalChargesFixes + totalMensualites) / 30;
-          const ecartJour = caJour - objJour;
-          const loyer = charges.filter(c => c.categorie === "loyer").reduce((s, c) => s + (parseFloat(c.montant) || 0), 0);
-          const matieres = charges.filter(c => /course|mati|marchandise|achat/i.test(c.nom)).reduce((s, c) => s + (parseFloat(c.montant) || 0), 0);
-          const pctLoyer = ca > 0 ? (loyer / ca) * 100 : 0;
-          const pctMatieres = ca > 0 ? (matieres / ca) * 100 : 0;
-          const pctMarge = ca > 0 ? (reste / ca) * 100 : 0;
-          const primeCost = matieres + masseSalariale;
-          const pctPrime = ca > 0 ? (primeCost / ca) * 100 : 0;
-          const dettesSansPlan = dettes.filter(d => !d.avec_plan).length;
-          const moisDettes = reste > 0 ? Math.ceil(totalDettes / reste) : null;
 
           // Points à améliorer (générés automatiquement)
           const points: { titre: string; detail: string; niveau: "danger"|"warn"|"ok" }[] = [];
