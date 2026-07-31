@@ -106,22 +106,23 @@ prix réellement pratiqué à l'époque, ne pas le réécrire.
 trompeur : il suit la fréquentation, qui varie de 40 % selon la saison. Ramené aux
 commandes, l'effet est net :
 
-| Période | Commandes | Menus | **Menus / 100 cmd** | Produits/cmd | Ticket |
-|---|---|---|---|---|---|
-| 1–18/07 | 1 601 | 557 | 34,8 | 1,40 | 12,71 € |
-| 19–24/07 | 326 | 108 | 33,1 | 1,39 | 12,33 € |
-| **25–31/07** | 419 | **230** | **54,9** | **1,51** | **13,73 €** |
+**Le renommage Menu Étudiant → Menu Goodeal a eu lieu le 21/07/2026** (confirmé par le
+gérant ; cohérent avec les horodatages, les lignes importées le 19/07 à 17h37 portant
+encore `MENU ETUDIANT`). Coupure à cette date :
 
-Base stable à ~34 pendant 24 jours, puis **+58 % à partir du 25/07**. Avant le 25,
-4 jours sur 24 dépassent 46 menus/100 cmd ; après, 6 jours sur 7.
+| Période | Commandes | Menus | **Menus / 100 cmd** |
+|---|---|---|---|
+| 1–20/07 *(avant)* | 1 702 | 584 | **34,3** |
+| 21–31/07 *(après)* | 644 | 311 | **48,3** |
 
-**Estimation du gain : ~1 380 €/mois de marge** (+20,1 menus/100 cmd × 2,75 €, plus
-5,7 XL/100 cmd × 1,94 €, sur ~69 commandes/jour).
+**+41 %.** Mais l'effet n'est pas immédiat : 21-24/07 reste à 36,0, la bascule se produit
+au 25/07 (54,9 sur 25-31). Soit un effet différé — les clients qui reviennent découvrent
+le nouveau nom — soit un second changement le 24-25 qui reste à identifier.
 
-**Cause probable : le renommage Menu Étudiant → Menu Goodeal.** Datation par les
-horodatages : les lignes créées le 19/07/2026 à 17h37 portent encore `MENU ETUDIANT`,
-l'export du 31/07 portant sur la même période affiche `MENU GOODEAL`. Le renommage se
-situe donc entre le 19 et le 31/07, et la rupture mesurée tombe le 25/07.
+**Estimation du gain : ~950 €/mois de marge** (+14,0 menus/100 cmd × 2,75 €, plus la
+prime XL). Fourchette réaliste **950 à 1 380 €/mois** selon que le taux se stabilise
+vers 48 ou vers 55. Ne pas retenir le chiffre haut : il vient d'une coupure au 25/07
+choisie après avoir vu les données, ce qui gonfle l'écart.
 
 ⚠️ **EasyOrder réécrit les noms de produits rétroactivement dans ses exports** : le
 libellé affiché est le nom actuel du produit, pas celui en vigueur lors de la vente. Ne
