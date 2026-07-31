@@ -14,8 +14,10 @@ Il contient le contexte métier durable. **À mettre à jour dès qu'une donnée
 ## Le commerce
 
 - Corndogs coréens, Rue Neuve à Bruxelles (rue commerçante, très fort flux piéton)
-- CA moyen **1 028 €/jour** sur 12 mois — 878 € bornes + 150 € caisse/Uber
-- Rythme récent (avril–juillet) plus haut : ~1 061 €/jour. Objectif fixé : 922 €/jour
+- CA moyen **1 015 €/jour** sur 12 mois — 865 € bornes + 150 € caisse/Uber
+- Objectif fixé : 922 €/jour
+- Juillet 2026 mesuré en entier : 970 €/j bornes (1 128 €/j du 1-18, puis 751 €/j du 19-31).
+  La première quinzaine de juillet (soldes) n'est pas représentative du mois.
 - Marge nette ~17 %, soit ~5 100 €/mois
 - Forte saisonnalité : creux en mars (832 €/j), pic en juillet (1 278 €/j)
 - Masse salariale à 30,3 % du CA, plafond fixé à 35 %
@@ -63,14 +65,27 @@ Ne pas refaire l'erreur de reconstruire un compte de résultat depuis `ventes_pr
 
 ## Constats d'analyse (juillet 2026)
 
-1. **Taux de prise de menu : 21 %.** ~117 corndogs/jour pour 25 menus, donc ~92 corndogs
-   partent nus. Convertir 25 % d'entre eux en menu vaut **~1 900 €/mois**, soit 37 % de la
-   marge nette. C'est le plus gros levier identifié, et il ne coûte ni stock ni personnel.
+1. **Taux de prise de menu — le levier principal, et il bouge.** Mesuré sur les tickets
+   bornes :
+
+   | Période | Menus/jour | % de prise de menu |
+   |---|---|---|
+   | 1–18 juillet 2026 | 31,9 | 24,1 % |
+   | 18–24 juillet | 17,9 | 22,2 % |
+   | **25–31 juillet** | **32,9** | **36,5 %** |
+
+   Bascule nette à partir du 25/07, après le renommage du menu et les changements de
+   borne. À commandes identiques (418 vs 418), le ticket moyen passe de **12,24 € à
+   13,75 €**, soit ~+2 600 €/mois de CA et ~1 000 €/mois de marge. À reconfirmer sur
+   plusieurs semaines : l'échantillon est de 7 jours et les changements ont été lancés
+   ensemble, donc impossible d'isoler lequel a produit l'effet.
 2. **Les accompagnements ne se vendent pas** : ~2 ventes/jour toutes références confondues,
    6 €/jour de marge (1 % du total). Ne pas bâtir de plan de croissance dessus.
    Karaage et tempura existent surtout comme contenu des XL.
-3. **Les menus XL rapportent 130–260 €/mois**, soit 2–5 % de la marge nette. Utiles,
-   sans risque, mais marginaux.
+3. **Les menus XL démarrent au-dessus des prévisions.** Lancés le 30/07/2026, ils font
+   déjà 30 % des menus sur leurs deux premiers jours (24 unités sur 80). Attention à ne
+   pas leur attribuer la hausse du taux de menu : celle-ci a commencé le 25/07, cinq
+   jours avant leur mise en ligne.
 4. Répartition de la marge : Corndog 63 %, Menu 29 %, Signature 5 %, Bubble tea 2 %, Side 1 %.
 
 ## ⚠️ Décisions déjà prises — À LIRE AVANT TOUTE ANALYSE
