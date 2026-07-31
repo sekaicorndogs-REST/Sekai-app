@@ -93,12 +93,25 @@ prix réellement pratiqué à l'époque, ne pas le réécrire.
    À 12,90 €, un XL rapporte **+1,94 €** de marge par rapport à un menu à 10 € — contre
    +1,34 € au prix de lancement de 12,30 €.
 
-### Estimation du gain (au 31/07/2026)
+### Estimation du gain (au 31/07/2026) — À MANIER AVEC PRUDENCE
 
-- Effet conversion en menu : **~1 170 €/mois** de marge (+14 menus/jour × 2,75 €)
-- Effet XL à 12,90 € : **~700 €/mois** si le rythme de 12/jour tient
-- **Fourchette retenue : 1 200 à 2 300 €/mois**, plancher défendable ~1 200 €
-  (effet conversion seul, XL ignorés). À reconfirmer vers le 20/08/2026.
+⚠️ **En volume, les menus n'ont pas augmenté** : 31,9/jour du 1-18, puis 26,0/jour du
+19-31. C'est la *part* des menus qui monte (24,1 % → 31,2 %), parce que les corndogs
+seuls chutent plus vite que les menus (volume total 132 → 90 produits/jour).
+
+Deux lectures possibles, non départagées à ce jour :
+- les changements de borne fonctionnent ;
+- fin juillet attire moins de clients d'impulsion (touristes, soldes) qui prenaient un
+  corndog seul, et le mix bascule tout seul.
+
+La seule preuve propre est la comparaison semaine contre semaine **à volume identique**
+(418 commandes chacune, du 18-24 vs 25-31) : ticket moyen 12,24 € → 13,75 €. Difficile
+à expliquer par la saison, mais l'échantillon fait 7 jours.
+
+**Ne pas annoncer de gain chiffré avant d'avoir août à trafic normal.** Test décisif :
+si le taux de menu tient au-dessus de 30 % avec un volume revenu vers 120 produits/jour,
+l'effet est réel et vaut de l'ordre de 1 200 €/mois. S'il retombe vers 25 %, l'essentiel
+était saisonnier.
 4. Répartition de la marge : Corndog 63 %, Menu 29 %, Signature 5 %, Bubble tea 2 %, Side 1 %.
 
 ## ⚠️ Décisions déjà prises — À LIRE AVANT TOUTE ANALYSE
