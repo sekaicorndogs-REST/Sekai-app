@@ -53,8 +53,12 @@ Ne pas refaire l'erreur de reconstruire un compte de résultat depuis `ventes_pr
 | Sides (Gyoza / Karaage / Tempura x4) | 4,30 / 4,60 / 4,90 € | 22–28 % |
 | Menu Bubble Dogs | 10,00 € | 12–15 % |
 | Menu Good Deal | 10,00 € | 15–17 % |
-| Bubble Dog XL | 12,30 € | 18–20 % |
-| Good Deal XL | 12,30 € | 20–22 % |
+| Bubble Dog XL | 12,90 € | 17–19 % |
+| Good Deal XL | 12,90 € | 19–21 % |
+
+Les XL ont été lancés à 12,30 € les 30-31/07/2026 puis passés à **12,90 €**. Les ventes
+déjà enregistrées dans `ventes_produits` pour ces deux jours restent à 12,30 € : c'est le
+prix réellement pratiqué à l'époque, ne pas le réécrire.
 
 - **Bubble Dog XL n'a pas de frites** (choix assumé : le bubble tea porte la valeur perçue).
   Good Deal XL en a. C'est volontaire, ne pas « corriger ».
@@ -86,6 +90,15 @@ Ne pas refaire l'erreur de reconstruire un compte de résultat depuis `ventes_pr
    déjà 30 % des menus sur leurs deux premiers jours (24 unités sur 80). Attention à ne
    pas leur attribuer la hausse du taux de menu : celle-ci a commencé le 25/07, cinq
    jours avant leur mise en ligne.
+   À 12,90 €, un XL rapporte **+1,94 €** de marge par rapport à un menu à 10 € — contre
+   +1,34 € au prix de lancement de 12,30 €.
+
+### Estimation du gain (au 31/07/2026)
+
+- Effet conversion en menu : **~1 170 €/mois** de marge (+14 menus/jour × 2,75 €)
+- Effet XL à 12,90 € : **~700 €/mois** si le rythme de 12/jour tient
+- **Fourchette retenue : 1 200 à 2 300 €/mois**, plancher défendable ~1 200 €
+  (effet conversion seul, XL ignorés). À reconfirmer vers le 20/08/2026.
 4. Répartition de la marge : Corndog 63 %, Menu 29 %, Signature 5 %, Bubble tea 2 %, Side 1 %.
 
 ## ⚠️ Décisions déjà prises — À LIRE AVANT TOUTE ANALYSE
