@@ -99,19 +99,24 @@ prix réellement pratiqué à l'époque, ne pas le réécrire.
 trompeur : il suit la fréquentation, qui varie de 40 % selon la saison. Ramené aux
 commandes, l'effet est net :
 
-| | Commandes | Menus | **Menus / 100 commandes** | Produits/commande | Ticket |
+| Période | Commandes | Menus | **Menus / 100 cmd** | Produits/cmd | Ticket |
 |---|---|---|---|---|---|
-| 1–18/07 *(estimé)* | ~1 900 | 575 | ~30 | ~1,34 | — |
-| 18–24/07 | 418 | 125 | 29,9 | 1,34 | 12,24 € |
+| 1–18/07 | 1 601 | 557 | 34,8 | 1,40 | 12,71 € |
+| 19–24/07 | 326 | 108 | 33,1 | 1,39 | 12,33 € |
 | **25–31/07** | 419 | **230** | **54,9** | **1,51** | **13,73 €** |
 
-À nombre de commandes identique, les menus font **+84 %** et le CA **+635 €** sur la
-semaine. Les produits par commande montent aussi : les clients n'échangent pas un
-corndog contre un menu, ils prennent plus.
+Base stable à ~34 pendant 24 jours, puis **+58 % à partir du 25/07**. Avant le 25,
+4 jours sur 24 dépassent 46 menus/100 cmd ; après, 6 jours sur 7.
 
-**Estimation du gain : ~1 430 €/mois de marge** (+25 menus/100 commandes × 2,75 € ×
-~69 commandes/jour). Réserve restante : 7 jours contre 7 jours, un effet de nouveauté
-du parcours borne modifié n'est pas exclu. À reconfirmer sur août.
+**Estimation du gain : ~1 380 €/mois de marge** (+20,1 menus/100 cmd × 2,75 €, plus
+5,7 XL/100 cmd × 1,94 €, sur ~69 commandes/jour).
+
+⚠️ **Cause non identifiée.** Ce n'est ni le renommage (le libellé `MENU GOODEAL`
+figure déjà dans l'export du 1-18/07) ni les XL (lancés le 30/07). Quelque chose a
+changé autour du 24-25 juillet — à documenter ici dès que le gérant le confirme, sous
+peine de casser le levier sans le savoir.
+
+Réserve : 7 jours d'observation. À reconfirmer sur août.
 4. Répartition de la marge : Corndog 63 %, Menu 29 %, Signature 5 %, Bubble tea 2 %, Side 1 %.
 
 ## ⚠️ Décisions déjà prises — À LIRE AVANT TOUTE ANALYSE
