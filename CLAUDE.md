@@ -118,10 +118,17 @@ Base stable à ~34 pendant 24 jours, puis **+58 % à partir du 25/07**. Avant le
 **Estimation du gain : ~1 380 €/mois de marge** (+20,1 menus/100 cmd × 2,75 €, plus
 5,7 XL/100 cmd × 1,94 €, sur ~69 commandes/jour).
 
-⚠️ **Cause non identifiée.** Ce n'est ni le renommage (le libellé `MENU GOODEAL`
-figure déjà dans l'export du 1-18/07) ni les XL (lancés le 30/07). Quelque chose a
-changé autour du 24-25 juillet — à documenter ici dès que le gérant le confirme, sous
-peine de casser le levier sans le savoir.
+**Cause probable : le renommage Menu Étudiant → Menu Goodeal.** Datation par les
+horodatages : les lignes créées le 19/07/2026 à 17h37 portent encore `MENU ETUDIANT`,
+l'export du 31/07 portant sur la même période affiche `MENU GOODEAL`. Le renommage se
+situe donc entre le 19 et le 31/07, et la rupture mesurée tombe le 25/07.
+
+⚠️ **EasyOrder réécrit les noms de produits rétroactivement dans ses exports** : le
+libellé affiché est le nom actuel du produit, pas celui en vigueur lors de la vente. Ne
+jamais dater un changement de carte à partir des libellés d'un export — utiliser les
+`created_at` des lignes en base, qui figent le nom au moment de l'import.
+
+Les XL (lancés le 30/07) ne peuvent pas expliquer une rupture au 25/07.
 
 Réserve : 7 jours d'observation. À reconfirmer sur août.
 4. Répartition de la marge : Corndog 63 %, Menu 29 %, Signature 5 %, Bubble tea 2 %, Side 1 %.
