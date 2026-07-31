@@ -40,9 +40,16 @@ sont tous deux alignés sur 150. **Ne pas réintroduire 250.**
 | `top_produits` | Moyennes/jour par produit, marge unitaire, part de marge |
 | `finances_charges` / `finances_dettes` | Charges mensuelles et plans de remboursement |
 
-⚠️ `ventes_produits` est un **extrait des produits principaux, pas le CA complet**.
-Il sous-estime le CA d'environ 15 %. Pour toute analyse de CA, utiliser `saisonnalite`.
-Ne pas refaire l'erreur de reconstruire un compte de résultat depuis `ventes_produits`.
+⚠️ `ventes_produits` sous-estimait le CA d'environ 11 à 15 % sur les périodes anciennes.
+Les deux périodes de juillet 2026 ont été recalées sur les exports EasyOrder réels via
+une ligne `SUPPLEMENTS/EXTRAS` (suppléments, sauces, chapelures, quantités > 1, non
+rattachables à un produit). **Les totaux de période sont justes, les CA par produit
+restent des estimations.** Pour toute analyse de CA global, préférer `saisonnalite`.
+
+Anomalie non résolue : sur le 01-18/07, l'ancien jeu de données donnait 911 corndogs
+Saucisse/Mozza contre 848 dans l'export bornes — plus d'articles mais moins de CA. Les
+quantités d'origine ont été conservées faute de pouvoir vérifier leur provenance
+(possiblement caisse + Uber inclus). Ne pas les écraser sans avoir tranché.
 
 ## Carte actuelle
 
