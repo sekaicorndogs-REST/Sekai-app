@@ -95,23 +95,23 @@ prix réellement pratiqué à l'époque, ne pas le réécrire.
 
 ### Estimation du gain (au 31/07/2026) — À MANIER AVEC PRUDENCE
 
-⚠️ **En volume, les menus n'ont pas augmenté** : 31,9/jour du 1-18, puis 26,0/jour du
-19-31. C'est la *part* des menus qui monte (24,1 % → 31,2 %), parce que les corndogs
-seuls chutent plus vite que les menus (volume total 132 → 90 produits/jour).
+**Toujours raisonner par commande, jamais par jour.** Le nombre de menus par jour est
+trompeur : il suit la fréquentation, qui varie de 40 % selon la saison. Ramené aux
+commandes, l'effet est net :
 
-Deux lectures possibles, non départagées à ce jour :
-- les changements de borne fonctionnent ;
-- fin juillet attire moins de clients d'impulsion (touristes, soldes) qui prenaient un
-  corndog seul, et le mix bascule tout seul.
+| | Commandes | Menus | **Menus / 100 commandes** | Produits/commande | Ticket |
+|---|---|---|---|---|---|
+| 1–18/07 *(estimé)* | ~1 900 | 575 | ~30 | ~1,34 | — |
+| 18–24/07 | 418 | 125 | 29,9 | 1,34 | 12,24 € |
+| **25–31/07** | 419 | **230** | **54,9** | **1,51** | **13,73 €** |
 
-La seule preuve propre est la comparaison semaine contre semaine **à volume identique**
-(418 commandes chacune, du 18-24 vs 25-31) : ticket moyen 12,24 € → 13,75 €. Difficile
-à expliquer par la saison, mais l'échantillon fait 7 jours.
+À nombre de commandes identique, les menus font **+84 %** et le CA **+635 €** sur la
+semaine. Les produits par commande montent aussi : les clients n'échangent pas un
+corndog contre un menu, ils prennent plus.
 
-**Ne pas annoncer de gain chiffré avant d'avoir août à trafic normal.** Test décisif :
-si le taux de menu tient au-dessus de 30 % avec un volume revenu vers 120 produits/jour,
-l'effet est réel et vaut de l'ordre de 1 200 €/mois. S'il retombe vers 25 %, l'essentiel
-était saisonnier.
+**Estimation du gain : ~1 430 €/mois de marge** (+25 menus/100 commandes × 2,75 € ×
+~69 commandes/jour). Réserve restante : 7 jours contre 7 jours, un effet de nouveauté
+du parcours borne modifié n'est pas exclu. À reconfirmer sur août.
 4. Répartition de la marge : Corndog 63 %, Menu 29 %, Signature 5 %, Bubble tea 2 %, Side 1 %.
 
 ## ⚠️ Décisions déjà prises — À LIRE AVANT TOUTE ANALYSE
