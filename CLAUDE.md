@@ -73,6 +73,24 @@ Ne pas refaire l'erreur de reconstruire un compte de résultat depuis `ventes_pr
    sans risque, mais marginaux.
 4. Répartition de la marge : Corndog 63 %, Menu 29 %, Signature 5 %, Bubble tea 2 %, Side 1 %.
 
+## ⚠️ Décisions déjà prises — À LIRE AVANT TOUTE ANALYSE
+
+Le travail des sessions précédentes est stocké en base, **pas dans la conversation**.
+Toujours consulter ces deux tables avant de proposer quoi que ce soit, sous peine de
+refaire du travail déjà fait :
+
+- **`actions_conversion`** : 5 actions pour augmenter le taux de prise de menu, avec
+  impact chiffré, effort et priorité. Colonne `fait` pour le suivi.
+- **`propositions_menu`** : 5 menus étudiés, avec verdict, hypothèses de conversion,
+  cannibalisation et impact/mois. Colonnes `recommande` et `verdict`.
+
+Recommandés et **non lancés** à ce jour : le **Duo Menu** (18,50 €, +440 €/mois) et le
+**Menu Famille** (34 €, +330 €/mois, seul segment groupe non couvert). Ils pèsent plus
+lourd que les menus XL créés en juillet 2026.
+
+Note : les libellés de ces tables parlent encore du « Menu Étudiant », renommé depuis
+en Menu Good Deal.
+
 ## Conventions de travail
 
 - Répondre en français.
