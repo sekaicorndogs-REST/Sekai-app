@@ -5516,6 +5516,24 @@ export default function App() {
                       </div>
                     )}
                   </div>
+                  <div style={{ margin: "0.6rem 0" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.4rem" }}>
+                      <div style={{ color: "#3d1a0a", fontSize: "0.82rem", flex: 1 }}>TVA</div>
+                      <span style={{ background: "#faebd7", color: "#a07848", fontSize: "0.68rem", fontWeight: 600, borderRadius: "6px", padding: "0.15rem 0.45rem" }}>automatique</span>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "center", background: "#f5efe3", border: "1.5px solid #f0d8b8", borderRadius: "8px", overflow: "hidden" }}>
+                      <div style={{ color: "#3d1a0a", padding: "0.6rem 1rem", fontSize: "0.95rem", flex: 1, fontFamily: "'Poppins', sans-serif" }}>
+                        6 %
+                        {(parseFloat(eventCaRealise) || 0) > 0 && (
+                          <span style={{ color: "#e8213a", fontWeight: 700 }}> · −{Math.round((parseFloat(eventCaRealise)||0) * TVA_PART_TTC).toLocaleString("fr-BE")} €</span>
+                        )}
+                      </div>
+                      <span style={{ color: "#a07848", paddingRight: "0.8rem", fontSize: "0.75rem" }}>du CA TTC</span>
+                    </div>
+                    <div style={{ color: "#a07848", fontSize: "0.65rem", marginTop: "0.25rem" }}>
+                      Déduite automatiquement du bénéfice et du seuil de rentabilité.
+                    </div>
+                  </div>
                   <div style={{ color: "#a07848", fontSize: "0.72rem", fontWeight: "600", margin: "0.6rem 0 0.4rem" }}>OBJECTIF DE BÉNÉFICE (avant l'event)</div>
                   <div style={{ display: "flex", alignItems: "center", background: "#faebd7", border: "1.5px solid #f5c84266", borderRadius: "8px", overflow: "hidden", marginBottom: "0.3rem" }}>
                     <input value={eventObjectif} onChange={e => setEventObjectif(e.target.value.replace(",", "."))} inputMode="decimal" type="text" placeholder="Ex: 5000"
