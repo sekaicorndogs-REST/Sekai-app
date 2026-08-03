@@ -695,6 +695,10 @@ function getFacteurAge(age, type) {
   return 0.7;
 }
 const FLEXI_TAUX_MIN = 12.78; // flexi-salaire (11,87) + pécule vacances (0,91) — CP302 depuis 01/03/2026
+// TVA 6 % (taux belge sur les denrées alimentaires). Le CA d'un event est encaissé TTC,
+// donc la TVA à reverser est 6/106 du CA, pas 6 % de celui-ci.
+const TVA_TAUX = 0.06;
+const TVA_PART_TTC = TVA_TAUX / (1 + TVA_TAUX); // ≈ 5,66 % du CA TTC
 function calculerPaieEmploye(employe, heures) {
   const type = employe.type_contrat || "etudiant";
   const tauxBase = employe.salaire_horaire || (type === "flexi" ? FLEXI_TAUX_MIN : getTauxCP302(employe.anciennete_ans || 0));
@@ -1695,13 +1699,14 @@ export default function App() {
     } else {
       taux = (parseFloat(eventTauxIngredients)||18)/100;
     }
-    // Seuil rentable : tient compte du loyer en % (qui dépend du CA)
+    // Seuil rentable : tient compte du loyer en % et de la TVA, qui dépendent tous deux du CA
     const seuilMin = eventFoodCostMode === "eur" && foodCostEur != null
-      ? (coutsFixes + foodCostEur) / (1 - locPct)
-      : coutsFixes / (1 - taux - locPct);
+      ? (coutsFixes + foodCostEur) / (1 - locPct - TVA_PART_TTC)
+      : coutsFixes / (1 - taux - locPct - TVA_PART_TTC);
     const loyerReel = locPct > 0 ? ca * locPct : locEur;
-    const profitRealise = ca > 0 ? (eventFoodCostMode === "eur" ? ca - (foodCostEur||0) - coutsFixes - ca*locPct : ca - ca*taux - coutsFixes - ca*locPct) : null;
-    setEventResultat({ coutsFixes, taux, seuilMin, profitRealise, ca, foodCostEur, mode: eventFoodCostMode, locPct, loyerReel });
+    const tva = ca * TVA_PART_TTC;
+    const profitRealise = ca > 0 ? (eventFoodCostMode === "eur" ? ca - (foodCostEur||0) - coutsFixes - ca*locPct - tva : ca - ca*taux - coutsFixes - ca*locPct - tva) : null;
+    setEventResultat({ coutsFixes, taux, seuilMin, profitRealise, ca, foodCostEur, mode: eventFoodCostMode, locPct, loyerReel, tva });
   }
   async function handleSaveEvent() {
     if (!eventNom.trim()) { flash("❌ Donne un nom à l'event"); return; }
@@ -5350,9 +5355,10 @@ export default function App() {
                   const locEur = ev.cout_location_mode === "pct" ? 0 : (parseFloat(ev.cout_location)||0);
                   const coutsFixes = locEur+(parseFloat(ev.cout_personnel)||0)+(parseFloat(ev.cout_transport)||0)+(parseFloat(ev.cout_materiel)||0)+(parseFloat(ev.cout_autres)||0)+(parseFloat(ev.cout_hotel)||0)+(parseFloat(ev.cout_location_materiel)||0)+(parseFloat(ev.cout_essence)||0);
                   const taux = (ev.taux_ingredients||18)/100;
-                  const seuilMin = coutsFixes / (1 - taux - locPct);
+                  const seuilMin = coutsFixes / (1 - taux - locPct - TVA_PART_TTC);
                   const ca = ev.ca_realise;
-                  const profit = ca != null ? ca - ca*taux - coutsFixes - ca*locPct : null;
+                  const tva = ca != null ? ca * TVA_PART_TTC : null;
+                  const profit = ca != null ? ca - ca*taux - coutsFixes - ca*locPct - (tva||0) : null;
                   const rentable = profit != null ? profit >= 0 : null;
                   return (
                     <div key={ev.id} style={{ background: "#fff8f0", border: `1.5px solid ${rentable===true?"#4caf5044":rentable===false?"#e8213a44":"#f0d8b8"}`, borderRadius: "12px", padding: "1rem", marginBottom: "0.6rem" }}>
@@ -5373,6 +5379,7 @@ export default function App() {
                       <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap", marginBottom: ca == null ? "0.7rem" : "0" }}>
                         <span style={{ background: "#faebd7", color: "#a07848", fontSize: "0.7rem", borderRadius: "6px", padding: "0.2rem 0.5rem" }}>Coûts : {coutsFixes.toLocaleString("fr-BE")} €</span>
                         <span style={{ background: "#faebd7", color: "#a07848", fontSize: "0.7rem", borderRadius: "6px", padding: "0.2rem 0.5rem" }}>Food cost : {(taux*100).toFixed(0)}%</span>
+                        {tva != null && <span style={{ background: "#faebd7", color: "#a07848", fontSize: "0.7rem", borderRadius: "6px", padding: "0.2rem 0.5rem" }}>TVA 6% : −{Math.round(tva).toLocaleString("fr-BE")} €</span>}
                         {ca != null && <span style={{ background: ca >= seuilMin ? "#f5fff8" : "#fff5f5", color: ca >= seuilMin ? "#4caf50" : "#e8213a", fontSize: "0.7rem", borderRadius: "6px", padding: "0.2rem 0.5rem", fontWeight: "bold" }}>CA réel : {ca.toLocaleString("fr-BE")} €</span>}
                         {profit != null && <span style={{ background: profit >= 0 ? "#f5fff8" : "#fff5f5", color: profit >= 0 ? "#4caf50" : "#e8213a", fontSize: "0.75rem", borderRadius: "6px", padding: "0.2rem 0.5rem", fontWeight: "900" }}>{profit >= 0 ? "+" : ""}{Math.round(profit).toLocaleString("fr-BE")} €</span>}
                       </div>
@@ -5380,7 +5387,7 @@ export default function App() {
                       {/* Objectif de bénéfice personnalisé */}
                       {ca == null && ev.objectif_benefice > 0 && (() => {
                         const obj = parseFloat(ev.objectif_benefice);
-                        const caObjectif = (obj + coutsFixes) / (1 - taux - locPct);
+                        const caObjectif = (obj + coutsFixes) / (1 - taux - locPct - TVA_PART_TTC);
                         const foodCostObj = caObjectif * taux;
                         return (
                           <div style={{ background: "linear-gradient(135deg,#3d1a0a,#5a2a12)", borderRadius: "10px", padding: "0.8rem 1rem", marginBottom: "0.6rem", color: "#fff" }}>
@@ -5401,7 +5408,7 @@ export default function App() {
                           ].map(({ label, mult, color }) => {
                             const caObj = seuilMin * mult;
                             const foodCost = caObj * taux;
-                            const profitObj = caObj - foodCost - coutsFixes;
+                            const profitObj = caObj - foodCost - coutsFixes - caObj*locPct - caObj*TVA_PART_TTC;
                             return (
                               <div key={label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0.3rem 0", borderTop: "1px solid #f0d8b8" }}>
                                 <div>
@@ -5537,7 +5544,12 @@ export default function App() {
                       <div style={{ margin: "0.5rem 0", borderTop: "1px solid #f0d8b8" }} />
                       <div style={{ color: "#a07848", fontSize: "0.72rem", fontWeight: "600" }}>CA MINIMUM POUR ÊTRE RENTABLE</div>
                       <div style={{ color: "#3d1a0a", fontSize: "2rem", fontWeight: "900" }}>{Math.ceil(eventResultat.seuilMin).toLocaleString("fr-BE")} €</div>
-                      <div style={{ color: "#a07848", fontSize: "0.7rem" }}>({(eventResultat.taux*100).toFixed(0)}% ingrédients)</div>
+                      <div style={{ color: "#a07848", fontSize: "0.7rem" }}>({(eventResultat.taux*100).toFixed(0)}% ingrédients · TVA 6% incluse)</div>
+                      {eventResultat.tva > 0 && (
+                        <div style={{ color: "#a07848", fontSize: "0.72rem", marginTop: "0.3rem" }}>
+                          TVA à reverser : <b style={{ color: "#e8213a" }}>−{Math.round(eventResultat.tva).toLocaleString("fr-BE")} €</b> (6/106 du CA)
+                        </div>
+                      )}
                       {eventResultat.profitRealise != null && (
                         <div style={{ marginTop: "0.8rem", background: eventResultat.profitRealise >= 0 ? "#f5fff8" : "#fff5f5", borderRadius: "10px", padding: "0.7rem", border: `1.5px solid ${eventResultat.profitRealise >= 0 ? "#4caf5044" : "#e8213a44"}` }}>
                           <div style={{ color: "#a07848", fontSize: "0.7rem" }}>RÉSULTAT RÉEL (CA {eventResultat.ca.toLocaleString("fr-BE")} €)</div>
@@ -5552,7 +5564,7 @@ export default function App() {
                       <div style={{ color: "#a07848", fontSize: "0.75rem", fontWeight: "bold", marginBottom: "0.6rem" }}>PROJECTION</div>
                       {[1, 1.25, 1.5, 2].map((mult, i) => {
                         const ca = eventResultat.seuilMin * mult;
-                        const profit = ca - ca*eventResultat.taux - eventResultat.coutsFixes;
+                        const profit = ca - ca*eventResultat.taux - eventResultat.coutsFixes - ca*(eventResultat.locPct||0) - ca*TVA_PART_TTC;
                         return (
                           <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0.45rem 0.6rem", borderRadius: "8px", marginBottom: "0.3rem", background: i===0?"#faebd7":profit>0?"#f5fff8":"#fff5f5", border:`1px solid ${i===0?"#f0d8b8":profit>0?"#4caf5033":"#e8213a33"}` }}>
                             <div>
