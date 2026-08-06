@@ -878,6 +878,7 @@ export default function App() {
   // Onglet « Manquants » : signalement rapide par recherche
   const [stockTab, setStockTab] = useState<"magasins"|"manquants">("magasins");
   const [rechercheManque, setRechercheManque] = useState("");
+  const [rechercheStock, setRechercheStock] = useState("");
   const [magasinNouveau, setMagasinNouveau] = useState<string | null>(null);
   const [qtyAvantManque, setQtyAvantManque] = useState<Record<number, string>>({});
   const [editingId, setEditingId] = useState(null);
@@ -6837,7 +6838,8 @@ export default function App() {
         const q = normTexte(rechercheManque);
         const dejaSignales = items.filter(i => isLow(i));
         const resultats = q === "" ? [] : items
-          .filter(i => !isLow(i) && normTexte(i.name).includes(q))
+          .filter(i => normTexte(i.name).includes(q))
+          .sort((a, b) => Number(isLow(a)) - Number(isLow(b)))
           .slice(0, 12);
         const existeDeja = q !== "" && items.some(i => normTexte(i.name) === q);
         return (
@@ -6847,16 +6849,21 @@ export default function App() {
               style={{ width: "100%", boxSizing: "border-box" as const, background: "#fff8f0", border: "1.5px solid #f5c842", borderRadius: "10px", padding: "0.85rem 1rem", fontSize: "1rem", color: "#3d1a0a", outline: "none", fontFamily: "'Poppins', sans-serif" }} />
 
             {/* Résultats : un appui = signalé */}
-            {resultats.map(item => (
-              <button key={item.id} onClick={() => signalerManque(item)}
-                style={{ width: "100%", marginTop: "0.45rem", background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "10px", padding: "0.8rem 1rem", display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer", textAlign: "left" as const, fontFamily: "'Poppins', sans-serif" }}>
-                <div>
-                  <div style={{ color: "#3d1a0a", fontSize: "0.95rem", fontWeight: 600 }}>{item.name}</div>
-                  <div style={{ color: "#a07848", fontSize: "0.72rem" }}>{item.store} · reste {item.qty === "" ? "—" : item.qty}</div>
-                </div>
-                <span style={{ background: "#e8213a", color: "#fff", borderRadius: "8px", padding: "0.35rem 0.7rem", fontSize: "0.78rem", fontWeight: 700 }}>Manque</span>
-              </button>
-            ))}
+            {resultats.map(item => {
+              const deja = isLow(item);
+              return (
+                <button key={item.id} onClick={() => !deja && signalerManque(item)} disabled={deja}
+                  style={{ width: "100%", marginTop: "0.45rem", background: deja ? "#f7f1e6" : "#fff8f0", border: `1.5px solid ${deja ? "#e6d8c2" : "#f0d8b8"}`, borderRadius: "10px", padding: "0.8rem 1rem", display: "flex", alignItems: "center", justifyContent: "space-between", cursor: deja ? "default" : "pointer", textAlign: "left" as const, fontFamily: "'Poppins', sans-serif", opacity: deja ? 0.7 : 1 }}>
+                  <div>
+                    <div style={{ color: deja ? "#a07848" : "#3d1a0a", fontSize: "0.95rem", fontWeight: 600 }}>{item.name}</div>
+                    <div style={{ color: "#a07848", fontSize: "0.72rem" }}>{item.store} · reste {item.qty === "" ? "—" : item.qty}</div>
+                  </div>
+                  <span style={{ background: deja ? "transparent" : "#e8213a", color: deja ? "#a07848" : "#fff", border: deja ? "1.5px solid #e6d8c2" : "none", borderRadius: "8px", padding: "0.35rem 0.7rem", fontSize: "0.78rem", fontWeight: 700 }}>
+                    {deja ? "déjà signalé" : "Manque"}
+                  </span>
+                </button>
+              );
+            })}
 
             {/* Article inconnu : création en deux appuis */}
             {q !== "" && !existeDeja && (
@@ -6900,7 +6907,32 @@ export default function App() {
         );
       })() : (
       <div style={{ padding: "0.8rem 1.1rem", display: "flex", flexDirection: "column", gap: "0.55rem" }}>
-        {stores.map(store => {
+        <input value={rechercheStock} onChange={e => setRechercheStock(e.target.value)} type="text"
+          placeholder="Chercher un article par son nom…"
+          style={{ width: "100%", boxSizing: "border-box" as const, background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "10px", padding: "0.75rem 1rem", fontSize: "0.92rem", color: "#3d1a0a", outline: "none", fontFamily: "'Poppins', sans-serif" }} />
+
+        {normTexte(rechercheStock) !== "" ? (() => {
+          const q = normTexte(rechercheStock);
+          const trouves = items.filter(i => normTexte(i.name).includes(q));
+          if (trouves.length === 0) return (
+            <div style={{ color: "#c8a878", fontSize: "0.85rem", textAlign: "center" as const, padding: "2rem 0" }}>
+              Aucun article ne correspond à « {rechercheStock.trim()} ».
+            </div>
+          );
+          return trouves.map(item => (
+            <button key={item.id} onClick={() => { setActiveStore(item.store); setRechercheStock(""); }}
+              style={{ background: isLow(item) ? "#fff5f5" : "#fff8f0", border: `1.5px solid ${isLow(item) ? "#e8213a44" : "#f0d8b8"}`, borderRadius: "12px", padding: "0.85rem 1.1rem", display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer", textAlign: "left" as const, width: "100%", fontFamily: "'Poppins', sans-serif" }}>
+              <div>
+                <div style={{ color: isLow(item) ? "#e8213a" : "#3d1a0a", fontSize: "0.95rem", fontWeight: 600 }}>{item.name}</div>
+                <div style={{ color: "#a07848", fontSize: "0.73rem", marginTop: "0.15rem" }}>{item.store} · seuil {item.threshold_label}</div>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                <span style={{ background: isLow(item) ? "#fff0f0" : "#faebd7", color: isLow(item) ? "#e8213a" : "#a07848", padding: "0.3rem 0.65rem", borderRadius: "6px", fontSize: "0.88rem", fontWeight: 700 }}>{item.qty === "" ? "—" : item.qty}</span>
+                <span style={{ color: "#c8a878", fontSize: "1.3rem" }}>›</span>
+              </div>
+            </button>
+          ));
+        })() : stores.map(store => {
           const alerts = stock[store].filter(i => isLow(i)).length;
           return (
             <button key={store} onClick={() => setActiveStore(store)} style={{ background: "#fff8f0", border: `1.5px solid ${alerts > 0 ? "#e8213a44" : "#f0d8b8"}`, borderRadius: "12px", padding: "1rem 1.1rem", display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer", textAlign: "left", width: "100%" }}>
