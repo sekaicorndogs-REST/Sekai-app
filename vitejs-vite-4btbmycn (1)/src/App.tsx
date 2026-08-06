@@ -314,10 +314,23 @@ async function deleteUser(id) {
 }
 
 // ── VENTES API (import CSV caisse/bornes) ──────────────────
+// Récupère tout l'historique par pages : un plafond fixe tronquait silencieusement
+// les statistiques (jour de semaine, saisonnalité) aux dernières semaines.
 async function fetchVentes() {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/ventes?select=date_commande,prix,mode_livraison&order=date_commande.desc&limit=5000`, { headers: HEADERS });
-  if (!res.ok) throw new Error("Fetch ventes failed");
-  return res.json();
+  const PAGE = 1000;
+  const tout: any[] = [];
+  for (let offset = 0; offset <= 200000; offset += PAGE) {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/ventes?select=date_commande,prix,mode_livraison`
+      + `&order=date_commande.desc&limit=${PAGE}&offset=${offset}`,
+      { headers: HEADERS }
+    );
+    if (!res.ok) throw new Error("Fetch ventes failed");
+    const page = await res.json();
+    tout.push(...page);
+    if (page.length < PAGE) break;
+  }
+  return tout;
 }
 
 // ── ACTIONS DE CONVERSION (faire commander plus de menus) ──
@@ -4820,7 +4833,7 @@ export default function App() {
                           </div>
                         </div>
                       ))}
-                      <div style={{ color: "#c8a878", fontSize: "0.66rem", marginTop: "0.5rem" }}>Moyenne sur 474 jours de ventes · hors suppléments chapelure</div>
+                      <div style={{ color: "#c8a878", fontSize: "0.66rem", marginTop: "0.5rem" }}>Moyenne sur {totalJoursVP} jours de ventes · hors suppléments chapelure</div>
                     </div>
                   </>
                 );
