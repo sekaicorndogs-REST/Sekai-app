@@ -881,6 +881,8 @@ export default function App() {
   const [rechercheStock, setRechercheStock] = useState("");
   const [magasinNouveau, setMagasinNouveau] = useState<string | null>(null);
   const [qtyAvantManque, setQtyAvantManque] = useState<Record<number, string>>({});
+  // Articles signalés pendant cette session, du plus récent au plus ancien
+  const [manquesSession, setManquesSession] = useState<number[]>([]);
   const [editingId, setEditingId] = useState(null);
   const [editVal, setEditVal] = useState("");
   const [saving, setSaving] = useState(false);
@@ -1254,24 +1256,35 @@ export default function App() {
   async function signalerManque(item) {
     if (isLow(item)) return;
     setQtyAvantManque(prev => ({ ...prev, [item.id]: item.qty ?? "" }));
+    setManquesSession(prev => prev.includes(item.id) ? prev : [item.id, ...prev]);
     setItems(prev => prev.map(i => i.id === item.id ? { ...i, qty: "0" } : i));
+    setRechercheManque("");
     try {
       await updateItem(item.id, "0", currentUser.prenom);
-      flash(`✅ ${item.name} à commander`);
+      flash(`✅ ${item.name} ajouté à la liste`);
     } catch {
       setItems(prev => prev.map(i => i.id === item.id ? { ...i, qty: item.qty } : i));
+      setManquesSession(prev => prev.filter(id => id !== item.id));
       flash("❌ Erreur");
     }
   }
 
   async function annulerManque(item) {
-    const avant = qtyAvantManque[item.id] ?? "";
+    // Article créé depuis cet écran : le retirer, c'est le supprimer
+    if (qtyAvantManque[item.id] === undefined) {
+      await handleDeleteItem(item.id, item.name);
+      setManquesSession(prev => prev.filter(id => id !== item.id));
+      return;
+    }
+    const avant = qtyAvantManque[item.id];
     setItems(prev => prev.map(i => i.id === item.id ? { ...i, qty: avant } : i));
+    setManquesSession(prev => prev.filter(id => id !== item.id));
     try {
       await updateItem(item.id, avant, currentUser.prenom);
-      flash(`↩️ ${item.name} retiré`);
+      flash(`↩️ ${item.name} retiré de la liste`);
     } catch {
       setItems(prev => prev.map(i => i.id === item.id ? { ...i, qty: "0" } : i));
+      setManquesSession(prev => prev.includes(item.id) ? prev : [item.id, ...prev]);
       flash("❌ Erreur");
     }
   }
@@ -1284,8 +1297,9 @@ export default function App() {
     try {
       const [created] = await insertItem(item);
       setItems(prev => [...prev, created]);
+      setManquesSession(prev => [created.id, ...prev]);
       setRechercheManque(""); setMagasinNouveau(null);
-      flash(`➕ ${created.name} ajouté et à commander`);
+      flash(`➕ ${created.name} créé et ajouté à la liste`);
     } catch { flash("❌ Erreur"); }
     finally { setSaving(false); }
   }
@@ -6848,6 +6862,41 @@ export default function App() {
               placeholder="Chercher un article…" type="text"
               style={{ width: "100%", boxSizing: "border-box" as const, background: "#fff8f0", border: "1.5px solid #f5c842", borderRadius: "10px", padding: "0.85rem 1rem", fontSize: "1rem", color: "#3d1a0a", outline: "none", fontFamily: "'Poppins', sans-serif" }} />
 
+            {/* Ma sélection : ce qui vient d'être signalé, bien en vue */}
+            {(() => {
+              const selection = manquesSession
+                .map(id => items.find(i => i.id === id))
+                .filter(Boolean);
+              if (selection.length === 0) return null;
+              return (
+                <div style={{ marginTop: "0.7rem", background: "#f5fff8", border: "2px solid #4caf50", borderRadius: "12px", padding: "0.8rem 0.9rem" }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.5rem" }}>
+                    <span style={{ color: "#2e7d32", fontSize: "0.78rem", fontWeight: 800, letterSpacing: "0.02em" }}>
+                      🛒 MA LISTE ({selection.length})
+                    </span>
+                    <button onClick={() => setManquesSession([])}
+                      style={{ background: "none", border: "none", color: "#7aab86", fontSize: "0.72rem", cursor: "pointer", fontFamily: "'Poppins', sans-serif", textDecoration: "underline" }}>
+                      vider l'affichage
+                    </button>
+                  </div>
+                  {selection.map(item => (
+                    <div key={item.id} style={{ background: "#fff", border: "1px solid #cde9d4", borderRadius: "9px", padding: "0.6rem 0.8rem", marginBottom: "0.35rem", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                      <div>
+                        <div style={{ color: "#2e7d32", fontSize: "0.92rem", fontWeight: 700 }}>{item.name}</div>
+                        <div style={{ color: "#a07848", fontSize: "0.7rem" }}>
+                          {item.store}{qtyAvantManque[item.id] === undefined ? " · nouvel article" : ""}
+                        </div>
+                      </div>
+                      <button onClick={() => annulerManque(item)}
+                        style={{ background: "#fff0f0", color: "#e8213a", border: "1px solid #f5c2c2", borderRadius: "8px", padding: "0.3rem 0.6rem", fontSize: "0.74rem", fontWeight: 700, cursor: "pointer", fontFamily: "'Poppins', sans-serif" }}>
+                        Retirer
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              );
+            })()}
+
             {/* Résultats : un appui = signalé */}
             {resultats.map(item => {
               const deja = isLow(item);
@@ -6883,26 +6932,25 @@ export default function App() {
             )}
 
             {/* Liste de courses en cours */}
-            <div style={{ color: "#a07848", fontSize: "0.75rem", fontWeight: 700, margin: "1.2rem 0 0.4rem" }}>
-              À COMMANDER ({dejaSignales.length})
-            </div>
-            {dejaSignales.length === 0 && (
-              <div style={{ color: "#c8a878", fontSize: "0.82rem", textAlign: "center" as const, padding: "1.5rem 0" }}>Rien à commander pour l'instant.</div>
-            )}
-            {dejaSignales.map(item => (
-              <div key={item.id} style={{ background: "#fff5f5", border: "1.5px solid #e8213a44", borderRadius: "10px", padding: "0.7rem 1rem", marginBottom: "0.4rem", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <div>
-                  <div style={{ color: "#e8213a", fontSize: "0.92rem", fontWeight: 600 }}>{item.name}</div>
-                  <div style={{ color: "#a07848", fontSize: "0.72rem" }}>{item.store} · seuil {item.threshold_label}</div>
-                </div>
-                {qtyAvantManque[item.id] !== undefined && (
-                  <button onClick={() => annulerManque(item)}
-                    style={{ background: "#faebd7", color: "#a07848", border: "1.5px solid #f0d8b8", borderRadius: "8px", padding: "0.35rem 0.7rem", fontSize: "0.75rem", fontWeight: 600, cursor: "pointer", fontFamily: "'Poppins', sans-serif" }}>
-                    Annuler
-                  </button>
-                )}
-              </div>
-            ))}
+            {(() => {
+              const autres = dejaSignales.filter(i => !manquesSession.includes(i.id));
+              return (
+                <>
+                  <div style={{ color: "#a07848", fontSize: "0.75rem", fontWeight: 700, margin: "1.2rem 0 0.4rem" }}>
+                    AUTRES ARTICLES À COMMANDER ({autres.length})
+                  </div>
+                  {autres.length === 0 && (
+                    <div style={{ color: "#c8a878", fontSize: "0.82rem", textAlign: "center" as const, padding: "1.5rem 0" }}>Rien d'autre à commander.</div>
+                  )}
+                  {autres.map(item => (
+                    <div key={item.id} style={{ background: "#fff5f5", border: "1.5px solid #e8213a44", borderRadius: "10px", padding: "0.7rem 1rem", marginBottom: "0.4rem" }}>
+                      <div style={{ color: "#e8213a", fontSize: "0.92rem", fontWeight: 600 }}>{item.name}</div>
+                      <div style={{ color: "#a07848", fontSize: "0.72rem" }}>{item.store} · seuil {item.threshold_label}</div>
+                    </div>
+                  ))}
+                </>
+              );
+            })()}
           </div>
         );
       })() : (
