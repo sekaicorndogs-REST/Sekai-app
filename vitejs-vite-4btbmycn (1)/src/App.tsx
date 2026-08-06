@@ -114,13 +114,41 @@ const EVENT_STOCK = [
 const STORE_ORDER_RUE_NEUVE = ["OZ FOOD","FOOD EX","TADAL","COLRUYT","SILGRO","MAGASIN CHINOIS","SAUCE MAISON"];
 const STORE_ORDER_EVENT = ["OZ FOOD","TADAL","COLRUYT","SILGRO","MAGASIN CHINOIS","SAUCE MAISON","MATÉRIEL"];
 
-function isLow(item) {
-  if (item.threshold === 0) return false;
-  const raw = (item.qty || "").trim().toLowerCase();
-  if (raw === "" || raw === "—") return true;
-  const num = parseFloat(raw);
-  if (!isNaN(num)) return num < item.threshold;
-  return false;
+// Statut d'un article de stock.
+// « verifier » couvre les quantités écrites en toutes lettres (« OK », « assez ») :
+// elles étaient auparavant considérées comme suffisantes et n'alertaient jamais.
+type StatutStock = "alerte" | "verifier" | "non_compte" | "ok";
+function stockStatut(item): StatutStock {
+  if (item.threshold === 0) return "ok";
+  const raw = String(item.qty ?? "").trim().toLowerCase();
+  if (raw === "" || raw === "—") return "non_compte";
+  if (/^[0-9]+([.,][0-9]+)?$/.test(raw)) {
+    return parseFloat(raw.replace(",", ".")) < item.threshold ? "alerte" : "ok";
+  }
+  return "verifier";
+}
+function isLow(item) { return stockStatut(item) === "alerte"; }
+
+// Coefficient de saisonnalité du mois en cours, pour dimensionner les commandes
+function coefSaison(saisonnalite: any[]): number {
+  if (!saisonnalite || saisonnalite.length === 0) return 1;
+  const jours = (m: number) => [31,28,31,30,31,30,31,31,30,31,30,31][m-1];
+  const total = saisonnalite.reduce((s, m) => s + Number(m.ca_total_jour) * jours(m.mois), 0);
+  const moyenne = total / saisonnalite.reduce((s, m) => s + jours(m.mois), 0);
+  const cur = saisonnalite.find(m => m.mois === new Date().getMonth() + 1);
+  if (!cur || !moyenne) return 1;
+  return Number(cur.ca_total_jour) / moyenne;
+}
+
+// Quantité suggérée à commander, dans l'unité de comptage du stock
+const JOURS_COUVERTURE = 7;
+function qteACommander(item, coef: number): number | null {
+  if (!item.conso_jour) return null;
+  const lot = Number(item.unites_par_lot) || 1;
+  const besoin = (Number(item.conso_jour) * coef * JOURS_COUVERTURE) / lot;
+  const raw = String(item.qty ?? "").trim();
+  const dispo = /^[0-9]+([.,][0-9]+)?$/.test(raw) ? parseFloat(raw.replace(",", ".")) : 0;
+  return Math.max(0, Math.ceil(besoin - dispo));
 }
 
 // Recherche tolérante : ignore accents, casse et espaces superflus
@@ -6727,6 +6755,40 @@ export default function App() {
   const stores = storeOrder.filter(s => stock[s] && stock[s].length > 0);
   const allAlerts = items.filter(i => isLow(i));
   const totalAlerts = allAlerts.length;
+  const aVerifier = items.filter(i => stockStatut(i) === "verifier");
+  const nonComptes = items.filter(i => stockStatut(i) === "non_compte");
+  const coef = coefSaison(saisonnalite);
+  // Dernier comptage par magasin
+  const dernierComptage: Record<string, string> = {};
+  items.forEach(i => {
+    if (!i.updated_at) return;
+    if (!dernierComptage[i.store] || i.updated_at > dernierComptage[i.store]) dernierComptage[i.store] = i.updated_at;
+  });
+  const joursDepuis = (iso?: string) => iso ? Math.floor((Date.now() - new Date(iso).getTime()) / 86400000) : null;
+
+  function texteListeCourses() {
+    const lignes = [`🛒 Sekai — ${restaurant?.name}`, getTodayStr(), ""];
+    storeOrder.forEach(store => {
+      const list = allAlerts.filter(i => i.store === store);
+      if (list.length === 0) return;
+      lignes.push(`— ${store} —`);
+      list.forEach(i => {
+        const q = qteACommander(i, coef);
+        lignes.push(`• ${i.name}${q ? ` : ${q} ${i.unit || "u."}` : ""}`);
+      });
+      lignes.push("");
+    });
+    return lignes.join("\n").trim();
+  }
+
+  async function partagerListe() {
+    const texte = texteListeCourses();
+    try {
+      if (navigator.share) { await navigator.share({ title: "Liste de courses", text: texte }); return; }
+      await navigator.clipboard.writeText(texte);
+      flash("📋 Liste copiée");
+    } catch { /* partage annulé par l'utilisateur : rien à signaler */ }
+  }
 
   if (loading) return (
     <div style={{ ...s, minHeight: "100vh", background: "#faebd7", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
@@ -6775,28 +6837,70 @@ export default function App() {
       <div style={{ ...s, minHeight: "100vh", background: "#faebd7", paddingBottom: isAdmin ? "5rem" : "2rem" }}>
         <div style={{ background: "#e8213a", padding: "1.2rem", borderBottom: "none", position: "sticky", top: 0, zIndex: 10, display: "flex", alignItems: "center", gap: "0.75rem" }}>
           <button onClick={() => setShowAlerts(false)} style={{ background: "none", border: "none", color: "#ffffff", fontSize: "1.6rem", cursor: "pointer", padding: 0 }}><ArrowLeft size={20} /></button>
-          <h2 style={{ color: "#ffffff", fontSize: "1.05rem", fontWeight: "bold", margin: 0 }}>{totalAlerts} à commander</h2>
+          <h2 style={{ color: "#ffffff", fontSize: "1.05rem", fontWeight: "bold", margin: 0, flex: 1 }}>{totalAlerts} à commander</h2>
+          <button onClick={partagerListe}
+            style={{ background: "#ffffff", color: "#e8213a", border: "none", borderRadius: "20px", padding: "0.4rem 0.85rem", fontSize: "0.78rem", fontWeight: "bold", cursor: "pointer", fontFamily: "'Poppins', sans-serif" }}>
+            Partager
+          </button>
         </div>
         <div style={{ padding: "0.8rem 1.1rem" }}>
+          {Math.abs(coef - 1) > 0.05 && (
+            <div style={{ background: "#fffdf5", border: "1.5px solid #f5c842", borderRadius: "10px", padding: "0.6rem 0.9rem", marginBottom: "0.7rem", color: "#a07848", fontSize: "0.75rem" }}>
+              Saison {coef > 1 ? "haute" : "basse"} : quantités ajustées de {coef > 1 ? "+" : ""}{Math.round((coef - 1) * 100)} % par rapport à la moyenne annuelle.
+            </div>
+          )}
           {storeOrder.map(store => {
             const list = byStore[store];
             if (!list) return null;
             return (
               <div key={store} style={{ marginBottom: "0.75rem" }}>
                 <div style={{ color: "#a07848", fontSize: "0.75rem", fontWeight: "bold", margin: "0.5rem 0 0.3rem" }}>{store}</div>
-                {list.map(item => (
-                  <div key={item.id} style={{ background: "#fff5f5", border: "1.5px solid #e8213a44", borderRadius: "10px", padding: "0.85rem 1rem", marginBottom: "0.4rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <div>
-                      <div style={{ color: "#e8213a", fontSize: "0.95rem" }}>{item.name}</div>
-                      {item.note && <div style={{ color: "#a07848", fontSize: "0.7rem" }}>{item.note}</div>}
-                      <div style={{ color: "#a07848", fontSize: "0.72rem" }}>Seuil : {item.threshold_label}</div>
+                {list.map(item => {
+                  const q = qteACommander(item, coef);
+                  return (
+                    <div key={item.id} style={{ background: "#fff5f5", border: "1.5px solid #e8213a44", borderRadius: "10px", padding: "0.85rem 1rem", marginBottom: "0.4rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <div>
+                        <div style={{ color: "#e8213a", fontSize: "0.95rem" }}>{item.name}</div>
+                        {item.note && <div style={{ color: "#a07848", fontSize: "0.7rem" }}>{item.note}</div>}
+                        <div style={{ color: "#a07848", fontSize: "0.72rem" }}>Seuil : {item.threshold_label}</div>
+                      </div>
+                      <div style={{ textAlign: "right" as const }}>
+                        {q != null && (
+                          <div style={{ background: "#e8213a", color: "#fff", padding: "0.25rem 0.6rem", borderRadius: "6px", fontSize: "0.85rem", fontWeight: 800, marginBottom: "0.2rem" }}>
+                            commander {q} {item.unit || ""}
+                          </div>
+                        )}
+                        <span style={{ background: "#fff0f0", color: "#e57373", padding: "0.25rem 0.6rem", borderRadius: "6px", fontSize: "0.82rem", fontWeight: "bold" }}>reste {item.qty === "" ? "—" : item.qty}</span>
+                      </div>
                     </div>
-                    <span style={{ background: "#fff0f0", color: "#e57373", padding: "0.35rem 0.75rem", borderRadius: "6px", fontSize: "0.92rem", fontWeight: "bold" }}>{item.qty === "" ? "—" : item.qty}</span>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             );
           })}
+
+          {aVerifier.length > 0 && (
+            <>
+              <div style={{ color: "#b45309", fontSize: "0.75rem", fontWeight: "bold", margin: "1.2rem 0 0.4rem" }}>
+                À VÉRIFIER ({aVerifier.length}) — quantité non chiffrée, aucune alerte possible
+              </div>
+              {aVerifier.map(item => (
+                <div key={item.id} style={{ background: "#fffbe6", border: "1.5px solid #fde68a", borderRadius: "10px", padding: "0.7rem 1rem", marginBottom: "0.35rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div>
+                    <div style={{ color: "#b45309", fontSize: "0.9rem", fontWeight: 600 }}>{item.name}</div>
+                    <div style={{ color: "#a07848", fontSize: "0.7rem" }}>{item.store} · seuil {item.threshold_label}</div>
+                  </div>
+                  <span style={{ background: "#fff8e1", color: "#b45309", padding: "0.25rem 0.6rem", borderRadius: "6px", fontSize: "0.82rem", fontWeight: 700 }}>« {item.qty} »</span>
+                </div>
+              ))}
+            </>
+          )}
+
+          {nonComptes.length > 0 && (
+            <div style={{ marginTop: "1.2rem", background: "#f5f0e6", border: "1.5px solid #e6d8c2", borderRadius: "10px", padding: "0.8rem 1rem", color: "#a07848", fontSize: "0.78rem" }}>
+              <b>{nonComptes.length} article{nonComptes.length > 1 ? "s" : ""} jamais compté{nonComptes.length > 1 ? "s" : ""}.</b> Ils ne sont pas comptabilisés dans les alertes tant qu'une quantité n'a pas été saisie.
+            </div>
+          )}
         </div>
         <BottomNav />
       </div>
@@ -6982,13 +7086,24 @@ export default function App() {
           ));
         })() : stores.map(store => {
           const alerts = stock[store].filter(i => isLow(i)).length;
+          const verif = stock[store].filter(i => stockStatut(i) === "verifier").length;
+          const jours = joursDepuis(dernierComptage[store]);
+          const vieux = jours != null && jours > 7;
           return (
             <button key={store} onClick={() => setActiveStore(store)} style={{ background: "#fff8f0", border: `1.5px solid ${alerts > 0 ? "#e8213a44" : "#f0d8b8"}`, borderRadius: "12px", padding: "1rem 1.1rem", display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer", textAlign: "left", width: "100%" }}>
               <div>
                 <div style={{ color: "#3d1a0a", fontSize: "0.98rem", fontWeight: "bold" }}>{store}</div>
-                <div style={{ color: "#a07848", fontSize: "0.73rem", marginTop: "0.15rem" }}>{stock[store].length} articles</div>
+                <div style={{ color: "#a07848", fontSize: "0.73rem", marginTop: "0.15rem" }}>
+                  {stock[store].length} articles
+                  {jours != null && (
+                    <span style={{ color: vieux ? "#b45309" : "#a07848", fontWeight: vieux ? 700 : 400 }}>
+                      {" · "}{jours === 0 ? "compté aujourd'hui" : `compté il y a ${jours} j`}
+                    </span>
+                  )}
+                </div>
               </div>
-              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                {verif > 0 && <span style={{ background: "#fff8e1", color: "#b45309", borderRadius: "10px", padding: "0.2rem 0.55rem", fontSize: "0.75rem", fontWeight: "bold" }}>{verif} ?</span>}
                 {alerts > 0 && <span style={{ background: "#e8213a22", color: "#e8213a", borderRadius: "10px", padding: "0.2rem 0.6rem", fontSize: "0.75rem", fontWeight: "bold" }}>{alerts} </span>}
                 <span style={{ color: "#c8a878", fontSize: "1.3rem" }}>›</span>
               </div>
