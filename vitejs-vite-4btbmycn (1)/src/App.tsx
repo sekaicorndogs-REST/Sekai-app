@@ -123,6 +123,11 @@ function isLow(item) {
   return false;
 }
 
+// Recherche tolérante : ignore accents, casse et espaces superflus
+function normTexte(x: any): string {
+  return String(x || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+}
+
 function groupByStore(items: any[]): Record<string, any[]> {
   const map: Record<string, any[]> = {};
   items.forEach(item => {
@@ -870,6 +875,11 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [activeStore, setActiveStore] = useState(null);
+  // Onglet « Manquants » : signalement rapide par recherche
+  const [stockTab, setStockTab] = useState<"magasins"|"manquants">("magasins");
+  const [rechercheManque, setRechercheManque] = useState("");
+  const [magasinNouveau, setMagasinNouveau] = useState<string | null>(null);
+  const [qtyAvantManque, setQtyAvantManque] = useState<Record<number, string>>({});
   const [editingId, setEditingId] = useState(null);
   const [editVal, setEditVal] = useState("");
   const [saving, setSaving] = useState(false);
@@ -1233,6 +1243,48 @@ export default function App() {
       setItems(prev => [...prev, created]);
       setNewName(""); setNewQty(""); setNewThreshold(""); setAddMode(false);
       flash("➕ Article ajouté !");
+    } catch { flash("❌ Erreur"); }
+    finally { setSaving(false); }
+  }
+
+  // ── Onglet « Manquants » ────────────────────────────────
+  // Signaler un manque = passer la quantité à 0, ce qui fait basculer l'article
+  // dans les alertes existantes (isLow) et donc dans l'écran « à commander ».
+  async function signalerManque(item) {
+    if (isLow(item)) return;
+    setQtyAvantManque(prev => ({ ...prev, [item.id]: item.qty ?? "" }));
+    setItems(prev => prev.map(i => i.id === item.id ? { ...i, qty: "0" } : i));
+    try {
+      await updateItem(item.id, "0", currentUser.prenom);
+      flash(`✅ ${item.name} à commander`);
+    } catch {
+      setItems(prev => prev.map(i => i.id === item.id ? { ...i, qty: item.qty } : i));
+      flash("❌ Erreur");
+    }
+  }
+
+  async function annulerManque(item) {
+    const avant = qtyAvantManque[item.id] ?? "";
+    setItems(prev => prev.map(i => i.id === item.id ? { ...i, qty: avant } : i));
+    try {
+      await updateItem(item.id, avant, currentUser.prenom);
+      flash(`↩️ ${item.name} retiré`);
+    } catch {
+      setItems(prev => prev.map(i => i.id === item.id ? { ...i, qty: "0" } : i));
+      flash("❌ Erreur");
+    }
+  }
+
+  // Crée un article absent du catalogue, déjà marqué comme manquant
+  async function creerArticleManquant(nom, store) {
+    const item = { store, name: nom.trim(), qty: "0", unit: "", threshold: 1, threshold_label: "< 1",
+      restaurant_id: restaurant.id, updated_by: currentUser.prenom };
+    setSaving(true);
+    try {
+      const [created] = await insertItem(item);
+      setItems(prev => [...prev, created]);
+      setRechercheManque(""); setMagasinNouveau(null);
+      flash(`➕ ${created.name} ajouté et à commander`);
     } catch { flash("❌ Erreur"); }
     finally { setSaving(false); }
   }
@@ -6738,6 +6790,7 @@ export default function App() {
 
   if (!activeStore) return (
     <div style={{ ...s, minHeight: "100vh", background: "#faebd7", paddingBottom: isAdmin ? "5rem" : "2rem" }}>
+      {toast && <div style={{ position: "fixed", top: "1rem", left: "50%", transform: "translateX(-50%)", background: toast.type === "success" ? "#f0fff4" : toast.type === "warn" ? "#fffbe6" : "#fff0f0", color: toast.type === "success" ? "#2e7d32" : toast.type === "warn" ? "#b45309" : "#e8213a", padding: "0.6rem 1.4rem", borderRadius: "20px", fontSize: "0.88rem", zIndex: 999, border: `1.5px solid ${toast.type === "success" ? "#a5d6a7" : toast.type === "warn" ? "#fde68a" : "#f5c8c8"}`, whiteSpace: "nowrap", pointerEvents: "none", fontWeight: "600", boxShadow: "0 2px 12px rgba(0,0,0,0.12)" }}>{toast.msg}</div>}
       <div style={{ background: "#e8213a", padding: "1.2rem", borderBottom: "none", position: "sticky", top: 0, zIndex: 10 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
@@ -6769,6 +6822,83 @@ export default function App() {
       )}
 
       {lastSave && <div style={{ margin: "0.8rem 1.1rem 0", background: "#f5fff8", border: "1.5px solid #4caf5033", borderRadius: "8px", padding: "0.6rem 1rem", fontSize: "0.78rem", color: "#4caf50" }}>{lastSave.time} · {lastSave.who}</div>}
+
+      {/* Onglets : par magasin / signalement rapide */}
+      <div style={{ display: "flex", gap: "0.4rem", padding: "0.8rem 1.1rem 0" }}>
+        {([["magasins","Par magasin"],["manquants","⚡ Manquants"]] as const).map(([id, label]) => (
+          <button key={id} onClick={() => { setStockTab(id); setRechercheManque(""); setMagasinNouveau(null); }}
+            style={{ flex: 1, background: stockTab===id ? "#e8213a" : "#fff8f0", color: stockTab===id ? "#fff" : "#a07848", border: `1.5px solid ${stockTab===id ? "#e8213a" : "#f0d8b8"}`, borderRadius: "20px", padding: "0.55rem 0.8rem", fontSize: "0.82rem", fontFamily: "'Poppins', sans-serif", fontWeight: 700, cursor: "pointer" }}>
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {stockTab === "manquants" ? (() => {
+        const q = normTexte(rechercheManque);
+        const dejaSignales = items.filter(i => isLow(i));
+        const resultats = q === "" ? [] : items
+          .filter(i => !isLow(i) && normTexte(i.name).includes(q))
+          .slice(0, 12);
+        const existeDeja = q !== "" && items.some(i => normTexte(i.name) === q);
+        return (
+          <div style={{ padding: "0.8rem 1.1rem" }}>
+            <input value={rechercheManque} onChange={e => setRechercheManque(e.target.value)} autoFocus
+              placeholder="Chercher un article…" type="text"
+              style={{ width: "100%", boxSizing: "border-box" as const, background: "#fff8f0", border: "1.5px solid #f5c842", borderRadius: "10px", padding: "0.85rem 1rem", fontSize: "1rem", color: "#3d1a0a", outline: "none", fontFamily: "'Poppins', sans-serif" }} />
+
+            {/* Résultats : un appui = signalé */}
+            {resultats.map(item => (
+              <button key={item.id} onClick={() => signalerManque(item)}
+                style={{ width: "100%", marginTop: "0.45rem", background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "10px", padding: "0.8rem 1rem", display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer", textAlign: "left" as const, fontFamily: "'Poppins', sans-serif" }}>
+                <div>
+                  <div style={{ color: "#3d1a0a", fontSize: "0.95rem", fontWeight: 600 }}>{item.name}</div>
+                  <div style={{ color: "#a07848", fontSize: "0.72rem" }}>{item.store} · reste {item.qty === "" ? "—" : item.qty}</div>
+                </div>
+                <span style={{ background: "#e8213a", color: "#fff", borderRadius: "8px", padding: "0.35rem 0.7rem", fontSize: "0.78rem", fontWeight: 700 }}>Manque</span>
+              </button>
+            ))}
+
+            {/* Article inconnu : création en deux appuis */}
+            {q !== "" && !existeDeja && (
+              <div style={{ marginTop: "0.6rem", background: "#fffdf5", border: "1.5px dashed #f5c842", borderRadius: "10px", padding: "0.8rem 1rem" }}>
+                <div style={{ color: "#3d1a0a", fontSize: "0.85rem", fontWeight: 600, marginBottom: "0.5rem" }}>
+                  Créer « {rechercheManque.trim()} » — dans quel magasin ?
+                </div>
+                <div style={{ display: "flex", flexWrap: "wrap" as const, gap: "0.35rem" }}>
+                  {storeOrder.map(st => (
+                    <button key={st} disabled={saving} onClick={() => creerArticleManquant(rechercheManque, st)}
+                      style={{ background: magasinNouveau===st ? "#e8213a" : "#faebd7", color: magasinNouveau===st ? "#fff" : "#3d1a0a", border: "1.5px solid #f0d8b8", borderRadius: "16px", padding: "0.4rem 0.75rem", fontSize: "0.76rem", fontWeight: 600, cursor: "pointer", fontFamily: "'Poppins', sans-serif" }}>
+                      {st}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Liste de courses en cours */}
+            <div style={{ color: "#a07848", fontSize: "0.75rem", fontWeight: 700, margin: "1.2rem 0 0.4rem" }}>
+              À COMMANDER ({dejaSignales.length})
+            </div>
+            {dejaSignales.length === 0 && (
+              <div style={{ color: "#c8a878", fontSize: "0.82rem", textAlign: "center" as const, padding: "1.5rem 0" }}>Rien à commander pour l'instant.</div>
+            )}
+            {dejaSignales.map(item => (
+              <div key={item.id} style={{ background: "#fff5f5", border: "1.5px solid #e8213a44", borderRadius: "10px", padding: "0.7rem 1rem", marginBottom: "0.4rem", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <div>
+                  <div style={{ color: "#e8213a", fontSize: "0.92rem", fontWeight: 600 }}>{item.name}</div>
+                  <div style={{ color: "#a07848", fontSize: "0.72rem" }}>{item.store} · seuil {item.threshold_label}</div>
+                </div>
+                {qtyAvantManque[item.id] !== undefined && (
+                  <button onClick={() => annulerManque(item)}
+                    style={{ background: "#faebd7", color: "#a07848", border: "1.5px solid #f0d8b8", borderRadius: "8px", padding: "0.35rem 0.7rem", fontSize: "0.75rem", fontWeight: 600, cursor: "pointer", fontFamily: "'Poppins', sans-serif" }}>
+                    Annuler
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        );
+      })() : (
       <div style={{ padding: "0.8rem 1.1rem", display: "flex", flexDirection: "column", gap: "0.55rem" }}>
         {stores.map(store => {
           const alerts = stock[store].filter(i => isLow(i)).length;
@@ -6786,6 +6916,7 @@ export default function App() {
           );
         })}
       </div>
+      )}
       <BottomNav />
     </div>
   );
