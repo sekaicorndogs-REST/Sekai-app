@@ -17,6 +17,11 @@ Il contient le contexte métier durable. **À mettre à jour dès qu'une donnée
 - CA moyen **1 029 €/jour** — 879 € bornes + 150 € caisse/Uber, mesuré sur les
   334 journées réellement enregistrées dans `ventes` (août 2025 → juillet 2026).
   Soit **~31 300 €/mois** et **~375 000 €/an**.
+  ⚠️ Cette moyenne porte sur **onze mois** : septembre, un mois faible, en est absent.
+  Une fois septembre intégré, compter plutôt ~872 € bornes / ~1 022 € au total.
+  Les valeurs mensuelles de `saisonnalite` ont été revérifiées ligne à ligne contre
+  `ventes` : écart nul sur les onze mois mesurés. Elles portent bien sur les seuls
+  jours d'ouverture (mars est sur 30 jours, le 15/03/2026 étant sans vente).
 - Objectif fixé : 922 €/jour
 
 ### CA moyen par jour de semaine (année complète, aux bornes)
