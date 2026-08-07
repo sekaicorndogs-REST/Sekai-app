@@ -14,8 +14,27 @@ Il contient le contexte métier durable. **À mettre à jour dès qu'une donnée
 ## Le commerce
 
 - Corndogs coréens, Rue Neuve à Bruxelles (rue commerçante, très fort flux piéton)
-- CA moyen **1 015 €/jour** sur 12 mois — 865 € bornes + 150 € caisse/Uber
+- CA moyen **1 029 €/jour** — 879 € bornes + 150 € caisse/Uber, mesuré sur les
+  334 journées réellement enregistrées dans `ventes` (août 2025 → juillet 2026).
+  Soit **~31 300 €/mois** et **~375 000 €/an**.
 - Objectif fixé : 922 €/jour
+
+### CA moyen par jour de semaine (année complète, aux bornes)
+
+| Jour | CA bornes | Commandes | Ticket |
+|---|---|---|---|
+| Dimanche | 531 € | 39 | 13,42 € |
+| Lundi | 881 € | 71 | 12,32 € |
+| Mardi | 784 € | 65 | 11,98 € |
+| Mercredi | 900 € | 73 | 12,43 € |
+| Jeudi | 718 € | 60 | 11,98 € |
+| Vendredi | 912 € | 75 | 12,14 € |
+| **Samedi** | **1 414 €** | 107 | 13,19 € |
+
+Le samedi pèse 23 % de la semaine, le dimanche 8,7 %. Le dimanche a le meilleur
+ticket mais deux fois moins de flux à l'heure — il reste rentable à ouvrir en
+raisonnement marginal (les charges fixes tombent de toute façon). Le jeudi est
+l'anomalie à creuser : même amplitude horaire qu'un mercredi, 180 € de moins.
 - Juillet 2026 mesuré en entier : 970 €/j bornes (1 128 €/j du 1-18, puis 751 €/j du 19-31).
   La première quinzaine de juillet (soldes) n'est pas représentative du mois.
 - Marge nette ~17 %, soit ~5 100 €/mois
@@ -163,8 +182,14 @@ en Menu Good Deal.
 
 ## Points ouverts
 
-- Septembre est marqué `estime` dans `saisonnalite` (basé sur la moyenne avril-sept 2025),
-  tous les autres mois sont `mesure`. À remplacer par le réel dès que disponible.
+- **Septembre 2025 est totalement absent de `ventes`** : 30 jours sans aucune commande.
+  Ce ne sont **pas** des fermetures — le gérant confirme n'avoir jamais fermé. C'est un
+  export EasyOrder jamais importé, et c'est la raison pour laquelle septembre est le seul
+  mois `estime` dans `saisonnalite`. À combler par un export de septembre 2025.
+  ⚠️ Ne jamais traiter un jour sans vente comme une fermeture : diviser le CA par les
+  jours du calendrier au lieu des jours mesurés sous-estime le CA mensuel de ~2 500 €.
+- Le dimanche 15/03/2026 est le seul autre jour sans vente. À confirmer : vraie fermeture
+  exceptionnelle, ou trou de données ?
 - Écart matière : ~17,5 % réel (ligne « Courses ») contre ~14 % théorique en recettes.
   Environ 1 200 €/mois de perte/gaspillage. À investiguer par inventaire si besoin.
 - Pas de données bornes détaillées par jour ou par heure. Avec ça, on pourrait identifier
