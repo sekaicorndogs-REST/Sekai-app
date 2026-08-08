@@ -52,6 +52,13 @@ Confirmé par le gérant (juillet 2026). C'est le CA caisse + Uber qui ne passe 
 les bornes de commande. `saisonnalite.hors_bornes` et `parametres.ca_hors_bornes`
 sont tous deux alignés sur 150. **Ne pas réintroduire 250.**
 
+### Les events se vendent plus cher qu'à Rue Neuve
+
+Ticket moyen d'un corndog en event : **8,80 €** (confirmé par le gérant), contre
+~7,55 € réellement encaissés Rue Neuve et 6,50 € de prix affiché. C'est la valeur
+utilisée pour convertir un objectif de CA d'event en nombre de corndogs
+(`PRIX_CORNDOG_EVENT` dans `App.tsx`). La TVA de 6 % est déduite des calculs d'event.
+
 ## Tables clés
 
 | Table | Contenu |

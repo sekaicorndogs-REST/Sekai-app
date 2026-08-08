@@ -745,6 +745,9 @@ const FLEXI_TAUX_MIN = 12.78; // flexi-salaire (11,87) + pécule vacances (0,91)
 // donc la TVA à reverser est 6/106 du CA, pas 6 % de celui-ci.
 const TVA_TAUX = 0.06;
 const TVA_PART_TTC = TVA_TAUX / (1 + TVA_TAUX); // ≈ 5,66 % du CA TTC
+// Ticket moyen d'un corndog en event : plus élevé qu'à Rue Neuve (prix event +
+// suppléments), constaté par le gérant. Sert à convertir un objectif de CA en volume.
+const PRIX_CORNDOG_EVENT = 8.8;
 function calculerPaieEmploye(employe, heures) {
   const type = employe.type_contrat || "etudiant";
   const tauxBase = employe.salaire_horaire || (type === "flexi" ? FLEXI_TAUX_MIN : getTauxCP302(employe.anciennete_ans || 0));
@@ -5501,7 +5504,7 @@ export default function App() {
                           <div style={{ background: "linear-gradient(135deg,#3d1a0a,#5a2a12)", borderRadius: "10px", padding: "0.8rem 1rem", marginBottom: "0.6rem", color: "#fff" }}>
                             <div style={{ color: "#f5c842", fontSize: "0.68rem", fontWeight: "bold", marginBottom: "0.2rem" }}>POUR {obj.toLocaleString("fr-BE")} € DE BÉNÉFICE</div>
                             <div style={{ fontSize: "1.5rem", fontWeight: "900" }}>{Math.ceil(caObjectif).toLocaleString("fr-BE")} € <span style={{ fontSize: "0.8rem", fontWeight: "normal", color: "#f0d8b8" }}>de CA à faire</span></div>
-                            <div style={{ color: "#f0d8b8", fontSize: "0.68rem", marginTop: "0.2rem" }}>≈ {Math.ceil(foodCostObj).toLocaleString("fr-BE")} € de food cost · {Math.ceil(caObjectif/6).toLocaleString("fr-BE")} corndogs à 6€</div>
+                            <div style={{ color: "#f0d8b8", fontSize: "0.68rem", marginTop: "0.2rem" }}>≈ {Math.ceil(foodCostObj).toLocaleString("fr-BE")} € de food cost · {Math.ceil(caObjectif/PRIX_CORNDOG_EVENT).toLocaleString("fr-BE")} corndogs à {PRIX_CORNDOG_EVENT.toFixed(2).replace(".", ",")} €</div>
                           </div>
                         );
                       })()}
@@ -5521,7 +5524,7 @@ export default function App() {
                               <div key={label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0.3rem 0", borderTop: "1px solid #f0d8b8" }}>
                                 <div>
                                   <div style={{ color: "#3d1a0a", fontSize: "0.78rem", fontWeight: "bold" }}>{Math.ceil(caObj).toLocaleString("fr-BE")} € CA</div>
-                                  <div style={{ color: "#a07848", fontSize: "0.65rem" }}>Food cost : {Math.ceil(foodCost).toLocaleString("fr-BE")} €</div>
+                                  <div style={{ color: "#a07848", fontSize: "0.65rem" }}>Food cost : {Math.ceil(foodCost).toLocaleString("fr-BE")} € · ≈ {Math.ceil(caObj/PRIX_CORNDOG_EVENT).toLocaleString("fr-BE")} corndogs</div>
                                 </div>
                                 <div style={{ color, fontSize: "0.85rem", fontWeight: "900" }}>
                                   {mult === 1 ? "0 €" : `+${Math.round(profitObj).toLocaleString("fr-BE")} €`}
