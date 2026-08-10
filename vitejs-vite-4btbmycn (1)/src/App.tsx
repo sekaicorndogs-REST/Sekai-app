@@ -754,19 +754,28 @@ const COUT_FROMAGE = 0.66;
 // Pâte, panure, sauce et emballage d'un corndog, hors garniture (≈ 0,30 € en recette)
 const COUT_HORS_GARNITURE = 0.30;
 
-// Bilan matière d'un event à partir de la marchandise emportée.
+// Contenu d'un carton, en pièces. À confirmer par le gérant : tant que ces valeurs
+// valent 0, le bilan n'affiche que le nombre de cartons, sans estimation de volume.
+const PIECES_PAR_CARTON_SAUCISSE = 0;
+const PIECES_PAR_CARTON_FROMAGE = 0;
+
+// Bilan matière d'un event à partir de la marchandise emportée, saisie en cartons.
 // Un corndog consomme exactement une unité de garniture : 1 saucisse, 1 fromage,
 // ou une moitié de chaque pour un Saucisse+Mozza. Le total des deux donne donc
 // directement le nombre de corndogs réalisables.
 function bilanMatiereEvent(qteSaucisse: string, qteFromage: string, ca: number) {
-  const s = parseFloat(String(qteSaucisse).replace(",", ".")) || 0;
-  const f = parseFloat(String(qteFromage).replace(",", ".")) || 0;
-  if (s + f <= 0) return null;
+  const cartonsS = parseFloat(String(qteSaucisse).replace(",", ".")) || 0;
+  const cartonsF = parseFloat(String(qteFromage).replace(",", ".")) || 0;
+  if (cartonsS + cartonsF <= 0) return null;
+  const s = cartonsS * PIECES_PAR_CARTON_SAUCISSE;
+  const f = cartonsF * PIECES_PAR_CARTON_FROMAGE;
+  if (s + f <= 0) return { cartonsS, cartonsF, sansConversion: true } as any;
   const possibles = s + f;
   const coutGarniture = s * COUT_SAUCISSE + f * COUT_FROMAGE;
   const coutUnitaire = coutGarniture / possibles + COUT_HORS_GARNITURE;
   const vendus = ca > 0 ? ca / PRIX_CORNDOG_EVENT : null;
   return {
+    cartonsS, cartonsF, sansConversion: false,
     s, f, possibles, coutGarniture, coutUnitaire,
     vendus,
     reste: vendus != null ? possibles - vendus : null,
@@ -5536,11 +5545,20 @@ export default function App() {
                           <div style={{ background: "#fffdf5", border: "1.5px solid #f5c842", borderRadius: "10px", padding: "0.7rem 0.9rem", marginTop: "0.6rem" }}>
                             <div style={{ color: "#a07848", fontSize: "0.68rem", fontWeight: "bold", marginBottom: "0.4rem" }}>BILAN MATIÈRE</div>
                             <div style={{ color: "#3d1a0a", fontSize: "0.78rem" }}>
-                              {b.s > 0 && <>{b.s} saucisse{b.s > 1 ? "s" : ""}</>}{b.s > 0 && b.f > 0 ? " · " : ""}{b.f > 0 && <>{b.f} fromage{b.f > 1 ? "s" : ""}</>}
-                              {" → "}<b>{Math.floor(b.possibles)} corndogs possibles</b>
-                              <span style={{ color: "#a07848" }}> ({b.coutGarniture.toFixed(2).replace(".", ",")} € de garniture)</span>
+                              {b.cartonsS > 0 && <>{b.cartonsS} carton{b.cartonsS > 1 ? "s" : ""} saucisse</>}
+                              {b.cartonsS > 0 && b.cartonsF > 0 ? " · " : ""}
+                              {b.cartonsF > 0 && <>{b.cartonsF} carton{b.cartonsF > 1 ? "s" : ""} fromage</>}
+                              {!b.sansConversion && <>
+                                {" → "}<b>{Math.floor(b.possibles)} corndogs possibles</b>
+                                <span style={{ color: "#a07848" }}> ({b.coutGarniture.toFixed(2).replace(".", ",")} € de garniture)</span>
+                              </>}
                             </div>
-                            {b.vendus != null && (
+                            {b.sansConversion && (
+                              <div style={{ color: "#b45309", fontSize: "0.68rem", marginTop: "0.25rem" }}>
+                                Renseigne le nombre de pièces par carton dans le code pour obtenir le volume et le food cost réel.
+                              </div>
+                            )}
+                            {!b.sansConversion && b.vendus != null && (
                               <>
                                 <div style={{ color: "#3d1a0a", fontSize: "0.78rem", marginTop: "0.25rem" }}>
                                   ≈ <b>{Math.round(b.vendus)} vendus</b> · reste{" "}
@@ -5713,15 +5731,15 @@ export default function App() {
                   </div>
                   <div style={{ color: "#a07848", fontSize: "0.72rem", fontWeight: "600", margin: "0.6rem 0 0.4rem" }}>MARCHANDISE EMPORTÉE (optionnel)</div>
                   {[
-                    { label: "Saucisses", val: eventQteSaucisse, set: setEventQteSaucisse },
-                    { label: "Fromages", val: eventQteFromage, set: setEventQteFromage },
+                    { label: "Cartons de saucisse", val: eventQteSaucisse, set: setEventQteSaucisse },
+                    { label: "Cartons de fromage", val: eventQteFromage, set: setEventQteFromage },
                   ].map(({ label, val, set }) => (
                     <div key={label} style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: "0.4rem" }}>
                       <div style={{ color: "#3d1a0a", fontSize: "0.82rem", flex: 1 }}>{label}</div>
                       <div style={{ display: "flex", alignItems: "center", background: "#faebd7", border: "1.5px solid #f0d8b8", borderRadius: "8px", overflow: "hidden", width: "48%" }}>
                         <input value={val} onChange={e => set(e.target.value.replace(",", "."))} inputMode="decimal" type="text" placeholder="0"
                           style={{ background: "transparent", border: "none", color: "#3d1a0a", padding: "0.6rem 0.9rem", fontSize: "0.95rem", outline: "none", flex: 1, width: "100%", fontFamily: "'Poppins', sans-serif" }} />
-                        <span style={{ color: "#a07848", paddingRight: "0.8rem", fontSize: "0.85rem" }}>pcs</span>
+                        <span style={{ color: "#a07848", paddingRight: "0.8rem", fontSize: "0.85rem" }}>cartons</span>
                       </div>
                     </div>
                   ))}
