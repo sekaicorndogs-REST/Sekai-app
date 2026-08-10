@@ -754,29 +754,38 @@ const COUT_FROMAGE = 0.66;
 // Pâte, panure, sauce et emballage d'un corndog, hors garniture (≈ 0,30 € en recette)
 const COUT_HORS_GARNITURE = 0.30;
 
-// Contenu d'un carton, en pièces. À confirmer par le gérant : tant que ces valeurs
-// valent 0, le bilan n'affiche que le nombre de cartons, sans estimation de volume.
-const PIECES_PAR_CARTON_SAUCISSE = 0;
-const PIECES_PAR_CARTON_FROMAGE = 0;
+// Conditionnement (confirmé par le gérant)
+const SAUCISSES_PAR_CARTON = 8 * 12;    // 8 paquets de 12
+const MORCEAUX_PAR_CARTON = 10 * 32;    // 10 packs coupés en 32
 
-// Bilan matière d'un event à partir de la marchandise emportée, saisie en cartons.
-// Un corndog consomme exactement une unité de garniture : 1 saucisse, 1 fromage,
-// ou une moitié de chaque pour un Saucisse+Mozza. Le total des deux donne donc
-// directement le nombre de corndogs réalisables.
+// Consommation par type de corndog :
+//   full saucisse  = 1 saucisse            full mozza = 2 morceaux de fromage
+//   moitié-moitié  = 0,5 saucisse + 1 morceau de fromage
+// Mix supposé identique à Rue Neuve, faute de détail produit sur les events.
+const MIX_SM = 0.55, MIX_MOZZA = 0.28, MIX_SAUCISSE = 0.17;
+const SAUCISSES_PAR_CORNDOG = MIX_SM * 0.5 + MIX_SAUCISSE;      // ≈ 0,445
+const MORCEAUX_PAR_CORNDOG = MIX_SM * 1 + MIX_MOZZA * 2;        // ≈ 1,11
+// Un morceau vaut la moitié d'une portion « Mozza » de recette (une portion = 2 morceaux)
+const COUT_MORCEAU = COUT_FROMAGE / 2;
+
+// Bilan matière d'un event, à partir des cartons emportés.
 function bilanMatiereEvent(qteSaucisse: string, qteFromage: string, ca: number) {
   const cartonsS = parseFloat(String(qteSaucisse).replace(",", ".")) || 0;
   const cartonsF = parseFloat(String(qteFromage).replace(",", ".")) || 0;
   if (cartonsS + cartonsF <= 0) return null;
-  const s = cartonsS * PIECES_PAR_CARTON_SAUCISSE;
-  const f = cartonsF * PIECES_PAR_CARTON_FROMAGE;
-  if (s + f <= 0) return { cartonsS, cartonsF, sansConversion: true } as any;
-  const possibles = s + f;
-  const coutGarniture = s * COUT_SAUCISSE + f * COUT_FROMAGE;
-  const coutUnitaire = coutGarniture / possibles + COUT_HORS_GARNITURE;
+  const saucisses = cartonsS * SAUCISSES_PAR_CARTON;
+  const morceaux = cartonsF * MORCEAUX_PAR_CARTON;
+  // Chaque garniture limite le volume réalisable ; c'est la plus contraignante qui décide.
+  const capaciteS = saucisses / SAUCISSES_PAR_CORNDOG;
+  const capaciteF = morceaux / MORCEAUX_PAR_CORNDOG;
+  const possibles = Math.min(capaciteS, capaciteF);
+  const limitant = capaciteS <= capaciteF ? "saucisse" : "fromage";
+  const coutEmporte = saucisses * COUT_SAUCISSE + morceaux * COUT_MORCEAU;
+  const coutUnitaire = SAUCISSES_PAR_CORNDOG * COUT_SAUCISSE
+    + MORCEAUX_PAR_CORNDOG * COUT_MORCEAU + COUT_HORS_GARNITURE;
   const vendus = ca > 0 ? ca / PRIX_CORNDOG_EVENT : null;
   return {
-    cartonsS, cartonsF, sansConversion: false,
-    s, f, possibles, coutGarniture, coutUnitaire,
+    cartonsS, cartonsF, saucisses, morceaux, possibles, limitant, coutEmporte, coutUnitaire,
     vendus,
     reste: vendus != null ? possibles - vendus : null,
     coutMatiereVendue: vendus != null ? vendus * coutUnitaire : null,
@@ -5548,17 +5557,13 @@ export default function App() {
                               {b.cartonsS > 0 && <>{b.cartonsS} carton{b.cartonsS > 1 ? "s" : ""} saucisse</>}
                               {b.cartonsS > 0 && b.cartonsF > 0 ? " · " : ""}
                               {b.cartonsF > 0 && <>{b.cartonsF} carton{b.cartonsF > 1 ? "s" : ""} fromage</>}
-                              {!b.sansConversion && <>
-                                {" → "}<b>{Math.floor(b.possibles)} corndogs possibles</b>
-                                <span style={{ color: "#a07848" }}> ({b.coutGarniture.toFixed(2).replace(".", ",")} € de garniture)</span>
-                              </>}
+                              <span style={{ color: "#a07848" }}> ({Math.round(b.saucisses)} saucisses · {Math.round(b.morceaux)} morceaux)</span>
                             </div>
-                            {b.sansConversion && (
-                              <div style={{ color: "#b45309", fontSize: "0.68rem", marginTop: "0.25rem" }}>
-                                Renseigne le nombre de pièces par carton dans le code pour obtenir le volume et le food cost réel.
-                              </div>
-                            )}
-                            {!b.sansConversion && b.vendus != null && (
+                            <div style={{ color: "#3d1a0a", fontSize: "0.78rem", marginTop: "0.25rem" }}>
+                              → <b>{Math.floor(b.possibles)} corndogs possibles</b>
+                              <span style={{ color: "#a07848" }}> · {b.coutEmporte.toFixed(0)} € emportés · limité par le {b.limitant}</span>
+                            </div>
+                            {b.vendus != null && (
                               <>
                                 <div style={{ color: "#3d1a0a", fontSize: "0.78rem", marginTop: "0.25rem" }}>
                                   ≈ <b>{Math.round(b.vendus)} vendus</b> · reste{" "}
