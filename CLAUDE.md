@@ -59,6 +59,12 @@ Ticket moyen d'un corndog en event : **8,80 €** (confirmé par le gérant), co
 utilisée pour convertir un objectif de CA d'event en nombre de corndogs
 (`PRIX_CORNDOG_EVENT` dans `App.tsx`). La TVA de 6 % est déduite des calculs d'event.
 
+`events_rentabilite.qte_saucisse` et `qte_fromage` (optionnels) enregistrent la
+marchandise emportée. Comme **un corndog consomme exactement une pièce de garniture**
+— 1 saucisse, 1 fromage, ou une moitié de chaque — leur somme donne le nombre de
+corndogs réalisables. Croisé au CA, ça donne le food cost réel de l'event au lieu
+des 18 % supposés, et le reste de marchandise.
+
 ## Tables clés
 
 | Table | Contenu |

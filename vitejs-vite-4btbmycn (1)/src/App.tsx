@@ -748,6 +748,32 @@ const TVA_PART_TTC = TVA_TAUX / (1 + TVA_TAUX); // ≈ 5,66 % du CA TTC
 // Ticket moyen d'un corndog en event : plus élevé qu'à Rue Neuve (prix event +
 // suppléments), constaté par le gérant. Sert à convertir un objectif de CA en volume.
 const PRIX_CORNDOG_EVENT = 8.8;
+// Coûts unitaires repris de menu_ingredients
+const COUT_SAUCISSE = 0.42;
+const COUT_FROMAGE = 0.66;
+// Pâte, panure, sauce et emballage d'un corndog, hors garniture (≈ 0,30 € en recette)
+const COUT_HORS_GARNITURE = 0.30;
+
+// Bilan matière d'un event à partir de la marchandise emportée.
+// Un corndog consomme exactement une unité de garniture : 1 saucisse, 1 fromage,
+// ou une moitié de chaque pour un Saucisse+Mozza. Le total des deux donne donc
+// directement le nombre de corndogs réalisables.
+function bilanMatiereEvent(qteSaucisse: string, qteFromage: string, ca: number) {
+  const s = parseFloat(String(qteSaucisse).replace(",", ".")) || 0;
+  const f = parseFloat(String(qteFromage).replace(",", ".")) || 0;
+  if (s + f <= 0) return null;
+  const possibles = s + f;
+  const coutGarniture = s * COUT_SAUCISSE + f * COUT_FROMAGE;
+  const coutUnitaire = coutGarniture / possibles + COUT_HORS_GARNITURE;
+  const vendus = ca > 0 ? ca / PRIX_CORNDOG_EVENT : null;
+  return {
+    s, f, possibles, coutGarniture, coutUnitaire,
+    vendus,
+    reste: vendus != null ? possibles - vendus : null,
+    coutMatiereVendue: vendus != null ? vendus * coutUnitaire : null,
+    tauxReel: vendus != null && ca > 0 ? (vendus * coutUnitaire) / ca : null,
+  };
+}
 function calculerPaieEmploye(employe, heures) {
   const type = employe.type_contrat || "etudiant";
   const tauxBase = employe.salaire_horaire || (type === "flexi" ? FLEXI_TAUX_MIN : getTauxCP302(employe.anciennete_ans || 0));
@@ -1099,6 +1125,8 @@ export default function App() {
   const [eventObjectif, setEventObjectif] = useState("");
   const [eventLocationMode, setEventLocationMode] = useState<"eur"|"pct">("eur");
   const [eventLocationPct, setEventLocationPct] = useState("");
+  const [eventQteSaucisse, setEventQteSaucisse] = useState("");
+  const [eventQteFromage, setEventQteFromage] = useState("");
   const [eventResultat, setEventResultat] = useState<any>(null);
   const [events, setEvents] = useState<any[]>([]);
   const [eventsLoading, setEventsLoading] = useState(false);
@@ -1784,6 +1812,7 @@ export default function App() {
     setEventTauxIngredients("18"); setEventFoodCostMode("pct"); setEventFoodCostEur("");
     setEventCaRealise(""); setEventObjectif(""); setEventResultat(null);
     setEventLocationMode("eur"); setEventLocationPct("");
+    setEventQteSaucisse(""); setEventQteFromage("");
   }
   function loadEventForm(ev: any, editMode = false) {
     setEventNom(ev.nom || ""); setEventDate(ev.date_event || "");
@@ -1794,6 +1823,8 @@ export default function App() {
     setEventEssence(String(ev.cout_essence || ""));
     setEventCaRealise(String(ev.ca_realise || "")); setEventObjectif(String(ev.objectif_benefice || "")); setEventResultat(null);
     setEventLocationMode(ev.cout_location_mode === "pct" ? "pct" : "eur"); setEventLocationPct(String(ev.cout_location_pct || ""));
+    setEventQteSaucisse(ev.qte_saucisse == null ? "" : String(ev.qte_saucisse));
+    setEventQteFromage(ev.qte_fromage == null ? "" : String(ev.qte_fromage));
     setEditingEventId(editMode ? ev.id : null);
     setEventView("form"); setShowEventForm(true);
   }
@@ -1831,7 +1862,9 @@ export default function App() {
       ca_realise: parseFloat(eventCaRealise)||null,
       objectif_benefice: parseFloat(eventObjectif)||null,
       cout_location_mode: eventLocationMode,
-      cout_location_pct: eventLocationMode === "pct" ? (parseFloat(eventLocationPct)||0) : null
+      cout_location_pct: eventLocationMode === "pct" ? (parseFloat(eventLocationPct)||0) : null,
+      qte_saucisse: eventQteSaucisse.trim() === "" ? null : (parseFloat(eventQteSaucisse) || 0),
+      qte_fromage: eventQteFromage.trim() === "" ? null : (parseFloat(eventQteFromage) || 0)
     };
     try {
       if (editingEventId) {
@@ -5495,6 +5528,39 @@ export default function App() {
                         {profit != null && <span style={{ background: profit >= 0 ? "#f5fff8" : "#fff5f5", color: profit >= 0 ? "#4caf50" : "#e8213a", fontSize: "0.75rem", borderRadius: "6px", padding: "0.2rem 0.5rem", fontWeight: "900" }}>{profit >= 0 ? "+" : ""}{Math.round(profit).toLocaleString("fr-BE")} €</span>}
                       </div>
 
+                      {/* Bilan matière : ce qui a été emporté vs ce qui a été vendu */}
+                      {(() => {
+                        const b = bilanMatiereEvent(ev.qte_saucisse ?? "", ev.qte_fromage ?? "", ca || 0);
+                        if (!b) return null;
+                        return (
+                          <div style={{ background: "#fffdf5", border: "1.5px solid #f5c842", borderRadius: "10px", padding: "0.7rem 0.9rem", marginTop: "0.6rem" }}>
+                            <div style={{ color: "#a07848", fontSize: "0.68rem", fontWeight: "bold", marginBottom: "0.4rem" }}>BILAN MATIÈRE</div>
+                            <div style={{ color: "#3d1a0a", fontSize: "0.78rem" }}>
+                              {b.s > 0 && <>{b.s} saucisse{b.s > 1 ? "s" : ""}</>}{b.s > 0 && b.f > 0 ? " · " : ""}{b.f > 0 && <>{b.f} fromage{b.f > 1 ? "s" : ""}</>}
+                              {" → "}<b>{Math.floor(b.possibles)} corndogs possibles</b>
+                              <span style={{ color: "#a07848" }}> ({b.coutGarniture.toFixed(2).replace(".", ",")} € de garniture)</span>
+                            </div>
+                            {b.vendus != null && (
+                              <>
+                                <div style={{ color: "#3d1a0a", fontSize: "0.78rem", marginTop: "0.25rem" }}>
+                                  ≈ <b>{Math.round(b.vendus)} vendus</b> · reste{" "}
+                                  <b style={{ color: b.reste! < 0 ? "#e8213a" : "#3d1a0a" }}>{Math.round(b.reste!)}</b> pièces
+                                </div>
+                                <div style={{ color: b.tauxReel! > taux ? "#e8213a" : "#1f6e42", fontSize: "0.78rem", fontWeight: 700, marginTop: "0.25rem" }}>
+                                  Food cost réel ≈ {(b.tauxReel! * 100).toFixed(1)} %
+                                  <span style={{ color: "#a07848", fontWeight: 400 }}> (estimé à {(taux * 100).toFixed(0)} %)</span>
+                                </div>
+                                {b.reste! < 0 && (
+                                  <div style={{ color: "#b45309", fontSize: "0.68rem", marginTop: "0.25rem" }}>
+                                    Plus vendu que de marchandise emportée : soit un réapprovisionnement sur place, soit des ventes autres que des corndogs.
+                                  </div>
+                                )}
+                              </>
+                            )}
+                          </div>
+                        );
+                      })()}
+
                       {/* Objectif de bénéfice personnalisé */}
                       {ca == null && ev.objectif_benefice > 0 && (() => {
                         const obj = parseFloat(ev.objectif_benefice);
@@ -5645,6 +5711,24 @@ export default function App() {
                       Déduite automatiquement du bénéfice et du seuil de rentabilité.
                     </div>
                   </div>
+                  <div style={{ color: "#a07848", fontSize: "0.72rem", fontWeight: "600", margin: "0.6rem 0 0.4rem" }}>MARCHANDISE EMPORTÉE (optionnel)</div>
+                  {[
+                    { label: "Saucisses", val: eventQteSaucisse, set: setEventQteSaucisse },
+                    { label: "Fromages", val: eventQteFromage, set: setEventQteFromage },
+                  ].map(({ label, val, set }) => (
+                    <div key={label} style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: "0.4rem" }}>
+                      <div style={{ color: "#3d1a0a", fontSize: "0.82rem", flex: 1 }}>{label}</div>
+                      <div style={{ display: "flex", alignItems: "center", background: "#faebd7", border: "1.5px solid #f0d8b8", borderRadius: "8px", overflow: "hidden", width: "48%" }}>
+                        <input value={val} onChange={e => set(e.target.value.replace(",", "."))} inputMode="decimal" type="text" placeholder="0"
+                          style={{ background: "transparent", border: "none", color: "#3d1a0a", padding: "0.6rem 0.9rem", fontSize: "0.95rem", outline: "none", flex: 1, width: "100%", fontFamily: "'Poppins', sans-serif" }} />
+                        <span style={{ color: "#a07848", paddingRight: "0.8rem", fontSize: "0.85rem" }}>pcs</span>
+                      </div>
+                    </div>
+                  ))}
+                  <div style={{ color: "#a07848", fontSize: "0.65rem", marginBottom: "0.2rem" }}>
+                    Sert à mesurer le food cost réel et le reste de marchandise. Un corndog = 1 pièce de garniture.
+                  </div>
+
                   <div style={{ color: "#a07848", fontSize: "0.72rem", fontWeight: "600", margin: "0.6rem 0 0.4rem" }}>OBJECTIF DE BÉNÉFICE (avant l'event)</div>
                   <div style={{ display: "flex", alignItems: "center", background: "#faebd7", border: "1.5px solid #f5c84266", borderRadius: "8px", overflow: "hidden", marginBottom: "0.3rem" }}>
                     <input value={eventObjectif} onChange={e => setEventObjectif(e.target.value.replace(",", "."))} inputMode="decimal" type="text" placeholder="Ex: 5000"
