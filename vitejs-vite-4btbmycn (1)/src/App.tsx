@@ -160,6 +160,12 @@ function lundiDe(d: Date): Date {
   x.setDate(x.getDate() - jour);
   return x;
 }
+function cleSemaine(semaineOffset = 0): string {
+  const c = lundiDe(new Date());
+  c.setDate(c.getDate() + semaineOffset * 7);
+  return `${c.getFullYear()}-${String(c.getMonth() + 1).padStart(2, "0")}-${String(c.getDate()).padStart(2, "0")}`;
+}
+// Responsable prévu par la rotation, avant tout remplacement
 function responsableCourses(ordre: string[], ancrage: string, semaineOffset = 0): string | null {
   if (!ordre.length || !ancrage) return null;
   const base = lundiDe(new Date(ancrage + "T12:00:00"));
@@ -292,6 +298,27 @@ async function upsertParametre(cle, valeur, updatedBy) {
     body: JSON.stringify({ cle, valeur: String(valeur), updated_by: updatedBy || null, updated_at: new Date().toISOString() }),
   });
   if (!res.ok) throw new Error("Upsert parametre failed");
+}
+
+// ── REMPLACEMENTS DE COURSES (ponctuels, sans décaler la rotation) ──
+async function fetchRemplacements() {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/courses_remplacements?select=*`, { headers: HEADERS });
+  if (!res.ok) throw new Error("Fetch remplacements failed");
+  return res.json();
+}
+async function upsertRemplacement(semaine, remplacant, creePar) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/courses_remplacements`, {
+    method: "POST",
+    headers: { ...HEADERS, "Prefer": "resolution=merge-duplicates" },
+    body: JSON.stringify({ semaine, remplacant, cree_par: creePar || null }),
+  });
+  if (!res.ok) throw new Error("Upsert remplacement failed");
+}
+async function deleteRemplacement(semaine) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/courses_remplacements?semaine=eq.${semaine}`, {
+    method: "DELETE", headers: HEADERS,
+  });
+  if (!res.ok) throw new Error("Delete remplacement failed");
 }
 
 async function loginUser(prenom, password) {
@@ -1132,6 +1159,8 @@ export default function App() {
   const [caHorsBornes, setCaHorsBornes] = useState(() => localStorage.getItem("sekai_ca_hors_bornes") || "150");
   const [coursesOrdre, setCoursesOrdre] = useState<string[]>([]);
   const [coursesAncrage, setCoursesAncrage] = useState("");
+  const [remplacements, setRemplacements] = useState<Record<string, string>>({});
+  const [choixRemplacant, setChoixRemplacant] = useState(false);
   const [menuProduits, setMenuProduits] = useState<any[]>([]);
   const [menuRecettes, setMenuRecettes] = useState<any[]>([]);
   const [menuLoading, setMenuLoading] = useState(false);
@@ -1282,7 +1311,31 @@ export default function App() {
     fetchParametre("courses_ancrage")
       .then(v => { if (v) setCoursesAncrage(String(v)); })
       .catch(() => {});
+    chargerRemplacements();
   }, []);
+
+  async function chargerRemplacements() {
+    try {
+      const rows = await fetchRemplacements();
+      const map: Record<string, string> = {};
+      rows.forEach((r: any) => { map[String(r.semaine)] = r.remplacant; });
+      setRemplacements(map);
+    } catch { /* la rotation seule reste affichable */ }
+  }
+
+  async function definirRemplacant(semaine: string, qui: string | null) {
+    const avant = remplacements;
+    setRemplacements(prev => {
+      const n = { ...prev };
+      if (qui) n[semaine] = qui; else delete n[semaine];
+      return n;
+    });
+    setChoixRemplacant(false);
+    try {
+      if (qui) { await upsertRemplacement(semaine, qui, currentUser?.prenom); flash(`🔁 ${qui} fait les courses cette semaine`); }
+      else { await deleteRemplacement(semaine); flash("↩️ Remplacement annulé"); }
+    } catch { setRemplacements(avant); flash("❌ Erreur"); }
+  }
 
   const isAdmin = currentUser?.role === "admin" || currentUser?.role === "superadmin";
   const isSuperAdmin = currentUser?.role === "superadmin";
@@ -7097,18 +7150,56 @@ export default function App() {
 
       {/* Qui fait les courses cette semaine */}
       {(() => {
-        const qui = responsableCourses(coursesOrdre, coursesAncrage, 0);
-        if (!qui) return null;
-        const suivant = responsableCourses(coursesOrdre, coursesAncrage, 1);
-        const apres = responsableCourses(coursesOrdre, coursesAncrage, 2);
+        const prevu = responsableCourses(coursesOrdre, coursesAncrage, 0);
+        if (!prevu) return null;
+        const sem = cleSemaine(0);
+        const remplacant = remplacements[sem];
+        const qui = remplacant || prevu;
+        // Un remplacement ne vaut que pour cette semaine : les suivantes suivent la rotation
+        const suivant = remplacements[cleSemaine(1)] || responsableCourses(coursesOrdre, coursesAncrage, 1);
+        const apres = remplacements[cleSemaine(2)] || responsableCourses(coursesOrdre, coursesAncrage, 2);
         const cestMoi = normTexte(qui) === normTexte(currentUser?.prenom);
         return (
           <div style={{ margin: "0.8rem 1.1rem 0", background: cestMoi ? "#fff5f5" : "#fff8f0", border: `2px solid ${cestMoi ? "#e8213a" : "#f0d8b8"}`, borderRadius: "12px", padding: "0.8rem 1rem" }}>
-            <div style={{ color: "#a07848", fontSize: "0.68rem", fontWeight: "bold", letterSpacing: "0.02em" }}>COURSES DE LA SEMAINE</div>
-            <div style={{ color: cestMoi ? "#e8213a" : "#3d1a0a", fontSize: "1.25rem", fontWeight: 900, marginTop: "0.1rem" }}>
-              🛒 {qui}{cestMoi && <span style={{ fontSize: "0.8rem", fontWeight: 700 }}> — c'est toi</span>}
+            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "0.5rem" }}>
+              <div>
+                <div style={{ color: "#a07848", fontSize: "0.68rem", fontWeight: "bold", letterSpacing: "0.02em" }}>COURSES DE LA SEMAINE</div>
+                <div style={{ color: cestMoi ? "#e8213a" : "#3d1a0a", fontSize: "1.25rem", fontWeight: 900, marginTop: "0.1rem" }}>
+                  🛒 {qui}{cestMoi && <span style={{ fontSize: "0.8rem", fontWeight: 700 }}> — c'est toi</span>}
+                </div>
+                {remplacant && (
+                  <div style={{ color: "#b45309", fontSize: "0.7rem", marginTop: "0.15rem" }}>
+                    remplace <b>{prevu}</b> · uniquement cette semaine
+                  </div>
+                )}
+              </div>
+              <button onClick={() => setChoixRemplacant(v => !v)}
+                style={{ background: "#faebd7", color: "#a07848", border: "1.5px solid #f0d8b8", borderRadius: "8px", padding: "0.35rem 0.7rem", fontSize: "0.74rem", fontWeight: 700, cursor: "pointer", fontFamily: "'Poppins', sans-serif", flexShrink: 0 }}>
+                {remplacant ? "Modifier" : "Remplacer"}
+              </button>
             </div>
-            <div style={{ color: "#a07848", fontSize: "0.7rem", marginTop: "0.25rem" }}>
+
+            {choixRemplacant && (
+              <div style={{ marginTop: "0.6rem", borderTop: "1px solid #f0d8b8", paddingTop: "0.6rem" }}>
+                <div style={{ color: "#a07848", fontSize: "0.7rem", marginBottom: "0.4rem" }}>Qui fait les courses à la place, cette semaine ?</div>
+                <div style={{ display: "flex", flexWrap: "wrap" as const, gap: "0.35rem" }}>
+                  {coursesOrdre.filter(p => p !== qui).map(p => (
+                    <button key={p} onClick={() => definirRemplacant(sem, p)}
+                      style={{ background: "#faebd7", color: "#3d1a0a", border: "1.5px solid #f0d8b8", borderRadius: "16px", padding: "0.4rem 0.8rem", fontSize: "0.78rem", fontWeight: 600, cursor: "pointer", fontFamily: "'Poppins', sans-serif" }}>
+                      {p}
+                    </button>
+                  ))}
+                  {remplacant && (
+                    <button onClick={() => definirRemplacant(sem, null)}
+                      style={{ background: "#fff0f0", color: "#e8213a", border: "1.5px solid #f5c2c2", borderRadius: "16px", padding: "0.4rem 0.8rem", fontSize: "0.78rem", fontWeight: 700, cursor: "pointer", fontFamily: "'Poppins', sans-serif" }}>
+                      Rétablir {prevu}
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+
+            <div style={{ color: "#a07848", fontSize: "0.7rem", marginTop: "0.35rem" }}>
               semaine prochaine : <b>{suivant}</b> · puis <b>{apres}</b>
             </div>
           </div>
