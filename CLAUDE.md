@@ -73,8 +73,6 @@ l'anomalie à creuser : même amplitude horaire qu'un mercredi, 180 € de moins
   dans les 150 €/jour hors bornes.
 - **Dettes** : 26 500 € sur 6 plans, 2 793 €/mois. Aucune trésorerie d'avance,
   fonctionnement au mois le mois depuis trois ans.
-- **Projet Maroc** : dossier en cours, en attente de l'accord de **Tanger Mall**.
-  Motivation assumée : dégager un second flux de trésorerie pour les trois gérants.
 
 ### ⚠️ Le trou de trésorerie — question centrale non résolue
 
@@ -380,8 +378,11 @@ qui se sont payés sur une seule unité, plus des events ratés, pendant trois a
   mieux qu'une action qui rapporte 1 000 € dans six mois.
 - **Ne jamais proposer d'augmenter la rémunération des gérants** tant qu'il n'y a pas
   trois mois de charges en réserve. C'est l'erreur qui a créé la situation.
-- **Pas d'expansion** — Maroc compris — avant réserve constituée. Voir le plan.
+- **Rien qui ponctionne la trésorerie de Rue Neuve** pour financer autre chose.
 - Un event ne se signe qu'après passage dans le simulateur de rentabilité.
+
+Les projets personnels des gérants, financés hors exploitation, ne relèvent pas de ce
+fichier et ne doivent pas y être documentés.
 
 ## Plan d'action recommandé (audit du 11/08/2026)
 
@@ -399,6 +400,6 @@ Par ordre de valeur, avec les montants estimés :
 | 8 | Traiter l'anomalie du jeudi | 700 € | à faire |
 
 ⚠️ **Ne pas investir dans la cuisine** : elle tourne à 40 % de sa capacité.
-⚠️ **Ne pas signer Tanger Mall avant d'avoir 3 mois de trésorerie d'avance.** La
-séquence recommandée : appliquer le court terme (1 mois) → solder les dettes (5-7 mois)
-→ constituer 30 000 € de réserve (12-15 mois) → Maroc (18 mois).
+
+Séquence recommandée pour Rue Neuve : appliquer le court terme (1 mois) → solder les
+26 500 € de dettes (5-7 mois) → constituer 3 mois de charges en réserve (12-15 mois).
