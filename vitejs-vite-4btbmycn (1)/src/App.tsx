@@ -6996,6 +6996,64 @@ export default function App() {
     } catch { /* partage annulé par l'utilisateur : rien à signaler */ }
   }
 
+  // Bandeau « qui fait les courses », affiché sur tous les écrans de Stock
+  const bandeauCourses = (() => {
+        const prevu = responsableCourses(coursesOrdre, coursesAncrage, 0);
+        if (!prevu) return null;
+        const sem = cleSemaine(0);
+        const remplacant = remplacements[sem];
+        const qui = remplacant || prevu;
+        // Un remplacement ne vaut que pour cette semaine : les suivantes suivent la rotation
+        const suivant = remplacements[cleSemaine(1)] || responsableCourses(coursesOrdre, coursesAncrage, 1);
+        const apres = remplacements[cleSemaine(2)] || responsableCourses(coursesOrdre, coursesAncrage, 2);
+        const cestMoi = normTexte(qui) === normTexte(currentUser?.prenom);
+        return (
+          <div style={{ margin: "0.8rem 1.1rem 0", background: cestMoi ? "#fff5f5" : "#fff8f0", border: `2px solid ${cestMoi ? "#e8213a" : "#f0d8b8"}`, borderRadius: "12px", padding: "0.8rem 1rem" }}>
+            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "0.5rem" }}>
+              <div>
+                <div style={{ color: "#a07848", fontSize: "0.68rem", fontWeight: "bold", letterSpacing: "0.02em" }}>COURSES DE LA SEMAINE</div>
+                <div style={{ color: cestMoi ? "#e8213a" : "#3d1a0a", fontSize: "1.25rem", fontWeight: 900, marginTop: "0.1rem" }}>
+                  🛒 {qui}{cestMoi && <span style={{ fontSize: "0.8rem", fontWeight: 700 }}> — c'est toi</span>}
+                </div>
+                {remplacant && (
+                  <div style={{ color: "#b45309", fontSize: "0.7rem", marginTop: "0.15rem" }}>
+                    remplace <b>{prevu}</b> · uniquement cette semaine
+                  </div>
+                )}
+              </div>
+              <button onClick={() => setChoixRemplacant(v => !v)}
+                style={{ background: "#faebd7", color: "#a07848", border: "1.5px solid #f0d8b8", borderRadius: "8px", padding: "0.35rem 0.7rem", fontSize: "0.74rem", fontWeight: 700, cursor: "pointer", fontFamily: "'Poppins', sans-serif", flexShrink: 0 }}>
+                {remplacant ? "Modifier" : "Remplacer"}
+              </button>
+            </div>
+
+            {choixRemplacant && (
+              <div style={{ marginTop: "0.6rem", borderTop: "1px solid #f0d8b8", paddingTop: "0.6rem" }}>
+                <div style={{ color: "#a07848", fontSize: "0.7rem", marginBottom: "0.4rem" }}>Qui fait les courses à la place, cette semaine ?</div>
+                <div style={{ display: "flex", flexWrap: "wrap" as const, gap: "0.35rem" }}>
+                  {coursesOrdre.filter(p => p !== qui).map(p => (
+                    <button key={p} onClick={() => definirRemplacant(sem, p)}
+                      style={{ background: "#faebd7", color: "#3d1a0a", border: "1.5px solid #f0d8b8", borderRadius: "16px", padding: "0.4rem 0.8rem", fontSize: "0.78rem", fontWeight: 600, cursor: "pointer", fontFamily: "'Poppins', sans-serif" }}>
+                      {p}
+                    </button>
+                  ))}
+                  {remplacant && (
+                    <button onClick={() => definirRemplacant(sem, null)}
+                      style={{ background: "#fff0f0", color: "#e8213a", border: "1.5px solid #f5c2c2", borderRadius: "16px", padding: "0.4rem 0.8rem", fontSize: "0.78rem", fontWeight: 700, cursor: "pointer", fontFamily: "'Poppins', sans-serif" }}>
+                      Rétablir {prevu}
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+
+            <div style={{ color: "#a07848", fontSize: "0.7rem", marginTop: "0.35rem" }}>
+              semaine prochaine : <b>{suivant}</b> · puis <b>{apres}</b>
+            </div>
+          </div>
+        );
+      })();
+
   if (loading) return (
     <div style={{ ...s, minHeight: "100vh", background: "#faebd7", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
       <div style={{ fontSize: "2rem", marginBottom: "1rem" }}>⏳</div>
@@ -7018,7 +7076,8 @@ export default function App() {
           style={{ width: "168px", height: "auto", objectFit: "contain", marginBottom: "1rem", flexShrink: 0, display: "block" }} />
       </picture>
       <p style={{ color: "#e8213a", fontSize: "1rem", fontWeight: "600", marginBottom: "0.5rem" }}>Bonjour {currentUser.prenom} !</p>
-      <h2 style={{ color: "#3d1a0a", fontSize: "1.2rem", margin: "0 0 0.5rem", textAlign: "center" }}>Quel point de vente ?</h2>
+      <div style={{ width: "100%", maxWidth: "320px" }}>{bandeauCourses}</div>
+      <h2 style={{ color: "#3d1a0a", fontSize: "1.2rem", margin: "1rem 0 0.5rem", textAlign: "center" }}>Quel point de vente ?</h2>
       <p style={{ color: "#a07848", fontSize: "0.8rem", margin: "0 0 2rem" }}>{getTodayStr()}</p>
       <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem", width: "100%", maxWidth: "320px" }}>
         {RESTAURANTS.map(r => (
@@ -7148,63 +7207,7 @@ export default function App() {
 
       {lastSave && <div style={{ margin: "0.8rem 1.1rem 0", background: "#f5fff8", border: "1.5px solid #4caf5033", borderRadius: "8px", padding: "0.6rem 1rem", fontSize: "0.78rem", color: "#4caf50" }}>{lastSave.time} · {lastSave.who}</div>}
 
-      {/* Qui fait les courses cette semaine */}
-      {(() => {
-        const prevu = responsableCourses(coursesOrdre, coursesAncrage, 0);
-        if (!prevu) return null;
-        const sem = cleSemaine(0);
-        const remplacant = remplacements[sem];
-        const qui = remplacant || prevu;
-        // Un remplacement ne vaut que pour cette semaine : les suivantes suivent la rotation
-        const suivant = remplacements[cleSemaine(1)] || responsableCourses(coursesOrdre, coursesAncrage, 1);
-        const apres = remplacements[cleSemaine(2)] || responsableCourses(coursesOrdre, coursesAncrage, 2);
-        const cestMoi = normTexte(qui) === normTexte(currentUser?.prenom);
-        return (
-          <div style={{ margin: "0.8rem 1.1rem 0", background: cestMoi ? "#fff5f5" : "#fff8f0", border: `2px solid ${cestMoi ? "#e8213a" : "#f0d8b8"}`, borderRadius: "12px", padding: "0.8rem 1rem" }}>
-            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "0.5rem" }}>
-              <div>
-                <div style={{ color: "#a07848", fontSize: "0.68rem", fontWeight: "bold", letterSpacing: "0.02em" }}>COURSES DE LA SEMAINE</div>
-                <div style={{ color: cestMoi ? "#e8213a" : "#3d1a0a", fontSize: "1.25rem", fontWeight: 900, marginTop: "0.1rem" }}>
-                  🛒 {qui}{cestMoi && <span style={{ fontSize: "0.8rem", fontWeight: 700 }}> — c'est toi</span>}
-                </div>
-                {remplacant && (
-                  <div style={{ color: "#b45309", fontSize: "0.7rem", marginTop: "0.15rem" }}>
-                    remplace <b>{prevu}</b> · uniquement cette semaine
-                  </div>
-                )}
-              </div>
-              <button onClick={() => setChoixRemplacant(v => !v)}
-                style={{ background: "#faebd7", color: "#a07848", border: "1.5px solid #f0d8b8", borderRadius: "8px", padding: "0.35rem 0.7rem", fontSize: "0.74rem", fontWeight: 700, cursor: "pointer", fontFamily: "'Poppins', sans-serif", flexShrink: 0 }}>
-                {remplacant ? "Modifier" : "Remplacer"}
-              </button>
-            </div>
-
-            {choixRemplacant && (
-              <div style={{ marginTop: "0.6rem", borderTop: "1px solid #f0d8b8", paddingTop: "0.6rem" }}>
-                <div style={{ color: "#a07848", fontSize: "0.7rem", marginBottom: "0.4rem" }}>Qui fait les courses à la place, cette semaine ?</div>
-                <div style={{ display: "flex", flexWrap: "wrap" as const, gap: "0.35rem" }}>
-                  {coursesOrdre.filter(p => p !== qui).map(p => (
-                    <button key={p} onClick={() => definirRemplacant(sem, p)}
-                      style={{ background: "#faebd7", color: "#3d1a0a", border: "1.5px solid #f0d8b8", borderRadius: "16px", padding: "0.4rem 0.8rem", fontSize: "0.78rem", fontWeight: 600, cursor: "pointer", fontFamily: "'Poppins', sans-serif" }}>
-                      {p}
-                    </button>
-                  ))}
-                  {remplacant && (
-                    <button onClick={() => definirRemplacant(sem, null)}
-                      style={{ background: "#fff0f0", color: "#e8213a", border: "1.5px solid #f5c2c2", borderRadius: "16px", padding: "0.4rem 0.8rem", fontSize: "0.78rem", fontWeight: 700, cursor: "pointer", fontFamily: "'Poppins', sans-serif" }}>
-                      Rétablir {prevu}
-                    </button>
-                  )}
-                </div>
-              </div>
-            )}
-
-            <div style={{ color: "#a07848", fontSize: "0.7rem", marginTop: "0.35rem" }}>
-              semaine prochaine : <b>{suivant}</b> · puis <b>{apres}</b>
-            </div>
-          </div>
-        );
-      })()}
+      {bandeauCourses}
 
       {/* Onglets : par magasin / signalement rapide */}
       <div style={{ display: "flex", gap: "0.4rem", padding: "0.8rem 1.1rem 0" }}>
