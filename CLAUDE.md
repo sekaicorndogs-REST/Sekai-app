@@ -74,23 +74,21 @@ l'anomalie à creuser : même amplitude horaire qu'un mercredi, 180 € de moins
 - **Dettes** : 26 500 € sur 6 plans, 2 793 €/mois. Aucune trésorerie d'avance,
   fonctionnement au mois le mois depuis trois ans.
 
-### ⚠️ Le trou de trésorerie — question centrale non résolue
+### L'écart passé — sujet clos, ne pas rouvrir
 
-Le compte modélisé (TVA corrigée) donne **~5 700 €/mois de résultat**, soit **~2 900 €**
-après remboursement des dettes. Les trois gérants devraient donc toucher salaire + part
-du cash ≈ **2 900 € chacun**. Ils touchent **1 900 €**.
+Le compte modélisé dégage ~6 200 €/mois de résultat, soit ~3 400 €/mois après dettes.
+Or la trésorerie est restée à zéro pendant trois ans.
 
-**Il manque environ 3 100 €/mois, non tracés.** Pistes ouvertes :
+**Le gérant a tranché : cet argent a été consommé par de mauvais choix passés** —
+rémunérations trop élevées et events ratés. Ce n'est donc **pas une fuite en cours**,
+et il ne faut pas y consacrer d'analyse supplémentaire.
 
-- Cotisations sociales à 900 €/mois en base, pour trois indépendants — probablement
-  sous-évaluées de 400 à 700 €.
-- **Frais généraux : 7 120 €/mois** d'après les déclarations TVA 2026, contre 7 443 €
-  sur toute l'année 2025. Poste qui a explosé et qui n'est ventilé nulle part.
-- Écart matière (~1 200 €/mois, voir Points ouverts).
+Conséquence pour les projections : le résultat modélisé est atteignable, et il
+s'accumulera dès lors qu'il cesse d'être consommé. La seule condition est comportementale.
 
-**Document manquant pour trancher : la balance des comptes de charges de Skytax**
-sur 12 mois. Tant qu'on ne l'a pas, `finances_charges` reste une table remplie
-d'ordres de grandeur et tout compte de résultat bâti dessus est approximatif.
+⚠️ `finances_charges` ne contient **aucune ligne d'impôt**, alors que `finances_dettes`
+porte une dette « Impôt Monab ». Le montant à provisionner mensuellement reste à
+demander au comptable — c'est la seule correction encore utile à cette table.
 
 ### TVA : 900 €/mois — vérifié, ne pas y toucher
 
