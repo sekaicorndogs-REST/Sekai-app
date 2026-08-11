@@ -118,6 +118,11 @@ Confirmé par le gérant (juillet 2026). C'est le CA caisse + Uber qui ne passe 
 les bornes de commande. `saisonnalite.hors_bornes` et `parametres.ca_hors_bornes`
 sont tous deux alignés sur 150. **Ne pas réintroduire 250.**
 
+**Exception : août est à 270 €/jour de hors-bornes** (gérant, 11/08/2026). Caisse et
+Uber montent l'été. Seul le mois d'août est concerné dans `saisonnalite` ; tous les
+autres mois restent à 150, et `parametres.ca_hors_bornes` (valeur annuelle par défaut)
+reste à 150. Août 2026 se lit donc **995 € bornes + 270 = ~1 265 €/jour tout compris**.
+
 ### Les events se vendent plus cher qu'à Rue Neuve
 
 Ticket moyen d'un corndog en event : **8,80 €** (confirmé par le gérant), contre
@@ -262,6 +267,8 @@ Les XL (lancés le 30/07) ne peuvent pas expliquer une rupture au 25/07.
 | 1–20/07 *(avant renommage)* | 1 702 | — | 12,68 € | 34,3 |
 | 21–31/07 | 644 | — | 13,25 € | 48,4 |
 | **1–11/08** | **796** | **10 949 €** | **13,76 €** | **~53** |
+
+Hors-bornes d'août à 270 €/j (voir plus haut) → **~1 265 €/jour tout compris**.
 
 **995 €/jour aux bornes**, contre 945 € en août 2025 et 751 € sur la fin juillet 2026.
 L'objection « c'est juste la saison » tombe : le ticket monte *en même temps* que la
