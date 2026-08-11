@@ -156,7 +156,7 @@ et sous-estime le bénéfice d'un event.**
 | `top_produits` | Moyennes/jour par produit, marge unitaire, part de marge |
 | `finances_charges` / `finances_dettes` | Charges mensuelles et plans de remboursement |
 | `stock` | Inventaire par point de vente. Colonnes ajoutées : `ingredient_id`, `conso_jour`, `unites_par_lot` |
-| `ventes` | **23 444 commandes bornes, 1 an complet** (01/08/2025 → 31/07/2026). Source de référence pour toute analyse par jour, par jour de semaine ou par heure |
+| `ventes` | **24 240 commandes bornes** (01/08/2025 → 11/08/2026). Source de référence pour toute analyse par jour, par jour de semaine ou par heure. La commande erronée #ZHATPX (01/08/2026, 1 903,80 €) a été volontairement exclue à la demande du gérant |
 | `courses_remplacements` | Remplacement ponctuel de courses, une ligne par semaine (lundi) |
 | `parametres` | Clé/valeur partagé : `ca_hors_bornes`, `courses_ordre`, `courses_ancrage` |
 
@@ -255,7 +255,24 @@ jamais dater un changement de carte à partir des libellés d'un export — util
 
 Les XL (lancés le 30/07) ne peuvent pas expliquer une rupture au 25/07.
 
-Réserve : 7 jours d'observation. À reconfirmer sur août.
+**Confirmé sur août 2026 (1-11/08, 796 commandes, chargées dans `ventes`) :**
+
+| | Commandes | CA bornes | Ticket | Menus / 100 cmd |
+|---|---|---|---|---|
+| 1–20/07 *(avant renommage)* | 1 702 | — | 12,68 € | 34,3 |
+| 21–31/07 | 644 | — | 13,25 € | 48,4 |
+| **1–11/08** | **796** | **10 949 €** | **13,76 €** | **~53** |
+
+**995 €/jour aux bornes**, contre 945 € en août 2025 et 751 € sur la fin juillet 2026.
+L'objection « c'est juste la saison » tombe : le ticket monte *en même temps* que la
+fréquentation, ce qu'un effet de saison seul ne produit pas. Les XL pèsent 13,7 pour
+100 commandes, soit **25,5 % des menus** — ils prennent une vraie part sans avoir
+déclenché la bascule du 25/07 (ils n'existaient pas encore).
+
+Le gérant a tranché : **on garde les deux menus XL**, ils sont rentables et se vendent.
+
+Réserve restante : le renommage et les changements de borne ont été lancés ensemble,
+impossible d'isoler lequel porte l'effet.
 4. Répartition de la marge : Corndog 63 %, Menu 29 %, Signature 5 %, Bubble tea 2 %, Side 1 %.
 
 ## Module Stock
