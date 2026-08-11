@@ -151,6 +151,24 @@ function qteACommander(item, coef: number): number | null {
   return Math.max(0, Math.ceil(besoin - dispo));
 }
 
+// ── ROTATION DES COURSES ──────────────────────────────────
+// Qui fait les courses cette semaine. L'ordre et la semaine de départ sont
+// stockés dans `parametres`, donc modifiables sans toucher au code.
+function lundiDe(d: Date): Date {
+  const x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const jour = (x.getDay() + 6) % 7; // 0 = lundi
+  x.setDate(x.getDate() - jour);
+  return x;
+}
+function responsableCourses(ordre: string[], ancrage: string, semaineOffset = 0): string | null {
+  if (!ordre.length || !ancrage) return null;
+  const base = lundiDe(new Date(ancrage + "T12:00:00"));
+  const cible = lundiDe(new Date());
+  cible.setDate(cible.getDate() + semaineOffset * 7);
+  const semaines = Math.round((cible.getTime() - base.getTime()) / (7 * 86400000));
+  return ordre[((semaines % ordre.length) + ordre.length) % ordre.length];
+}
+
 // Recherche tolérante : ignore accents, casse et espaces superflus
 function normTexte(x: any): string {
   return String(x || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
@@ -1112,6 +1130,8 @@ export default function App() {
   const [caMoyen, setCaMoyen] = useState(() => localStorage.getItem("sekai_ca_moyen") || "30000");
   // CA quotidien qui ne passe PAS par les bornes (caisse + Uber Eats)
   const [caHorsBornes, setCaHorsBornes] = useState(() => localStorage.getItem("sekai_ca_hors_bornes") || "150");
+  const [coursesOrdre, setCoursesOrdre] = useState<string[]>([]);
+  const [coursesAncrage, setCoursesAncrage] = useState("");
   const [menuProduits, setMenuProduits] = useState<any[]>([]);
   const [menuRecettes, setMenuRecettes] = useState<any[]>([]);
   const [menuLoading, setMenuLoading] = useState(false);
@@ -1252,6 +1272,16 @@ export default function App() {
     fetchParametre("ca_hors_bornes")
       .then(v => { if (v != null) { setCaHorsBornes(v); localStorage.setItem("sekai_ca_hors_bornes", v); } })
       .catch(() => { /* on garde la valeur locale par défaut */ });
+  }, []);
+
+  // Rotation des courses : qui s'en occupe cette semaine
+  useEffect(() => {
+    fetchParametre("courses_ordre")
+      .then(v => setCoursesOrdre(v ? String(v).split(",").map(x => x.trim()).filter(Boolean) : []))
+      .catch(() => {});
+    fetchParametre("courses_ancrage")
+      .then(v => { if (v) setCoursesAncrage(String(v)); })
+      .catch(() => {});
   }, []);
 
   const isAdmin = currentUser?.role === "admin" || currentUser?.role === "superadmin";
@@ -7064,6 +7094,26 @@ export default function App() {
       )}
 
       {lastSave && <div style={{ margin: "0.8rem 1.1rem 0", background: "#f5fff8", border: "1.5px solid #4caf5033", borderRadius: "8px", padding: "0.6rem 1rem", fontSize: "0.78rem", color: "#4caf50" }}>{lastSave.time} · {lastSave.who}</div>}
+
+      {/* Qui fait les courses cette semaine */}
+      {(() => {
+        const qui = responsableCourses(coursesOrdre, coursesAncrage, 0);
+        if (!qui) return null;
+        const suivant = responsableCourses(coursesOrdre, coursesAncrage, 1);
+        const apres = responsableCourses(coursesOrdre, coursesAncrage, 2);
+        const cestMoi = normTexte(qui) === normTexte(currentUser?.prenom);
+        return (
+          <div style={{ margin: "0.8rem 1.1rem 0", background: cestMoi ? "#fff5f5" : "#fff8f0", border: `2px solid ${cestMoi ? "#e8213a" : "#f0d8b8"}`, borderRadius: "12px", padding: "0.8rem 1rem" }}>
+            <div style={{ color: "#a07848", fontSize: "0.68rem", fontWeight: "bold", letterSpacing: "0.02em" }}>COURSES DE LA SEMAINE</div>
+            <div style={{ color: cestMoi ? "#e8213a" : "#3d1a0a", fontSize: "1.25rem", fontWeight: 900, marginTop: "0.1rem" }}>
+              🛒 {qui}{cestMoi && <span style={{ fontSize: "0.8rem", fontWeight: 700 }}> — c'est toi</span>}
+            </div>
+            <div style={{ color: "#a07848", fontSize: "0.7rem", marginTop: "0.25rem" }}>
+              semaine prochaine : <b>{suivant}</b> · puis <b>{apres}</b>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Onglets : par magasin / signalement rapide */}
       <div style={{ display: "flex", gap: "0.4rem", padding: "0.8rem 1.1rem 0" }}>
