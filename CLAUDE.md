@@ -219,9 +219,32 @@ prix réellement pratiqué à l'époque, ne pas le réécrire.
    13,75 €**, soit ~+2 600 €/mois de CA et ~1 000 €/mois de marge. À reconfirmer sur
    plusieurs semaines : l'échantillon est de 7 jours et les changements ont été lancés
    ensemble, donc impossible d'isoler lequel a produit l'effet.
-2. **Les accompagnements ne se vendent pas** : ~2 ventes/jour toutes références confondues,
-   6 €/jour de marge (1 % du total). Ne pas bâtir de plan de croissance dessus.
-   Karaage et tempura existent surtout comme contenu des XL.
+2. **Les accompagnements — constat corrigé le 11/08/2026.** L'ancienne version de cette
+   ligne (« ~2 ventes/jour, 6 €/jour de marge ») était **fausse** : elle ne comptait que
+   les sides vendus seuls et ignorait ceux pris **en option sur un corndog**, qui font
+   l'essentiel du volume et n'apparaissent **pas** dans le « Rapport de vente » — il faut
+   la « Liste de commande » détaillée pour les voir (`° SIDE: …`).
+
+   Taux de prise réel, mesuré sur le détail ligne à ligne :
+
+   | Side pris en option | 09-11/07 | 09-11/08 |
+   |---|---|---|
+   | Frites | 11,0 /100 cmd | 4,5 |
+   | Tempura crevette | — | 3,0 |
+   | Poulet karaage | — | 2,0 |
+   | **Total side payant** | **11,0** | **9,5** |
+
+   Rapporté aux seuls corndogs seuls (les seuls à avoir le choix), le taux est de
+   **10,6 % en juillet et 10,9 % en août : identique**.
+
+   **Karaage et tempura n'ont créé aucune vente additionnelle — ils ont remplacé des
+   frites**, mais à 4,60/4,90 € contre 3,50 €, la substitution rapporte ~1,20 € de plus
+   par side. Les sides pèsent **~30 €/jour de marge (~900 €/mois)**, pas 6 €/jour.
+   Poste stable qu'on ne fait pas grandir : ne pas bâtir de plan de croissance dessus,
+   mais ne plus le traiter comme négligeable.
+
+   ⚠️ Chiffre extrapolé depuis 3 jours (dim-lun-mar, les plus faibles) : c'est la mesure
+   la moins solide du dossier. À reconfirmer sur une semaine complète.
 3. **Les menus XL démarrent au-dessus des prévisions.** Lancés le 30/07/2026, ils font
    déjà 30 % des menus sur leurs deux premiers jours (24 unités sur 80). Attention à ne
    pas leur attribuer la hausse du taux de menu : celle-ci a commencé le 25/07, cinq
@@ -280,6 +303,41 @@ Le gérant a tranché : **on garde les deux menus XL**, ils sont rentables et se
 
 Réserve restante : le renommage et les changements de borne ont été lancés ensemble,
 impossible d'isoler lequel porte l'effet.
+
+### Les XL ne cannibalisent PAS les menus normaux — vérifié le 11/08/2026
+
+Décomposition par 100 commandes, depuis les rapports produits EasyOrder :
+
+| Pour 100 commandes | 01-18/07 | 18-31/07 | **01-11/08** |
+|---|---|---|---|
+| Menus normaux (Goodeal + Bubble Dogs) | 34,8 | 39,5 | **39,8** |
+| Menus XL | 0 | 2,9 | **13,6** |
+| **Total menus** | **34,8** | **42,4** | **53,4** |
+| Corndogs seuls | 96,8 | 88,4 | **83,1** |
+| Signatures | 8,9 | 11,7 | **6,4** |
+
+La ligne des menus normaux **ne bouge pas** (39,5 → 39,8) pendant que les XL passent de
+2,9 à 13,6. Les XL se servent donc sur les **corndogs seuls** (96,8 → 83,1) et les
+**signatures** (8,9 → 6,4), pas sur les menus existants. C'est la montée en gamme visée.
+
+Confirmation : le nombre d'articles par commande reste à **1,50 puis 1,54**. Les clients
+n'achètent pas plus d'articles, ils achètent plus cher — effet durable, pas un effet de
+panier gonflé.
+
+**Menu Bubble Dogs a doublé** : 7,0 → 14,3 pour 100 commandes (XL compris). C'est la
+gamme qui progresse le plus vite en proportion.
+
+**Gain réestimé : 1 400 à 1 700 €/mois de marge** (au lieu de 950-1 380 €). Sur 2 180
+commandes/mois : +5,0 menus normaux × 2,75 € et +13,6 XL × 4,69 € ≈ 1 690 €/mois.
+Contre-vérifié par le ticket (+1,08 €/cmd × 2 180 = +2 350 € de CA, ~72 % de marge).
+Retenir le bas de fourchette : l'échantillon d'août ne fait que 11 jours.
+
+À surveiller : si le recul des signatures (8,9 → 6,4) se poursuit, quatre références
+perdront leur raison d'être en carte. Pas d'action pour l'instant.
+
+⚠️ Le « Rapport de vente » EasyOrder ne liste **pas** les options (sides, panures,
+suppléments) — seulement les produits. Pour tout ce qui est pris en option, il faut la
+« Liste de commande » détaillée. Ne pas conclure à l'absence de ventes depuis un rapport.
 4. Répartition de la marge : Corndog 63 %, Menu 29 %, Signature 5 %, Bubble tea 2 %, Side 1 %.
 
 ## Module Stock
