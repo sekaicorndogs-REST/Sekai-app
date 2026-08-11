@@ -17,14 +17,14 @@ Il contient le contexte métier durable. **À mettre à jour dès qu'une donnée
 - **Un seul point de vente**, plus des events ponctuels. Les entrées « Event 1 » et
   « Event 2 » de `RESTAURANTS` sont des **kits de stock pour charger la camionnette**,
   pas des boutiques : leurs quantités vides sont normales, ce ne sont pas des alertes.
-- CA moyen **1 029 €/jour** — 879 € bornes + 150 € caisse/Uber, mesuré sur les
-  334 journées réellement enregistrées dans `ventes` (août 2025 → juillet 2026).
-  Soit **~31 300 €/mois** et **~375 000 €/an**.
-  ⚠️ Cette moyenne porte sur **onze mois** : septembre, un mois faible, en est absent.
-  Une fois septembre intégré, compter plutôt ~872 € bornes / ~1 022 € au total.
-  Les valeurs mensuelles de `saisonnalite` ont été revérifiées ligne à ligne contre
-  `ventes` : écart nul sur les onze mois mesurés. Elles portent bien sur les seuls
-  jours d'ouverture (mars est sur 30 jours, le 15/03/2026 étant sans vente).
+- CA moyen **1 035 €/jour** — **875 € bornes** + 150 € caisse/Uber (270 en août),
+  mesuré sur les **364 journées** d'août 2025 à juillet 2026 enregistrées dans `ventes`.
+  Soit **~31 400 €/mois** et **~377 000 €/an**.
+  ✅ **L'année est complète depuis le 11/08/2026** : septembre 2025 a été chargé
+  (1 978 commandes, 25 073 €, 836 €/jour). Il n'y a plus aucun mois estimé dans
+  `saisonnalite`, et les douze valeurs concordent avec `ventes` à l'euro près.
+  Elles portent sur les seuls jours d'ouverture (mars est sur 30 jours, le 15/03/2026
+  étant le dernier et unique jour sans vente de l'historique).
 - Objectif fixé : 922 €/jour
 
 ### CA moyen par jour de semaine (année complète, aux bornes)
@@ -161,7 +161,7 @@ et sous-estime le bénéfice d'un event.**
 | `top_produits` | Moyennes/jour par produit, marge unitaire, part de marge |
 | `finances_charges` / `finances_dettes` | Charges mensuelles et plans de remboursement |
 | `stock` | Inventaire par point de vente. Colonnes ajoutées : `ingredient_id`, `conso_jour`, `unites_par_lot` |
-| `ventes` | **24 240 commandes bornes** (01/08/2025 → 11/08/2026). Source de référence pour toute analyse par jour, par jour de semaine ou par heure. La commande erronée #ZHATPX (01/08/2026, 1 903,80 €) a été volontairement exclue à la demande du gérant |
+| `ventes` | **26 218 commandes bornes, historique complet sans trou** (01/08/2025 → 11/08/2026, 375 jours). Source de référence pour toute analyse par jour, par jour de semaine ou par heure. La commande erronée #ZHATPX (01/08/2026, 1 903,80 €) a été volontairement exclue à la demande du gérant |
 | `courses_remplacements` | Remplacement ponctuel de courses, une ligne par semaine (lundi) |
 | `parametres` | Clé/valeur partagé : `ca_hors_bornes`, `courses_ordre`, `courses_ancrage` |
 
@@ -426,14 +426,12 @@ en Menu Good Deal.
 
 ## Points ouverts
 
-- **Septembre 2025 est totalement absent de `ventes`** : 30 jours sans aucune commande.
-  Ce ne sont **pas** des fermetures — le gérant confirme n'avoir jamais fermé. C'est un
-  export EasyOrder jamais importé, et c'est la raison pour laquelle septembre est le seul
-  mois `estime` dans `saisonnalite`. À combler par un export de septembre 2025.
-  ⚠️ Ne jamais traiter un jour sans vente comme une fermeture : diviser le CA par les
-  jours du calendrier au lieu des jours mesurés sous-estime le CA mensuel de ~2 500 €.
-- Le dimanche 15/03/2026 est le seul autre jour sans vente. À confirmer : vraie fermeture
-  exceptionnelle, ou trou de données ?
+- ~~Septembre 2025 absent~~ — **comblé le 11/08/2026.** L'export a été chargé : 30 jours
+  pleins, 1 978 commandes, 836 €/jour (et non 714 € comme estimé). Il n'y a plus de trou.
+  ⚠️ Règle à conserver : ne jamais traiter un jour sans vente comme une fermeture. Diviser
+  le CA par les jours du calendrier au lieu des jours mesurés sous-estime le CA mensuel.
+- Le dimanche 15/03/2026 est désormais **le seul jour sans vente de tout l'historique**.
+  À confirmer : vraie fermeture exceptionnelle, ou trou de données ?
 - Écart matière : ~17,5 % réel (ligne « Courses ») contre ~14 % théorique en recettes.
   Environ 1 200 €/mois de perte/gaspillage. À investiguer par inventaire si besoin.
 - **Le jeudi à 718 €/jour**, contre 900 € le mercredi et 912 € le vendredi, à horaires
