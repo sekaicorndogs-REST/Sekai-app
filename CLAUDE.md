@@ -322,9 +322,13 @@ refaire du travail déjà fait :
 - **`propositions_menu`** : 5 menus étudiés, avec verdict, hypothèses de conversion,
   cannibalisation et impact/mois. Colonnes `recommande` et `verdict`.
 
-Recommandés et **non lancés** à ce jour : le **Duo Menu** (18,50 €, +440 €/mois) et le
-**Menu Famille** (34 €, +330 €/mois, seul segment groupe non couvert). Ils pèsent plus
-lourd que les menus XL créés en juillet 2026.
+**Décision du gérant (11/08/2026) : la carte reste sur les deux gammes existantes**,
+Good Deal et Bubble Dogs, avec leurs versions XL. Le **Duo Menu** et le **Menu Famille**
+sont **écartés** — ils se vendent bien, ils sont rentables, et allonger la carte ferait
+courir un risque de lenteur au comptoir pour un gain marginal. **Ne pas les reproposer.**
+
+Seule réserve à garder en tête si le sujet revient un jour : le segment groupe et
+famille reste non couvert.
 
 Note : les libellés de ces tables parlent encore du « Menu Étudiant », renommé depuis
 en Menu Good Deal.
@@ -393,7 +397,6 @@ Par ordre de valeur, avec les montants estimés :
 | 3 | Passer le corndog de 6,50 à 7,00 € **en septembre** | 1 090 € | à faire |
 | 4 | Baisser le food cost event de 18 % à 13 % dans le formulaire | 500 €/event | à faire |
 | 5 | Carte de fidélité | non chiffré | à faire |
-| 6 | Lancer Duo Menu + Menu Famille | 770 € | à faire |
 | 7 | Négocier les 7 fournisseurs (jamais fait) | 180 € | à faire |
 | 8 | Traiter l'anomalie du jeudi | 700 € | à faire |
 
