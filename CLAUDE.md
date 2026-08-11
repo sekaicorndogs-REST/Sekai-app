@@ -94,15 +94,23 @@ du cash ≈ **2 900 € chacun**. Ils touchent **1 900 €**.
 sur 12 mois. Tant qu'on ne l'a pas, `finances_charges` reste une table remplie
 d'ordres de grandeur et tout compte de résultat bâti dessus est approximatif.
 
-### TVA : 1 619 €/mois
+### TVA : 900 €/mois — vérifié, ne pas y toucher
 
-Calculée sur les bases déclarées 2026 (source Skytax) : 6 % → 961 € · 12 % → 327 € ·
-21 % → 332 €. La valeur précédente en base était 900 €, soit **8 600 €/an ignorés**
-par le seuil de rentabilité.
+Calcul sur **2025, année pleine** (source Skytax) :
 
-⚠️ C'est la **TVA collectée sur les ventes**, à la demande du gérant. Le décaissement
-réel est inférieur puisque la TVA sur achats est déductible — 1 619 € est donc un
-majorant. Le montant net figure sur les déclarations trimestrielles.
+| | |
+|---|---|
+| TVA collectée (6 % / 12 % / 21 %) | 12 442 € |
+| TVA déductible sur achats | 3 195 € |
+| **TVA nette payée** | **9 247 €, soit 771 €/mois** |
+
+Les 900 € de `finances_charges` sont donc justes. **Une tentative de les porter à
+1 619 € a été faite puis annulée** : ce chiffre ne comptait que la TVA *collectée*, en
+oubliant la déductible. Ne pas refaire l'erreur.
+
+⚠️ **Le semestre 2026 donne un résultat aberrant** (crédit de TVA de 265 €/mois) parce
+que les frais généraux y explosent : **7 120 €/mois contre 620 €/mois en 2025, soit
+11,5×**. Ne pas calculer la TVA sur cette base tant que ce pic n'est pas expliqué.
 
 ⚠️ **Ne jamais utiliser les déclarations TVA Skytax comme source du CA.** Elles
 mélangent des périmètres différents et intègrent la TVA d'events. La référence CA
@@ -354,6 +362,26 @@ en Menu Good Deal.
 - `stock.unites_par_lot` à renseigner (voir Module Stock).
 - Balance des comptes de charges Skytax à obtenir — c'est ce qui fermera le trou de
   ~3 100 €/mois.
+
+## 🔴 CONTRAINTE PERMANENTE : trésorerie zéro
+
+**Point de départ de toute recommandation, posé par le gérant le 11/08/2026 :
+la trésorerie est à zéro.** Fonctionnement au mois le mois, 26 500 € de dettes,
+aucune réserve.
+
+Cause assumée : *« on a fait des erreurs en augmentant nos salaires »*. Trois gérants
+qui se sont payés sur une seule unité, plus des events ratés, pendant trois ans.
+
+**Ce que ça impose à toute proposition future :**
+
+- **Aucun investissement.** Rien qui demande d'avancer de l'argent. Pas de matériel,
+  pas de cuisine, pas de local, pas de recrutement.
+- **Priorité au cash rapide.** Une action qui rapporte 300 € le mois prochain vaut
+  mieux qu'une action qui rapporte 1 000 € dans six mois.
+- **Ne jamais proposer d'augmenter la rémunération des gérants** tant qu'il n'y a pas
+  trois mois de charges en réserve. C'est l'erreur qui a créé la situation.
+- **Pas d'expansion** — Maroc compris — avant réserve constituée. Voir le plan.
+- Un event ne se signe qu'après passage dans le simulateur de rentabilité.
 
 ## Plan d'action recommandé (audit du 11/08/2026)
 
