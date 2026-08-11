@@ -14,6 +14,9 @@ Il contient le contexte métier durable. **À mettre à jour dès qu'une donnée
 ## Le commerce
 
 - Corndogs coréens, Rue Neuve à Bruxelles (rue commerçante, très fort flux piéton)
+- **Un seul point de vente**, plus des events ponctuels. Les entrées « Event 1 » et
+  « Event 2 » de `RESTAURANTS` sont des **kits de stock pour charger la camionnette**,
+  pas des boutiques : leurs quantités vides sont normales, ce ne sont pas des alertes.
 - CA moyen **1 029 €/jour** — 879 € bornes + 150 € caisse/Uber, mesuré sur les
   334 journées réellement enregistrées dans `ventes` (août 2025 → juillet 2026).
   Soit **~31 300 €/mois** et **~375 000 €/an**.
