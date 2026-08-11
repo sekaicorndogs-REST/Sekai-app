@@ -7207,8 +7207,6 @@ export default function App() {
 
       {lastSave && <div style={{ margin: "0.8rem 1.1rem 0", background: "#f5fff8", border: "1.5px solid #4caf5033", borderRadius: "8px", padding: "0.6rem 1rem", fontSize: "0.78rem", color: "#4caf50" }}>{lastSave.time} · {lastSave.who}</div>}
 
-      {bandeauCourses}
-
       {/* Onglets : par magasin / signalement rapide */}
       <div style={{ display: "flex", gap: "0.4rem", padding: "0.8rem 1.1rem 0" }}>
         {([["magasins","Par magasin"],["manquants","⚡ Manquants"]] as const).map(([id, label]) => (
