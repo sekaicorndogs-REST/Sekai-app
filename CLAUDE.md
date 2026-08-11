@@ -49,6 +49,65 @@ l'anomalie à creuser : même amplitude horaire qu'un mercredi, 180 € de moins
 - Forte saisonnalité : creux en mars (832 €/j), pic en juillet (1 278 €/j)
 - Masse salariale à 30,3 % du CA, plafond fixé à 35 %
 
+### Structure, équipe et positionnement
+
+- **Trois gérants** : Abdel, Moha, Nabil. Ils se partagent la ligne « Salaire gérant »
+  de 5 900 €/mois, soit ~1 967 € chacun. **C'est le nœud du dossier** : une unité qui
+  fait 375 k€ fait vivre correctement un exploitant, pas trois.
+- **Un employé** au restaurant en plus des gérants. Renforts ponctuels pour les events
+  (d'où le nombre élevé de comptes dans `users`).
+- **Horaires** : lun–ven 12h–20h · sam 13h–21h · dim 14h–20h = **54 h/semaine**.
+  Le jeudi a les mêmes horaires que le mercredi, ce qui rend son écart de 180 €/jour
+  d'autant plus anormal.
+- **Capacité ~50 corndogs/heure.** Le samedi, le meilleur jour, tourne autour de
+  20/heure — soit **40 % d'utilisation**. ⚠️ **Le goulot n'est pas la production.**
+  Tout investissement en capacité de cuisine est à écarter tant que ce ratio ne monte pas.
+- **Un seul concurrent** à Bruxelles, installé dans le City 2, ~0,50 € plus cher.
+  Sekai est sur la rue, mieux noté, et moins cher : il y a du pouvoir de prix inutilisé.
+- **Clientèle** : 70–80 % de femmes, forte communauté maghrébine, étudiants, familles,
+  touristes. Profil très fidélisable — et **aucune carte de fidélité à ce jour**.
+- **Réseaux** : Instagram 9 940 abonnés, TikTok 5 600. 2 photos + 1 vidéo/semaine,
+  sous-traité, c'est la totalité des 800 €/mois de marketing.
+- **Google : 423 avis, note 4,8** — le corndog le mieux noté à ce niveau d'avis.
+- **Uber Eats** : commission de 35 %. ~50 €/jour effectivement reçus, déjà compris
+  dans les 150 €/jour hors bornes.
+- **Dettes** : 26 500 € sur 6 plans, 2 793 €/mois. Aucune trésorerie d'avance,
+  fonctionnement au mois le mois depuis trois ans.
+- **Projet Maroc** : dossier en cours, en attente de l'accord de **Tanger Mall**.
+  Motivation assumée : dégager un second flux de trésorerie pour les trois gérants.
+
+### ⚠️ Le trou de trésorerie — question centrale non résolue
+
+Le compte modélisé (TVA corrigée) donne **~5 700 €/mois de résultat**, soit **~2 900 €**
+après remboursement des dettes. Les trois gérants devraient donc toucher salaire + part
+du cash ≈ **2 900 € chacun**. Ils touchent **1 900 €**.
+
+**Il manque environ 3 100 €/mois, non tracés.** Pistes ouvertes :
+
+- Cotisations sociales à 900 €/mois en base, pour trois indépendants — probablement
+  sous-évaluées de 400 à 700 €.
+- **Frais généraux : 7 120 €/mois** d'après les déclarations TVA 2026, contre 7 443 €
+  sur toute l'année 2025. Poste qui a explosé et qui n'est ventilé nulle part.
+- Écart matière (~1 200 €/mois, voir Points ouverts).
+
+**Document manquant pour trancher : la balance des comptes de charges de Skytax**
+sur 12 mois. Tant qu'on ne l'a pas, `finances_charges` reste une table remplie
+d'ordres de grandeur et tout compte de résultat bâti dessus est approximatif.
+
+### TVA : 1 619 €/mois
+
+Calculée sur les bases déclarées 2026 (source Skytax) : 6 % → 961 € · 12 % → 327 € ·
+21 % → 332 €. La valeur précédente en base était 900 €, soit **8 600 €/an ignorés**
+par le seuil de rentabilité.
+
+⚠️ C'est la **TVA collectée sur les ventes**, à la demande du gérant. Le décaissement
+réel est inférieur puisque la TVA sur achats est déductible — 1 619 € est donc un
+majorant. Le montant net figure sur les déclarations trimestrielles.
+
+⚠️ **Ne jamais utiliser les déclarations TVA Skytax comme source du CA.** Elles
+mélangent des périmètres différents et intègrent la TVA d'events. La référence CA
+reste la table `ventes` + les 150 €/jour hors bornes.
+
 ### Le hors-bornes vaut 150 €/jour, pas 250 €
 
 Confirmé par le gérant (juillet 2026). C'est le CA caisse + Uber qui ne passe pas par
@@ -92,6 +151,14 @@ et sous-estime le bénéfice d'un event.**
 | `ventes_produits` | Historique quantités + CA par produit et par période (extrait partiel) |
 | `top_produits` | Moyennes/jour par produit, marge unitaire, part de marge |
 | `finances_charges` / `finances_dettes` | Charges mensuelles et plans de remboursement |
+| `stock` | Inventaire par point de vente. Colonnes ajoutées : `ingredient_id`, `conso_jour`, `unites_par_lot` |
+| `ventes` | **23 444 commandes bornes, 1 an complet** (01/08/2025 → 31/07/2026). Source de référence pour toute analyse par jour, par jour de semaine ou par heure |
+| `courses_remplacements` | Remplacement ponctuel de courses, une ligne par semaine (lundi) |
+| `parametres` | Clé/valeur partagé : `ca_hors_bornes`, `courses_ordre`, `courses_ancrage` |
+
+⚠️ Les horodatages de `ventes` sont des **heures locales stockées avec un fuseau UTC**.
+Ne pas convertir les fuseaux, lire l'heure telle quelle. Seules 2 commandes sur 23 444
+dépassent 22h, donc l'attribution des dates est fiable.
 
 ⚠️ `ventes_produits` sous-estimait le CA d'environ 11 à 15 % sur les périodes anciennes.
 Les deux périodes de juillet 2026 ont été recalées sur les exports EasyOrder réels via
@@ -187,6 +254,59 @@ Les XL (lancés le 30/07) ne peuvent pas expliquer une rupture au 25/07.
 Réserve : 7 jours d'observation. À reconfirmer sur août.
 4. Répartition de la marge : Corndog 63 %, Menu 29 %, Signature 5 %, Bubble tea 2 %, Side 1 %.
 
+## Module Stock
+
+### Trois statuts, pas deux
+
+`stockStatut()` dans `App.tsx` classe chaque article :
+
+| Statut | Cas | Affichage |
+|---|---|---|
+| `alerte` | quantité chiffrée sous le seuil | rouge, compté dans les alertes |
+| `verifier` | quantité en toutes lettres (« OK », « assez », « plein ») | orange, badge `n ?` |
+| `non_compte` | quantité vide | gris, **hors alertes** |
+
+Avant cette correction, une quantité non numérique était traitée comme suffisante :
+**11 articles Rue Neuve, dont la Saucisse, ne pouvaient jamais alerter.** Et les
+quantités vides comptaient comme alertes, ce qui noyait le compteur sous les 126
+articles vides des kits event.
+
+### Consommation théorique et quantités à commander
+
+`stock.ingredient_id` relie un article à `menu_ingredients` (11 correspondances sûres
+sur Rue Neuve). `stock.conso_jour` porte la consommation théorique quotidienne,
+calculée depuis les recettes × les ventes de juillet 2026 majorées de 17 % pour le
+hors-bornes. La liste à commander en déduit une quantité, pondérée par le coefficient
+de saisonnalité du mois en cours, sur 7 jours de couverture.
+
+⚠️ **`stock.unites_par_lot` vaut 1 partout**, faute de connaître les conditionnements.
+Tant que c'est le cas, les suggestions sont exprimées en unités de recette et non en
+paquets ou cartons. À renseigner pour que les quantités deviennent exploitables.
+
+Trois articles restent sans `conso_jour` — Céréales, Nouilles, Baguette — parce que ce
+sont des chapelures alternatives absentes des recettes de base : leur consommation
+dépend du choix du client, que les données ne tracent pas.
+
+### Onglet « ⚡ Manquants »
+
+Recherche par nom sur tous les magasins, tolérante aux accents et à la casse. Un appui
+passe la quantité à 0, ce qui bascule l'article dans les alertes existantes — pas de
+nouveau modèle de données. Un article absent du catalogue se crée depuis la recherche
+en choisissant son magasin. Les signalements de la session s'affichent dans un encadré
+« Ma liste », retirables ; retirer un article créé depuis cet écran le supprime.
+
+Une recherche par nom existe aussi dans l'onglet « Par magasin ».
+
+### Rotation des courses
+
+Bandeau en tête de l'onglet Stock, **sur l'écran d'accueil uniquement** (le gérant a
+demandé qu'il n'apparaisse pas deux fois). Ordre et semaine de départ dans
+`parametres` : `courses_ordre` = `Moha,Nabil,Abdel`, `courses_ancrage` = `2026-08-10`.
+
+Un remplacement ponctuel s'enregistre dans `courses_remplacements` et **n'écrase que
+la semaine concernée** : le cycle sous-jacent n'est pas décalé, chacun garde son tour
+les semaines suivantes.
+
 ## ⚠️ Décisions déjà prises — À LIRE AVANT TOUTE ANALYSE
 
 Le travail des sessions précédentes est stocké en base, **pas dans la conversation**.
@@ -226,5 +346,31 @@ en Menu Good Deal.
   exceptionnelle, ou trou de données ?
 - Écart matière : ~17,5 % réel (ligne « Courses ») contre ~14 % théorique en recettes.
   Environ 1 200 €/mois de perte/gaspillage. À investiguer par inventaire si besoin.
-- Pas de données bornes détaillées par jour ou par heure. Avec ça, on pourrait identifier
-  les créneaux où le taux de prise de menu s'effondre.
+- **Le jeudi à 718 €/jour**, contre 900 € le mercredi et 912 € le vendredi, à horaires
+  identiques. ~8 600 €/an d'écart sans explication. À observer sur place.
+- **8 articles Rue Neuve** portent encore une quantité en toutes lettres et sont donc
+  aveugles aux alertes, dont la Saucisse. À chiffrer.
+- **FOOD EX n'a pas été compté depuis 33 jours** (constaté le 11/08/2026).
+- `stock.unites_par_lot` à renseigner (voir Module Stock).
+- Balance des comptes de charges Skytax à obtenir — c'est ce qui fermera le trou de
+  ~3 100 €/mois.
+
+## Plan d'action recommandé (audit du 11/08/2026)
+
+Par ordre de valeur, avec les montants estimés :
+
+| # | Action | Gain/mois | État |
+|---|---|---|---|
+| 1 | Inventaire matière sur 2 semaines | 1 200 € | à faire |
+| 2 | Corriger cotisations + TVA avec le comptable | visibilité | TVA faite |
+| 3 | Passer le corndog de 6,50 à 7,00 € **en septembre** | 1 090 € | à faire |
+| 4 | Baisser le food cost event de 18 % à 13 % dans le formulaire | 500 €/event | à faire |
+| 5 | Carte de fidélité | non chiffré | à faire |
+| 6 | Lancer Duo Menu + Menu Famille | 770 € | à faire |
+| 7 | Négocier les 7 fournisseurs (jamais fait) | 180 € | à faire |
+| 8 | Traiter l'anomalie du jeudi | 700 € | à faire |
+
+⚠️ **Ne pas investir dans la cuisine** : elle tourne à 40 % de sa capacité.
+⚠️ **Ne pas signer Tanger Mall avant d'avoir 3 mois de trésorerie d'avance.** La
+séquence recommandée : appliquer le court terme (1 mois) → solder les dettes (5-7 mois)
+→ constituer 30 000 € de réserve (12-15 mois) → Maroc (18 mois).
