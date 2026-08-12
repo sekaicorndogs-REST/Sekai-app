@@ -4325,7 +4325,13 @@ export default function App() {
           const panierMoyen = vNb ? vCA / vNb : 0;
           const jours = new Set(V.map(v => v.d.toDateString()));
           const nbJours = jours.size || 1;
-          const hb = parseFloat(caHorsBornes) || 0;   // caisse + Uber, par jour
+          const hb = parseFloat(caHorsBornes) || 0;   // caisse + Uber, par jour (valeur annuelle par défaut)
+          // Certains mois ont leur propre hors-bornes (août : caisse + Uber montent l'été).
+          // On lit celui de la ligne du mois quand il existe, sinon la valeur annuelle.
+          const hbMois = (m: any) => {
+            const v = m?.hors_bornes;
+            return v == null || v === "" ? hb : (parseFloat(v) || 0);
+          };
           const caJourBornes = vCA / nbJours;
           const caJourReel = caJourBornes + hb;
           const cmdJour = vNb / nbJours;
@@ -4449,7 +4455,7 @@ export default function App() {
             const cur = saisonnalite.find(m => m.mois === moisNow);
             if (suiv?.fiabilite === "inconnu") points.push({ titre: `${suiv.nom} : aucune donnée`, detail: "Tu n'as jamais mesuré ce mois. Exporte-le dès qu'il est passé pour pouvoir l'anticiper l'an prochain.", niveau: "warn" });
             else if (suiv?.ca_jour_bornes != null && cur?.ca_jour_bornes != null && Number(suiv.ca_jour_bornes) < Number(cur.ca_jour_bornes) * 0.85) {
-              points.push({ titre: `${suiv.nom} sera plus calme`, detail: `Environ ${fmt(Number(suiv.ca_jour_bornes) + hb)} €/jour attendu contre ${fmt(Number(cur.ca_jour_bornes) + hb)} € ce mois-ci. Réduis l'effectif en semaine.`, niveau: "warn" });
+              points.push({ titre: `${suiv.nom} sera plus calme`, detail: `Environ ${fmt(Number(suiv.ca_jour_bornes) + hbMois(suiv))} €/jour attendu contre ${fmt(Number(cur.ca_jour_bornes) + hbMois(cur))} € ce mois-ci. Réduis l'effectif en semaine.`, niveau: "warn" });
             }
           }
 
@@ -4832,7 +4838,7 @@ export default function App() {
               {/* ── ANNÉE & PLANNING ── */}
               {saisonnalite.length > 0 && (() => {
                 const moisNow = new Date().getMonth() + 1;
-                const tot = (m: any) => m.ca_jour_bornes != null ? Number(m.ca_jour_bornes) + hb : null;
+                const tot = (m: any) => m.ca_jour_bornes != null ? Number(m.ca_jour_bornes) + hbMois(m) : null;
                 const bas = saisonnalite.filter(m => tot(m) != null && tot(m)! < objJour);
                 return (
                   <>
@@ -4983,7 +4989,7 @@ export default function App() {
                 const mNow = new Date().getMonth() + 1;
                 const cur = saisonnalite.find(m => m.mois === mNow);
                 const nxt = saisonnalite.find(m => m.mois === (mNow % 12) + 1);
-                const tot = (m: any) => m?.ca_jour_bornes != null ? Number(m.ca_jour_bornes) + hb : null;
+                const tot = (m: any) => m?.ca_jour_bornes != null ? Number(m.ca_jour_bornes) + hbMois(m) : null;
                 const prevMois = (m: any) => { const t = tot(m); return t ? t * 30 : null; };
                 const sortiesMois = totalChargesFixes + totalMensualites;
                 const ecartSem = cur && nxt ? null : null;
