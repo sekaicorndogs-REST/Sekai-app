@@ -25,7 +25,9 @@ Il contient le contexte métier durable. **À mettre à jour dès qu'une donnée
   `saisonnalite`, et les douze valeurs concordent avec `ventes` à l'euro près.
   Elles portent sur les seuls jours d'ouverture (mars est sur 30 jours, le 15/03/2026
   étant le dernier et unique jour sans vente de l'historique).
-- Objectif fixé : 922 €/jour
+- **Seuil de rentabilité : 895 €/jour** = (25 071 € de charges + 1 793 € de dettes) / 30.
+  Recalculé depuis `finances_charges` et `finances_dettes` le 12/08/2026. L'ancienne
+  valeur de 922 € datait d'un état antérieur des charges.
 
 ### CA moyen par jour de semaine (année complète, aux bornes)
 
@@ -98,9 +100,14 @@ toutes deux à coût nul :
    Demande un test sur plusieurs semaines avant de savoir si ça marche.
 - Juillet 2026 mesuré en entier : 970 €/j bornes (1 128 €/j du 1-18, puis 751 €/j du 19-31).
   La première quinzaine de juillet (soldes) n'est pas représentative du mois.
-- Marge nette ~17 %, soit ~5 100 €/mois
+- **Résultat modélisé : 6 400 €/mois, soit 20,3 % du CA** (31 473 − 25 071 de charges).
+  Après les 1 793 € de dettes : **~4 600 €/mois**.
+  ⚠️ Avant impôt — `finances_charges` ne porte aucune ligne d'impôt (voir plus bas).
 - Forte saisonnalité : creux en mars (832 €/j), pic en juillet (1 278 €/j)
-- Masse salariale à 30,3 % du CA, plafond fixé à 35 %
+- Masse salariale **28,9 % du CA** (9 100 € : gérants 5 900 + employé 2 300 + ménage 900),
+  plafond fixé à 35 %. ⚠️ La cotisation sociale (900 €/mois) n'est **pas** comptée dedans
+  par `finances.ts`, qui ne retient que les catégories `salaire` et `personnel`. Coût du
+  travail réel : **10 000 €, soit 31,8 %**.
 
 ### Structure, équipe et positionnement
 
@@ -131,12 +138,13 @@ toutes deux à coût nul :
 - **Google : 423 avis, note 4,8** — le corndog le mieux noté à ce niveau d'avis.
 - **Uber Eats** : commission de 35 %. ~50 €/jour effectivement reçus, déjà compris
   dans les 150 €/jour hors bornes.
-- **Dettes** : 26 500 € sur 6 plans, 2 793 €/mois. Aucune trésorerie d'avance,
+- **Dettes** : **23 839 € restants sur 5 plans, 1 793 €/mois** (vérifié en base le
+  12/08/2026 ; 25 797 € à l'origine). Aucune trésorerie d'avance,
   fonctionnement au mois le mois depuis trois ans.
 
 ### L'écart passé — sujet clos, ne pas rouvrir
 
-Le compte modélisé dégage ~6 200 €/mois de résultat, soit ~3 400 €/mois après dettes.
+Le compte modélisé dégage ~6 400 €/mois de résultat, soit ~4 600 €/mois après dettes.
 Or la trésorerie est restée à zéro pendant trois ans.
 
 **Le gérant a tranché : cet argent a été consommé par de mauvais choix passés** —
@@ -145,6 +153,9 @@ et il ne faut pas y consacrer d'analyse supplémentaire.
 
 Conséquence pour les projections : le résultat modélisé est atteignable, et il
 s'accumulera dès lors qu'il cesse d'être consommé. La seule condition est comportementale.
+
+⚠️ La charge « Courses (18%/j) » est **mal nommée** : 6 000 € sur 31 473 € de CA font
+**19,1 %**, pas 18 %. Le libellé date d'un CA supposé de 33 000 €.
 
 ⚠️ `finances_charges` ne contient **aucune ligne d'impôt**, alors que `finances_dettes`
 porte une dette « Impôt Monab ». Le montant à provisionner mensuellement reste à
@@ -402,7 +413,12 @@ perdront leur raison d'être en carte. Pas d'action pour l'instant.
 ⚠️ Le « Rapport de vente » EasyOrder ne liste **pas** les options (sides, panures,
 suppléments) — seulement les produits. Pour tout ce qui est pris en option, il faut la
 « Liste de commande » détaillée. Ne pas conclure à l'absence de ventes depuis un rapport.
-4. Répartition de la marge : Corndog 63 %, Menu 29 %, Signature 5 %, Bubble tea 2 %, Side 1 %.
+4. ⚠️ **`top_produits` est périmé — ne pas s'en servir pour décider.** La table porte
+   encore le libellé `MENU ETUDIANT`, ne contient **aucun menu XL**, et totalise
+   743 €/jour de CA contre 875 € réels en moyenne annuelle et 995 € en août. Sa
+   répartition de marge (Corndog 63 %, Menu 29 %, Signature 5 %, Bubble tea 2 %,
+   Side 1 %) décrit une période antérieure à la bascule du 25/07 : les menus y pèsent
+   34,8 pour 100 commandes contre 53,4 aujourd'hui. À régénérer.
 
 ## Module Stock
 
@@ -542,8 +558,12 @@ en Menu Good Deal.
 - ~~Le jeudi sans explication~~ — **élucidé le 12/08/2026, voir la section dédiée.**
   Ce n'est pas une anomalie à réparer mais un creux de flux piéton, structurel et permanent.
 - **8 articles Rue Neuve** portent encore une quantité en toutes lettres et sont donc
-  aveugles aux alertes, dont la Saucisse. À chiffrer.
-- **FOOD EX n'a pas été compté depuis 33 jours** (constaté le 11/08/2026).
+  aveugles aux alertes : Sel, Sucre, Élastique, Essuie-tout, Gobelet bubble tea,
+  Barquette frites, Oignon frit, Rouleau banque contact. **La Saucisse n'en fait plus
+  partie** (chiffrée à 3 le 11/08). Aucun des huit n'est un produit critique.
+- **Comptages en retard au 12/08/2026** : MATÉRIEL 48 jours, FOOD EX et MAGASIN CHINOIS
+  34 jours, SAUCE MAISON 31 jours. Les quatre magasins actifs (TADAL, OZ FOOD, SILGRO,
+  COLRUYT) sont à jour.
 - `stock.unites_par_lot` à renseigner (voir Module Stock).
 - Balance des comptes de charges Skytax à obtenir — c'est ce qui fermera le trou de
   ~3 100 €/mois.
@@ -551,7 +571,7 @@ en Menu Good Deal.
 ## 🔴 CONTRAINTE PERMANENTE : trésorerie zéro
 
 **Point de départ de toute recommandation, posé par le gérant le 11/08/2026 :
-la trésorerie est à zéro.** Fonctionnement au mois le mois, 26 500 € de dettes,
+la trésorerie est à zéro.** Fonctionnement au mois le mois, 23 839 € de dettes,
 aucune réserve.
 
 Cause assumée : *« on a fait des erreurs en augmentant nos salaires »*. Trois gérants
@@ -588,4 +608,4 @@ Par ordre de valeur, avec les montants estimés :
 ⚠️ **Ne pas investir dans la cuisine** : elle tourne à 40 % de sa capacité.
 
 Séquence recommandée pour Rue Neuve : appliquer le court terme (1 mois) → solder les
-26 500 € de dettes (5-7 mois) → constituer 3 mois de charges en réserve (12-15 mois).
+23 839 € de dettes (5-7 mois) → constituer 3 mois de charges en réserve (12-15 mois).
