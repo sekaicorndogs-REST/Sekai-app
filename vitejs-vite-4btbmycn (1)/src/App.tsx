@@ -129,6 +129,25 @@ function stockStatut(item): StatutStock {
 }
 function isLow(item) { return stockStatut(item) === "alerte"; }
 
+const JOURS_MOIS = [31,28,31,30,31,30,31,31,30,31,30,31];
+
+// CA prévu du mois en cours, depuis la saisonnalité mesurée.
+function caMoisEnCours(saisonnalite: any[]): number | null {
+  const cur = saisonnalite?.find(m => m.mois === new Date().getMonth() + 1);
+  if (!cur || cur.ca_total_jour == null) return null;
+  return Number(cur.ca_total_jour) * JOURS_MOIS[cur.mois - 1];
+}
+
+// CA mensuel moyen sur l'année : total annuel ramené à 12 mois.
+// C'est cette valeur qui sert de base aux ratios (masse salariale, matières…),
+// pour qu'ils ne bougent pas au gré des saisons.
+function caMensuelMoyen(saisonnalite: any[]): number | null {
+  if (!saisonnalite || saisonnalite.length === 0) return null;
+  const annuel = saisonnalite.reduce(
+    (s, m) => s + (m.ca_total_jour == null ? 0 : Number(m.ca_total_jour) * JOURS_MOIS[m.mois - 1]), 0);
+  return annuel > 0 ? annuel / 12 : null;
+}
+
 // Coefficient de saisonnalité du mois en cours, pour dimensionner les commandes
 function coefSaison(saisonnalite: any[]): number {
   if (!saisonnalite || saisonnalite.length === 0) return 1;
@@ -4288,7 +4307,12 @@ export default function App() {
 
         {/* ── RÉSUMÉ + SANTÉ FINANCIÈRE ── */}
         {financesView === "resume" && (() => {
-          const ca = parseFloat(caMoyen) || 0;
+          // Base de calcul : le CA mensuel moyen mesuré. Plus de saisie manuelle —
+          // les ratios se calent sur les ventes réelles. Repli sur l'ancienne valeur
+          // tant que la saisonnalité n'est pas chargée.
+          const caAnnuelMoyen = caMensuelMoyen(saisonnalite);
+          const caPrevuMois = caMoisEnCours(saisonnalite);
+          const ca = caAnnuelMoyen ?? (parseFloat(caMoyen) || 0);
           const {
             totalCharges, gerant, masseSalariale, employesReels, reste, pctMasse,
             budgetEmployeMax, margeEmbauche, caJour, objJour, ecartJour, loyer,
@@ -4811,16 +4835,49 @@ export default function App() {
               </>)}
 
               {show("ventes") && (<>
-              {/* CA modifiable */}
-              <div style={{ ...CARD, padding: "1.1rem" }}>
-                <div style={{ ...LBL, marginBottom: "0.6rem", display: "flex", alignItems: "center", gap: "5px" }}><Wallet size={13} /> Chiffre d'affaires / mois</div>
-                <div style={{ display: "flex", alignItems: "center", background: "#faf3e8", border: "1.5px solid #efe0c9", borderRadius: "12px", padding: "0.2rem 0.9rem" }}>
-                  <input value={caMoyen} onChange={e => { const v = e.target.value.replace(/[^0-9]/g, ""); setCaMoyen(v); localStorage.setItem("sekai_ca_moyen", v); }} inputMode="numeric"
-                    style={{ background: "transparent", border: "none", color: "#e8213a", padding: "0.5rem 0", fontSize: "1.7rem", fontWeight: "800", outline: "none", width: "100%", boxSizing: "border-box" as const, fontFamily: "'Poppins', sans-serif" }} />
-                  <span style={{ color: "#e8213a", fontSize: "1.5rem", fontWeight: "800" }}>€</span>
-                </div>
-                <div style={{ color: "#c8a878", fontSize: "0.7rem", marginTop: "0.5rem" }}>≈ {fmt(caJour)} €/jour · modifie pour tout recalculer</div>
-              </div>
+              {/* CA calculé depuis les ventes réelles */}
+              {(() => {
+                const moisNom = ["Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Décembre"][new Date().getMonth()];
+                const curSais = saisonnalite.find(m => m.mois === new Date().getMonth() + 1);
+                const ecart = caPrevuMois != null && caAnnuelMoyen ? caPrevuMois - caAnnuelMoyen : null;
+                return (
+                  <div style={{ ...CARD, padding: "1.1rem" }}>
+                    <div style={{ ...LBL, marginBottom: "0.8rem", display: "flex", alignItems: "center", gap: "5px" }}><Wallet size={13} /> Chiffre d'affaires</div>
+
+                    <div style={{ marginBottom: "0.9rem" }}>
+                      <div style={{ color: "#8a6a4a", fontSize: "0.74rem", fontWeight: 600 }}>Prévu en {moisNom.toLowerCase()}</div>
+                      <div style={{ display: "flex", alignItems: "baseline", gap: "6px" }}>
+                        <span style={{ color: "#e8213a", fontSize: "1.7rem", fontWeight: 800 }}>{caPrevuMois != null ? fmt(caPrevuMois) : "—"}</span>
+                        <span style={{ color: "#e8213a", fontSize: "1.1rem", fontWeight: 800 }}>€</span>
+                      </div>
+                      {curSais?.ca_total_jour != null && (
+                        <div style={{ color: "#c8a878", fontSize: "0.7rem" }}>{fmt(Number(curSais.ca_total_jour))} €/jour × {JOURS_MOIS[new Date().getMonth()]} jours</div>
+                      )}
+                    </div>
+
+                    <div style={{ borderTop: "1px solid #f0e2cc", paddingTop: "0.8rem" }}>
+                      <div style={{ color: "#8a6a4a", fontSize: "0.74rem", fontWeight: 600 }}>Moyenne sur l'année</div>
+                      <div style={{ display: "flex", alignItems: "baseline", gap: "6px" }}>
+                        <span style={{ color: "#3d1a0a", fontSize: "1.4rem", fontWeight: 800 }}>{caAnnuelMoyen != null ? fmt(caAnnuelMoyen) : "—"}</span>
+                        <span style={{ color: "#3d1a0a", fontSize: "1rem", fontWeight: 800 }}>€ / mois</span>
+                      </div>
+                      {caAnnuelMoyen != null && (
+                        <div style={{ color: "#c8a878", fontSize: "0.7rem" }}>≈ {fmt(caAnnuelMoyen * 12)} € / an · sert de base à tous les ratios</div>
+                      )}
+                    </div>
+
+                    {ecart != null && Math.abs(ecart) > 200 && (
+                      <div style={{ marginTop: "0.7rem", background: ecart > 0 ? "#eaf5ee" : "#fdeceE", borderRadius: "10px", padding: "0.5rem 0.7rem", fontSize: "0.72rem", fontWeight: 600, color: ecart > 0 ? "#1f6e42" : "#e8213a" }}>
+                        {ecart > 0 ? "▲" : "▼"} {moisNom} est {fmt(Math.abs(ecart))} € {ecart > 0 ? "au-dessus" : "en dessous"} d'un mois moyen
+                      </div>
+                    )}
+
+                    <div style={{ color: "#c8a878", fontSize: "0.66rem", marginTop: "0.7rem" }}>
+                      Calculé depuis tes ventes réelles, caisse et Uber inclus. Plus rien à saisir.
+                    </div>
+                  </div>
+                );
+              })()}
 
               </>)}
               {show("essentiel") && (<>
