@@ -159,8 +159,14 @@ function coefSaison(saisonnalite: any[]): number {
   return Number(cur.ca_total_jour) / moyenne;
 }
 
-// Quantité suggérée à commander, dans l'unité de comptage du stock
-const JOURS_COUVERTURE = 7;
+// Quantité suggérée à commander, dans l'unité de comptage du stock.
+//
+// 14 jours et non 7 : la marchandise de Sekai (fromage, saucisse, surgelés) se
+// garde des mois, donc sur-stocker ne fait rien perdre — ça n'immobilise que de
+// la trésorerie, temporairement. À l'inverse une rupture coûte une journée de
+// vente (jusqu'à 1 400 € un samedi). L'asymétrie est écrasante : mieux vaut
+// deux semaines d'avance qu'un jour de rupture.
+const JOURS_COUVERTURE = 14;
 function qteACommander(item, coef: number): number | null {
   if (!item.conso_jour) return null;
   const lot = Number(item.unites_par_lot) || 1;

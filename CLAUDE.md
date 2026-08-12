@@ -422,6 +422,30 @@ calculée depuis les recettes × les ventes de juillet 2026 majorées de 17 % po
 hors-bornes. La liste à commander en déduit une quantité, pondérée par le coefficient
 de saisonnalité du mois en cours, sur 7 jours de couverture.
 
+### Le vrai problème de stock : la rupture, pas la perte
+
+**Posé par le gérant le 12/08/2026 — à ne jamais réécrire dans l'autre sens.**
+
+*« Au Sekai on perd très peu de marchandises car nos marchandises durent longtemps,
+le fromage et la saucisse peuvent durer des mois. Le souci c'est qu'on gère mal
+car on n'a pas de stock dispo. »*
+
+Conséquences, toutes importantes :
+
+- **Ne pas chercher du gaspillage matière** : il n'y en a quasiment pas. L'écart de
+  ~1 500 €/mois entre food cost réel (19 %) et théorique (14 %) vient d'ailleurs
+  (achats hors recettes, à-coups d'achat, portionnement), pas de la poubelle.
+- **Sur-stocker ne coûte presque rien** : la marchandise se garde des mois, donc le
+  seul coût est l'immobilisation de trésorerie, et elle est temporaire.
+- **Une rupture coûte une journée de vente** — jusqu'à 1 400 € un samedi. L'asymétrie
+  est écrasante : une semaine de stock en plus sur le fromage coûte ~317 € de cash
+  récupérable, une rupture de samedi coûte ~500 € de marge définitivement perdue.
+- **`JOURS_COUVERTURE` est donc passé de 7 à 14 jours** dans `App.tsx`. Ne pas le
+  redescendre au nom de la trésorerie : c'est un faux calcul d'économie.
+- L'inventaire garde son intérêt, mais **pour un autre motif** : séparer les achats
+  de la consommation réelle (les achats sont irréguliers alors que la conso est
+  régulière) et fiabiliser les seuils — pas pour traquer des pertes.
+
 ⚠️ **`stock.unites_par_lot` vaut 1 partout**, faute de connaître les conditionnements.
 Tant que c'est le cas, les suggestions sont exprimées en unités de recette et non en
 paquets ou cartons. À renseigner pour que les quantités deviennent exploitables.
@@ -489,8 +513,10 @@ en Menu Good Deal.
   le CA par les jours du calendrier au lieu des jours mesurés sous-estime le CA mensuel.
 - Le dimanche 15/03/2026 est désormais **le seul jour sans vente de tout l'historique**.
   À confirmer : vraie fermeture exceptionnelle, ou trou de données ?
-- Écart matière : ~17,5 % réel (ligne « Courses ») contre ~14 % théorique en recettes.
-  Environ 1 200 €/mois de perte/gaspillage. À investiguer par inventaire si besoin.
+- Écart matière : ~19 % réel (ligne « Courses ») contre ~14 % théorique en recettes,
+  soit ~1 500 €/mois. ⚠️ **Ce n'est PAS du gaspillage** — voir « Le vrai problème de
+  stock » ci-dessous. Les causes probables sont les achats hors recettes (entretien,
+  huile, emballages), les à-coups d'achat, et le sur-portionnement.
 - ~~Le jeudi sans explication~~ — **élucidé le 12/08/2026, voir la section dédiée.**
   Ce n'est pas une anomalie à réparer mais un creux de flux piéton, structurel et permanent.
 - **8 articles Rue Neuve** portent encore une quantité en toutes lettres et sont donc
