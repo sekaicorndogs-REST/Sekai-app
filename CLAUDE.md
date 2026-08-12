@@ -112,6 +112,13 @@ toutes deux à coût nul :
 - **Horaires** : lun–ven 12h–20h · sam 13h–21h · dim 14h–20h = **54 h/semaine**.
   Le jeudi a les mêmes horaires que le mercredi, ce qui rend son écart de 180 €/jour
   d'autant plus anormal.
+- **Capacité de service : deux personnes tiennent jusqu'à 1 350 €/jour** (tout compris),
+  au-delà il en faut trois (gérant, 12/08/2026). C'est la règle qui pilote
+  `saisonnalite.effectif_semaine` / `effectif_weekend`, recalculés depuis `ventes`.
+  Résultat : **2 personnes en semaine tous les mois de l'année, 3 le samedi** (sauf juin,
+  1 309 €). Aucune moyenne hebdomadaire ne dépasse 1 350 € — seul le samedi le fait.
+  ⚠️ Le dimanche (685 €) est noyé dans la moyenne « week-end » : ne pas mettre 3 personnes
+  le dimanche sous prétexte que c'est le week-end, c'est le samedi qui porte la charge.
 - **Capacité ~50 corndogs/heure.** Le samedi, le meilleur jour, tourne autour de
   20/heure — soit **40 % d'utilisation**. ⚠️ **Le goulot n'est pas la production.**
   Tout investissement en capacité de cuisine est à écarter tant que ce ratio ne monte pas.

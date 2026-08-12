@@ -4934,7 +4934,7 @@ export default function App() {
                         );
                       })}
                       <div style={{ color: "#c8a878", fontSize: "0.66rem", marginTop: "0.6rem", lineHeight: 1.5 }}>
-                        Trait vertical = ton seuil de {fmt(objJour)} €/jour · <strong>Xp/Yp</strong> = effectif conseillé semaine/week-end · basé sur 16 mois de ventes
+                        Trait vertical = ton seuil de {fmt(objJour)} €/jour · <strong>Xp/Yp</strong> = effectif conseillé semaine/samedi · deux personnes tiennent jusqu'à 1 350 €/jour, au-delà il en faut trois
                       </div>
                     </div>
 
