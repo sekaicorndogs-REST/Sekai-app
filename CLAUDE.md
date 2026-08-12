@@ -41,8 +41,61 @@ Il contient le contexte métier durable. **À mettre à jour dès qu'une donnée
 
 Le samedi pèse 23 % de la semaine, le dimanche 8,7 %. Le dimanche a le meilleur
 ticket mais deux fois moins de flux à l'heure — il reste rentable à ouvrir en
-raisonnement marginal (les charges fixes tombent de toute façon). Le jeudi est
-l'anomalie à creuser : même amplitude horaire qu'un mercredi, 180 € de moins.
+raisonnement marginal (les charges fixes tombent de toute façon).
+
+### Le jeudi — élucidé le 12/08/2026, sujet clos
+
+**Ce n'est pas une anomalie, c'est un creux de flux piéton.** Il est présent
+**tous les mois sans exception** sur les douze mesurés, donc structurel et permanent.
+Il n'est apparu à aucune date : ne pas chercher d'événement déclencheur.
+
+| Mois | Mer | **Jeu** | Ven | Écart du jeudi |
+|---|---|---|---|---|
+| Août 25 | 740 | 712 | 984 | −150 |
+| Sept 25 | 794 | 789 | 828 | −22 |
+| Oct 25 | 999 | 779 | 1 059 | −249 |
+| Nov 25 | 799 | 614 | 942 | −257 |
+| Déc 25 | 1 072 | 691 | 1 069 | **−380** |
+| Jan 26 | 655 | 516 | 785 | −204 |
+| Fév 26 | 881 | 715 | 709 | −80 |
+| Mars 26 | 672 | 466 | 729 | −235 |
+| Avr 26 | 1 069 | 997 | 998 | −36 |
+| Mai 26 | 919 | 726 | 980 | −224 |
+| Juin 26 | 918 | 660 | 609 | −104 |
+| Juil 26 | 1 033 | 938 | 1 085 | −122 |
+
+⚠️ Septembre (−22) et avril (−36) sont les mois où l'écart est le plus faible. **Ne pas
+conclure depuis un seul mois que le jeudi va bien** — l'erreur a été commise une fois.
+
+**C'est le flux qui manque, pas le ticket** — donc ni l'équipe ni la vente ne sont en cause :
+
+| | Commandes/jour | Ticket |
+|---|---|---|
+| Mercredi | 72,2 | 12,42 € |
+| **Jeudi** | **60,5** | 12,02 € |
+| Vendredi | 74,6 | 12,14 € |
+
+**Le trou est concentré de 14h à 16h.** À 12h le jeudi est le *meilleur* des trois jours
+(91 € contre 81 et 67). Puis il décroche : −30 à −40 €/heure sur 14h-16h, soit ~100 € des
+170 € manquants.
+
+| Heure | Mer | **Jeu** | Ven |
+|---|---|---|---|
+| 12h | 81 | **91** | 67 |
+| 13h | 124 | 102 | 121 |
+| **14h** | 122 | **81** | 94 |
+| **15h** | 117 | **91** | 124 |
+| **16h** | 117 | **92** | 129 |
+| 17h | 134 | 117 | 144 |
+| 19h | 95 | 66 | 106 |
+
+**Conséquence pour l'action :** ne pas tenter de « réparer » le jeudi. Deux options,
+toutes deux à coût nul :
+1. **Réduire l'effectif le jeudi 14h-17h** — 60 commandes sur la tranche, deux personnes
+   suffisent. ~150 €/mois de masse salariale, disponible immédiatement. **Recommandé**,
+   parce que ça rentre du cash tout de suite (contrainte trésorerie zéro).
+2. Créer une offre nommée limitée au créneau jeudi 14h-17h pour attaquer la cause.
+   Demande un test sur plusieurs semaines avant de savoir si ça marche.
 - Juillet 2026 mesuré en entier : 970 €/j bornes (1 128 €/j du 1-18, puis 751 €/j du 19-31).
   La première quinzaine de juillet (soldes) n'est pas représentative du mois.
 - Marge nette ~17 %, soit ~5 100 €/mois
@@ -291,7 +344,11 @@ Les XL (lancés le 30/07) ne peuvent pas expliquer une rupture au 25/07.
 | 21–31/07 | 644 | — | 13,25 € | 48,4 |
 | **1–11/08** | **796** | **10 949 €** | **13,76 €** | **~53** |
 
-Hors-bornes d'août à 270 €/j (voir plus haut) → **~1 265 €/jour tout compris**.
+Hors-bornes d'août à 270 €/j (voir plus haut) → **~1 265 €/jour tout compris**, soit
+**~39 200 €** si le rythme tient sur le mois entier. **C'est le meilleur mois de tout
+l'historique**, devant décembre (1 159 €/j) et avril (1 156 €/j), et 25 % au-dessus de la
+moyenne annuelle de 1 035 €/j. Contre août 2025 : +50 €/j aux bornes, mais surtout un
+ticket qui passe de ~12,50 € à 13,76 € — la hausse ne vient donc pas que de la saison.
 
 **995 €/jour aux bornes**, contre 945 € en août 2025 et 751 € sur la fin juillet 2026.
 L'objection « c'est juste la saison » tombe : le ticket monte *en même temps* que la
@@ -434,8 +491,8 @@ en Menu Good Deal.
   À confirmer : vraie fermeture exceptionnelle, ou trou de données ?
 - Écart matière : ~17,5 % réel (ligne « Courses ») contre ~14 % théorique en recettes.
   Environ 1 200 €/mois de perte/gaspillage. À investiguer par inventaire si besoin.
-- **Le jeudi à 718 €/jour**, contre 900 € le mercredi et 912 € le vendredi, à horaires
-  identiques. ~8 600 €/an d'écart sans explication. À observer sur place.
+- ~~Le jeudi sans explication~~ — **élucidé le 12/08/2026, voir la section dédiée.**
+  Ce n'est pas une anomalie à réparer mais un creux de flux piéton, structurel et permanent.
 - **8 articles Rue Neuve** portent encore une quantité en toutes lettres et sont donc
   aveugles aux alertes, dont la Saucisse. À chiffrer.
 - **FOOD EX n'a pas été compté depuis 33 jours** (constaté le 11/08/2026).
@@ -478,7 +535,7 @@ Par ordre de valeur, avec les montants estimés :
 | 4 | Baisser le food cost event de 18 % à 13 % dans le formulaire | 500 €/event | à faire |
 | 5 | Carte de fidélité | non chiffré | à faire |
 | 7 | Négocier les 7 fournisseurs (jamais fait) | 180 € | à faire |
-| 8 | Traiter l'anomalie du jeudi | 700 € | à faire |
+| 8 | Retirer une personne le jeudi 14h-17h (voir « Le jeudi ») | ~150 € | à faire |
 
 ⚠️ **Ne pas investir dans la cuisine** : elle tourne à 40 % de sa capacité.
 
