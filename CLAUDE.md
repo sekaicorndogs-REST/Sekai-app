@@ -446,9 +446,24 @@ Conséquences, toutes importantes :
   de la consommation réelle (les achats sont irréguliers alors que la conso est
   régulière) et fiabiliser les seuils — pas pour traquer des pertes.
 
-⚠️ **`stock.unites_par_lot` vaut 1 partout**, faute de connaître les conditionnements.
-Tant que c'est le cas, les suggestions sont exprimées en unités de recette et non en
-paquets ou cartons. À renseigner pour que les quantités deviennent exploitables.
+### Unités de comptage : **tout se compte en PAQUETS** (gérant, 12/08/2026)
+
+Saucisse, fromage, barquettes, frites, panko — le comptage se fait en paquets, jamais
+en cartons ni en pièces. `stock.unites_par_lot` = nombre d'unités de recette par paquet :
+
+| Article | 1 paquet = | `conso_jour` est en | `unites_par_lot` | Conso réelle |
+|---|---|---|---|---|
+| **Fromage** | 32 morceaux = **16 pièces Mozza** | pièces Mozza (1 pièce = 2 morceaux) | **16** | 4,33 paquets/jour |
+| **Saucisse** | **12 saucisses** | saucisses entières | **12** | 4,71 paquets/jour |
+| Barquettes, Frites, Panko | à renseigner | — | 1 | — |
+
+⚠️ Le fromage se compte en **pièces Mozza dans les recettes** (`quantite` = 1 pour un
+full mozza, 0,5 pour un moitié-moitié), donc 2 morceaux par pièce. Ne pas confondre les
+deux unités : c'est un facteur 2 sur toute la couverture de stock.
+
+Seuils recalés sur **10 jours** de consommation (fromage 44 paquets, saucisse 48).
+L'ancien seuil de la saucisse était de 10 paquets, soit **2 jours** — c'est très
+probablement la cause des ruptures répétées.
 
 Trois articles restent sans `conso_jour` — Céréales, Nouilles, Baguette — parce que ce
 sont des chapelures alternatives absentes des recettes de base : leur consommation
