@@ -386,21 +386,36 @@ async function deleteUser(id) {
 // ── VENTES API (import CSV caisse/bornes) ──────────────────
 // Récupère tout l'historique par pages : un plafond fixe tronquait silencieusement
 // les statistiques (jour de semaine, saisonnalité) aux dernières semaines.
+// PostgREST plafonne à 1 000 lignes par requête. On demande d'abord le nombre total
+// (requête vide + en-tête Content-Range), puis on tire toutes les pages EN PARALLÈLE.
+// En série, les 26 000 ventes prenaient 27 allers-retours enchaînés.
 async function fetchVentes() {
   const PAGE = 1000;
-  const tout: any[] = [];
-  for (let offset = 0; offset <= 200000; offset += PAGE) {
-    const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/ventes?select=date_commande,prix,mode_livraison`
-      + `&order=date_commande.desc&limit=${PAGE}&offset=${offset}`,
-      { headers: HEADERS }
-    );
+  const base = `${SUPABASE_URL}/rest/v1/ventes?select=date_commande,prix,mode_livraison&order=date_commande.desc`;
+  const page = async (offset: number) => {
+    const res = await fetch(`${base}&limit=${PAGE}&offset=${offset}`, { headers: HEADERS });
     if (!res.ok) throw new Error("Fetch ventes failed");
-    const page = await res.json();
-    tout.push(...page);
-    if (page.length < PAGE) break;
+    return res.json();
+  };
+
+  const tete = await fetch(`${base}&limit=1`, { headers: { ...HEADERS, Prefer: "count=exact" } });
+  if (!tete.ok) throw new Error("Fetch ventes failed");
+  const total = parseInt((tete.headers.get("content-range") || "").split("/")[1] || "", 10);
+
+  // Repli séquentiel si le total n'est pas exploitable (en-tête absent ou masqué).
+  if (!Number.isFinite(total)) {
+    const tout: any[] = [];
+    for (let offset = 0; offset <= 200000; offset += PAGE) {
+      const p = await page(offset);
+      tout.push(...p);
+      if (p.length < PAGE) break;
+    }
+    return tout;
   }
-  return tout;
+
+  const offsets = Array.from({ length: Math.ceil(total / PAGE) }, (_, i) => i * PAGE);
+  const pages = await Promise.all(offsets.map(page));
+  return pages.flat();
 }
 
 // ── ACTIONS DE CONVERSION (faire commander plus de menus) ──
@@ -1071,7 +1086,12 @@ export default function App() {
   const [allUsers, setAllUsers] = useState([]);
   const [ventes, setVentes] = useState<any[]>([]);
   const [periodes, setPeriodes] = useState<any[]>([]);
-  const [saisonnalite, setSaisonnalite] = useState<any[]>([]);
+  // Hydratée depuis le cache local : la saisonnalité pilote le CA et donc tous les
+  // ratios du Résumé. Sans ce cache, le premier rendu affichait des chiffres faux
+  // pendant une seconde, le temps que la requête revienne.
+  const [saisonnalite, setSaisonnalite] = useState<any[]>(() => {
+    try { return JSON.parse(localStorage.getItem("sekai_saisonnalite") || "[]"); } catch { return []; }
+  });
   const [joursFeries, setJoursFeries] = useState<any[]>([]);
   const [topProduits, setTopProduits] = useState<any[]>([]);
   const [ventesProduits, setVentesProduits] = useState<any[]>([]);
@@ -1608,14 +1628,26 @@ export default function App() {
 
   // ── Documents handlers ──
   async function loadVentes() {
-    try { setVentes(await fetchVentes()); }
-    catch { /* silencieux : les ventes sont optionnelles */ }
-    try { setPeriodes(await fetchPeriodes()); } catch {}
-    try { setJoursSpeciaux(await fetchJoursSpeciaux()); } catch {}
-    try { setSaisonnalite(await fetchSaisonnalite()); } catch {}
-    try { setJoursFeries(await fetchJoursFeries()); } catch {}
-    try { setTopProduits(await fetchTopProduits()); } catch {}
-    try { setVentesProduits(await fetchVentesProduits()); } catch {}
+    // La saisonnalité d'abord et seule : 12 lignes, mais c'est elle qui donne le CA
+    // et donc tous les indicateurs affichés en haut de l'écran. Elle partait avant
+    // derrière les 26 000 lignes de `ventes`, d'où le saut de chiffres à l'ouverture.
+    try {
+      const s = await fetchSaisonnalite();
+      setSaisonnalite(s);
+      localStorage.setItem("sekai_saisonnalite", JSON.stringify(s));
+    } catch {}
+    // Le reste en parallèle : ces requêtes ne dépendent pas les unes des autres.
+    // En série, chaque aller-retour s'ajoutait au précédent.
+    const set = <T,>(f: () => Promise<T>, apply: (v: T) => void) =>
+      f().then(apply).catch(() => { /* ces données sont optionnelles */ });
+    await Promise.allSettled([
+      set(fetchVentes, setVentes),
+      set(fetchPeriodes, setPeriodes),
+      set(fetchJoursSpeciaux, setJoursSpeciaux),
+      set(fetchJoursFeries, setJoursFeries),
+      set(fetchTopProduits, setTopProduits),
+      set(fetchVentesProduits, setVentesProduits),
+    ]);
   }
   async function handleMarquerJour(date: string, motif: string) {
     const labels: Record<string, string> = { greve: "Grève / manifestation", meteo: "Mauvaise météo", ferie: "Jour férié", travaux: "Travaux / accès bloqué", panne: "Panne borne / incident", autre: "Autre" };
