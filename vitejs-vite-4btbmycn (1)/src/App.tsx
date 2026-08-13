@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Package, Calendar, CreditCard, Users, UserCircle, ArrowLeft, RefreshCw, AlertTriangle, AlertCircle, CheckCircle, Pencil, Save, Eye, EyeOff, Check, Lock, User, ArrowRight, Trash2, Plus, ChevronRight, Settings, LogOut, Shield, Star, ListChecks, FileText, Wallet, Target, Lightbulb, Banknote, Receipt, PartyPopper, Utensils, Heart, TrendingUp, Coins, PiggyBank, HandCoins, Percent, Moon, Clock, Box, Home, X } from "lucide-react";
+import { Package, Calendar, CreditCard, Users, UserCircle, ArrowLeft, RefreshCw, AlertTriangle, AlertCircle, CheckCircle, Pencil, Save, Eye, EyeOff, Check, Lock, User, ArrowRight, Trash2, Plus, ChevronRight, Settings, LogOut, Shield, Star, ListChecks, FileText, Wallet, Target, Lightbulb, Banknote, Receipt, PartyPopper, Utensils, Heart, TrendingUp, Coins, PiggyBank, HandCoins, Percent, Moon, Clock, Box, Home, X, BarChart3 } from "lucide-react";
 import { computeIndicateurs, masseColor as calcMasseColor, masseLabel as calcMasseLabel } from "./finances";
 
 const SUPABASE_URL = "https://ldpxgfgcnlzktaymtnwd.supabase.co";
@@ -1202,7 +1202,7 @@ export default function App() {
   // Finances
   const [dettes, setDettes] = useState<any[]>([]);
   const [charges, setCharges] = useState<any[]>([]);
-  const [financesView, setFinancesView] = useState<"dettes"|"charges"|"resume"|"taches"|"event"|"carte"|"sante"|"maroc">("resume");
+  const [financesView, setFinancesView] = useState<"sorties"|"resume"|"taches"|"event"|"carte"|"maroc">("resume");
   // Projet Maroc (privé — Abdel & Mohammed uniquement)
   const [marocProjet, setMarocProjet] = useState<any>(null);
   const [marocLignes, setMarocLignes] = useState<any[]>([]);
@@ -3934,12 +3934,33 @@ export default function App() {
             <button onClick={() => { loadFinances(); loadTodoTaches(); }} style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#a07848", borderRadius: "8px", padding: "0.3rem 0.6rem", fontSize: "0.8rem", cursor: "pointer" }}><RefreshCw size={16} /></button>
           </div>
           <div style={{ display: "flex", gap: "0.4rem", overflowX: "auto", paddingBottom: "0.5rem" }}>
-            {[{id:"resume",label:"Résumé",Icon:Heart},{id:"dettes",label:"Dettes",Icon:Banknote},{id:"charges",label:"Charges",Icon:Receipt},{id:"event",label:"Event",Icon:PartyPopper},{id:"carte",label:"Carte",Icon:Utensils},{id:"taches",label:"Tâches",Icon:ListChecks}, ...(canSeeMaroc ? [{id:"maroc",label:"Maroc",Icon:Target}] : [])].map(tab => (
-              <button key={tab.id} onClick={() => { setFinancesView(tab.id as any); if(tab.id==="maroc") loadMaroc(); if(tab.id==="carte") loadMenu();if(tab.id==="sante"||tab.id==="resume") loadFinances(); if(tab.id==="event") { setEventView("historique"); setShowEventForm(false); loadEvents(); } }}
-                style={{ background: financesView === tab.id ? "#e8213a" : "#fff", color: financesView === tab.id ? "#fff" : "#a07848", border: `1px solid ${financesView === tab.id ? "#e8213a" : "#efe0c9"}`, borderRadius: "20px", padding: "0.4rem 0.85rem", fontSize: "0.78rem", fontFamily: "'Poppins', sans-serif", fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap", display: "flex", alignItems: "center", gap: "5px" }}>
+            {/* Une seule rangée. « Essentiel » et « Stats » ouvrent tous deux le
+                Résumé, sur l'une ou l'autre de ses deux sections. */}
+            {[
+              {id:"essentiel", label:"Essentiel", Icon:Heart,      vue:"resume",  section:"essentiel"},
+              {id:"stats",     label:"Stats",     Icon:BarChart3,  vue:"resume",  section:"stats"},
+              {id:"sorties",   label:"Charges",   Icon:Receipt,    vue:"sorties"},
+              {id:"carte",     label:"Carte",     Icon:Utensils,   vue:"carte"},
+              {id:"event",     label:"Event",     Icon:PartyPopper,vue:"event"},
+              {id:"taches",    label:"Tâches",    Icon:ListChecks, vue:"taches"},
+              ...(canSeeMaroc ? [{id:"maroc", label:"Maroc", Icon:Target, vue:"maroc"}] : []),
+            ].map(tab => {
+              const actif = tab.section
+                ? financesView === "resume" && resumeSection === tab.section
+                : financesView === tab.vue;
+              return (
+              <button key={tab.id} onClick={() => {
+                  setFinancesView(tab.vue as any);
+                  if (tab.section) { setResumeSection(tab.section); loadFinances(); }
+                  if (tab.vue === "sorties") loadFinances();
+                  if (tab.vue === "maroc") loadMaroc();
+                  if (tab.vue === "carte") loadMenu();
+                  if (tab.vue === "event") { setEventView("historique"); setShowEventForm(false); loadEvents(); }
+                }}
+                style={{ background: actif ? "#e8213a" : "#fff", color: actif ? "#fff" : "#a07848", border: `1px solid ${actif ? "#e8213a" : "#efe0c9"}`, borderRadius: "20px", padding: "0.4rem 0.85rem", fontSize: "0.78rem", fontFamily: "'Poppins', sans-serif", fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap", display: "flex", alignItems: "center", gap: "5px" }}>
                 <tab.Icon size={14} /> {tab.label}
               </button>
-            ))}
+            );})}
           </div>
         </div>
 
@@ -4262,7 +4283,7 @@ export default function App() {
         })()}
 
         {/* ── DETTES ── */}
-        {financesView === "dettes" && (
+        {financesView === "sorties" && (
           <div style={{ padding: "0.8rem 1.1rem" }}>
             {financesLoading && <div style={{ textAlign: "center", padding: "2rem", color: "#e8213a" }}>Chargement...</div>}
             {!financesLoading && (
@@ -4342,7 +4363,7 @@ export default function App() {
         )}
 
         {/* ── CHARGES ── */}
-        {financesView === "charges" && (
+        {financesView === "sorties" && (
           <div style={{ padding: "0.8rem 1.1rem" }}>
             <div style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "12px", padding: "0.9rem 1rem", marginBottom: "1rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div>
@@ -4559,15 +4580,11 @@ export default function App() {
           );
 
           // Filtre de sections
-          const SECTIONS = [
-            { id: "essentiel", label: "Essentiel", Icon: Heart },
-            { id: "ventes", label: "Ventes", Icon: Receipt },
-            { id: "annee", label: "Année", Icon: Calendar },
-            { id: "produits", label: "Produits", Icon: Utensils },
-            { id: "personnel", label: "Personnel", Icon: Users },
-            { id: "dettes", label: "Dettes", Icon: Banknote },
-          ];
-          const show = (s: string) => resumeSection === s;
+          // Deux sections seulement : ce qu'on regarde tous les jours, et le reste.
+          // « ventes / annee / produits / personnel / dettes » étaient cinq onglets
+          // distincts ; ils forment désormais une seule page Stats qui se déroule.
+          const show = (s: string) =>
+            s === "essentiel" ? resumeSection === "essentiel" : resumeSection === "stats";
 
           // CA moyen par jour de semaine (données réelles)
           const JOURS_N = ["Dimanche","Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"];
@@ -4597,15 +4614,8 @@ export default function App() {
 
           return (
             <div style={{ padding: "0.9rem 1rem", display: "flex", flexDirection: "column", gap: "0.7rem" }}>
-              {/* Filtres de section */}
-              <div style={{ display: "flex", gap: "0.35rem", overflowX: "auto", paddingBottom: "0.2rem", margin: "-0.2rem -0.2rem 0" }}>
-                {SECTIONS.map(s => (
-                  <button key={s.id} onClick={() => setResumeSection(s.id)}
-                    style={{ background: resumeSection === s.id ? "#e8213a" : "#fff", color: resumeSection === s.id ? "#fff" : "#a07848", border: `1px solid ${resumeSection === s.id ? "#e8213a" : "#efe0c9"}`, borderRadius: "20px", padding: "0.4rem 0.8rem", fontSize: "0.75rem", fontWeight: 600, cursor: "pointer", fontFamily: "'Poppins', sans-serif", display: "flex", alignItems: "center", gap: "4px", flexShrink: 0, whiteSpace: "nowrap" as const }}>
-                    <s.Icon size={13} /> {s.label}
-                  </button>
-                ))}
-              </div>
+              {/* Le choix Essentiel / Stats se fait dans la barre du haut : plus de
+                  seconde rangée d'onglets. */}
 
               {/* ── BANDEAU PRIORITAIRE (toujours visible) ── */}
               {ca > 0 && (
@@ -4717,6 +4727,7 @@ export default function App() {
 
               </>)}
               {show("ventes") && (<>
+              <div style={{ color: "#e8213a", fontSize: "0.7rem", fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase" as const, margin: "0.9rem 0 -0.1rem", display: "flex", alignItems: "center", gap: "6px", borderTop: "1.5px solid #f0d8b8", paddingTop: "0.9rem" }}><Receipt size={13} /> Ventes</div>
               {/* ── VENTES RÉELLES ── */}
               {vNb > 0 && (
                 <>
@@ -4958,6 +4969,7 @@ export default function App() {
 
               </>)}
               {show("annee") && (<>
+              <div style={{ color: "#e8213a", fontSize: "0.7rem", fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase" as const, margin: "0.9rem 0 -0.1rem", display: "flex", alignItems: "center", gap: "6px", borderTop: "1.5px solid #f0d8b8", paddingTop: "0.9rem" }}><Calendar size={13} /> Année & planning</div>
               {/* ── ANNÉE & PLANNING ── */}
               {saisonnalite.length > 0 && (() => {
                 const moisNow = new Date().getMonth() + 1;
@@ -5054,6 +5066,7 @@ export default function App() {
 
               </>)}
               {show("produits") && (<>
+              <div style={{ color: "#e8213a", fontSize: "0.7rem", fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase" as const, margin: "0.9rem 0 -0.1rem", display: "flex", alignItems: "center", gap: "6px", borderTop: "1.5px solid #f0d8b8", paddingTop: "0.9rem" }}><Utensils size={13} /> Produits</div>
               {/* ── TOP PRODUITS ── */}
               {topProduits.length > 0 && (() => {
                 const margeTot = topProduits.reduce((s, p) => s + Number(p.marge_jour || 0), 0);
@@ -5165,8 +5178,9 @@ export default function App() {
 
               </>)}
               {show("personnel") && (<>
+              <div style={{ color: "#e8213a", fontSize: "0.7rem", fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase" as const, margin: "0.9rem 0 -0.1rem", display: "flex", alignItems: "center", gap: "6px", borderTop: "1.5px solid #f0d8b8", paddingTop: "0.9rem" }}><Users size={13} /> Personnel & charges</div>
               {/* Liaison avec les charges */}
-              <button onClick={() => setFinancesView("charges")} style={{ ...CARD, width: "100%", padding: "0.7rem 0.9rem", display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer", fontFamily: "'Poppins', sans-serif" }}>
+              <button onClick={() => setFinancesView("sorties")} style={{ ...CARD, width: "100%", padding: "0.7rem 0.9rem", display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer", fontFamily: "'Poppins', sans-serif" }}>
                 <span style={{ color: "#a07848", fontSize: "0.78rem", display: "flex", alignItems: "center", gap: "6px" }}><CreditCard size={15} color="#e8213a" /> {charges.length} charges = <strong style={{ color: "#3d1a0a" }}>{fmt(totalCharges)} €</strong></span>
                 <span style={{ color: "#e8213a", fontSize: "0.75rem", fontWeight: 600, display: "flex", alignItems: "center" }}>Modifier <ChevronRight size={15} /></span>
               </button>
@@ -5265,6 +5279,7 @@ export default function App() {
 
               </>)}
               {show("dettes") && (<>
+              <div style={{ color: "#e8213a", fontSize: "0.7rem", fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase" as const, margin: "0.9rem 0 -0.1rem", display: "flex", alignItems: "center", gap: "6px", borderTop: "1.5px solid #f0d8b8", paddingTop: "0.9rem" }}><Banknote size={13} /> Dettes</div>
               {/* ═══ RÉCAP DETTES ═══ */}
               <div style={{ color: "#3d1a0a", fontSize: "0.92rem", fontWeight: 700, margin: "0.6rem 0 0.1rem", display: "flex", alignItems: "center", gap: "6px" }}><CreditCard size={17} color="#e8213a" /> Récap dettes & mensualités</div>
               {moisDettes && (
