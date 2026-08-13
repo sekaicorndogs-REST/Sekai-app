@@ -316,6 +316,18 @@ async function fetchParametre(cle) {
   return rows.length ? rows[0].valeur : null;
 }
 
+// La table `parametres` tient en quelques lignes : on la ramène d'un coup plutôt
+// qu'une requête par clé, et on la garde en cache pour que le premier rendu du
+// bandeau des courses soit déjà le bon.
+async function fetchTousParametres(): Promise<Record<string, string>> {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/parametres?select=cle,valeur`, { headers: HEADERS });
+  if (!res.ok) throw new Error("Fetch parametres failed");
+  const rows = await res.json();
+  const map: Record<string, string> = {};
+  rows.forEach((r: any) => { map[r.cle] = r.valeur; });
+  return map;
+}
+
 async function upsertParametre(cle, valeur, updatedBy) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/parametres`, {
     method: "POST",
@@ -1202,9 +1214,17 @@ export default function App() {
   const [caMoyen, setCaMoyen] = useState(() => localStorage.getItem("sekai_ca_moyen") || "30000");
   // CA quotidien qui ne passe PAS par les bornes (caisse + Uber Eats)
   const [caHorsBornes, setCaHorsBornes] = useState(() => localStorage.getItem("sekai_ca_hors_bornes") || "150");
-  const [coursesOrdre, setCoursesOrdre] = useState<string[]>([]);
-  const [coursesAncrage, setCoursesAncrage] = useState("");
-  const [remplacements, setRemplacements] = useState<Record<string, string>>({});
+  // Comme la saisonnalité : on repart du dernier état connu pour que le bandeau
+  // « qui fait les courses » s'affiche juste du premier coup, sans changer de nom
+  // une seconde plus tard.
+  const [coursesOrdre, setCoursesOrdre] = useState<string[]>(() => {
+    const v = localStorage.getItem("sekai_courses_ordre");
+    return v ? v.split(",").map(x => x.trim()).filter(Boolean) : [];
+  });
+  const [coursesAncrage, setCoursesAncrage] = useState(() => localStorage.getItem("sekai_courses_ancrage") || "");
+  const [remplacements, setRemplacements] = useState<Record<string, string>>(() => {
+    try { return JSON.parse(localStorage.getItem("sekai_remplacements") || "{}"); } catch { return {}; }
+  });
   const [choixRemplacant, setChoixRemplacant] = useState(false);
   const [menuProduits, setMenuProduits] = useState<any[]>([]);
   const [menuRecettes, setMenuRecettes] = useState<any[]>([]);
@@ -1341,21 +1361,28 @@ export default function App() {
     }
   }, []);
 
-  // Charge la valeur partagée « caisse + Uber / jour » (commune à tous)
-  useEffect(() => {
-    fetchParametre("ca_hors_bornes")
-      .then(v => { if (v != null) { setCaHorsBornes(v); localStorage.setItem("sekai_ca_hors_bornes", v); } })
-      .catch(() => { /* on garde la valeur locale par défaut */ });
-  }, []);
+  // « caisse + Uber / jour » arrive avec le reste de la table `parametres`,
+  // dans l'effet unique ci-dessus. Plus de requête dédiée.
 
   // Rotation des courses : qui s'en occupe cette semaine
+  // Une seule requête pour toute la table `parametres`, et les remplacements en
+  // parallèle. Avant : trois requêtes enchaînées, une par clé.
   useEffect(() => {
-    fetchParametre("courses_ordre")
-      .then(v => setCoursesOrdre(v ? String(v).split(",").map(x => x.trim()).filter(Boolean) : []))
-      .catch(() => {});
-    fetchParametre("courses_ancrage")
-      .then(v => { if (v) setCoursesAncrage(String(v)); })
-      .catch(() => {});
+    fetchTousParametres()
+      .then(p => {
+        const ordre = p.courses_ordre ?? "";
+        setCoursesOrdre(ordre.split(",").map(x => x.trim()).filter(Boolean));
+        localStorage.setItem("sekai_courses_ordre", ordre);
+        if (p.courses_ancrage) {
+          setCoursesAncrage(p.courses_ancrage);
+          localStorage.setItem("sekai_courses_ancrage", p.courses_ancrage);
+        }
+        if (p.ca_hors_bornes != null) {
+          setCaHorsBornes(p.ca_hors_bornes);
+          localStorage.setItem("sekai_ca_hors_bornes", p.ca_hors_bornes);
+        }
+      })
+      .catch(() => { /* le cache local prend le relais */ });
     chargerRemplacements();
   }, []);
 
@@ -1365,6 +1392,7 @@ export default function App() {
       const map: Record<string, string> = {};
       rows.forEach((r: any) => { map[String(r.semaine)] = r.remplacant; });
       setRemplacements(map);
+      localStorage.setItem("sekai_remplacements", JSON.stringify(map));
     } catch { /* la rotation seule reste affichable */ }
   }
 
