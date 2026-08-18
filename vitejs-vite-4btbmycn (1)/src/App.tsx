@@ -4282,6 +4282,58 @@ export default function App() {
           );
         })()}
 
+        {/* ── CHARGES ── */}
+        {financesView === "sorties" && (
+          <div style={{ padding: "0.8rem 1.1rem" }}>
+            {/* Total unique : charges fixes + remboursements de dettes.
+                C'est ce chiffre qui donne l'objectif quotidien affiché en Essentiel. */}
+            <div style={{ background: "#3d1a0a", borderRadius: "14px", padding: "1rem", marginBottom: "1rem" }}>
+              <div style={{ color: "#f0d8b8", fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.08em" }}>SORTIES DU MOIS</div>
+              <div style={{ color: "#fff", fontSize: "1.75rem", fontWeight: 800, lineHeight: 1.15 }}>
+                {(totalChargesFixes + totalMensualites).toLocaleString("fr-BE", { maximumFractionDigits: 0 })} €
+              </div>
+              <div style={{ display: "flex", gap: "1.2rem", marginTop: "0.6rem", flexWrap: "wrap" as const }}>
+                <div>
+                  <div style={{ color: "#c8a878", fontSize: "0.66rem" }}>Charges fixes</div>
+                  <div style={{ color: "#fff", fontSize: "0.95rem", fontWeight: 700 }}>{totalChargesFixes.toLocaleString("fr-BE", { maximumFractionDigits: 0 })} €</div>
+                </div>
+                <div>
+                  <div style={{ color: "#c8a878", fontSize: "0.66rem" }}>Remboursements dettes</div>
+                  <div style={{ color: "#fff", fontSize: "0.95rem", fontWeight: 700 }}>{totalMensualites.toLocaleString("fr-BE", { maximumFractionDigits: 0 })} €</div>
+                </div>
+                <div>
+                  <div style={{ color: "#c8a878", fontSize: "0.66rem" }}>Soit par jour</div>
+                  <div style={{ color: "#8fd6a6", fontSize: "0.95rem", fontWeight: 700 }}>{Math.round((totalChargesFixes + totalMensualites) / 30).toLocaleString("fr-BE")} €</div>
+                </div>
+              </div>
+            </div>
+            <div style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "12px", padding: "0.9rem 1rem", marginBottom: "1rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div>
+                <div style={{ color: "#a07848", fontSize: "0.72rem", fontWeight: "600" }}>1 · CHARGES FIXES / MOIS</div>
+                <div style={{ color: "#3d1a0a", fontSize: "1.4rem", fontWeight: "bold" }}>{totalChargesFixes.toLocaleString("fr-BE", { minimumFractionDigits: 2 })} €</div>
+              </div>
+              <button onClick={() => { setNewChargeNom(""); setNewChargeMontant(""); setNewChargeCategorie("autre"); setShowAddCharge(true); }}
+                style={{ background: "#e8213a", color: "#fff", border: "none", borderRadius: "8px", padding: "0.5rem 0.9rem", fontSize: "0.82rem", fontWeight: "bold", cursor: "pointer", fontFamily: "'Poppins', sans-serif", display: "flex", alignItems: "center", gap: "4px" }}>
+                <Plus size={14} /> Ajouter
+              </button>
+            </div>
+            {charges.length === 0 && <div style={{ color: "#c8a878", textAlign: "center", padding: "2rem" }}>Aucune charge enregistrée</div>}
+            {charges.map(c => (
+              <div key={c.id} style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "12px", padding: "0.8rem 1rem", marginBottom: "0.5rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div>
+                  <div style={{ color: "#3d1a0a", fontSize: "0.9rem", fontWeight: "600" }}>{c.nom}</div>
+                  <div style={{ color: "#a07848", fontSize: "0.7rem" }}>{c.categorie}</div>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                  <div style={{ color: "#e8213a", fontSize: "0.95rem", fontWeight: "bold" }}>{parseFloat(c.montant).toLocaleString("fr-BE", { minimumFractionDigits: 2 })} €</div>
+                  <button onClick={() => setEditingCharge({ ...c })} style={{ background: "none", color: "#a07848", border: "none", cursor: "pointer" }}><Pencil size={15} /></button>
+                  <button onClick={() => handleDeleteCharge(c.id)} style={{ background: "none", color: "#c8a878", border: "none", cursor: "pointer" }}><Trash2 size={15} /></button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
         {/* ── DETTES ── */}
         {financesView === "sorties" && (
           <div style={{ padding: "0.8rem 1.1rem" }}>
@@ -4290,7 +4342,7 @@ export default function App() {
               <>
                 <div style={{ background: "#fff5f5", border: "1.5px solid #e8213a44", borderRadius: "12px", padding: "0.9rem 1rem", marginBottom: "1rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <div>
-                    <div style={{ color: "#e8213a", fontSize: "0.72rem", fontWeight: "600" }}>TOTAL DETTES RESTANTES</div>
+                    <div style={{ color: "#e8213a", fontSize: "0.72rem", fontWeight: "600" }}>2 · DETTES · TOTAL RESTANT</div>
                     <div style={{ color: "#e8213a", fontSize: "1.5rem", fontWeight: "bold" }}>{totalDettes.toLocaleString("fr-BE", { minimumFractionDigits: 2 })} €</div>
                   </div>
                   <button onClick={() => { setNewDetteNom(""); setNewDetteMontant(""); setNewDetteCategorie("autre"); setNewDetteAvecPlan(false); setNewDetteMensualite(""); setShowAddDette(true); }}
@@ -4359,36 +4411,6 @@ export default function App() {
                 })()}
               </>
             )}
-          </div>
-        )}
-
-        {/* ── CHARGES ── */}
-        {financesView === "sorties" && (
-          <div style={{ padding: "0.8rem 1.1rem" }}>
-            <div style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "12px", padding: "0.9rem 1rem", marginBottom: "1rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <div>
-                <div style={{ color: "#a07848", fontSize: "0.72rem", fontWeight: "600" }}>CHARGES FIXES / MOIS</div>
-                <div style={{ color: "#3d1a0a", fontSize: "1.4rem", fontWeight: "bold" }}>{totalChargesFixes.toLocaleString("fr-BE", { minimumFractionDigits: 2 })} €</div>
-              </div>
-              <button onClick={() => { setNewChargeNom(""); setNewChargeMontant(""); setNewChargeCategorie("autre"); setShowAddCharge(true); }}
-                style={{ background: "#e8213a", color: "#fff", border: "none", borderRadius: "8px", padding: "0.5rem 0.9rem", fontSize: "0.82rem", fontWeight: "bold", cursor: "pointer", fontFamily: "'Poppins', sans-serif", display: "flex", alignItems: "center", gap: "4px" }}>
-                <Plus size={14} /> Ajouter
-              </button>
-            </div>
-            {charges.length === 0 && <div style={{ color: "#c8a878", textAlign: "center", padding: "2rem" }}>Aucune charge enregistrée</div>}
-            {charges.map(c => (
-              <div key={c.id} style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "12px", padding: "0.8rem 1rem", marginBottom: "0.5rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <div>
-                  <div style={{ color: "#3d1a0a", fontSize: "0.9rem", fontWeight: "600" }}>{c.nom}</div>
-                  <div style={{ color: "#a07848", fontSize: "0.7rem" }}>{c.categorie}</div>
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                  <div style={{ color: "#e8213a", fontSize: "0.95rem", fontWeight: "bold" }}>{parseFloat(c.montant).toLocaleString("fr-BE", { minimumFractionDigits: 2 })} €</div>
-                  <button onClick={() => setEditingCharge({ ...c })} style={{ background: "none", color: "#a07848", border: "none", cursor: "pointer" }}><Pencil size={15} /></button>
-                  <button onClick={() => handleDeleteCharge(c.id)} style={{ background: "none", color: "#c8a878", border: "none", cursor: "pointer" }}><Trash2 size={15} /></button>
-                </div>
-              </div>
-            ))}
           </div>
         )}
 
