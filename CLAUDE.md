@@ -413,12 +413,31 @@ perdront leur raison d'être en carte. Pas d'action pour l'instant.
 ⚠️ Le « Rapport de vente » EasyOrder ne liste **pas** les options (sides, panures,
 suppléments) — seulement les produits. Pour tout ce qui est pris en option, il faut la
 « Liste de commande » détaillée. Ne pas conclure à l'absence de ventes depuis un rapport.
-4. ⚠️ **`top_produits` est périmé — ne pas s'en servir pour décider.** La table porte
-   encore le libellé `MENU ETUDIANT`, ne contient **aucun menu XL**, et totalise
-   743 €/jour de CA contre 875 € réels en moyenne annuelle et 995 € en août. Sa
-   répartition de marge (Corndog 63 %, Menu 29 %, Signature 5 %, Bubble tea 2 %,
-   Side 1 %) décrit une période antérieure à la bascule du 25/07 : les menus y pèsent
-   34,8 pour 100 commandes contre 53,4 aujourd'hui. À régénérer.
+4. **`top_produits` régénéré le 12/08/2026** sur le rapport produits du 01-11/08
+   (800 commandes, commande erronée exclue), prix de `menu_produits`, coûts de
+   `menu_recettes`. Total : **996 €/jour de CA, 844 €/jour de marge**, cohérent avec
+   les 995 €/jour mesurés aux bornes.
+
+   **Le Menu est devenu la première famille de marge, devant le Corndog :**
+
+   | Famille | Marge/jour | Part | *Ancienne table* |
+   |---|---|---|---|
+   | **Menu** | **347 €** | **41,1 %** | *29 %* |
+   | Corndog | 337 € | 39,9 % | *63 %* |
+   | Suppléments (panures, sauces) | 85 € | 10,1 % | *absent* |
+   | Side | 29 € | 3,4 % | *1 %* |
+   | Signature | 28 € | 3,3 % | *5 %* |
+   | Bubble tea | 15 € | 1,7 % | *2 %* |
+   | Boisson | 3 € | 0,4 % | *1 %* |
+
+   ⚠️ La ligne **SUPPLEMENTS** réconcilie le total avec le CA mesuré : ce sont les
+   panures et sauces payantes, qui n'apparaissent **pas** comme produits dans les
+   exports EasyOrder. 100 €/jour de CA, soit 10 % de la marge — un poste invisible
+   jusqu'ici et loin d'être négligeable.
+
+   ⚠️ Les sides incluent ceux pris **en option** sur un corndog, extrapolés depuis
+   les 200 commandes détaillées du 09-11/08. Le prix des softs (2,50 €) est estimé,
+   il n'est pas en base.
 
 ## Module Stock
 
