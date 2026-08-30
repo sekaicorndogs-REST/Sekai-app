@@ -3635,7 +3635,14 @@ export default function App() {
                 const daysInMonth = new Date(parseInt(remplacementMois.split("-")[0]), parseInt(remplacementMois.split("-")[1]), 0).getDate();
                 const year = parseInt(remplacementMois.split("-")[0]);
                 const month = parseInt(remplacementMois.split("-")[1]) - 1;
-                const EMPLOYES = ["Wassim", "Rachid", "Ali", "Momo"];
+                // Liste déduite du cycle réel + de ceux qui ont encodé des heures
+                // ce mois-ci. Wassim n'est plus au cycle fixe : il n'apparaît ici
+                // que s'il a effectivement travaillé.
+                const EMPLOYES = Array.from(new Set([
+                  ...CYCLE.flatMap(sem => Object.values(sem).flat()),
+                  ...moisH.map((h: any) => h.employe_nom),
+                  ...heuresJours.filter((h: any) => h.date.startsWith(remplacementMois)).map((h: any) => h.employe_nom),
+                ].filter(Boolean))).sort((a, b) => String(a).localeCompare(String(b), "fr"));
 
                 // Heures prestées cycle
                 const heuresPrestees = {};
