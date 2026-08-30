@@ -2292,6 +2292,25 @@ export default function App() {
     return CYCLE[weekInCycle][planDay] || [];
   }
 
+  // ── EFFECTIF ATTENDU ─────────────────────────────────────────────────
+  // Règle du gérant (12/08/2026) : 2 personnes tous les jours, 3 le samedi.
+  // Cohérent avec la capacité mesurée : deux personnes tiennent 1 350 €/jour,
+  // et seul le samedi dépasse ce seuil.
+  function effectifCible(dateStr) {
+    return getPlanDay(dateStr) === 5 ? 3 : 2;
+  }
+  /** Qui est déjà positionné ce jour-là : cycle + horaires encodés non-remplacements. */
+  function equipeDuJour(dateStr) {
+    const encodes = horaires
+      .filter(h => normalizeDate(h.date) === dateStr && !h.est_remplacement)
+      .map(h => h.employe_nom);
+    return Array.from(new Set([...getAutoEmployes(dateStr), ...encodes].filter(Boolean)));
+  }
+  /** Négatif = il manque du monde, positif = quelqu'un est en trop. */
+  function ecartEffectif(dateStr) {
+    return equipeDuJour(dateStr).length - effectifCible(dateStr);
+  }
+
   function getAutoHoraire(dateStr) {
     if (!dateStr) return { debut: "11:30", fin: "20:30" };
     const planDay = getPlanDay(dateStr);
@@ -2993,6 +3012,32 @@ export default function App() {
               </>
             )}
 
+            {addHoraireDate && (() => {
+              const cible = effectifCible(addHoraireDate);
+              const equipe = equipeDuJour(addHoraireDate);
+              const ecart = equipe.length - cible;
+              const c = ecart < 0 ? "#4caf50" : "#c98a17";
+              return (
+                <div style={{ background: c + "12", border: `1px solid ${c}44`, borderRadius: "10px", padding: "0.65rem 0.85rem" }}>
+                  <div style={{ color: c, fontSize: "0.75rem", fontWeight: 700 }}>
+                    {equipe.length} personne{equipe.length > 1 ? "s" : ""} sur {cible} attendue{cible > 1 ? "s" : ""}
+                  </div>
+                  <div style={{ color: "#a07848", fontSize: "0.72rem", marginTop: "0.15rem" }}>
+                    {ecart < 0
+                      ? `Il manque ${-ecart} personne${-ecart > 1 ? "s" : ""} : cet ajout comble un poste, ce n'est pas un remplacement.`
+                      : `La journée est déjà complète. Si quelqu'un vient en plus, c'est qu'il prend la place d'un autre — indique qui.`}
+                  </div>
+                  {equipe.length > 0 && (
+                    <div style={{ display: "flex", gap: "0.3rem", flexWrap: "wrap", marginTop: "0.45rem" }}>
+                      {equipe.map(n => (
+                        <span key={n} style={{ ...pastilleEmp(n), fontSize: "0.7rem" }}>{n}</span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+
             {/* Remplacement */}
             {addHoraireIsRemplacement && (
               <>
@@ -3020,7 +3065,7 @@ export default function App() {
                 }}
                   style={{ background: "#faebd7", border: "1px solid #e57373", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", fontFamily: "'Poppins', sans-serif", outline: "none", width: "100%" }}>
                   <option value="">Qui est remplacé ?</option>
-                  {getAutoEmployes(addHoraireDate).map(n => <option key={n} value={n}>{n}</option>)}
+                  {equipeDuJour(addHoraireDate).map(n => <option key={n} value={n}>{n}</option>)}
                 </select>
                 <div style={{ display: "flex", gap: "0.5rem" }}>
                   <div style={{ flex: 1 }}>
@@ -3411,6 +3456,19 @@ export default function App() {
                         <span style={{ color: isToday ? "#5cb85c" : "#f5c842", fontSize: "0.85rem", fontWeight: "bold", textTransform: "capitalize" }}>{formatDateShort(dateStr)}</span>
                         {isToday && <span style={{ color: "#4caf50", fontSize: "0.72rem", marginLeft: "0.4rem" }}>· Aujourd'hui</span>}
                         <span style={{ color: "#a07848", fontSize: "0.72rem", marginLeft: "0.5rem" }}>{autoH.debut}-{autoH.fin}</span>
+                        {(() => {
+                          const cible = effectifCible(dateStr);
+                          const equipe = equipeDuJour(dateStr);
+                          const ecart = equipe.length - cible;
+                          const c = ecart === 0 ? "#4caf50" : ecart < 0 ? "#e8213a" : "#f5a623";
+                          return (
+                            <span style={{ marginLeft: "0.5rem", color: c, fontSize: "0.7rem", fontWeight: 700, border: `1px solid ${c}55`, background: c + "1a", borderRadius: "6px", padding: "0.1rem 0.4rem" }}>
+                              {equipe.length}/{cible}
+                              {ecart < 0 && ` · il manque ${-ecart}`}
+                              {ecart > 0 && ` · ${ecart} en trop`}
+                            </span>
+                          );
+                        })()}
                       </div>
                       {dateStr >= todayStr && (
                         <button onClick={() => {
@@ -3418,9 +3476,14 @@ export default function App() {
                           setAddHoraireDate(dateStr);
                           setAddHoraireDebut(h.debut);
                           setAddHoraireFin(h.fin);
-                          setAddHoraireIsRemplacement(false);
+                          // Journée déjà au complet : la personne ajoutée vient
+                          // forcément à la place de quelqu'un. On pré-règle le
+                          // formulaire sur « remplacement » plutôt que de laisser
+                          // créer un troisième poste fantôme.
+                          setAddHoraireIsRemplacement(ecartEffectif(dateStr) >= 0);
                           setAddHoraireExtra(false);
                           setAddHoraireEmploye("");
+                          setAddHoraireRemplaceNom("");
                           setShowAddHoraire(true);
                         }} style={{ background: "#e8213a", border: "none", color: "#fff", borderRadius: "50%", width: "1.8rem", height: "1.8rem", cursor: "pointer", fontSize: "1.1rem", fontWeight: "bold", display: "flex", alignItems: "center", justifyContent: "center" }}>+</button>
                       )}
