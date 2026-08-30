@@ -4637,14 +4637,14 @@ export default function App() {
             return l && l.hors_bornes != null && l.hors_bornes !== "" ? parseFloat(l.hors_bornes) || hb : hb;
           };
           const parMois: Record<string, { ca: number; n: number; jours: Set<string>; mois: number }> = {};
-          const caParHeure: Record<number, { ca: number; jours: Set<string> }> = {};
+          const caParHeure: Record<number, { ca: number; n: number; jours: Set<string> }> = {};
           V.forEach(v => {
             const k = v.d.getFullYear() + "-" + String(v.d.getMonth() + 1).padStart(2, "0");
             (parMois[k] = parMois[k] || { ca: 0, n: 0, jours: new Set(), mois: v.d.getMonth() + 1 });
             parMois[k].ca += v.p; parMois[k].n++; parMois[k].jours.add(v.d.toDateString());
             const h = v.d.getHours();
-            (caParHeure[h] = caParHeure[h] || { ca: 0, jours: new Set() });
-            caParHeure[h].ca += v.p; caParHeure[h].jours.add(v.d.toDateString());
+            (caParHeure[h] = caParHeure[h] || { ca: 0, n: 0, jours: new Set() });
+            caParHeure[h].ca += v.p; caParHeure[h].n++; caParHeure[h].jours.add(v.d.toDateString());
           });
           const moisStats = Object.entries(parMois)
             .map(([k, o]) => {
@@ -4661,10 +4661,15 @@ export default function App() {
           const maxMois = Math.max(1, ...moisStats.map(m => m.caJour));
           const maxPanier = Math.max(1, ...moisStats.map(m => m.panier));
           const heureStats = Object.entries(caParHeure)
-            .map(([h, o]) => ({ h: +h, moy: o.ca / o.jours.size }))
+            .map(([h, o]) => ({ h: +h, moy: o.ca / o.jours.size, cmd: o.n / o.jours.size }))
             .filter(x => x.moy > 1)
             .sort((a, b) => a.h - b.h);
           const maxHeure = Math.max(1, ...heureStats.map(x => x.moy));
+          const maxCmdH = Math.max(1, ...heureStats.map(x => x.cmd));
+          // Moyenne par heure d'ouverture : on ne divise que par les heures
+          // réellement actives, sinon les heures mortes écrasent la moyenne.
+          const cmdParHeure = heureStats.length ? heureStats.reduce((t, x) => t + x.cmd, 0) / heureStats.length : 0;
+          const heurePleine = heureStats.length ? [...heureStats].sort((a, b) => b.cmd - a.cmd)[0] : null;
           const MOIS_COURT = ["janv","févr","mars","avr","mai","juin","juil","août","sept","oct","nov","déc"];
           const libMois = (k: string) => MOIS_COURT[parseInt(k.slice(5), 10) - 1] + " " + k.slice(2, 4);
 
@@ -4763,12 +4768,47 @@ export default function App() {
                         <div style={{ width: `${(x.moy / maxHeure) * 100}%`, height: "9px", borderRadius: "20px", background: x.moy >= maxHeure * 0.75 ? "#e8213a" : "#c9a227" }} />
                       </div>
                       <span style={{ width: "46px", textAlign: "right" as const, fontSize: "0.74rem", fontWeight: 700, color: "#3d1a0a" }}>{fmt(x.moy)} €</span>
+                      <span style={{ width: "52px", textAlign: "right" as const, fontSize: "0.68rem", color: "#a07848" }}>{x.cmd.toFixed(1)} cmd</span>
                     </div>
                   ))}
+                  <div style={{ marginTop: "0.7rem", paddingTop: "0.6rem", borderTop: "1px dashed #f0e0cc", color: "#a07848", fontSize: "0.7rem" }}>
+                    Moyenne <strong style={{ color: "#3d1a0a" }}>{cmdParHeure.toFixed(1)} commandes/heure</strong>
+                    {heurePleine && <> · pointe à <strong style={{ color: "#e8213a" }}>{heurePleine.h}h avec {heurePleine.cmd.toFixed(1)}</strong></>}
+                  </div>
                 </div>
               )}
 
               {/* ══════ THÈME : CLIENTS & PANIER ══════ */}
+              {theme("panier") && vNb > 0 && (
+                <div style={{ ...CARD, padding: "0.9rem 1rem" }}>
+                  <div style={{ ...LBL, marginBottom: "0.1rem" }}>Rythme de commandes</div>
+                  <div style={{ color: "#c8a878", fontSize: "0.66rem", marginBottom: "0.8rem" }}>
+                    Aux bornes uniquement · la caisse et Uber ne passent pas par là
+                  </div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "0.5rem" }}>
+                    <div style={{ textAlign: "center" as const }}>
+                      <div style={{ color: "#a07848", fontSize: "0.6rem", fontWeight: 600, textTransform: "uppercase" as const }}>Par jour</div>
+                      <div style={{ color: "#3d1a0a", fontSize: "1.35rem", fontWeight: 800, lineHeight: 1.2 }}>{cmdJour.toFixed(0)}</div>
+                      <div style={{ color: "#c8a878", fontSize: "0.58rem" }}>sur {nbJours} jours</div>
+                    </div>
+                    <div style={{ textAlign: "center" as const, borderLeft: "1px solid #f0e0cc", borderRight: "1px solid #f0e0cc" }}>
+                      <div style={{ color: "#a07848", fontSize: "0.6rem", fontWeight: 600, textTransform: "uppercase" as const }}>Par heure</div>
+                      <div style={{ color: "#3d1a0a", fontSize: "1.35rem", fontWeight: 800, lineHeight: 1.2 }}>{cmdParHeure.toFixed(1)}</div>
+                      <div style={{ color: "#c8a878", fontSize: "0.58rem" }}>sur {heureStats.length} h d'ouverture</div>
+                    </div>
+                    <div style={{ textAlign: "center" as const }}>
+                      <div style={{ color: "#a07848", fontSize: "0.6rem", fontWeight: 600, textTransform: "uppercase" as const }}>Heure de pointe</div>
+                      <div style={{ color: "#e8213a", fontSize: "1.35rem", fontWeight: 800, lineHeight: 1.2 }}>{heurePleine ? heurePleine.h + "h" : "—"}</div>
+                      <div style={{ color: "#c8a878", fontSize: "0.58rem" }}>{heurePleine ? heurePleine.cmd.toFixed(1) + " cmd/h" : ""}</div>
+                    </div>
+                  </div>
+                  <div style={{ marginTop: "0.75rem", paddingTop: "0.6rem", borderTop: "1px dashed #f0e0cc", color: "#a07848", fontSize: "0.7rem" }}>
+                    Soit une commande toutes les <strong style={{ color: "#3d1a0a" }}>{cmdParHeure > 0 ? Math.round(60 / cmdParHeure) : "—"} minutes</strong> en moyenne,
+                    et une toutes les <strong style={{ color: "#e8213a" }}>{heurePleine && heurePleine.cmd > 0 ? Math.round(60 / heurePleine.cmd) : "—"} minutes</strong> au pic.
+                  </div>
+                </div>
+              )}
+
               {theme("panier") && moisStats.length > 1 && (<>
                 <div style={{ ...CARD, padding: "0.9rem 1rem" }}>
                   <div style={{ ...LBL, marginBottom: "0.1rem" }}>Panier moyen mois par mois</div>
