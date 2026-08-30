@@ -8,6 +8,11 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
+      // On enregistre nous-mêmes dans main.tsx pour pouvoir vérifier les mises
+      // à jour au retour au premier plan : sur iPhone, rouvrir l'app depuis
+      // l'arrière-plan n'est pas un vrai lancement, donc la version installée
+      // pouvait rester en place plusieurs heures.
+      injectRegister: null,
       includeAssets: ['favicon.svg', 'apple-touch-icon.png', 'logo-sekai.png'],
       manifest: {
         name: 'Sekai Corndogs',
