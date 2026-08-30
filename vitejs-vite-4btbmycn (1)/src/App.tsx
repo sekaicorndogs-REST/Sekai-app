@@ -148,6 +148,37 @@ function caMensuelMoyen(saisonnalite: any[]): number | null {
   return annuel > 0 ? annuel / 12 : null;
 }
 
+// ── COULEUR PAR PERSONNE ───────────────────────────────────────────────
+// Chaque employé garde la même couleur partout et d'une session à l'autre :
+// elle est dérivée de son prénom, pas d'une position dans une liste qui bouge
+// dès qu'on ajoute quelqu'un. Teintes choisies pour rester lisibles aussi bien
+// sur le fond sombre du planning que sur le fond crème du reste de l'app.
+const PALETTE_EMP = [
+  "#e8213a", "#f5a623", "#3fa34d", "#2196f3", "#9c27b0", "#ff6f3c",
+  "#00a99d", "#ec407a", "#7e57c2", "#8bc34a", "#5c6bc0", "#c9a227",
+];
+function couleurEmploye(nom: string): string {
+  const n = (nom || "").trim().toLowerCase();
+  if (!n) return "#a07848";
+  let h = 0;
+  for (let i = 0; i < n.length; i++) h = (h * 31 + n.charCodeAt(i)) >>> 0;
+  return PALETTE_EMP[h % PALETTE_EMP.length];
+}
+/** Pastille colorée : fond translucide + texte et bordure dans la teinte. */
+function pastilleEmp(nom: string, variante: "plein" | "extra" | "remplacement" = "plein") {
+  const c = couleurEmploye(nom);
+  return {
+    background: c + (variante === "extra" ? "18" : "26"),
+    color: c,
+    border: `1px solid ${c}${variante === "extra" ? "55" : "88"}`,
+    borderStyle: variante === "extra" ? ("dashed" as const) : ("solid" as const),
+    borderRadius: "7px",
+    padding: "0.25rem 0.6rem",
+    fontSize: "0.78rem",
+    fontWeight: 600,
+  };
+}
+
 // Coefficient de saisonnalité du mois en cours, pour dimensionner les commandes
 function coefSaison(saisonnalite: any[]): number {
   if (!saisonnalite || saisonnalite.length === 0) return 1;
@@ -3266,7 +3297,7 @@ export default function App() {
                     {recapParEmploye().map(([nom, h]) => (
                       <button key={nom} onClick={() => setHeuresEmployeFilter(nom)}
                         style={{ width: "100%", background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "12px", padding: "0.9rem 1rem", marginBottom: "0.5rem", display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer", fontFamily: "'Poppins', sans-serif" }}>
-                        <span style={{ color: "#3d1a0a", fontWeight: "600", fontSize: "0.92rem", display: "flex", alignItems: "center", gap: "7px" }}><User size={15} color="#a07848" /> {nom}</span>
+                        <span style={{ color: "#3d1a0a", fontWeight: "600", fontSize: "0.92rem", display: "flex", alignItems: "center", gap: "7px" }}><span style={{ width: "11px", height: "11px", borderRadius: "50%", background: couleurEmploye(nom), flexShrink: 0 }} /> {nom}</span>
                         <span style={{ color: "#e8213a", fontWeight: "bold", fontSize: "1rem", display: "flex", alignItems: "center", gap: "3px" }}>{Number(h).toFixed(1).replace(".0", "")} h <ChevronRight size={15} /></span>
                       </button>
                     ))}
@@ -3339,6 +3370,32 @@ export default function App() {
           {/* WEEK VIEW */}
           {horaireView === "week" && (
             <div>
+              {/* Légende : qui travaille cette semaine, et sa couleur. */}
+              {(() => {
+                const gens = Array.from(new Set([
+                  ...weekDates.flatMap(d => getAutoEmployes(d)),
+                  ...horaires.filter(h => weekDates.includes(normalizeDate(h.date))).map(h => h.employe_nom),
+                ].filter(Boolean))).sort((a, b) => a.localeCompare(b, "fr"));
+                if (gens.length === 0) return null;
+                return (
+                  <div style={{ background: "#141414", border: "1px solid #1e1e1e", borderRadius: "12px", padding: "0.7rem 0.9rem", marginBottom: "0.6rem" }}>
+                    <div style={{ color: "#a07848", fontSize: "0.66rem", fontWeight: 700, letterSpacing: "0.06em", marginBottom: "0.5rem" }}>
+                      QUI TRAVAILLE CETTE SEMAINE · {gens.length}
+                    </div>
+                    <div style={{ display: "flex", gap: "0.35rem", flexWrap: "wrap" }}>
+                      {gens.map(n => (
+                        <span key={n} style={{ ...pastilleEmp(n), fontSize: "0.72rem", display: "inline-flex", alignItems: "center", gap: "5px" }}>
+                          <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: couleurEmploye(n), flexShrink: 0 }} />
+                          {n}
+                        </span>
+                      ))}
+                    </div>
+                    <div style={{ color: "#6b5a48", fontSize: "0.62rem", marginTop: "0.5rem" }}>
+                      Contour plein = prévu · pointillés = extra · flèche = remplacement
+                    </div>
+                  </div>
+                );
+              })()}
               {weekDates.map(dateStr => {
                 const autoEmps = getAutoEmployes(dateStr);
                 const autoH = getAutoHoraire(dateStr);
@@ -3369,22 +3426,22 @@ export default function App() {
                     {/* Workers */}
                     <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap" }}>
                       {autoEmps.map(emp => (
-                        <span key={emp} style={{ background: "#1a2a1a", color: "#8bc08b", borderRadius: "6px", padding: "0.25rem 0.6rem", fontSize: "0.78rem" }}>{emp}</span>
+                        <span key={emp} style={pastilleEmp(emp)}>{emp}</span>
                       ))}
                       {encoded.filter(h => !h.extra && !h.est_remplacement).map(h => (
-                        <span key={h.id} style={{ background: "#1e2a1e", color: "#7bc07b", borderRadius: "6px", padding: "0.25rem 0.6rem", fontSize: "0.78rem" }}>
+                        <span key={h.id} style={pastilleEmp(h.employe_nom)}>
                           {h.employe_nom}
                           {isSuperAdmin && <button onClick={() => handleDeleteHoraire(h.id)} style={{ background: "none", border: "none", color: "#e57373", cursor: "pointer", fontSize: "0.7rem", marginLeft: "0.3rem" }}><X size={16} /></button>}
                         </span>
                       ))}
                       {encoded.filter(h => h.extra).map(h => (
-                        <span key={h.id} style={{ background: "#2a3a1a", color: "#a8d060", borderRadius: "6px", padding: "0.25rem 0.6rem", fontSize: "0.78rem" }}>
+                        <span key={h.id} style={pastilleEmp(h.employe_nom, "extra")}>
                           {h.employe_nom}
                           {isSuperAdmin && <button onClick={() => handleDeleteHoraire(h.id)} style={{ background: "none", border: "none", color: "#e57373", cursor: "pointer", fontSize: "0.7rem", marginLeft: "0.3rem" }}><X size={16} /></button>}
                         </span>
                       ))}
                       {encoded.filter(h => h.est_remplacement).map(h => (
-                        <span key={h.id} style={{ background: "#2a1a1a", color: "#e57373", borderRadius: "6px", padding: "0.25rem 0.6rem", fontSize: "0.78rem" }}>
+                        <span key={h.id} style={pastilleEmp(h.employe_nom, "remplacement")}>
                           {h.employe_nom}→{h.remplace_nom}
                           {isSuperAdmin && <button onClick={() => handleDeleteHoraire(h.id)} style={{ background: "none", border: "none", color: "#e57373", cursor: "pointer", fontSize: "0.7rem", marginLeft: "0.3rem" }}><X size={16} /></button>}
                         </span>
