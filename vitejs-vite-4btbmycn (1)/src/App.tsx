@@ -2242,18 +2242,20 @@ export default function App() {
   const CYCLE_START_WEEK_INDEX = 1; // semaine 2 = index 1
 
   // planDay: 0=lun, 1=mar, 2=mer, 3=jeu, 4=ven, 5=sam, 6=dim
+  // Wassim ne fait plus partie du cycle fixe (gérant, 12/08/2026) : il
+  // n'apparaît au planning que les jours où il encode lui-même ses heures.
   const CYCLE = [
     { // Semaine 1
-      0: ["Wassim","Mohammed"], 1: ["Wassim","Mohammed"], 2: ["Mohammed","Nabil"],
-      3: ["Mohammed","Nabil"], 4: ["Abdel","Nabil"], 5: ["Wassim","Abdel"], 6: ["Wassim","Abdel"]
+      0: ["Mohammed"], 1: ["Mohammed"], 2: ["Mohammed","Nabil"],
+      3: ["Mohammed","Nabil"], 4: ["Abdel","Nabil"], 5: ["Abdel"], 6: ["Abdel"]
     },
     { // Semaine 2
-      0: ["Wassim","Nabil"], 1: ["Wassim","Nabil"], 2: ["Nabil","Abdel"],
-      3: ["Nabil","Abdel"], 4: ["Mohammed","Abdel"], 5: ["Wassim","Mohammed"], 6: ["Wassim","Mohammed"]
+      0: ["Nabil"], 1: ["Nabil"], 2: ["Nabil","Abdel"],
+      3: ["Nabil","Abdel"], 4: ["Mohammed","Abdel"], 5: ["Mohammed"], 6: ["Mohammed"]
     },
     { // Semaine 3
-      0: ["Wassim","Abdel"], 1: ["Wassim","Abdel"], 2: ["Abdel","Mohammed"],
-      3: ["Abdel","Mohammed"], 4: ["Nabil","Mohammed"], 5: ["Wassim","Nabil"], 6: ["Wassim","Nabil"]
+      0: ["Abdel"], 1: ["Abdel"], 2: ["Abdel","Mohammed"],
+      3: ["Abdel","Mohammed"], 4: ["Nabil","Mohammed"], 5: ["Nabil"], 6: ["Nabil"]
     }
   ];
 
