@@ -439,6 +439,56 @@ suppléments) — seulement les produits. Pour tout ce qui est pris en option, i
    les 200 commandes détaillées du 09-11/08. Le prix des softs (2,50 €) est estimé,
    il n'est pas en base.
 
+## Module Horaires
+
+### Deux tables, deux rôles — ne pas les confondre
+
+| Table | Contenu | Qui saisit |
+|---|---|---|
+| `horaires` | Postes encodés à l'avance | un admin |
+| `heures_jours` | Heures réellement travaillées | la personne elle-même |
+
+⚠️ **« A travaillé » vient de `heures_jours`.** Un calcul d'effectif qui ne lit que
+`horaires` rate tout le monde : c'est le bug corrigé le 12/08/2026, où une journée
+avec un renfort déclaré s'affichait quand même « complet ».
+
+`CYCLE` dans `App.tsx` porte la rotation fixe sur trois semaines. **Wassim en a été
+retiré** (gérant, 12/08/2026) : il n'apparaît que les jours où il encode ses heures.
+Il reste Abdel, Nabil et Mohammed.
+
+### Effectif attendu et remplacements
+
+- **2 personnes tous les jours, 3 le samedi** — voir « Capacité de service » plus haut.
+- `equipeDuJour()` = prévus + déclarants − remplacés. Tant qu'un remplacement n'est
+  pas attribué, la journée compte une personne de trop : c'est ce qui déclenche la
+  demande à l'écran.
+- **La personne qui déclare ses heures EST le remplaçant.** Abdel n'indique que
+  *qui* elle remplace — jamais qui est venu, l'app le sait déjà.
+- La colonne `heures_jours.remplace_nom` (ajoutée le 12/08/2026) stocke cette
+  attribution. `horaires.remplace_nom` existe aussi pour les postes encodés :
+  **toute lecture doit couvrir les deux sources**.
+- **Seul le superadmin attribue** — Abdel est le seul à porter ce rôle ; Moha et
+  Nabil sont `admin`. En sous-effectif, lui seul peut aussi inscrire la personne
+  manquante.
+- La personne remplacée le voit dans son calendrier (pastille orange), dans la liste
+  du mois, et dans la fiche du jour.
+
+### Remplacements d'août 2026
+
+| Date | Remplacé | Par |
+|---|---|---|
+| mer 19/08 · jeu 20/08 · mer 26/08 | **Nabil** | Zakaria |
+| jeu 27/08 | **Nabil** | Momo |
+| sam 29/08 | **Mohammed** | Wassim |
+
+**Nabil 4 fois, Mohammed 1, Abdel 0.** Zakaria couvre Nabil les mercredis et jeudis
+de façon répétée : si ça continue, l'acter dans le `CYCLE` plutôt que de le rattraper
+chaque semaine.
+
+⚠️ Wassim a déclaré **210 h sur juillet-août**, le plus gros volume après les gérants.
+Son quota étudiant est de 650 h/an : à ce rythme il le dépasse vers février, et les
+cotisations passent au taux plein.
+
 ## Module Stock
 
 ### Trois statuts, pas deux
