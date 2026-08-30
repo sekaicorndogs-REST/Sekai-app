@@ -4660,9 +4660,14 @@ export default function App() {
             .sort((a, b) => a.k.localeCompare(b.k));
           const maxMois = Math.max(1, ...moisStats.map(m => m.caJour));
           const maxPanier = Math.max(1, ...moisStats.map(m => m.panier));
+          // On divise par TOUS les jours d'ouverture, pas seulement par ceux où
+          // cette heure-là a vu passer une commande : sinon une heure marginale
+          // (11h, 20 commandes en 375 jours) s'affiche comme une heure normale.
+          // Bornes 12h-20h : le magasin ouvre à 12h, et 21h/22h ne portent que
+          // 12 commandes sur tout l'historique.
           const heureStats = Object.entries(caParHeure)
-            .map(([h, o]) => ({ h: +h, moy: o.ca / o.jours.size, cmd: o.n / o.jours.size }))
-            .filter(x => x.moy > 1)
+            .map(([h, o]) => ({ h: +h, moy: o.ca / nbJours, cmd: o.n / nbJours }))
+            .filter(x => x.h >= 12 && x.h <= 20)
             .sort((a, b) => a.h - b.h);
           const maxHeure = Math.max(1, ...heureStats.map(x => x.moy));
           const maxCmdH = Math.max(1, ...heureStats.map(x => x.cmd));
@@ -4760,7 +4765,7 @@ export default function App() {
               {theme("ca") && heureStats.length > 2 && (
                 <div style={{ ...CARD, padding: "0.9rem 1rem" }}>
                   <div style={{ ...LBL, marginBottom: "0.1rem" }}>CA moyen par heure d'ouverture</div>
-                  <div style={{ color: "#c8a878", fontSize: "0.66rem", marginBottom: "0.7rem" }}>Aux bornes · sert à placer les renforts</div>
+                  <div style={{ color: "#c8a878", fontSize: "0.66rem", marginBottom: "0.7rem" }}>Aux bornes · 12h-20h, sur les 375 jours d'ouverture</div>
                   {heureStats.map(x => (
                     <div key={x.h} style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.25rem" }}>
                       <span style={{ width: "38px", color: "#a07848", fontSize: "0.7rem", flexShrink: 0 }}>{x.h}h</span>
@@ -4794,7 +4799,7 @@ export default function App() {
                     <div style={{ textAlign: "center" as const, borderLeft: "1px solid #f0e0cc", borderRight: "1px solid #f0e0cc" }}>
                       <div style={{ color: "#a07848", fontSize: "0.6rem", fontWeight: 600, textTransform: "uppercase" as const }}>Par heure</div>
                       <div style={{ color: "#3d1a0a", fontSize: "1.35rem", fontWeight: 800, lineHeight: 1.2 }}>{cmdParHeure.toFixed(1)}</div>
-                      <div style={{ color: "#c8a878", fontSize: "0.58rem" }}>sur {heureStats.length} h d'ouverture</div>
+                      <div style={{ color: "#c8a878", fontSize: "0.58rem" }}>sur {heureStats.length} h (12h-20h)</div>
                     </div>
                     <div style={{ textAlign: "center" as const }}>
                       <div style={{ color: "#a07848", fontSize: "0.6rem", fontWeight: 600, textTransform: "uppercase" as const }}>Heure de pointe</div>
