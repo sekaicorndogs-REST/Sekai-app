@@ -2382,6 +2382,23 @@ export default function App() {
     return res.json();
   }
 
+  async function updateHoraire(id, patch) {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/horaires?id=eq.${id}`, {
+      method: "PATCH", headers: { ...HEADERS, Prefer: "return=representation" }, body: JSON.stringify(patch)
+    });
+    if (!res.ok) throw new Error("Update horaire failed");
+    return res.json();
+  }
+
+  /** Abdel seul complète l'horaire : qui, parmi les prévus, s'est fait remplacer. */
+  async function designerRemplace(horaireId, remplaceNom) {
+    try {
+      await updateHoraire(horaireId, { est_remplacement: true, remplace_nom: remplaceNom });
+      await fetchHoraires(horaireRestaurant);
+      flash(`✅ ${remplaceNom} noté comme remplacé`);
+    } catch { flash("❌ Erreur"); }
+  }
+
   async function deleteHoraire(id) {
     const res = await fetch(`${SUPABASE_URL}/rest/v1/horaires?id=eq.${id}`, {
       method: "DELETE", headers: HEADERS
@@ -3186,6 +3203,26 @@ export default function App() {
                     ))}
                 </div>
 
+                {/* Remplacements du jour : la personne remplacée le voit ici. */}
+                {(() => {
+                  const remps = horaires.filter(h => normalizeDate(h.date) === heuresDayDetail && h.est_remplacement && h.remplace_nom);
+                  if (remps.length === 0) return null;
+                  return (
+                    <div style={{ background: "#fff6e8", border: "1px solid #f5a62344", borderRadius: "10px", padding: "0.8rem" }}>
+                      <div style={{ color: "#c98a17", fontSize: "0.68rem", fontWeight: "bold", marginBottom: "0.5rem", display: "flex", alignItems: "center", gap: "5px" }}>
+                        <RefreshCw size={13} /> REMPLACEMENT
+                      </div>
+                      {remps.map(h => (
+                        <div key={h.id} style={{ fontSize: "0.85rem", padding: "0.2rem 0", display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
+                          <span style={{ ...pastilleEmp(h.remplace_nom), fontSize: "0.75rem" }}>{h.remplace_nom}</span>
+                          <span style={{ color: "#a07848", fontSize: "0.78rem" }}>s'est fait remplacer par</span>
+                          <span style={{ ...pastilleEmp(h.employe_nom), fontSize: "0.75rem" }}>{h.employe_nom}</span>
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })()}
+
                 {/* A réellement bossé */}
                 <div style={{ background: "#f0fff4", borderRadius: "10px", padding: "0.8rem" }}>
                   <div style={{ color: "#4caf50", fontSize: "0.68rem", fontWeight: "bold", marginBottom: "0.5rem", display: "flex", alignItems: "center", gap: "5px" }}><CheckCircle size={12} /> A TRAVAILLÉ</div>
@@ -3363,18 +3400,45 @@ export default function App() {
                         const entry = heuresParJour(jour);
                         const isToday = dateStr === todayStr2;
                         const hasHeures = !!entry;
+                        // Jour où cette personne s'est fait remplacer : elle doit le
+                        // voir dans son propre historique, pas seulement l'admin.
+                        const remplacePar = employeVu
+                          ? horaires.find(h => normalizeDate(h.date) === dateStr && h.est_remplacement && h.remplace_nom === employeVu)
+                          : null;
                         // Employé ne peut éditer que soi-même
                         const canEdit = isAdmin || employeVu === currentUser?.prenom;
                         return (
                           <button key={jour} disabled={!canEdit}
                             onClick={() => { setHeuresModalDate(dateStr); setHeuresModalExisting(entry || null); setHeuresModalValue(entry ? String(entry.heures) : ""); setShowHeuresModal(true); }}
-                            style={{ aspectRatio: "1", background: hasHeures ? "#4caf50" : "#fff8f0", border: `1.5px solid ${isToday ? "#e8213a" : hasHeures ? "#4caf50" : "#f0d8b8"}`, borderRadius: "8px", display: "flex", flexDirection: "column" as const, alignItems: "center", justifyContent: "center", cursor: canEdit ? "pointer" : "default", padding: "0.1rem", fontFamily: "'Poppins', sans-serif" }}>
+                            style={{ position: "relative" as const, aspectRatio: "1", background: hasHeures ? "#4caf50" : "#fff8f0", border: `1.5px solid ${isToday ? "#e8213a" : hasHeures ? "#4caf50" : "#f0d8b8"}`, borderRadius: "8px", display: "flex", flexDirection: "column" as const, alignItems: "center", justifyContent: "center", cursor: canEdit ? "pointer" : "default", padding: "0.1rem", fontFamily: "'Poppins', sans-serif" }}>
                             <span style={{ color: hasHeures ? "#fff" : isToday ? "#e8213a" : "#3d1a0a", fontSize: "0.8rem", fontWeight: isToday ? "bold" : "normal" }}>{jour}</span>
                             {hasHeures && <span style={{ color: "#fff", fontSize: "0.62rem", fontWeight: "bold" }}>{Number(entry.heures).toFixed(1).replace(".0", "")}h</span>}
+                            {remplacePar && (
+                              <span title={`Remplacé par ${remplacePar.employe_nom}`}
+                                style={{ position: "absolute" as const, top: "2px", right: "3px", width: "8px", height: "8px", borderRadius: "50%", background: "#f5a623", border: "1.5px solid #fff8f0" }} />
+                            )}
                           </button>
                         );
                       })}
                     </div>
+                    {employeVu && horaires.some(h => normalizeDate(h.date).startsWith(heuresMois) && h.est_remplacement && h.remplace_nom === employeVu) && (
+                      <div style={{ background: "#fff6e8", border: "1px solid #f5a62344", borderRadius: "10px", padding: "0.6rem 0.75rem", marginTop: "0.5rem" }}>
+                        <div style={{ color: "#c98a17", fontSize: "0.68rem", fontWeight: 700, marginBottom: "0.35rem", display: "flex", alignItems: "center", gap: "5px" }}>
+                          <RefreshCw size={12} /> JOURS OÙ TU T'ES FAIT REMPLACER
+                        </div>
+                        {horaires
+                          .filter(h => normalizeDate(h.date).startsWith(heuresMois) && h.est_remplacement && h.remplace_nom === employeVu)
+                          .sort((a, b) => normalizeDate(a.date).localeCompare(normalizeDate(b.date)))
+                          .map(h => (
+                            <div key={h.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.78rem", padding: "0.15rem 0" }}>
+                              <span style={{ color: "#3d1a0a" }}>
+                                {new Date(normalizeDate(h.date) + "T12:00:00").toLocaleDateString("fr-BE", { weekday: "short", day: "numeric", month: "short" })}
+                              </span>
+                              <span style={{ ...pastilleEmp(h.employe_nom), fontSize: "0.72rem" }}>{h.employe_nom}</span>
+                            </div>
+                          ))}
+                      </div>
+                    )}
                     <div style={{ color: "#a07848", fontSize: "0.72rem", textAlign: "center", marginTop: "0.5rem" }}>
                       Touche un jour pour {isAdmin || employeVu === currentUser?.prenom ? "ajouter / modifier tes heures" : "voir"}
                     </div>
@@ -3480,7 +3544,7 @@ export default function App() {
                           // forcément à la place de quelqu'un. On pré-règle le
                           // formulaire sur « remplacement » plutôt que de laisser
                           // créer un troisième poste fantôme.
-                          setAddHoraireIsRemplacement(ecartEffectif(dateStr) >= 0);
+                          setAddHoraireIsRemplacement(isSuperAdmin && ecartEffectif(dateStr) >= 0);
                           setAddHoraireExtra(false);
                           setAddHoraireEmploye("");
                           setAddHoraireRemplaceNom("");
@@ -3488,6 +3552,35 @@ export default function App() {
                         }} style={{ background: "#e8213a", border: "none", color: "#fff", borderRadius: "50%", width: "1.8rem", height: "1.8rem", cursor: "pointer", fontSize: "1.1rem", fontWeight: "bold", display: "flex", alignItems: "center", justifyContent: "center" }}>+</button>
                       )}
                     </div>
+                    {/* Abdel seul peut désigner qui s'est fait remplacer. Proposé
+                        uniquement les jours où il y a plus de monde que prévu et
+                        qu'aucun remplacement n'a encore été noté. */}
+                    {isSuperAdmin && (() => {
+                      const enTrop = ecartEffectif(dateStr) > 0;
+                      const dejaNote = horaires.some(h => normalizeDate(h.date) === dateStr && h.est_remplacement && h.remplace_nom);
+                      const aDesigner = horaires.filter(h => normalizeDate(h.date) === dateStr && !h.est_remplacement);
+                      if (!enTrop || dejaNote || aDesigner.length === 0) return null;
+                      const cycle = getAutoEmployes(dateStr);
+                      return (
+                        <div style={{ background: "#2a2410", border: "1px solid #f5a62355", borderRadius: "9px", padding: "0.6rem 0.7rem", marginBottom: "0.5rem" }}>
+                          <div style={{ color: "#f5a623", fontSize: "0.7rem", fontWeight: 700, marginBottom: "0.4rem" }}>
+                            Une personne de plus que prévu — qui s'est fait remplacer ?
+                          </div>
+                          {aDesigner.map(h => (
+                            <div key={h.id} style={{ display: "flex", alignItems: "center", gap: "0.4rem", marginBottom: "0.3rem", flexWrap: "wrap" }}>
+                              <span style={{ ...pastilleEmp(h.employe_nom), fontSize: "0.72rem" }}>{h.employe_nom}</span>
+                              <span style={{ color: "#8a7a68", fontSize: "0.7rem" }}>remplace</span>
+                              <select defaultValue="" onChange={e => { if (e.target.value) designerRemplace(h.id, e.target.value); }}
+                                style={{ background: "#1a1a1a", border: "1px solid #3a3a3a", color: "#f0d8b8", borderRadius: "7px", padding: "0.3rem 0.5rem", fontSize: "0.74rem", fontFamily: "'Poppins', sans-serif" }}>
+                                <option value="">choisir…</option>
+                                {cycle.filter(n => n !== h.employe_nom).map(n => <option key={n} value={n}>{n}</option>)}
+                              </select>
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    })()}
+
                     {/* Workers */}
                     <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap" }}>
                       {autoEmps.map(emp => (
