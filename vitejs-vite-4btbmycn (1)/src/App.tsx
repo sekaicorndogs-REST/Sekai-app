@@ -1201,8 +1201,7 @@ export default function App() {
   const [heuresModalValue, setHeuresModalValue] = useState("");
   const [heuresModalExisting, setHeuresModalExisting] = useState<any>(null);
   const [heuresDayDetail, setHeuresDayDetail] = useState<string>("");
-  const [rempVenu, setRempVenu] = useState("");
-  const [rempRemplace, setRempRemplace] = useState(""); // admin: date pour voir le détail du jour
+  const [rempVenu, setRempVenu] = useState(""); // personne que Abdel ajoute quand il en manque une
   const [remplacementMois, setRemplacementMois] = useState(getCurrentMois());
   // ── Events team ──
   const [eventWorkers, setEventWorkers] = useState([]);
@@ -2395,24 +2394,24 @@ export default function App() {
     return res.json();
   }
 
-  /** Enregistre d'un coup « X est venu à la place de Y » pour une date donnée. */
-  async function noterRemplacement(dateStr, venu, remplace) {
-    if (!venu || !remplace) { flash("❌ Choisis les deux noms"); return; }
+  /** Journée en sous-effectif : Abdel ajoute lui-même la personne qui manque. */
+  async function ajouterManquant(dateStr, qui) {
+    if (!qui) return;
     const h = getAutoHoraire(dateStr);
     try {
       await addHoraire({
         restaurant_id: horaireRestaurant,
-        employe_nom: venu,
+        employe_nom: qui,
         date: dateStr,
         heure_debut: h.debut,
         heure_fin: h.fin,
-        est_remplacement: true,
-        remplace_nom: remplace,
+        est_remplacement: false,
+        remplace_nom: null,
         extra: false,
         created_by: currentUser?.prenom,
       });
       await fetchHoraires(horaireRestaurant);
-      flash(`✅ ${venu} remplace ${remplace}`);
+      flash(`✅ ${qui} ajouté`);
     } catch { flash("❌ Erreur"); }
   }
 
@@ -3247,46 +3246,66 @@ export default function App() {
                   );
                 })()}
 
-                {/* Abdel seul : compléter ou créer le remplacement, ici même. */}
+                {/* Abdel seul. Deux situations, jamais les deux à la fois :
+                    — trop de monde : la personne qui a encodé EST le remplaçant,
+                      il reste à dire qui elle remplace ;
+                    — il manque quelqu'un et personne ne s'est ajouté : Abdel
+                      inscrit lui-même la personne. */}
                 {isSuperAdmin && (() => {
-                  const cycle = getAutoEmployes(heuresDayDetail);
+                  const cible = effectifCible(heuresDayDetail);
+                  const equipe = equipeDuJour(heuresDayDetail);
+                  const ecart = equipe.length - cible;
                   const aDesigner = horaires.filter(h => normalizeDate(h.date) === heuresDayDetail && !h.est_remplacement);
-                  return (
-                    <div style={{ background: "#fffaf2", border: "1.5px solid #f0d8b8", borderRadius: "10px", padding: "0.8rem" }}>
-                      <div style={{ color: "#c98a17", fontSize: "0.68rem", fontWeight: "bold", marginBottom: "0.55rem", display: "flex", alignItems: "center", gap: "5px" }}>
-                        <RefreshCw size={13} /> NOTER UN REMPLACEMENT
-                      </div>
-                      {aDesigner.map(h => (
-                        <div key={h.id} style={{ display: "flex", alignItems: "center", gap: "0.35rem", marginBottom: "0.4rem", flexWrap: "wrap" }}>
-                          <span style={{ ...pastilleEmp(h.employe_nom), fontSize: "0.74rem" }}>{h.employe_nom}</span>
-                          <span style={{ color: "#a07848", fontSize: "0.74rem" }}>à la place de</span>
-                          <select defaultValue="" onChange={e => { if (e.target.value) designerRemplace(h.id, e.target.value); }}
-                            style={{ background: "#faebd7", border: "1px solid #f0d8b8", color: "#3d1a0a", borderRadius: "7px", padding: "0.3rem 0.5rem", fontSize: "0.76rem", fontFamily: "'Poppins', sans-serif" }}>
-                            <option value="">choisir…</option>
-                            {cycle.filter(n => n !== h.employe_nom).map(n => <option key={n} value={n}>{n}</option>)}
-                          </select>
+
+                  if (ecart > 0 && aDesigner.length > 0) {
+                    return (
+                      <div style={{ background: "#fffaf2", border: "1.5px solid #f5a62355", borderRadius: "10px", padding: "0.8rem" }}>
+                        <div style={{ color: "#c98a17", fontSize: "0.68rem", fontWeight: "bold", marginBottom: "0.2rem", display: "flex", alignItems: "center", gap: "5px" }}>
+                          <RefreshCw size={13} /> QUI S'EST FAIT REMPLACER ?
                         </div>
-                      ))}
-                      <div style={{ display: "flex", alignItems: "center", gap: "0.35rem", flexWrap: "wrap", marginTop: aDesigner.length ? "0.5rem" : 0, paddingTop: aDesigner.length ? "0.5rem" : 0, borderTop: aDesigner.length ? "1px dashed #f0e0cc" : "none" }}>
-                        <select value={rempVenu} onChange={e => setRempVenu(e.target.value)}
-                          style={{ background: "#faebd7", border: "1px solid #f0d8b8", color: "#3d1a0a", borderRadius: "7px", padding: "0.35rem 0.5rem", fontSize: "0.76rem", fontFamily: "'Poppins', sans-serif" }}>
-                          <option value="">Qui est venu ?</option>
-                          {NOMS_EQUIPE.map(n => <option key={n} value={n}>{n}</option>)}
-                        </select>
-                        <span style={{ color: "#a07848", fontSize: "0.74rem" }}>à la place de</span>
-                        <select value={rempRemplace} onChange={e => setRempRemplace(e.target.value)}
-                          style={{ background: "#faebd7", border: "1px solid #e5737355", color: "#3d1a0a", borderRadius: "7px", padding: "0.35rem 0.5rem", fontSize: "0.76rem", fontFamily: "'Poppins', sans-serif" }}>
-                          <option value="">Qui est remplacé ?</option>
-                          {equipeDuJour(heuresDayDetail).filter(n => n !== rempVenu).map(n => <option key={n} value={n}>{n}</option>)}
-                        </select>
-                        <button onClick={async () => { await noterRemplacement(heuresDayDetail, rempVenu, rempRemplace); setRempVenu(""); setRempRemplace(""); }}
-                          disabled={!rempVenu || !rempRemplace}
-                          style={{ background: rempVenu && rempRemplace ? "#e8213a" : "#e8d8c4", color: "#fff", border: "none", borderRadius: "7px", padding: "0.35rem 0.7rem", fontSize: "0.76rem", fontWeight: 700, cursor: rempVenu && rempRemplace ? "pointer" : "default", fontFamily: "'Poppins', sans-serif" }}>
-                          Noter
-                        </button>
+                        <div style={{ color: "#a07848", fontSize: "0.7rem", marginBottom: "0.55rem" }}>
+                          {ecart} personne{ecart > 1 ? "s" : ""} de plus que prévu.
+                        </div>
+                        {aDesigner.map(h => (
+                          <div key={h.id} style={{ display: "flex", alignItems: "center", gap: "0.35rem", marginBottom: "0.4rem", flexWrap: "wrap" }}>
+                            <span style={{ ...pastilleEmp(h.employe_nom), fontSize: "0.74rem" }}>{h.employe_nom}</span>
+                            <span style={{ color: "#a07848", fontSize: "0.74rem" }}>remplace</span>
+                            <select defaultValue="" onChange={e => { if (e.target.value) designerRemplace(h.id, e.target.value); }}
+                              style={{ background: "#faebd7", border: "1px solid #e5737355", color: "#3d1a0a", borderRadius: "7px", padding: "0.3rem 0.5rem", fontSize: "0.76rem", fontFamily: "'Poppins', sans-serif" }}>
+                              <option value="">choisir…</option>
+                              {equipe.filter(n => n !== h.employe_nom).map(n => <option key={n} value={n}>{n}</option>)}
+                            </select>
+                          </div>
+                        ))}
                       </div>
-                    </div>
-                  );
+                    );
+                  }
+
+                  if (ecart < 0) {
+                    return (
+                      <div style={{ background: "#fff5f5", border: "1.5px solid #e8213a44", borderRadius: "10px", padding: "0.8rem" }}>
+                        <div style={{ color: "#e8213a", fontSize: "0.68rem", fontWeight: "bold", marginBottom: "0.2rem", display: "flex", alignItems: "center", gap: "5px" }}>
+                          <AlertTriangle size={13} /> IL MANQUE {-ecart} PERSONNE{-ecart > 1 ? "S" : ""}
+                        </div>
+                        <div style={{ color: "#a07848", fontSize: "0.7rem", marginBottom: "0.55rem" }}>
+                          Personne ne s'est ajouté — inscris qui vient.
+                        </div>
+                        <div style={{ display: "flex", alignItems: "center", gap: "0.35rem", flexWrap: "wrap" }}>
+                          <select value={rempVenu} onChange={e => setRempVenu(e.target.value)}
+                            style={{ background: "#faebd7", border: "1px solid #f0d8b8", color: "#3d1a0a", borderRadius: "7px", padding: "0.35rem 0.5rem", fontSize: "0.76rem", fontFamily: "'Poppins', sans-serif" }}>
+                            <option value="">Qui vient ?</option>
+                            {NOMS_EQUIPE.filter(n => !equipe.includes(n)).map(n => <option key={n} value={n}>{n}</option>)}
+                          </select>
+                          <button onClick={async () => { await ajouterManquant(heuresDayDetail, rempVenu); setRempVenu(""); }}
+                            disabled={!rempVenu}
+                            style={{ background: rempVenu ? "#e8213a" : "#e8d8c4", color: "#fff", border: "none", borderRadius: "7px", padding: "0.35rem 0.8rem", fontSize: "0.76rem", fontWeight: 700, cursor: rempVenu ? "pointer" : "default", fontFamily: "'Poppins', sans-serif" }}>
+                            Ajouter
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  }
+                  return null;
                 })()}
 
                 {/* Remplacements du jour : la personne remplacée le voit ici. */}
