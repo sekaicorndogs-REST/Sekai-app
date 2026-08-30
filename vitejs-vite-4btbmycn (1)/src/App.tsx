@@ -3012,14 +3012,27 @@ export default function App() {
     const weekDates = getWeekDates();
 
     const moisHoraires = horaires.filter(h => normalizeDate(h.date).startsWith(remplacementMois));
+    // Les deux sources : postes encodés et heures déclarées avec un remplacé.
     const remplacementsParPersonne = {};
-    moisHoraires.filter(h => h.est_remplacement).forEach(h => {
-      const nom = h.remplace_nom;
+    const ajouterRemplacement = (nom, heures, detail) => {
+      if (!nom) return;
       if (!remplacementsParPersonne[nom]) remplacementsParPersonne[nom] = { count: 0, heures: 0, details: [] };
       remplacementsParPersonne[nom].count++;
-      remplacementsParPersonne[nom].heures += parseFloat(calcHeures(h.heure_debut.slice(0,5), h.heure_fin.slice(0,5)));
-      remplacementsParPersonne[nom].details.push(h);
+      remplacementsParPersonne[nom].heures += heures;
+      remplacementsParPersonne[nom].details.push(detail);
+    };
+    moisHoraires.filter(h => h.est_remplacement).forEach(h => {
+      ajouterRemplacement(h.remplace_nom, parseFloat(calcHeures(h.heure_debut.slice(0,5), h.heure_fin.slice(0,5))), h);
     });
+    heuresJours
+      .filter((h: any) => h.remplace_nom && h.date.startsWith(remplacementMois))
+      .forEach((h: any) => {
+        const autoH = getAutoHoraire(h.date);
+        ajouterRemplacement(h.remplace_nom, parseFloat(h.heures) || 0, {
+          id: "j" + h.id, date: h.date, employe_nom: h.employe_nom,
+          heure_debut: autoH.debut, heure_fin: autoH.fin,
+        });
+      });
 
     const AddModal = () => {
       if (!showAddHoraire) return null;
@@ -3827,7 +3840,10 @@ A travaillé sans être au planning — qui a été remplacé ?
                       <span style={{ color: "#777", textTransform: "capitalize" }}>{formatDateShort(normalizeDate(h.date))}</span>
                       <span style={{ color: "#a07848" }}>remplacé par <span style={{ color: "#3d1a0a" }}>{h.employe_nom}</span></span>
                       <span style={{ color: "#a07848" }}>{h.heure_debut.slice(0,5)}-{h.heure_fin.slice(0,5)}</span>
-                      {isSuperAdmin && (
+                      {/* Supprimable seulement si l'entrée vient de `horaires` :
+                          celles issues des heures déclarées portent un id « j… »
+                          et se corrigent depuis la fiche du jour. */}
+                      {isSuperAdmin && typeof h.id === "number" && (
                         <button onClick={() => handleDeleteHoraire(h.id)} style={{ background: "none", border: "none", color: "#e57373", cursor: "pointer", fontSize: "0.85rem", padding: "0 0.2rem" }}><Trash2 size={15} /></button>
                       )}
                     </div>
@@ -4055,7 +4071,12 @@ A travaillé sans être au planning — qui a été remplacé ?
                   const h = parseFloat(calcHeures(autoH.debut, autoH.fin));
                   emps.forEach(emp => {
                     if (!heuresPrestees[emp]) heuresPrestees[emp] = { travail: 0, remplace: 0, joursRemplace: 0 };
-                    const estRemplace = moisH.find(r => normalizeDate(r.date) === dateStr && r.est_remplacement && r.remplace_nom === emp);
+                    // Les remplacements notés sur les heures déclarées comptent
+                    // autant que ceux encodés dans `horaires` : sans ça, un mois
+                    // entier de remplacements s'affichait « 0 h ».
+                    const estRemplace =
+                      moisH.find(r => normalizeDate(r.date) === dateStr && r.est_remplacement && r.remplace_nom === emp)
+                      || heuresJours.find((r: any) => r.date === dateStr && r.remplace_nom === emp);
                     if (estRemplace) { heuresPrestees[emp].remplace += h; heuresPrestees[emp].joursRemplace += 1; }
                     else heuresPrestees[emp].travail += h;
                   });
@@ -4063,13 +4084,26 @@ A travaillé sans être au planning — qui a été remplacé ?
 
                 // Heures faites en remplacement
                 const heuresEnPlus = {};
+                const ajouterEnPlus = (nom, heures, detail) => {
+                  if (!heuresEnPlus[nom]) heuresEnPlus[nom] = { heures: 0, jours: 0, details: [] };
+                  heuresEnPlus[nom].heures += heures;
+                  heuresEnPlus[nom].jours += 1;
+                  heuresEnPlus[nom].details.push(detail);
+                };
                 moisH.filter(r => r.est_remplacement).forEach(r => {
-                  if (!heuresEnPlus[r.employe_nom]) heuresEnPlus[r.employe_nom] = { heures: 0, jours: 0, details: [] };
-                  const h = parseFloat(calcHeures(r.heure_debut.slice(0,5), r.heure_fin.slice(0,5)));
-                  heuresEnPlus[r.employe_nom].heures += h;
-                  heuresEnPlus[r.employe_nom].jours += 1;
-                  heuresEnPlus[r.employe_nom].details.push(r);
+                  ajouterEnPlus(r.employe_nom, parseFloat(calcHeures(r.heure_debut.slice(0,5), r.heure_fin.slice(0,5))), r);
                 });
+                // Idem côté heures déclarées : la personne qui a remplacé a bien
+                // fait ces heures en plus de son planning.
+                heuresJours
+                  .filter((r: any) => r.remplace_nom && r.date.startsWith(remplacementMois))
+                  .forEach((r: any) => {
+                    const autoH = getAutoHoraire(r.date);
+                    ajouterEnPlus(r.employe_nom, parseFloat(r.heures) || 0, {
+                      id: "j" + r.id, date: r.date, employe_nom: r.employe_nom, remplace_nom: r.remplace_nom,
+                      heure_debut: autoH.debut, heure_fin: autoH.fin,
+                    });
+                  });
 
                 // Events par personne (compteur)
                 const eventsParPersonne = {};
