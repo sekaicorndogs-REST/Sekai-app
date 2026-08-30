@@ -1108,6 +1108,8 @@ export default function App() {
   const [topProduits, setTopProduits] = useState<any[]>([]);
   const [ventesProduits, setVentesProduits] = useState<any[]>([]);
   const [resumeSection, setResumeSection] = useState<string>("essentiel");
+  // Thème affiché dans Stats : le tableau de bord serait illisible d'un bloc.
+  const [statsTheme, setStatsTheme] = useState<"ca"|"panier"|"produits"|"finance">("ca");
   const [joursSpeciaux, setJoursSpeciaux] = useState<any[]>([]);
   const [jourSpecialDate, setJourSpecialDate] = useState("");
   const [jourSpecialMotif, setJourSpecialMotif] = useState("greve");
@@ -4605,8 +4607,15 @@ export default function App() {
           // Deux sections seulement : ce qu'on regarde tous les jours, et le reste.
           // « ventes / annee / produits / personnel / dettes » étaient cinq onglets
           // distincts ; ils forment désormais une seule page Stats qui se déroule.
+          const THEME_DE: Record<string, string> = {
+            ventes: "ca", annee: "ca", produits: "produits",
+            personnel: "finance", dettes: "finance",
+          };
           const show = (s: string) =>
-            s === "essentiel" ? resumeSection === "essentiel" : resumeSection === "stats";
+            s === "essentiel"
+              ? resumeSection === "essentiel"
+              : resumeSection === "stats" && statsTheme === THEME_DE[s];
+          const theme = (t: string) => resumeSection === "stats" && statsTheme === t;
 
           // CA moyen par jour de semaine (données réelles)
           const JOURS_N = ["Dimanche","Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"];
@@ -4620,6 +4629,61 @@ export default function App() {
             .map(([k, o]) => ({ j: +k, moy: o.tot / o.jours.size + hb, n: o.jours.size }))
             .sort((a, b) => b.moy - a.moy);
           const maxDow = dowStats.length ? dowStats[0].moy : 1;
+
+          // ── Agrégats pour les Stats. Tout compris : on ajoute le hors-bornes
+          // du mois (caisse + Uber) à chaque journée mesurée.
+          const hbDuMois = (m: number) => {
+            const l = saisonnalite.find((x: any) => x.mois === m);
+            return l && l.hors_bornes != null && l.hors_bornes !== "" ? parseFloat(l.hors_bornes) || hb : hb;
+          };
+          const parMois: Record<string, { ca: number; n: number; jours: Set<string>; mois: number }> = {};
+          const caParHeure: Record<number, { ca: number; jours: Set<string> }> = {};
+          V.forEach(v => {
+            const k = v.d.getFullYear() + "-" + String(v.d.getMonth() + 1).padStart(2, "0");
+            (parMois[k] = parMois[k] || { ca: 0, n: 0, jours: new Set(), mois: v.d.getMonth() + 1 });
+            parMois[k].ca += v.p; parMois[k].n++; parMois[k].jours.add(v.d.toDateString());
+            const h = v.d.getHours();
+            (caParHeure[h] = caParHeure[h] || { ca: 0, jours: new Set() });
+            caParHeure[h].ca += v.p; caParHeure[h].jours.add(v.d.toDateString());
+          });
+          const moisStats = Object.entries(parMois)
+            .map(([k, o]) => {
+              const j = o.jours.size;
+              return {
+                k, mois: o.mois, jours: j,
+                caTot: o.ca + hbDuMois(o.mois) * j,
+                caJour: o.ca / j + hbDuMois(o.mois),
+                cmdJour: o.n / j,
+                panier: o.ca / o.n,
+              };
+            })
+            .sort((a, b) => a.k.localeCompare(b.k));
+          const maxMois = Math.max(1, ...moisStats.map(m => m.caJour));
+          const maxPanier = Math.max(1, ...moisStats.map(m => m.panier));
+          const heureStats = Object.entries(caParHeure)
+            .map(([h, o]) => ({ h: +h, moy: o.ca / o.jours.size }))
+            .filter(x => x.moy > 1)
+            .sort((a, b) => a.h - b.h);
+          const maxHeure = Math.max(1, ...heureStats.map(x => x.moy));
+          const MOIS_COURT = ["janv","févr","mars","avr","mai","juin","juil","août","sept","oct","nov","déc"];
+          const libMois = (k: string) => MOIS_COURT[parseInt(k.slice(5), 10) - 1] + " " + k.slice(2, 4);
+
+          // Dettes : ordre de remboursement et date de sortie
+          const dettesTriees = [...dettes]
+            .filter((d: any) => (parseFloat(d.montant_restant) || 0) > 0)
+            .map((d: any) => {
+              const r = parseFloat(d.montant_restant) || 0;
+              const m = parseFloat(d.mensualite) || 0;
+              return { nom: d.nom, restant: r, mensualite: m, mois: m > 0 ? Math.ceil(r / m) : null };
+            })
+            .sort((a, b) => (a.mois ?? 999) - (b.mois ?? 999));
+          const finDettes = dettesTriees.reduce((mx, d) => Math.max(mx, d.mois ?? 0), 0);
+          const dateFinDettes = (() => {
+            if (!finDettes) return null;
+            const d = new Date(); d.setMonth(d.getMonth() + finDettes);
+            return MOIS_COURT[d.getMonth()] + " " + d.getFullYear();
+          })();
+          const maxCharge = Math.max(1, ...charges.map((c: any) => parseFloat(c.montant) || 0));
 
           // Productivité : CA par heure travaillée (croise ventes et heures déclarées)
           const heuresParMois: Record<string, number> = {};
@@ -4638,6 +4702,157 @@ export default function App() {
             <div style={{ padding: "0.9rem 1rem", display: "flex", flexDirection: "column", gap: "0.7rem" }}>
               {/* Le choix Essentiel / Stats se fait dans la barre du haut : plus de
                   seconde rangée d'onglets. */}
+
+              {resumeSection === "stats" && (
+                <div style={{ display: "flex", gap: "0.35rem", overflowX: "auto", paddingBottom: "0.2rem", margin: "-0.2rem -0.2rem 0" }}>
+                  {[
+                    { id: "ca",       label: "CA & saison",   Icon: TrendingUp },
+                    { id: "panier",   label: "Clients",       Icon: Users },
+                    { id: "produits", label: "Produits",      Icon: Utensils },
+                    { id: "finance",  label: "Charges & dettes", Icon: Banknote },
+                  ].map(t => (
+                    <button key={t.id} onClick={() => setStatsTheme(t.id as any)}
+                      style={{ background: statsTheme === t.id ? "#3d1a0a" : "#fff", color: statsTheme === t.id ? "#fff" : "#a07848", border: `1px solid ${statsTheme === t.id ? "#3d1a0a" : "#efe0c9"}`, borderRadius: "20px", padding: "0.4rem 0.8rem", fontSize: "0.75rem", fontWeight: 600, cursor: "pointer", fontFamily: "'Poppins', sans-serif", display: "flex", alignItems: "center", gap: "4px", flexShrink: 0, whiteSpace: "nowrap" as const }}>
+                      <t.Icon size={13} /> {t.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* ══════ THÈME : CA & SAISON ══════ */}
+              {theme("ca") && moisStats.length > 1 && (
+                <div style={{ ...CARD, padding: "0.9rem 1rem" }}>
+                  <div style={{ ...LBL, marginBottom: "0.1rem" }}>CA réel mois par mois · €/jour</div>
+                  <div style={{ color: "#c8a878", fontSize: "0.66rem", marginBottom: "0.7rem" }}>Caisse et Uber inclus · trait = seuil {fmt(objJour)} €</div>
+                  {moisStats.map(m => {
+                    const sous = m.caJour < objJour;
+                    return (
+                      <div key={m.k} style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.3rem" }}>
+                        <span style={{ width: "54px", color: "#a07848", fontSize: "0.7rem", flexShrink: 0 }}>{libMois(m.k)}</span>
+                        <div style={{ flex: 1, background: "#f4e8d6", borderRadius: "20px", height: "9px", position: "relative" as const }}>
+                          <div style={{ width: `${(m.caJour / maxMois) * 100}%`, height: "9px", borderRadius: "20px", background: sous ? "#e8213a" : "#1f6e42" }} />
+                          <div style={{ position: "absolute" as const, left: `${Math.min(100, (objJour / maxMois) * 100)}%`, top: "-3px", width: "2px", height: "15px", background: "#3d1a0a" }} />
+                        </div>
+                        <span style={{ width: "50px", textAlign: "right" as const, fontSize: "0.74rem", fontWeight: 700, color: sous ? "#e8213a" : "#1f6e42" }}>{fmt(m.caJour)} €</span>
+                      </div>
+                    );
+                  })}
+                  <div style={{ display: "flex", gap: "1rem", marginTop: "0.8rem", paddingTop: "0.7rem", borderTop: "1px dashed #f0e0cc", flexWrap: "wrap" as const }}>
+                    {(() => {
+                      const best = [...moisStats].sort((a, b) => b.caJour - a.caJour)[0];
+                      const pire = [...moisStats].sort((a, b) => a.caJour - b.caJour)[0];
+                      const sous = moisStats.filter(m => m.caJour < objJour);
+                      return (<>
+                        <div><div style={{ color: "#a07848", fontSize: "0.62rem" }}>Meilleur mois</div><div style={{ color: "#1f6e42", fontSize: "0.9rem", fontWeight: 800 }}>{libMois(best.k)} · {fmt(best.caJour)} €</div></div>
+                        <div><div style={{ color: "#a07848", fontSize: "0.62rem" }}>Plus faible</div><div style={{ color: "#e8213a", fontSize: "0.9rem", fontWeight: 800 }}>{libMois(pire.k)} · {fmt(pire.caJour)} €</div></div>
+                        <div><div style={{ color: "#a07848", fontSize: "0.62rem" }}>Mois sous le seuil</div><div style={{ color: "#3d1a0a", fontSize: "0.9rem", fontWeight: 800 }}>{sous.length} / {moisStats.length}</div></div>
+                      </>);
+                    })()}
+                  </div>
+                </div>
+              )}
+
+              {theme("ca") && heureStats.length > 2 && (
+                <div style={{ ...CARD, padding: "0.9rem 1rem" }}>
+                  <div style={{ ...LBL, marginBottom: "0.1rem" }}>CA moyen par heure d'ouverture</div>
+                  <div style={{ color: "#c8a878", fontSize: "0.66rem", marginBottom: "0.7rem" }}>Aux bornes · sert à placer les renforts</div>
+                  {heureStats.map(x => (
+                    <div key={x.h} style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.25rem" }}>
+                      <span style={{ width: "38px", color: "#a07848", fontSize: "0.7rem", flexShrink: 0 }}>{x.h}h</span>
+                      <div style={{ flex: 1, background: "#f4e8d6", borderRadius: "20px", height: "9px" }}>
+                        <div style={{ width: `${(x.moy / maxHeure) * 100}%`, height: "9px", borderRadius: "20px", background: x.moy >= maxHeure * 0.75 ? "#e8213a" : "#c9a227" }} />
+                      </div>
+                      <span style={{ width: "46px", textAlign: "right" as const, fontSize: "0.74rem", fontWeight: 700, color: "#3d1a0a" }}>{fmt(x.moy)} €</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* ══════ THÈME : CLIENTS & PANIER ══════ */}
+              {theme("panier") && moisStats.length > 1 && (<>
+                <div style={{ ...CARD, padding: "0.9rem 1rem" }}>
+                  <div style={{ ...LBL, marginBottom: "0.1rem" }}>Panier moyen mois par mois</div>
+                  <div style={{ color: "#c8a878", fontSize: "0.66rem", marginBottom: "0.7rem" }}>Aux bornes · ce que dépense un client par commande</div>
+                  {moisStats.map(m => (
+                    <div key={m.k} style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.3rem" }}>
+                      <span style={{ width: "54px", color: "#a07848", fontSize: "0.7rem", flexShrink: 0 }}>{libMois(m.k)}</span>
+                      <div style={{ flex: 1, background: "#f4e8d6", borderRadius: "20px", height: "9px" }}>
+                        <div style={{ width: `${(m.panier / maxPanier) * 100}%`, height: "9px", borderRadius: "20px", background: "#7a4bd6" }} />
+                      </div>
+                      <span style={{ width: "52px", textAlign: "right" as const, fontSize: "0.74rem", fontWeight: 700, color: "#3d1a0a" }}>{m.panier.toFixed(2)} €</span>
+                    </div>
+                  ))}
+                  {(() => {
+                    const p0 = moisStats[0], p1 = moisStats[moisStats.length - 1];
+                    const d = p1.panier - p0.panier;
+                    return (
+                      <div style={{ marginTop: "0.7rem", background: d >= 0 ? "#eaf5ee" : "#fdecee", borderRadius: "10px", padding: "0.55rem 0.7rem", fontSize: "0.72rem", fontWeight: 600, color: d >= 0 ? "#1f6e42" : "#e8213a" }}>
+                        {d >= 0 ? "▲" : "▼"} {Math.abs(d).toFixed(2)} € entre {libMois(p0.k)} et {libMois(p1.k)} · sur {Math.round(p1.cmdJour)} commandes/jour, cela fait {fmt(Math.abs(d) * p1.cmdJour * 30)} €/mois
+                      </div>
+                    );
+                  })()}
+                </div>
+                <div style={{ ...CARD, padding: "0.9rem 1rem" }}>
+                  <div style={{ ...LBL, marginBottom: "0.7rem" }}>Commandes par jour</div>
+                  {moisStats.map(m => (
+                    <div key={m.k} style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.3rem" }}>
+                      <span style={{ width: "54px", color: "#a07848", fontSize: "0.7rem", flexShrink: 0 }}>{libMois(m.k)}</span>
+                      <div style={{ flex: 1, background: "#f4e8d6", borderRadius: "20px", height: "9px" }}>
+                        <div style={{ width: `${(m.cmdJour / Math.max(...moisStats.map(x => x.cmdJour))) * 100}%`, height: "9px", borderRadius: "20px", background: "#1f6e42" }} />
+                      </div>
+                      <span style={{ width: "46px", textAlign: "right" as const, fontSize: "0.74rem", fontWeight: 700, color: "#3d1a0a" }}>{m.cmdJour.toFixed(0)}</span>
+                    </div>
+                  ))}
+                </div>
+              </>)}
+
+              {/* ══════ THÈME : CHARGES & DETTES ══════ */}
+              {theme("finance") && dettesTriees.length > 0 && (
+                <div style={{ ...CARD, padding: "0.9rem 1rem" }}>
+                  <div style={{ ...LBL, marginBottom: "0.1rem" }}>Ordre de sortie des dettes</div>
+                  <div style={{ color: "#c8a878", fontSize: "0.66rem", marginBottom: "0.7rem" }}>Au rythme des mensualités actuelles</div>
+                  {dettesTriees.map((d, i) => (
+                    <div key={d.nom} style={{ display: "flex", alignItems: "center", gap: "0.6rem", padding: "0.45rem 0", borderBottom: i < dettesTriees.length - 1 ? "1px solid #f6ece0" : "none" }}>
+                      <span style={{ width: "20px", color: "#c8a878", fontSize: "0.8rem", fontWeight: 800 }}>{i + 1}</span>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ color: "#3d1a0a", fontSize: "0.82rem", fontWeight: 700 }}>{d.nom}</div>
+                        <div style={{ color: "#a07848", fontSize: "0.68rem" }}>{fmt(d.restant)} € restants · {fmt(d.mensualite)} €/mois</div>
+                      </div>
+                      <span style={{ color: d.mois && d.mois <= 6 ? "#1f6e42" : "#c98a17", fontSize: "0.8rem", fontWeight: 800, whiteSpace: "nowrap" as const }}>
+                        {d.mois ? `${d.mois} mois` : "—"}
+                      </span>
+                    </div>
+                  ))}
+                  {dateFinDettes && (
+                    <div style={{ marginTop: "0.8rem", background: "#3d1a0a", borderRadius: "10px", padding: "0.7rem 0.8rem" }}>
+                      <div style={{ color: "#f0d8b8", fontSize: "0.64rem", fontWeight: 700, letterSpacing: "0.06em" }}>LIBRE DE DETTES EN</div>
+                      <div style={{ color: "#fff", fontSize: "1.15rem", fontWeight: 800 }}>{dateFinDettes}</div>
+                      <div style={{ color: "#c8a878", fontSize: "0.66rem" }}>soit {finDettes} mois · {fmt(totalMensualites)} €/mois récupérés ensuite</div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {theme("finance") && charges.length > 0 && (
+                <div style={{ ...CARD, padding: "0.9rem 1rem" }}>
+                  <div style={{ ...LBL, marginBottom: "0.1rem" }}>Où part l'argent · {fmt(totalChargesFixes)} €/mois</div>
+                  <div style={{ color: "#c8a878", fontSize: "0.66rem", marginBottom: "0.7rem" }}>Part de chaque poste dans ton CA de {fmt(ca)} €</div>
+                  {[...charges].sort((a: any, b: any) => (parseFloat(b.montant) || 0) - (parseFloat(a.montant) || 0)).map((c: any) => {
+                    const m = parseFloat(c.montant) || 0;
+                    return (
+                      <div key={c.id} style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.3rem" }}>
+                        <span style={{ width: "92px", color: "#a07848", fontSize: "0.68rem", flexShrink: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" as const }}>{c.nom}</span>
+                        <div style={{ flex: 1, background: "#f4e8d6", borderRadius: "20px", height: "9px" }}>
+                          <div style={{ width: `${(m / maxCharge) * 100}%`, height: "9px", borderRadius: "20px", background: "#a07848" }} />
+                        </div>
+                        <span style={{ width: "44px", textAlign: "right" as const, fontSize: "0.72rem", fontWeight: 700, color: "#3d1a0a" }}>{fmt(m)} €</span>
+                        <span style={{ width: "34px", textAlign: "right" as const, fontSize: "0.66rem", color: "#c8a878" }}>{ca > 0 ? ((m / ca) * 100).toFixed(1) : "—"} %</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
 
               {/* ── BANDEAU PRIORITAIRE (toujours visible) ── */}
               {ca > 0 && (
