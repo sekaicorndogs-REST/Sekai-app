@@ -3986,24 +3986,28 @@ A travaillé sans être au planning — qui a été remplacé ?
             <div>
               {/* ── COMBIEN DE FOIS CHACUN S'EST FAIT REMPLACER ── */}
               {(() => {
-                const tous = tousRemplacements();
-                const duMois = tous.filter(r => r.date.startsWith(remplacementMois));
+                const duMois = tousRemplacements().filter(r => r.date.startsWith(remplacementMois));
                 const [ouvert, setOuvert] = [remplaceDetail, setRemplaceDetail];
                 const lignes = GERANTS_FIXES.map(nom => ({
                   nom,
-                  total: tous.filter(r => r.remplace === nom).length,
-                  mois: duMois.filter(r => r.remplace === nom).length,
-                  details: tous.filter(r => r.remplace === nom),
+                  total: duMois.filter(r => r.remplace === nom).length,
+                  details: duMois.filter(r => r.remplace === nom),
                 })).sort((a, b) => b.total - a.total);
                 const max = Math.max(1, ...lignes.map(l => l.total));
                 const totalGeneral = lignes.reduce((t, l) => t + l.total, 0);
+                const nomDuMois = new Date(remplacementMois + "-01T12:00:00")
+                  .toLocaleDateString("fr-BE", { month: "long", year: "numeric" });
                 return (
                   <div style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "12px", padding: "1rem", marginBottom: "0.9rem" }}>
-                    <div style={{ color: "#a07848", fontSize: "0.7rem", fontWeight: 800, letterSpacing: "0.06em", marginBottom: "0.15rem" }}>
-                      COMBIEN DE FOIS CHACUN S'EST FAIT REMPLACER
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "0.5rem", marginBottom: "0.15rem" }}>
+                      <div style={{ color: "#a07848", fontSize: "0.7rem", fontWeight: 800, letterSpacing: "0.06em" }}>
+                        COMBIEN DE FOIS CHACUN S'EST FAIT REMPLACER
+                      </div>
+                      <input type="month" value={remplacementMois} onChange={e => setRemplacementMois(e.target.value)}
+                        style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#e8213a", borderRadius: "8px", padding: "0.25rem 0.45rem", fontSize: "0.72rem", fontFamily: "'Poppins', sans-serif", flexShrink: 0, outline: "none" }} />
                     </div>
-                    <div style={{ color: "#c8a878", fontSize: "0.66rem", marginBottom: "0.8rem" }}>
-                      Depuis le début · {totalGeneral} remplacement{totalGeneral > 1 ? "s" : ""} au total
+                    <div style={{ color: "#c8a878", fontSize: "0.66rem", marginBottom: "0.8rem", textTransform: "capitalize" as const }}>
+                      {nomDuMois} · {totalGeneral} remplacement{totalGeneral > 1 ? "s" : ""}
                     </div>
                     {lignes.map(l => (
                       <div key={l.nom} style={{ marginBottom: "0.55rem" }}>
@@ -4014,10 +4018,7 @@ A travaillé sans être au planning — qui a été remplacé ?
                           <div style={{ flex: 1, background: "#f4e8d6", borderRadius: "20px", height: "9px" }}>
                             <div style={{ width: `${(l.total / max) * 100}%`, height: "9px", borderRadius: "20px", background: couleurEmploye(l.nom) }} />
                           </div>
-                          <span style={{ width: "26px", textAlign: "right" as const, color: "#3d1a0a", fontSize: "0.85rem", fontWeight: 800 }}>{l.total}</span>
-                          <span style={{ width: "58px", textAlign: "right" as const, color: "#c8a878", fontSize: "0.66rem" }}>
-                            {l.mois > 0 ? `${l.mois} ce mois` : "—"}
-                          </span>
+                          <span style={{ width: "30px", textAlign: "right" as const, color: l.total ? "#3d1a0a" : "#c8a878", fontSize: "0.9rem", fontWeight: 800 }}>{l.total}</span>
                         </div>
                         {ouvert === l.nom && l.details.length > 0 && (
                           <div style={{ marginTop: "0.4rem", marginLeft: "1.2rem", borderLeft: `2px solid ${couleurEmploye(l.nom)}33`, paddingLeft: "0.6rem" }}>
@@ -4033,20 +4034,16 @@ A travaillé sans être au planning — qui a été remplacé ?
                         )}
                       </div>
                     ))}
-                    {totalGeneral > 0 && (
-                      <div style={{ color: "#c8a878", fontSize: "0.64rem", marginTop: "0.6rem", paddingTop: "0.5rem", borderTop: "1px dashed #f0e0cc" }}>
-                        Touche un nom pour voir les dates et par qui.
-                      </div>
-                    )}
+                    <div style={{ color: "#c8a878", fontSize: "0.64rem", marginTop: "0.6rem", paddingTop: "0.5rem", borderTop: "1px dashed #f0e0cc" }}>
+                      {totalGeneral > 0 ? "Touche un nom pour voir les dates et par qui." : "Aucun remplacement noté ce mois-ci."}
+                    </div>
                   </div>
                 );
               })()}
 
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
-                <div style={{ color: "#a07848", fontSize: "0.75rem", fontWeight: "bold" }}>Heures du mois</div>
-                <input type="month" value={remplacementMois} onChange={e => setRemplacementMois(e.target.value)}
-                  style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#e8213a", borderRadius: "8px", padding: "0.3rem 0.5rem", fontSize: "0.75rem", fontFamily: "'Poppins', sans-serif", outline: "none" }} />
-              </div>
+              {/* Le sélecteur de mois est celui du bloc ci-dessus : un seul
+                  réglage pilote tout l'onglet. */}
+              <div style={{ color: "#a07848", fontSize: "0.75rem", fontWeight: "bold", marginBottom: "0.75rem" }}>Heures du mois</div>
 
               {(() => {
                 const moisH = horaires.filter(h => normalizeDate(h.date).startsWith(remplacementMois));
