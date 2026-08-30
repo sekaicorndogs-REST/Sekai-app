@@ -1200,7 +1200,9 @@ export default function App() {
   const [heuresModalDate, setHeuresModalDate] = useState("");
   const [heuresModalValue, setHeuresModalValue] = useState("");
   const [heuresModalExisting, setHeuresModalExisting] = useState<any>(null);
-  const [heuresDayDetail, setHeuresDayDetail] = useState<string>(""); // admin: date pour voir le détail du jour
+  const [heuresDayDetail, setHeuresDayDetail] = useState<string>("");
+  const [rempVenu, setRempVenu] = useState("");
+  const [rempRemplace, setRempRemplace] = useState(""); // admin: date pour voir le détail du jour
   const [remplacementMois, setRemplacementMois] = useState(getCurrentMois());
   // ── Events team ──
   const [eventWorkers, setEventWorkers] = useState([]);
@@ -2296,6 +2298,9 @@ export default function App() {
   // Règle du gérant (12/08/2026) : 2 personnes tous les jours, 3 le samedi.
   // Cohérent avec la capacité mesurée : deux personnes tiennent 1 350 €/jour,
   // et seul le samedi dépasse ce seuil.
+  // Une seule source pour les listes de noms, au lieu de quatre tableaux en dur.
+  const NOMS_EQUIPE = ["Abdel", "Nabil", "Mohammed", "Wassim", "Rachid", "Ali", "Momo"];
+
   function effectifCible(dateStr) {
     return getPlanDay(dateStr) === 5 ? 3 : 2;
   }
@@ -2388,6 +2393,27 @@ export default function App() {
     });
     if (!res.ok) throw new Error("Update horaire failed");
     return res.json();
+  }
+
+  /** Enregistre d'un coup « X est venu à la place de Y » pour une date donnée. */
+  async function noterRemplacement(dateStr, venu, remplace) {
+    if (!venu || !remplace) { flash("❌ Choisis les deux noms"); return; }
+    const h = getAutoHoraire(dateStr);
+    try {
+      await addHoraire({
+        restaurant_id: horaireRestaurant,
+        employe_nom: venu,
+        date: dateStr,
+        heure_debut: h.debut,
+        heure_fin: h.fin,
+        est_remplacement: true,
+        remplace_nom: remplace,
+        extra: false,
+        created_by: currentUser?.prenom,
+      });
+      await fetchHoraires(horaireRestaurant);
+      flash(`✅ ${venu} remplace ${remplace}`);
+    } catch { flash("❌ Erreur"); }
   }
 
   /** Abdel seul complète l'horaire : qui, parmi les prévus, s'est fait remplacer. */
@@ -2985,7 +3011,7 @@ export default function App() {
                 <select value={addHoraireEmploye} onChange={e => setAddHoraireEmploye(e.target.value)}
                   style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", fontFamily: "'Poppins', sans-serif", outline: "none", width: "100%" }}>
                   <option value="">Choisir un employé...</option>
-                  {["Abdel","Nabil","Mohammed","Wassim","Rachid","Ali","Momo"].map(n => <option key={n} value={n}>{n}</option>)}
+                  {NOMS_EQUIPE.map(n => <option key={n} value={n}>{n}</option>)}
                 </select>
                 <div style={{ display: "flex", gap: "0.5rem" }}>
                   <div style={{ flex: 1 }}>
@@ -3009,7 +3035,7 @@ export default function App() {
                 <select value={addHoraireEmploye} onChange={e => { setAddHoraireEmploye(e.target.value); setAddHoraireExtranom(""); }}
                   style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", fontFamily: "'Poppins', sans-serif", outline: "none", width: "100%" }}>
                   <option value="">-- Choisir un employé --</option>
-                  {["Abdel","Nabil","Mohammed","Wassim","Rachid","Ali","Momo"].map(n => <option key={n} value={n}>{n}</option>)}
+                  {NOMS_EQUIPE.map(n => <option key={n} value={n}>{n}</option>)}
                 </select>
                 <div style={{ color: "#a07848", fontSize: "0.78rem", textAlign: "center" }}>— ou —</div>
                 <input value={addHoraireExtranom} onChange={e => { setAddHoraireExtranom(e.target.value); setAddHoraireEmploye(""); }} placeholder="Nom libre (sans compte)..."
@@ -3064,7 +3090,7 @@ export default function App() {
                     <select value={addHoraireEmploye} onChange={e => setAddHoraireEmploye(e.target.value)}
                       style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", fontFamily: "'Poppins', sans-serif", outline: "none", width: "100%" }}>
                       <option value="">Qui remplace ?</option>
-                      {["Abdel","Nabil","Mohammed","Wassim","Rachid","Ali","Momo"].map(n => <option key={n} value={n}>{n}</option>)}
+                      {NOMS_EQUIPE.map(n => <option key={n} value={n}>{n}</option>)}
                     </select>
                   </>
                 ) : (
@@ -3202,6 +3228,66 @@ export default function App() {
                       <div key={n} style={{ color: "#3d1a0a", fontSize: "0.85rem", padding: "0.15rem 0", display: "flex", alignItems: "center", gap: "6px" }}><User size={13} color="#a07848" /> {n}</div>
                     ))}
                 </div>
+
+                {/* Effectif attendu, rappelé en tête de fiche. */}
+                {(() => {
+                  const cible = effectifCible(heuresDayDetail);
+                  const equipe = equipeDuJour(heuresDayDetail);
+                  const ecart = equipe.length - cible;
+                  const c = ecart === 0 ? "#4caf50" : ecart < 0 ? "#e8213a" : "#f5a623";
+                  return (
+                    <div style={{ background: c + "12", border: `1px solid ${c}44`, borderRadius: "10px", padding: "0.6rem 0.8rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <span style={{ color: "#a07848", fontSize: "0.75rem" }}>Effectif</span>
+                      <span style={{ color: c, fontSize: "0.85rem", fontWeight: 800 }}>
+                        {equipe.length}/{cible}
+                        {ecart < 0 && ` · il manque ${-ecart}`}
+                        {ecart > 0 && ` · ${ecart} en trop`}
+                      </span>
+                    </div>
+                  );
+                })()}
+
+                {/* Abdel seul : compléter ou créer le remplacement, ici même. */}
+                {isSuperAdmin && (() => {
+                  const cycle = getAutoEmployes(heuresDayDetail);
+                  const aDesigner = horaires.filter(h => normalizeDate(h.date) === heuresDayDetail && !h.est_remplacement);
+                  return (
+                    <div style={{ background: "#fffaf2", border: "1.5px solid #f0d8b8", borderRadius: "10px", padding: "0.8rem" }}>
+                      <div style={{ color: "#c98a17", fontSize: "0.68rem", fontWeight: "bold", marginBottom: "0.55rem", display: "flex", alignItems: "center", gap: "5px" }}>
+                        <RefreshCw size={13} /> NOTER UN REMPLACEMENT
+                      </div>
+                      {aDesigner.map(h => (
+                        <div key={h.id} style={{ display: "flex", alignItems: "center", gap: "0.35rem", marginBottom: "0.4rem", flexWrap: "wrap" }}>
+                          <span style={{ ...pastilleEmp(h.employe_nom), fontSize: "0.74rem" }}>{h.employe_nom}</span>
+                          <span style={{ color: "#a07848", fontSize: "0.74rem" }}>à la place de</span>
+                          <select defaultValue="" onChange={e => { if (e.target.value) designerRemplace(h.id, e.target.value); }}
+                            style={{ background: "#faebd7", border: "1px solid #f0d8b8", color: "#3d1a0a", borderRadius: "7px", padding: "0.3rem 0.5rem", fontSize: "0.76rem", fontFamily: "'Poppins', sans-serif" }}>
+                            <option value="">choisir…</option>
+                            {cycle.filter(n => n !== h.employe_nom).map(n => <option key={n} value={n}>{n}</option>)}
+                          </select>
+                        </div>
+                      ))}
+                      <div style={{ display: "flex", alignItems: "center", gap: "0.35rem", flexWrap: "wrap", marginTop: aDesigner.length ? "0.5rem" : 0, paddingTop: aDesigner.length ? "0.5rem" : 0, borderTop: aDesigner.length ? "1px dashed #f0e0cc" : "none" }}>
+                        <select value={rempVenu} onChange={e => setRempVenu(e.target.value)}
+                          style={{ background: "#faebd7", border: "1px solid #f0d8b8", color: "#3d1a0a", borderRadius: "7px", padding: "0.35rem 0.5rem", fontSize: "0.76rem", fontFamily: "'Poppins', sans-serif" }}>
+                          <option value="">Qui est venu ?</option>
+                          {NOMS_EQUIPE.map(n => <option key={n} value={n}>{n}</option>)}
+                        </select>
+                        <span style={{ color: "#a07848", fontSize: "0.74rem" }}>à la place de</span>
+                        <select value={rempRemplace} onChange={e => setRempRemplace(e.target.value)}
+                          style={{ background: "#faebd7", border: "1px solid #e5737355", color: "#3d1a0a", borderRadius: "7px", padding: "0.35rem 0.5rem", fontSize: "0.76rem", fontFamily: "'Poppins', sans-serif" }}>
+                          <option value="">Qui est remplacé ?</option>
+                          {equipeDuJour(heuresDayDetail).filter(n => n !== rempVenu).map(n => <option key={n} value={n}>{n}</option>)}
+                        </select>
+                        <button onClick={async () => { await noterRemplacement(heuresDayDetail, rempVenu, rempRemplace); setRempVenu(""); setRempRemplace(""); }}
+                          disabled={!rempVenu || !rempRemplace}
+                          style={{ background: rempVenu && rempRemplace ? "#e8213a" : "#e8d8c4", color: "#fff", border: "none", borderRadius: "7px", padding: "0.35rem 0.7rem", fontSize: "0.76rem", fontWeight: 700, cursor: rempVenu && rempRemplace ? "pointer" : "default", fontFamily: "'Poppins', sans-serif" }}>
+                          Noter
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })()}
 
                 {/* Remplacements du jour : la personne remplacée le voit ici. */}
                 {(() => {
@@ -3517,7 +3603,8 @@ export default function App() {
                     {/* Day header */}
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
                       <div>
-                        <span style={{ color: isToday ? "#5cb85c" : "#f5c842", fontSize: "0.85rem", fontWeight: "bold", textTransform: "capitalize" }}>{formatDateShort(dateStr)}</span>
+                        <span onClick={() => setHeuresDayDetail(dateStr)}
+                          style={{ color: isToday ? "#5cb85c" : "#f5c842", fontSize: "0.85rem", fontWeight: "bold", textTransform: "capitalize", cursor: "pointer", textDecoration: "underline", textDecorationColor: "#ffffff22", textUnderlineOffset: "3px" }}>{formatDateShort(dateStr)}</span>
                         {isToday && <span style={{ color: "#4caf50", fontSize: "0.72rem", marginLeft: "0.4rem" }}>· Aujourd'hui</span>}
                         <span style={{ color: "#a07848", fontSize: "0.72rem", marginLeft: "0.5rem" }}>{autoH.debut}-{autoH.fin}</span>
                         {(() => {
@@ -3754,7 +3841,7 @@ export default function App() {
 
                 <div style={{ color: "#a07848", fontSize: "0.78rem", marginTop: "0.3rem", display: "flex", alignItems: "center", gap: "5px" }}><Users size={13} /> Pré-assigner des personnes <span style={{ color: "#c8a878" }}>(optionnel)</span></div>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem" }}>
-                  {["Abdel","Nabil","Mohammed","Wassim","Rachid","Ali","Momo"].map(nom => {
+                  {NOMS_EQUIPE.map(nom => {
                     const sel = newEventEmployes.includes(nom);
                     return (
                       <button key={nom} onClick={() => toggleEventEmploye(nom)}
