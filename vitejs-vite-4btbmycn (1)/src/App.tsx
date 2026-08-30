@@ -3802,64 +3802,6 @@ A travaillé sans être au planning — qui a été remplacé ?
           {/* REMPLACEMENTS VIEW */}
           {horaireView === "remplacements" && (
             <div>
-              {/* ── COMBIEN DE FOIS CHACUN S'EST FAIT REMPLACER ── */}
-              {(() => {
-                const tous = tousRemplacements();
-                const duMois = tous.filter(r => r.date.startsWith(remplacementMois));
-                const [ouvert, setOuvert] = [remplaceDetail, setRemplaceDetail];
-                const lignes = GERANTS_FIXES.map(nom => ({
-                  nom,
-                  total: tous.filter(r => r.remplace === nom).length,
-                  mois: duMois.filter(r => r.remplace === nom).length,
-                  details: tous.filter(r => r.remplace === nom),
-                })).sort((a, b) => b.total - a.total);
-                const max = Math.max(1, ...lignes.map(l => l.total));
-                const totalGeneral = lignes.reduce((t, l) => t + l.total, 0);
-                return (
-                  <div style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "12px", padding: "1rem", marginBottom: "0.9rem" }}>
-                    <div style={{ color: "#a07848", fontSize: "0.7rem", fontWeight: 800, letterSpacing: "0.06em", marginBottom: "0.15rem" }}>
-                      COMBIEN DE FOIS CHACUN S'EST FAIT REMPLACER
-                    </div>
-                    <div style={{ color: "#c8a878", fontSize: "0.66rem", marginBottom: "0.8rem" }}>
-                      Depuis le début · {totalGeneral} remplacement{totalGeneral > 1 ? "s" : ""} au total
-                    </div>
-                    {lignes.map(l => (
-                      <div key={l.nom} style={{ marginBottom: "0.55rem" }}>
-                        <div onClick={() => setOuvert(ouvert === l.nom ? "" : l.nom)}
-                          style={{ display: "flex", alignItems: "center", gap: "0.5rem", cursor: l.total ? "pointer" : "default" }}>
-                          <span style={{ width: "9px", height: "9px", borderRadius: "50%", background: couleurEmploye(l.nom), flexShrink: 0 }} />
-                          <span style={{ width: "74px", color: "#3d1a0a", fontSize: "0.8rem", fontWeight: 600, flexShrink: 0 }}>{l.nom}</span>
-                          <div style={{ flex: 1, background: "#f4e8d6", borderRadius: "20px", height: "9px" }}>
-                            <div style={{ width: `${(l.total / max) * 100}%`, height: "9px", borderRadius: "20px", background: couleurEmploye(l.nom) }} />
-                          </div>
-                          <span style={{ width: "26px", textAlign: "right" as const, color: "#3d1a0a", fontSize: "0.85rem", fontWeight: 800 }}>{l.total}</span>
-                          <span style={{ width: "58px", textAlign: "right" as const, color: "#c8a878", fontSize: "0.66rem" }}>
-                            {l.mois > 0 ? `${l.mois} ce mois` : "—"}
-                          </span>
-                        </div>
-                        {ouvert === l.nom && l.details.length > 0 && (
-                          <div style={{ marginTop: "0.4rem", marginLeft: "1.2rem", borderLeft: `2px solid ${couleurEmploye(l.nom)}33`, paddingLeft: "0.6rem" }}>
-                            {l.details.map(r => (
-                              <div key={r.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.74rem", padding: "0.12rem 0" }}>
-                                <span style={{ color: "#a07848", textTransform: "capitalize" as const }}>
-                                  {new Date(r.date + "T12:00:00").toLocaleDateString("fr-BE", { weekday: "short", day: "numeric", month: "short", year: "2-digit" })}
-                                </span>
-                                <span style={{ ...pastilleEmp(r.par), fontSize: "0.7rem" }}>{r.par}</span>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                    {totalGeneral > 0 && (
-                      <div style={{ color: "#c8a878", fontSize: "0.64rem", marginTop: "0.6rem", paddingTop: "0.5rem", borderTop: "1px dashed #f0e0cc" }}>
-                        Touche un nom pour voir les dates et par qui.
-                      </div>
-                    )}
-                  </div>
-                );
-              })()}
-
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
                 <div style={{ color: "#a07848", fontSize: "0.75rem", fontWeight: "bold" }}>Remplacements du mois</div>
                 <input type="month" value={remplacementMois} onChange={e => setRemplacementMois(e.target.value)}
@@ -4026,6 +3968,64 @@ A travaillé sans être au planning — qui a été remplacé ?
           {/* STATS VIEW */}
           {horaireView === "stats" && (
             <div>
+              {/* ── COMBIEN DE FOIS CHACUN S'EST FAIT REMPLACER ── */}
+              {(() => {
+                const tous = tousRemplacements();
+                const duMois = tous.filter(r => r.date.startsWith(remplacementMois));
+                const [ouvert, setOuvert] = [remplaceDetail, setRemplaceDetail];
+                const lignes = GERANTS_FIXES.map(nom => ({
+                  nom,
+                  total: tous.filter(r => r.remplace === nom).length,
+                  mois: duMois.filter(r => r.remplace === nom).length,
+                  details: tous.filter(r => r.remplace === nom),
+                })).sort((a, b) => b.total - a.total);
+                const max = Math.max(1, ...lignes.map(l => l.total));
+                const totalGeneral = lignes.reduce((t, l) => t + l.total, 0);
+                return (
+                  <div style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "12px", padding: "1rem", marginBottom: "0.9rem" }}>
+                    <div style={{ color: "#a07848", fontSize: "0.7rem", fontWeight: 800, letterSpacing: "0.06em", marginBottom: "0.15rem" }}>
+                      COMBIEN DE FOIS CHACUN S'EST FAIT REMPLACER
+                    </div>
+                    <div style={{ color: "#c8a878", fontSize: "0.66rem", marginBottom: "0.8rem" }}>
+                      Depuis le début · {totalGeneral} remplacement{totalGeneral > 1 ? "s" : ""} au total
+                    </div>
+                    {lignes.map(l => (
+                      <div key={l.nom} style={{ marginBottom: "0.55rem" }}>
+                        <div onClick={() => setOuvert(ouvert === l.nom ? "" : l.nom)}
+                          style={{ display: "flex", alignItems: "center", gap: "0.5rem", cursor: l.total ? "pointer" : "default" }}>
+                          <span style={{ width: "9px", height: "9px", borderRadius: "50%", background: couleurEmploye(l.nom), flexShrink: 0 }} />
+                          <span style={{ width: "74px", color: "#3d1a0a", fontSize: "0.8rem", fontWeight: 600, flexShrink: 0 }}>{l.nom}</span>
+                          <div style={{ flex: 1, background: "#f4e8d6", borderRadius: "20px", height: "9px" }}>
+                            <div style={{ width: `${(l.total / max) * 100}%`, height: "9px", borderRadius: "20px", background: couleurEmploye(l.nom) }} />
+                          </div>
+                          <span style={{ width: "26px", textAlign: "right" as const, color: "#3d1a0a", fontSize: "0.85rem", fontWeight: 800 }}>{l.total}</span>
+                          <span style={{ width: "58px", textAlign: "right" as const, color: "#c8a878", fontSize: "0.66rem" }}>
+                            {l.mois > 0 ? `${l.mois} ce mois` : "—"}
+                          </span>
+                        </div>
+                        {ouvert === l.nom && l.details.length > 0 && (
+                          <div style={{ marginTop: "0.4rem", marginLeft: "1.2rem", borderLeft: `2px solid ${couleurEmploye(l.nom)}33`, paddingLeft: "0.6rem" }}>
+                            {l.details.map(r => (
+                              <div key={r.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.74rem", padding: "0.12rem 0" }}>
+                                <span style={{ color: "#a07848", textTransform: "capitalize" as const }}>
+                                  {new Date(r.date + "T12:00:00").toLocaleDateString("fr-BE", { weekday: "short", day: "numeric", month: "short", year: "2-digit" })}
+                                </span>
+                                <span style={{ ...pastilleEmp(r.par), fontSize: "0.7rem" }}>{r.par}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                    {totalGeneral > 0 && (
+                      <div style={{ color: "#c8a878", fontSize: "0.64rem", marginTop: "0.6rem", paddingTop: "0.5rem", borderTop: "1px dashed #f0e0cc" }}>
+                        Touche un nom pour voir les dates et par qui.
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
+
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
                 <div style={{ color: "#a07848", fontSize: "0.75rem", fontWeight: "bold" }}>Heures du mois</div>
                 <input type="month" value={remplacementMois} onChange={e => setRemplacementMois(e.target.value)}
