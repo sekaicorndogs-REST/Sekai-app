@@ -2314,12 +2314,36 @@ export default function App() {
   function effectifCible(dateStr) {
     return getPlanDay(dateStr) === 5 ? 3 : 2;
   }
-  /** Qui est déjà positionné ce jour-là : cycle + horaires encodés non-remplacements. */
-  function equipeDuJour(dateStr) {
+  /** Les personnes prévues au planning ce jour-là (cycle + horaires encodés). */
+  function prevusDuJour(dateStr) {
     const encodes = horaires
       .filter(h => normalizeDate(h.date) === dateStr && !h.est_remplacement)
       .map(h => h.employe_nom);
     return Array.from(new Set([...getAutoEmployes(dateStr), ...encodes].filter(Boolean)));
+  }
+  /** Qui a déclaré avoir travaillé ce jour-là (table heures_jours). */
+  function declarantsDuJour(dateStr) {
+    return heuresJours.filter((h: any) => h.date === dateStr);
+  }
+  /** Qui est noté comme remplacé ce jour-là, quelle que soit la source. */
+  function remplacesDuJour(dateStr) {
+    return [
+      ...horaires.filter(h => normalizeDate(h.date) === dateStr && h.est_remplacement && h.remplace_nom).map(h => h.remplace_nom),
+      ...declarantsDuJour(dateStr).filter((h: any) => h.remplace_nom).map((h: any) => h.remplace_nom),
+    ];
+  }
+  /**
+   * Effectif réel : les prévus, plus ceux qui ont déclaré sans être prévus,
+   * moins ceux qu'on a notés comme remplacés. Tant que le remplacement n'est
+   * pas désigné, la journée compte une personne de trop — c'est le signal.
+   */
+  function equipeDuJour(dateStr) {
+    const remplaces = remplacesDuJour(dateStr);
+    const tous = Array.from(new Set([
+      ...prevusDuJour(dateStr),
+      ...declarantsDuJour(dateStr).map((h: any) => h.employe_nom),
+    ].filter(Boolean)));
+    return tous.filter(n => !remplaces.includes(n));
   }
   /** Négatif = il manque du monde, positif = quelqu'un est en trop. */
   function ecartEffectif(dateStr) {
@@ -2403,6 +2427,18 @@ export default function App() {
     });
     if (!res.ok) throw new Error("Update horaire failed");
     return res.json();
+  }
+
+  /** Abdel note qui la personne ayant déclaré ses heures a remplacé. */
+  async function designerRemplaceHeures(ligneId, remplaceNom) {
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/heures_jours?id=eq.${ligneId}`, {
+        method: "PATCH", headers: HEADERS, body: JSON.stringify({ remplace_nom: remplaceNom }),
+      });
+      if (!res.ok) throw new Error("patch failed");
+      await fetchHeuresJours(horaireRestaurant);
+      flash(`✅ ${remplaceNom} noté comme remplacé`);
+    } catch { flash("❌ Erreur"); }
   }
 
   /** Journée en sous-effectif : Abdel ajoute lui-même la personne qui manque. */
@@ -3266,25 +3302,29 @@ export default function App() {
                   const cible = effectifCible(heuresDayDetail);
                   const equipe = equipeDuJour(heuresDayDetail);
                   const ecart = equipe.length - cible;
-                  const aDesigner = horaires.filter(h => normalizeDate(h.date) === heuresDayDetail && !h.est_remplacement);
+                  const prevus = prevusDuJour(heuresDayDetail);
+                  // Ceux qui ont déclaré des heures sans être au planning : ce sont
+                  // eux les remplaçants. Il reste à dire qui ils remplacent.
+                  const aDesigner = declarantsDuJour(heuresDayDetail)
+                    .filter((h: any) => !h.remplace_nom && !prevus.includes(h.employe_nom));
 
-                  if (ecart > 0 && aDesigner.length > 0) {
+                  if (aDesigner.length > 0) {
                     return (
                       <div style={{ background: "#fffaf2", border: "1.5px solid #f5a62355", borderRadius: "10px", padding: "0.8rem" }}>
                         <div style={{ color: "#c98a17", fontSize: "0.68rem", fontWeight: "bold", marginBottom: "0.2rem", display: "flex", alignItems: "center", gap: "5px" }}>
                           <RefreshCw size={13} /> QUI S'EST FAIT REMPLACER ?
                         </div>
                         <div style={{ color: "#a07848", fontSize: "0.7rem", marginBottom: "0.55rem" }}>
-                          {ecart} personne{ecart > 1 ? "s" : ""} de plus que prévu.
+                          {aDesigner.length === 1 ? "Cette personne a travaillé sans être au planning." : "Ces personnes ont travaillé sans être au planning."}
                         </div>
-                        {aDesigner.map(h => (
+                        {aDesigner.map((h: any) => (
                           <div key={h.id} style={{ display: "flex", alignItems: "center", gap: "0.35rem", marginBottom: "0.4rem", flexWrap: "wrap" }}>
                             <span style={{ ...pastilleEmp(h.employe_nom), fontSize: "0.74rem" }}>{h.employe_nom}</span>
                             <span style={{ color: "#a07848", fontSize: "0.74rem" }}>remplace</span>
-                            <select defaultValue="" onChange={e => { if (e.target.value) designerRemplace(h.id, e.target.value); }}
+                            <select defaultValue="" onChange={e => { if (e.target.value) designerRemplaceHeures(h.id, e.target.value); }}
                               style={{ background: "#faebd7", border: "1px solid #e5737355", color: "#3d1a0a", borderRadius: "7px", padding: "0.3rem 0.5rem", fontSize: "0.76rem", fontFamily: "'Poppins', sans-serif" }}>
                               <option value="">choisir…</option>
-                              {equipe.filter(n => n !== h.employe_nom).map(n => <option key={n} value={n}>{n}</option>)}
+                              {prevus.filter((n: string) => n !== h.employe_nom).map((n: string) => <option key={n} value={n}>{n}</option>)}
                             </select>
                           </div>
                         ))}
@@ -3321,7 +3361,10 @@ export default function App() {
 
                 {/* Remplacements du jour : la personne remplacée le voit ici. */}
                 {(() => {
-                  const remps = horaires.filter(h => normalizeDate(h.date) === heuresDayDetail && h.est_remplacement && h.remplace_nom);
+                  const remps = [
+                    ...horaires.filter(h => normalizeDate(h.date) === heuresDayDetail && h.est_remplacement && h.remplace_nom),
+                    ...declarantsDuJour(heuresDayDetail).filter((h: any) => h.remplace_nom),
+                  ];
                   if (remps.length === 0) return null;
                   return (
                     <div style={{ background: "#fff6e8", border: "1px solid #f5a62344", borderRadius: "10px", padding: "0.8rem" }}>
@@ -3519,7 +3562,8 @@ export default function App() {
                         // Jour où cette personne s'est fait remplacer : elle doit le
                         // voir dans son propre historique, pas seulement l'admin.
                         const remplacePar = employeVu
-                          ? horaires.find(h => normalizeDate(h.date) === dateStr && h.est_remplacement && h.remplace_nom === employeVu)
+                          ? (horaires.find(h => normalizeDate(h.date) === dateStr && h.est_remplacement && h.remplace_nom === employeVu)
+                             || heuresJours.find((h: any) => h.date === dateStr && h.remplace_nom === employeVu))
                           : null;
                         // Employé ne peut éditer que soi-même
                         const canEdit = isAdmin || employeVu === currentUser?.prenom;
@@ -3537,24 +3581,29 @@ export default function App() {
                         );
                       })}
                     </div>
-                    {employeVu && horaires.some(h => normalizeDate(h.date).startsWith(heuresMois) && h.est_remplacement && h.remplace_nom === employeVu) && (
+                    {employeVu && (() => {
+                      const mesRemplacements = [
+                        ...horaires.filter(h => normalizeDate(h.date).startsWith(heuresMois) && h.est_remplacement && h.remplace_nom === employeVu)
+                          .map(h => ({ id: "h" + h.id, date: normalizeDate(h.date), par: h.employe_nom })),
+                        ...heuresJours.filter((h: any) => h.date.startsWith(heuresMois) && h.remplace_nom === employeVu)
+                          .map((h: any) => ({ id: "j" + h.id, date: h.date, par: h.employe_nom })),
+                      ].sort((a, b) => a.date.localeCompare(b.date));
+                      return mesRemplacements.length > 0 && (
                       <div style={{ background: "#fff6e8", border: "1px solid #f5a62344", borderRadius: "10px", padding: "0.6rem 0.75rem", marginTop: "0.5rem" }}>
                         <div style={{ color: "#c98a17", fontSize: "0.68rem", fontWeight: 700, marginBottom: "0.35rem", display: "flex", alignItems: "center", gap: "5px" }}>
                           <RefreshCw size={12} /> JOURS OÙ TU T'ES FAIT REMPLACER
                         </div>
-                        {horaires
-                          .filter(h => normalizeDate(h.date).startsWith(heuresMois) && h.est_remplacement && h.remplace_nom === employeVu)
-                          .sort((a, b) => normalizeDate(a.date).localeCompare(normalizeDate(b.date)))
-                          .map(h => (
-                            <div key={h.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.78rem", padding: "0.15rem 0" }}>
-                              <span style={{ color: "#3d1a0a" }}>
-                                {new Date(normalizeDate(h.date) + "T12:00:00").toLocaleDateString("fr-BE", { weekday: "short", day: "numeric", month: "short" })}
-                              </span>
-                              <span style={{ ...pastilleEmp(h.employe_nom), fontSize: "0.72rem" }}>{h.employe_nom}</span>
-                            </div>
-                          ))}
+                        {mesRemplacements.map(r => (
+                          <div key={r.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.78rem", padding: "0.15rem 0" }}>
+                            <span style={{ color: "#3d1a0a" }}>
+                              {new Date(r.date + "T12:00:00").toLocaleDateString("fr-BE", { weekday: "short", day: "numeric", month: "short" })}
+                            </span>
+                            <span style={{ ...pastilleEmp(r.par), fontSize: "0.72rem" }}>{r.par}</span>
+                          </div>
+                        ))}
                       </div>
-                    )}
+                      );
+                    })()}
                     <div style={{ color: "#a07848", fontSize: "0.72rem", textAlign: "center", marginTop: "0.5rem" }}>
                       Touche un jour pour {isAdmin || employeVu === currentUser?.prenom ? "ajouter / modifier tes heures" : "voir"}
                     </div>
@@ -3673,21 +3722,22 @@ export default function App() {
                         uniquement les jours où il y a plus de monde que prévu et
                         qu'aucun remplacement n'a encore été noté. */}
                     {isSuperAdmin && (() => {
-                      const enTrop = ecartEffectif(dateStr) > 0;
-                      const dejaNote = horaires.some(h => normalizeDate(h.date) === dateStr && h.est_remplacement && h.remplace_nom);
-                      const aDesigner = horaires.filter(h => normalizeDate(h.date) === dateStr && !h.est_remplacement);
-                      if (!enTrop || dejaNote || aDesigner.length === 0) return null;
-                      const cycle = getAutoEmployes(dateStr);
+                      // Même logique que la fiche du jour : ceux qui ont déclaré
+                      // des heures sans figurer au planning sont des remplaçants.
+                      const cycle = prevusDuJour(dateStr);
+                      const aDesigner = declarantsDuJour(dateStr)
+                        .filter((h: any) => !h.remplace_nom && !cycle.includes(h.employe_nom));
+                      if (aDesigner.length === 0) return null;
                       return (
                         <div style={{ background: "#2a2410", border: "1px solid #f5a62355", borderRadius: "9px", padding: "0.6rem 0.7rem", marginBottom: "0.5rem" }}>
                           <div style={{ color: "#f5a623", fontSize: "0.7rem", fontWeight: 700, marginBottom: "0.4rem" }}>
-                            Une personne de plus que prévu — qui s'est fait remplacer ?
+A travaillé sans être au planning — qui a été remplacé ?
                           </div>
-                          {aDesigner.map(h => (
+                          {aDesigner.map((h: any) => (
                             <div key={h.id} style={{ display: "flex", alignItems: "center", gap: "0.4rem", marginBottom: "0.3rem", flexWrap: "wrap" }}>
                               <span style={{ ...pastilleEmp(h.employe_nom), fontSize: "0.72rem" }}>{h.employe_nom}</span>
                               <span style={{ color: "#8a7a68", fontSize: "0.7rem" }}>remplace</span>
-                              <select defaultValue="" onChange={e => { if (e.target.value) designerRemplace(h.id, e.target.value); }}
+                              <select defaultValue="" onChange={e => { if (e.target.value) designerRemplaceHeures(h.id, e.target.value); }}
                                 style={{ background: "#1a1a1a", border: "1px solid #3a3a3a", color: "#f0d8b8", borderRadius: "7px", padding: "0.3rem 0.5rem", fontSize: "0.74rem", fontFamily: "'Poppins', sans-serif" }}>
                                 <option value="">choisir…</option>
                                 {cycle.filter(n => n !== h.employe_nom).map(n => <option key={n} value={n}>{n}</option>)}
