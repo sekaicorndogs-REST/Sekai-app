@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { Package, Calendar, CreditCard, Users, UserCircle, ArrowLeft, RefreshCw, AlertTriangle, AlertCircle, CheckCircle, Pencil, Save, Eye, EyeOff, Check, Lock, User, ArrowRight, Trash2, Plus, ChevronRight, Settings, LogOut, Shield, Star, ListChecks, FileText, Wallet, Target, Lightbulb, Banknote, Receipt, PartyPopper, Utensils, Heart, TrendingUp, Coins, PiggyBank, HandCoins, Percent, Moon, Clock, Box, Home, X, BarChart3 } from "lucide-react";
 import { computeIndicateurs, masseColor as calcMasseColor, masseLabel as calcMasseLabel } from "./finances";
 
@@ -2298,7 +2298,18 @@ export default function App() {
   // Cohérent avec la capacité mesurée : deux personnes tiennent 1 350 €/jour,
   // et seul le samedi dépasse ce seuil.
   // Une seule source pour les listes de noms, au lieu de quatre tableaux en dur.
-  const NOMS_EQUIPE = ["Abdel", "Nabil", "Mohammed", "Wassim", "Rachid", "Ali", "Momo"];
+  // Tous les comptes réels, plus personne d'oublié : la liste était figée sur
+  // sept prénoms alors que Soufiane, Zakaria et les autres travaillent aussi.
+  // Dédoublonnée (certains ont deux fiches) et sans le compte kiosque.
+  const NOMS_EQUIPE = useMemo(() => {
+    const noms = allUsers
+      .filter((u: any) => u.role !== "tablette")
+      .map((u: any) => (u.prenom || "").trim())
+      .filter((n: string) => n && n.toLowerCase() !== "tablette" && n.length > 1);
+    const secours = ["Abdel", "Nabil", "Mohammed", "Wassim", "Rachid", "Ali", "Momo"];
+    const tout = Array.from(new Set([...(noms.length ? noms : secours), ...getAutoEmployes(getTodayDateStr())]));
+    return tout.sort((a, b) => a.localeCompare(b, "fr"));
+  }, [allUsers]);
 
   function effectifCible(dateStr) {
     return getPlanDay(dateStr) === 5 ? 3 : 2;
