@@ -5227,6 +5227,54 @@ A travaillé sans être au planning — qui a été remplacé ?
             });
             return t ? Math.round((e / t) * 100) : 0;
           })();
+          // Familles de produits d'un mois donné, ramenées à 100 commandes.
+          // La même fonction sert au mois vu et au mois précédent : c'est ce qui
+          // permet d'afficher une évolution plutôt qu'une photo isolée.
+          const famillesMois = (k: string) => {
+            const lg = ventesProduits.filter((r: any) =>
+              String(r.periode_debut).startsWith(k) && String(r.periode_fin).startsWith(k));
+            if (!lg.length) return null;
+            const st = moisStats.find(m => m.k === k) || null;
+            const cmd = st ? st.cmdJour * st.jours : 0;
+            const q = (f: (n: string) => boolean) =>
+              lg.filter((r: any) => f(String(r.produit))).reduce((t: number, r: any) => t + (Number(r.quantite) || 0), 0);
+            const menus = q(n => /^MENU/i.test(n));
+            const xl = q(n => /XL/i.test(n));
+            return {
+              lignes: lg, cmd, jours: st ? st.jours : 0,
+              menus, xl, menusNormaux: menus - xl,
+              corndogs: q(n => /^CORNDOG/i.test(n)),
+              signatures: q(n => /^(SUISSE|SEKAI|SAITAMA|ACE)$/i.test(n)),
+              sides: q(n => /FRITES|karaage|Tempura|Gyoza/i.test(n)),
+              bt: q(n => /^BUBBLE TEA/i.test(n)),
+              p100: (n: number) => (cmd ? (n * 100) / cmd : 0),
+            };
+          };
+          const famVu = moisVu ? famillesMois(moisVu) : null;
+          const famPrec = mPrecedent ? famillesMois(mPrecedent.k) : null;
+
+          // Répartition horaire du mois vu. Dénominateur = tous les jours
+          // d'ouverture du mois, pas seulement ceux où l'heure a vu une commande.
+          const heuresMois = (() => {
+            const acc: Record<number, { ca: number; n: number }> = {};
+            V.forEach(v => {
+              const k = v.d.getFullYear() + "-" + String(v.d.getMonth() + 1).padStart(2, "0");
+              if (k !== moisVu) return;
+              const h = v.d.getHours();
+              (acc[h] = acc[h] || { ca: 0, n: 0 });
+              acc[h].ca += v.p; acc[h].n++;
+            });
+            const nj = joursDuMois.length || 1;
+            return Object.entries(acc)
+              .map(([h, o]) => ({ h: +h, moy: o.ca / nj, cmd: o.n / nj }))
+              .filter(x => x.h >= 12 && x.h <= 20)
+              .sort((a, b) => a.h - b.h);
+          })();
+          const maxHeureMois = Math.max(1, ...heuresMois.map(x => x.moy));
+          const heuresTravMois = heuresJours
+            .filter((h: any) => String(h.date).startsWith(moisVu))
+            .reduce((t: number, h: any) => t + (parseFloat(h.heures) || 0), 0);
+
           const evol = (a: number | null | undefined, b: number | null | undefined) =>
             a != null && b != null && b !== 0 ? ((a - b) / b) * 100 : null;
           const libMois = (k: string) => MOIS_COURT[parseInt(k.slice(5), 10) - 1] + " " + k.slice(2, 4);
@@ -5363,6 +5411,63 @@ A travaillé sans être au planning — qui a été remplacé ?
                     })()}
                   </div>
 
+                  {/* D'où vient l'écart : plus de monde, ou un ticket plus élevé ?
+                      La comparaison se fait avec le MÊME MOIS de l'année passée
+                      quand il existe — c'est le seul témoin qui neutralise la
+                      saison. À défaut, avec le mois précédent, ce qui est plus
+                      fragile et le libellé le dit. */}
+                  {(() => {
+                    const ref = mAnnePassee || mPrecedent;
+                    if (!ref) return null;
+                    const refAn = !!mAnnePassee;
+                    const j = mCourant.jours;
+                    const effFreq = (mCourant.cmdJour - ref.cmdJour) * ref.panier * j;
+                    const effTicket = (mCourant.panier - ref.panier) * mCourant.cmdJour * j;
+                    const tot = effFreq + effTicket;
+                    const amp = Math.max(1, Math.abs(effFreq), Math.abs(effTicket));
+                    const lignes = [
+                      { l: "Plus (ou moins) de clients", v: effFreq, d: `${mCourant.cmdJour.toFixed(1)} cmd/j contre ${ref.cmdJour.toFixed(1)}` },
+                      { l: "Ticket plus (ou moins) élevé", v: effTicket, d: `${mCourant.panier.toFixed(2)} € contre ${ref.panier.toFixed(2)} €` },
+                    ];
+                    return (
+                      <div style={{ ...CARD, padding: "0.9rem 1rem" }}>
+                        <div style={{ ...LBL, marginBottom: "0.1rem" }}>D'où vient l'écart</div>
+                        <div style={{ color: "#c8a878", fontSize: "0.66rem", marginBottom: "0.8rem" }}>
+                          Contre {refAn ? MOIS_LONG[ref.mois - 1].toLowerCase() + " " + ref.k.slice(0, 4) + " · même mois, saison neutralisée"
+                                        : MOIS_LONG[ref.mois - 1].toLowerCase() + " · mois précédent, la saison n'est PAS neutralisée"}
+                        </div>
+                        {lignes.map(x => (
+                          <div key={x.l} style={{ marginBottom: "0.55rem" }}>
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+                              <span style={{ color: "#3d1a0a", fontSize: "0.76rem", fontWeight: 600 }}>{x.l}</span>
+                              <span style={{ color: x.v >= 0 ? "#1f6e42" : "#e8213a", fontSize: "0.86rem", fontWeight: 800 }}>
+                                {x.v >= 0 ? "+" : ""}{fmt(x.v)} €
+                              </span>
+                            </div>
+                            <div style={{ background: "#f4e8d6", borderRadius: "20px", height: "8px", margin: "0.2rem 0 0.15rem", display: "flex", justifyContent: x.v >= 0 ? "flex-start" : "flex-end" }}>
+                              <div style={{ width: `${(Math.abs(x.v) / amp) * 100}%`, height: "8px", borderRadius: "20px", background: x.v >= 0 ? "#1f6e42" : "#e8213a" }} />
+                            </div>
+                            <div style={{ color: "#c8a878", fontSize: "0.63rem" }}>{x.d}</div>
+                          </div>
+                        ))}
+                        <div style={{ marginTop: "0.5rem", paddingTop: "0.5rem", borderTop: "1px dashed #f0e0cc", display: "flex", justifyContent: "space-between", fontSize: "0.78rem" }}>
+                          <span style={{ color: "#a07848", fontWeight: 600 }}>Écart total aux bornes</span>
+                          <span style={{ color: tot >= 0 ? "#1f6e42" : "#e8213a", fontWeight: 800 }}>{tot >= 0 ? "+" : ""}{fmt(tot)} € sur le mois</span>
+                        </div>
+                        <div style={{ color: "#a07848", fontSize: "0.68rem", lineHeight: 1.45, marginTop: "0.45rem", background: "#fdf6ec", borderRadius: "8px", padding: "0.45rem 0.55rem" }}>
+                          {Math.abs(effFreq) > Math.abs(effTicket) * 1.5
+                            ? "C'est le nombre de clients qui fait l'écart, pas ce qu'ils dépensent. Un changement de carte ne peut donc pas s'en attribuer le mérite."
+                            : Math.abs(effTicket) > Math.abs(effFreq) * 1.5
+                              ? "C'est le ticket qui fait l'écart, à fréquentation quasi identique. Là, c'est bien la carte et la borne qui travaillent."
+                              : "Les deux effets pèsent autant : ni la carte seule ni la saison seule n'expliquent le mois."}
+                        </div>
+                        <div style={{ color: "#c8a878", fontSize: "0.62rem", marginTop: "0.4rem" }}>
+                          Marge indicative sur cet écart : {tot >= 0 ? "+" : ""}{fmt(tot * 0.72)} € (72 % après matière)
+                        </div>
+                      </div>
+                    );
+                  })()}
+
                   {/* Jour de semaine */}
                   {dowMois.length > 2 && (
                     <div style={{ ...CARD, padding: "0.9rem 1rem" }}>
@@ -5444,22 +5549,19 @@ A travaillé sans être au planning — qui a été remplacé ?
                         </div>
                       );
                     }
-                    const q = (f: (n: string) => boolean) =>
-                      lignesP.filter((r: any) => f(String(r.produit))).reduce((t: number, r: any) => t + (Number(r.quantite) || 0), 0);
-                    const cmdM = mCourant.cmdJour * mCourant.jours;
-                    const par100 = (n: number) => cmdM ? (n * 100) / cmdM : 0;
-                    const menus = q(n => /^MENU/i.test(n));
-                    const xl = q(n => /XL/i.test(n));
-                    const corndogs = q(n => /^CORNDOG/i.test(n));
-                    const sides = q(n => /FRITES|karaage|Tempura|Gyoza/i.test(n));
-                    const signatures = q(n => /^(SUISSE|SEKAI|SAITAMA|ACE)$/i.test(n));
-                    const bt = q(n => /^BUBBLE TEA/i.test(n));
-                    const familles = [
-                      { l: "Menus", v: menus, c: "#1f6e42", note: menus ? `dont ${xl} XL · ${((xl / menus) * 100).toFixed(0)} % des menus` : "" },
-                      { l: "Corndogs seuls", v: corndogs, c: "#e8213a", note: "" },
-                      { l: "Signatures", v: signatures, c: "#9c27b0", note: "" },
-                      { l: "Sides vendus seuls", v: sides, c: "#2196f3", note: "hors sides pris en option" },
-                      { l: "Bubble tea", v: bt, c: "#f5a623", note: "" },
+                    const F = famVu!;
+                    const P = famPrec;
+                    const par100 = (n: number) => F.p100(n);
+                    const menus = F.menus, xl = F.xl;
+                    const familles: { l: string; v: number; av: number | null; c: string; note: string }[] = [
+                      { l: "Menus", v: menus, av: P ? P.p100(P.menus) : null, c: "#1f6e42",
+                        note: menus ? `dont ${xl} XL · ${((xl / menus) * 100).toFixed(0)} % des menus` : "" },
+                      { l: "Menus hors XL", v: F.menusNormaux, av: P ? P.p100(P.menusNormaux) : null, c: "#4caf50",
+                        note: P && P.menusNormaux ? "s'ils ne bougent pas pendant que les XL montent, les XL ne les mangent pas" : "" },
+                      { l: "Corndogs seuls", v: F.corndogs, av: P ? P.p100(P.corndogs) : null, c: "#e8213a", note: "" },
+                      { l: "Signatures", v: F.signatures, av: P ? P.p100(P.signatures) : null, c: "#9c27b0", note: "" },
+                      { l: "Sides vendus seuls", v: F.sides, av: P ? P.p100(P.sides) : null, c: "#2196f3", note: "hors sides pris en option, invisibles dans l'export" },
+                      { l: "Bubble tea", v: F.bt, av: P ? P.p100(P.bt) : null, c: "#f5a623", note: "" },
                     ];
                     const maxF = Math.max(1, ...familles.map(f => par100(f.v)));
                     const top = [...lignesP].sort((a: any, b: any) => Number(b.quantite) - Number(a.quantite)).slice(0, 6);
@@ -5467,7 +5569,7 @@ A travaillé sans être au planning — qui a été remplacé ?
                       <div style={{ ...CARD, padding: "0.9rem 1rem" }}>
                         <div style={{ ...LBL, marginBottom: "0.1rem" }}>Ce qui s'est vendu</div>
                         <div style={{ color: "#c8a878", fontSize: "0.66rem", marginBottom: "0.8rem" }}>
-                          Pour 100 commandes · aux bornes
+                          Pour 100 commandes · aux bornes{P ? ` · 2e colonne = écart avec ${MOIS_LONG[mPrecedent!.mois - 1].toLowerCase()}` : ""}
                         </div>
                         {familles.filter(f => f.v > 0).map(f => (
                           <div key={f.l} style={{ marginBottom: "0.45rem" }}>
@@ -5476,7 +5578,10 @@ A travaillé sans être au planning — qui a été remplacé ?
                               <div style={{ flex: 1, background: "#f4e8d6", borderRadius: "20px", height: "9px" }}>
                                 <div style={{ width: `${(par100(f.v) / maxF) * 100}%`, height: "9px", borderRadius: "20px", background: f.c }} />
                               </div>
-                              <span style={{ width: "44px", textAlign: "right" as const, fontSize: "0.8rem", fontWeight: 800, color: "#3d1a0a" }}>{par100(f.v).toFixed(1)}</span>
+                              <span style={{ width: "40px", textAlign: "right" as const, fontSize: "0.8rem", fontWeight: 800, color: "#3d1a0a" }}>{par100(f.v).toFixed(1)}</span>
+                              <span style={{ width: "44px", textAlign: "right" as const, fontSize: "0.63rem", fontWeight: 700, color: f.av == null ? "#d8c4a8" : par100(f.v) - f.av >= 0 ? "#1f6e42" : "#e8213a" }}>
+                                {f.av == null ? "—" : (par100(f.v) - f.av >= 0 ? "+" : "") + (par100(f.v) - f.av).toFixed(1)}
+                              </span>
                             </div>
                             {f.note && <div style={{ color: "#c8a878", fontSize: "0.62rem", marginLeft: "104px", paddingLeft: "0.5rem" }}>{f.note}</div>}
                           </div>
@@ -5492,9 +5597,92 @@ A travaillé sans être au planning — qui a été remplacé ?
                             </div>
                           ))}
                         </div>
+                        {P && (() => {
+                          const dNorm = F.p100(F.menusNormaux) - P.p100(P.menusNormaux);
+                          const dXl = F.p100(F.xl) - P.p100(P.xl);
+                          const dCorn = F.p100(F.corndogs) - P.p100(P.corndogs);
+                          const dSig = F.p100(F.signatures) - P.p100(P.signatures);
+                          const txt = dXl > 1 && dNorm > -1
+                            ? "Les XL montent sans faire baisser les menus normaux : ils prennent sur les corndogs seuls et les signatures. C'est de la montée en gamme, pas de la cannibalisation."
+                            : dXl > 1 && dNorm <= -1
+                              ? "Attention : les menus normaux reculent pendant que les XL montent. Là, les XL cannibalisent, le gain est plus faible qu'il n'y paraît."
+                              : "Pas de mouvement marqué entre les gammes ce mois-ci.";
+                          return (
+                            <div style={{ marginTop: "0.7rem", background: "#fdf6ec", borderRadius: "8px", padding: "0.5rem 0.6rem" }}>
+                              <div style={{ color: "#a07848", fontSize: "0.68rem", lineHeight: 1.45 }}>{txt}</div>
+                              {dSig < -1 && (
+                                <div style={{ color: "#c98a17", fontSize: "0.66rem", marginTop: "0.35rem", fontWeight: 600 }}>
+                                  ⚠ Les signatures reculent de {Math.abs(dSig).toFixed(1)} pour 100 commandes. Si ça dure, ces références perdent leur place en carte.
+                                </div>
+                              )}
+                              {dCorn < -3 && (
+                                <div style={{ color: "#c8a878", fontSize: "0.64rem", marginTop: "0.3rem" }}>
+                                  Les corndogs seuls perdent {Math.abs(dCorn).toFixed(1)} pour 100 commandes — c'est là que les menus se servent.
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })()}
                       </div>
                     );
                   })()}
+
+                  {/* Les heures du mois : où se fait le CA dans la journée */}
+                  {heuresMois.length > 2 && (
+                    <div style={{ ...CARD, padding: "0.9rem 1rem" }}>
+                      <div style={{ ...LBL, marginBottom: "0.1rem" }}>Les heures du mois</div>
+                      <div style={{ color: "#c8a878", fontSize: "0.66rem", marginBottom: "0.7rem" }}>
+                        CA moyen par heure, aux bornes · sur {joursDuMois.length} jours
+                      </div>
+                      {heuresMois.map(x => (
+                        <div key={x.h} style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.25rem" }}>
+                          <span style={{ width: "34px", color: "#a07848", fontSize: "0.7rem", flexShrink: 0 }}>{x.h}h</span>
+                          <div style={{ flex: 1, background: "#f4e8d6", borderRadius: "20px", height: "9px" }}>
+                            <div style={{ width: `${(x.moy / maxHeureMois) * 100}%`, height: "9px", borderRadius: "20px", background: "#c98a17" }} />
+                          </div>
+                          <span style={{ width: "44px", textAlign: "right" as const, fontSize: "0.74rem", fontWeight: 700, color: "#3d1a0a" }}>{fmt(x.moy)} €</span>
+                          <span style={{ width: "42px", textAlign: "right" as const, fontSize: "0.65rem", color: "#a07848" }}>{x.cmd.toFixed(1)} cmd</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Ce que le mois a laissé, et ce qu'il a coûté en heures */}
+                  <div style={{ ...CARD, padding: "0.9rem 1rem" }}>
+                    <div style={{ ...LBL, marginBottom: "0.6rem" }}>Ce que le mois a laissé</div>
+                    {(() => {
+                      const sorties = totalChargesFixes + totalMensualites;
+                      const res = mCourant.caTot - sorties;
+                      const lignes: { l: string; v: string; c?: string }[] = [
+                        { l: "CA du mois, tout compris", v: fmt(mCourant.caTot) + " €" },
+                        { l: "Charges fixes", v: "− " + fmt(totalChargesFixes) + " €" },
+                        { l: "Mensualités de dettes", v: "− " + fmt(totalMensualites) + " €" },
+                      ];
+                      return (<>
+                        {lignes.map(x => (
+                          <div key={x.l} style={{ display: "flex", justifyContent: "space-between", fontSize: "0.78rem", padding: "0.18rem 0" }}>
+                            <span style={{ color: "#a07848" }}>{x.l}</span>
+                            <span style={{ color: "#3d1a0a", fontWeight: 700 }}>{x.v}</span>
+                          </div>
+                        ))}
+                        <div style={{ display: "flex", justifyContent: "space-between", marginTop: "0.4rem", paddingTop: "0.45rem", borderTop: "1px solid #f0e0cc" }}>
+                          <span style={{ color: "#3d1a0a", fontSize: "0.82rem", fontWeight: 700 }}>Reste</span>
+                          <span style={{ color: res >= 0 ? "#1f6e42" : "#e8213a", fontSize: "1.05rem", fontWeight: 800 }}>{res >= 0 ? "+" : ""}{fmt(res)} €</span>
+                        </div>
+                        <div style={{ color: "#c8a878", fontSize: "0.62rem", marginTop: "0.25rem" }}>
+                          Charges au niveau d'aujourd'hui, pas celui du mois affiché · avant impôt
+                        </div>
+                        {heuresTravMois > 5 && (
+                          <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.76rem", marginTop: "0.6rem", paddingTop: "0.5rem", borderTop: "1px dashed #f0e0cc" }}>
+                            <span style={{ color: "#a07848" }}>Heures déclarées · CA par heure</span>
+                            <span style={{ color: "#3d1a0a", fontWeight: 700 }}>
+                              {fmt(heuresTravMois)} h · {fmt(mCourant.caTot / heuresTravMois)} €/h
+                            </span>
+                          </div>
+                        )}
+                      </>);
+                    })()}
+                  </div>
 
                   {/* Note de saisonnalité : le commentaire durable du mois */}
                   {(() => {
