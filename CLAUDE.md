@@ -17,9 +17,10 @@ Il contient le contexte métier durable. **À mettre à jour dès qu'une donnée
 - **Un seul point de vente**, plus des events ponctuels. Les entrées « Event 1 » et
   « Event 2 » de `RESTAURANTS` sont des **kits de stock pour charger la camionnette**,
   pas des boutiques : leurs quantités vides sont normales, ce ne sont pas des alertes.
-- CA moyen **1 035 €/jour** — **875 € bornes** + 150 € caisse/Uber (270 en août),
-  mesuré sur les **364 journées** d'août 2025 à juillet 2026 enregistrées dans `ventes`.
-  Soit **~31 400 €/mois** et **~377 000 €/an**.
+- CA moyen **1 042 €/jour** — **882 € bornes** + 150 € caisse/Uber (270 en août),
+  pondéré sur les douze mois mesurés de `saisonnalite`.
+  Soit **~31 700 €/mois** et **~380 500 €/an**.
+  ⚠️ Août est désormais celui de **2026** (complet, chargé le 31/08), pas 2025.
   ✅ **L'année est complète depuis le 11/08/2026** : septembre 2025 a été chargé
   (1 978 commandes, 25 073 €, 836 €/jour). Il n'y a plus aucun mois estimé dans
   `saisonnalite`, et les douze valeurs concordent avec `ventes` à l'euro près.
@@ -232,7 +233,7 @@ et sous-estime le bénéfice d'un event.**
 | `top_produits` | Moyennes/jour par produit, marge unitaire, part de marge |
 | `finances_charges` / `finances_dettes` | Charges mensuelles et plans de remboursement |
 | `stock` | Inventaire par point de vente. Colonnes ajoutées : `ingredient_id`, `conso_jour`, `unites_par_lot` |
-| `ventes` | **26 218 commandes bornes, historique complet sans trou** (01/08/2025 → 11/08/2026, 375 jours). Source de référence pour toute analyse par jour, par jour de semaine ou par heure. La commande erronée #ZHATPX (01/08/2026, 1 903,80 €) a été volontairement exclue à la demande du gérant |
+| `ventes` | **27 758 commandes bornes, historique complet sans trou** (01/08/2025 → 31/08/2026, 395 jours). Source de référence pour toute analyse par jour, par jour de semaine ou par heure. La commande erronée #ZHATPX (01/08/2026, 1 903,80 €) a été volontairement exclue à la demande du gérant |
 | `courses_remplacements` | Remplacement ponctuel de courses, une ligne par semaine (lundi) |
 | `parametres` | Clé/valeur partagé : `ca_hors_bornes`, `courses_ordre`, `courses_ancrage` |
 
@@ -378,6 +379,43 @@ Le gérant a tranché : **on garde les deux menus XL**, ils sont rentables et se
 
 Réserve restante : le renommage et les changements de borne ont été lancés ensemble,
 impossible d'isoler lequel porte l'effet.
+
+### Août 2026, mois complet — meilleur mois de l'historique
+
+Chargé le 31/08/2026 : **2 336 commandes, 32 127 €, 1 036 €/jour aux bornes**, ticket
+**13,75 €**. Avec 270 € de hors-bornes : **1 306 €/jour**, soit **~40 500 €** sur le mois.
+
+Contre août 2025 (945 €/j) : **+91 €/jour**, soit +2 800 € sur le mois. Le ticket passe
+de ~12,50 € à 13,75 € — la hausse ne vient donc pas que de la saison.
+
+⚠️ **Le 26/08 est une fuite d'eau** : fermeture vers 16h, 663 € au lieu des ~950 €
+attendus un mercredi. Enregistré dans `jours_speciaux` (type `incident`). Sans lui, la
+moyenne d'août serait d'environ 1 045 €/jour aux bornes. Ne pas traiter ce mercredi
+comme un jour normal dans une analyse par jour de semaine.
+
+### Ouvrir une heure plus tôt le week-end — test des 29-30/08, concluant
+
+Le gérant a avancé l'ouverture d'une heure sur ces deux jours. Résultat mesuré :
+
+| | Ouverture | CA de l'heure gagnée | Reste de la journée | Total |
+|---|---|---|---|---|
+| **Sam 29/08** | 12h08 *(au lieu de ~13h05)* | **116 €** · 8 cmd | 1 533 € | **1 649 €** |
+| **Dim 30/08** | 13h07 *(au lieu de ~14h05)* | **179 €** · 10 cmd | 636 € | **815 €** |
+
+**Ce n'est pas un report de demande, c'est du CA en plus.** Le reste de la journée n'a
+pas baissé : le dimanche 30 fait 636 € après 14h, contre 639 € de moyenne sur les quatre
+autres dimanches d'août. Le samedi 29 fait même mieux que la moyenne des autres samedis
+(1 533 € contre 1 318 €).
+
+Les deux journées sont les **meilleures de l'été** dans leur catégorie.
+
+**Économie de l'opération :** ~295 € de CA pour deux heures de travail supplémentaires,
+soit ~60 € de main-d'œuvre à deux. Marge nette de l'ordre de **150 à 190 € sur deux jours**.
+Généralisé à tous les week-ends : ~15 000 €/an de CA, **~650 €/mois de marge**.
+
+⚠️ Deux jours seulement, et une fin août portée par la rentrée. À reconfirmer sur
+septembre avant d'en faire une règle. Mais c'est le premier test à coût quasi nul qui
+donne un résultat franchement positif.
 
 ### Les XL ne cannibalisent PAS les menus normaux — vérifié le 11/08/2026
 
