@@ -443,12 +443,44 @@ par commande baissaient de 1,51 à 1,46 ; il ne vaut plus depuis juillet.)
 serait sorti à **41,7**. Le saut réellement imputable aux changements est donc de
 **+12 points**, pas +15,6. Toujours retirer la tendance avant de chiffrer un gain.
 
-**Estimation retenue : 500 à 1 300 €/mois de marge.**
+### Les suppléments comptent, et ils ont basculé en août
+
+Soulevé par le gérant le 31/08/2026 : **le menu fait aussi choisir une panure, donc il
+tire les suppléments.** Vérifié, et c'est juste. Les suppléments par commande (ticket
+réel moins valeur des produits) :
+
+| | Menus/100 | Suppléments/cmd |
+|---|---|---|
+| Oct-nov 25 | 25,8 | 1,96 € |
+| Déc 25 | 28,3 | 1,61 € |
+| Janv-mars 26 | 32,8 | 1,60 € |
+| Avril 26 | 34,4 | 1,42 € |
+| **Juin 26** | 38,1 | **1,32 €** |
+| **Août 26** | **53,7** | **1,81 €** |
+
+Avant août, la relation était **négative** : −0,04 € de supplément par point de menu
+gagné, régulier sur 8 mois. En août, les deux montent ensemble pour la première fois.
+**+0,49 €/commande, soit +1 145 € de CA et ~973 €/mois de marge** (les suppléments sont
+à 85 % de marge : 85,4 € de marge pour 100,5 € de CA dans `top_produits`).
+
+⚠️ Cette ligne est calculée **par différence**, donc toute erreur de `ventes_produits`
+y atterrit. C'est la moins fiable du dossier. Pour la vérifier il faut une **« Liste de
+commande » détaillée sur une semaine complète** — le seul export qui montre les panures
+et sauces ligne à ligne. C'est la mesure à demander.
+
+**Estimation retenue : 1 300 à 2 300 €/mois de marge.**
 
 | | Marge/mois | Solidité |
 |---|---|---|
 | **Les XL** — 276 × 1,94 € de marge en plus qu'un menu à 10 € | **536 €** | **Certaine** : ils n'existaient ni en juin ni en août 2025, aucune explication saisonnière possible |
 | Menus au-dessus de la tendance — ~280 × 2,75 € | 770 € | Probable, mais dépend de la part saisonnière du mix d'août |
+| **Suppléments** — +0,49 €/cmd × 2 336 × 85 % | **973 €** | Probable, ligne calculée par différence |
+
+En CA : 800 € (XL) + 980 € (menus) + 1 145 € (suppléments) = **~2 925 €** sur les
++4 275 € mesurés entre juin et août. **L'intuition du gérant (« au moins 3 000 €/mois
+en plus ») est donc bien étayée sur le CA.** Ne pas la rabaisser : une première révision
+à 300 €/mois a été faite puis annulée, elle ne regardait que le ticket année contre
+année et ignorait les articles par commande et les suppléments.
 
 **Septembre 2026 contre septembre 2025 tranchera** (12,68 € de ticket, 1 978 commandes,
 ni XL ni menu renommé, mois isolé et propre dans `ventes_produits`). C'est la prochaine
