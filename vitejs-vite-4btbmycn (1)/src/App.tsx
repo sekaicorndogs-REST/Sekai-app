@@ -5429,6 +5429,73 @@ A travaillé sans être au planning — qui a été remplacé ?
                     )}
                   </div>
 
+                  {/* Ce qui s'est vendu : familles de produits du mois, si l'export
+                      produits a été chargé pour cette période. */}
+                  {(() => {
+                    const lignesP = ventesProduits.filter((r: any) =>
+                      String(r.periode_debut).startsWith(moisVu) && String(r.periode_fin).startsWith(moisVu));
+                    if (lignesP.length === 0) {
+                      return (
+                        <div style={{ ...CARD, padding: "0.9rem 1rem" }}>
+                          <div style={{ ...LBL, marginBottom: "0.3rem" }}>Ce qui s'est vendu</div>
+                          <div style={{ color: "#c8a878", fontSize: "0.74rem" }}>
+                            Pas de détail produits pour ce mois — il faut charger le « Rapport de vente » EasyOrder de la période.
+                          </div>
+                        </div>
+                      );
+                    }
+                    const q = (f: (n: string) => boolean) =>
+                      lignesP.filter((r: any) => f(String(r.produit))).reduce((t: number, r: any) => t + (Number(r.quantite) || 0), 0);
+                    const cmdM = mCourant.cmdJour * mCourant.jours;
+                    const par100 = (n: number) => cmdM ? (n * 100) / cmdM : 0;
+                    const menus = q(n => /^MENU/i.test(n));
+                    const xl = q(n => /XL/i.test(n));
+                    const corndogs = q(n => /^CORNDOG/i.test(n));
+                    const sides = q(n => /FRITES|karaage|Tempura|Gyoza/i.test(n));
+                    const signatures = q(n => /^(SUISSE|SEKAI|SAITAMA|ACE)$/i.test(n));
+                    const bt = q(n => /^BUBBLE TEA/i.test(n));
+                    const familles = [
+                      { l: "Menus", v: menus, c: "#1f6e42", note: menus ? `dont ${xl} XL · ${((xl / menus) * 100).toFixed(0)} % des menus` : "" },
+                      { l: "Corndogs seuls", v: corndogs, c: "#e8213a", note: "" },
+                      { l: "Signatures", v: signatures, c: "#9c27b0", note: "" },
+                      { l: "Sides vendus seuls", v: sides, c: "#2196f3", note: "hors sides pris en option" },
+                      { l: "Bubble tea", v: bt, c: "#f5a623", note: "" },
+                    ];
+                    const maxF = Math.max(1, ...familles.map(f => par100(f.v)));
+                    const top = [...lignesP].sort((a: any, b: any) => Number(b.quantite) - Number(a.quantite)).slice(0, 6);
+                    return (
+                      <div style={{ ...CARD, padding: "0.9rem 1rem" }}>
+                        <div style={{ ...LBL, marginBottom: "0.1rem" }}>Ce qui s'est vendu</div>
+                        <div style={{ color: "#c8a878", fontSize: "0.66rem", marginBottom: "0.8rem" }}>
+                          Pour 100 commandes · aux bornes
+                        </div>
+                        {familles.filter(f => f.v > 0).map(f => (
+                          <div key={f.l} style={{ marginBottom: "0.45rem" }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                              <span style={{ width: "104px", color: "#3d1a0a", fontSize: "0.74rem", fontWeight: 600, flexShrink: 0 }}>{f.l}</span>
+                              <div style={{ flex: 1, background: "#f4e8d6", borderRadius: "20px", height: "9px" }}>
+                                <div style={{ width: `${(par100(f.v) / maxF) * 100}%`, height: "9px", borderRadius: "20px", background: f.c }} />
+                              </div>
+                              <span style={{ width: "44px", textAlign: "right" as const, fontSize: "0.8rem", fontWeight: 800, color: "#3d1a0a" }}>{par100(f.v).toFixed(1)}</span>
+                            </div>
+                            {f.note && <div style={{ color: "#c8a878", fontSize: "0.62rem", marginLeft: "104px", paddingLeft: "0.5rem" }}>{f.note}</div>}
+                          </div>
+                        ))}
+                        <div style={{ marginTop: "0.8rem", paddingTop: "0.6rem", borderTop: "1px dashed #f0e0cc" }}>
+                          <div style={{ color: "#a07848", fontSize: "0.66rem", fontWeight: 700, marginBottom: "0.35rem" }}>LES PLUS VENDUS</div>
+                          {top.map((r: any) => (
+                            <div key={r.id} style={{ display: "flex", justifyContent: "space-between", fontSize: "0.74rem", padding: "0.12rem 0" }}>
+                              <span style={{ color: "#5a4632" }}>{r.produit}</span>
+                              <span style={{ color: "#3d1a0a", fontWeight: 700 }}>
+                                {Number(r.quantite)} <span style={{ color: "#c8a878", fontWeight: 400 }}>· {(Number(r.quantite) / mCourant.jours).toFixed(1)}/j</span>
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })()}
+
                   {/* Note de saisonnalité : le commentaire durable du mois */}
                   {(() => {
                     const l = saisonnalite.find((x: any) => x.mois === mCourant.mois);
