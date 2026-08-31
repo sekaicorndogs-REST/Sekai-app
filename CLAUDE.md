@@ -221,6 +221,39 @@ limitant. Un carton de saucisse vaut 40,32 € de matière, un carton de fromage
 avec les pertes de transport et l'huile. **Le taux par défaut est donc trop pessimiste
 et sous-estime le bénéfice d'un event.**
 
+## 🧮 Méthode de chiffrage — À APPLIQUER À TOUT CALCUL DE GAIN
+
+Ces cinq règles ont été établies le 31/08/2026 en chiffrant l'effet des menus. Elles ont
+chacune corrigé une erreur réelle. **Les appliquer à toute estimation future**, quel que
+soit le sujet — prix, horaires, fidélité, events.
+
+1. **Comparer le même mois d'une année sur l'autre**, jamais deux mois voisins. Le ticket
+   varie de 11,92 € (juin) à 13,57 € (août) **sans qu'aucun changement ait eu lieu** :
+   comparer juin à août mesure la saison, pas l'action. Si le mois témoin n'existe pas,
+   le dire explicitement au lieu de comparer au mois précédent en silence.
+2. **Retirer la tendance de fond avant d'attribuer un gain.** Le taux de menu montait déjà
+   de +1,7 point/mois pendant les 8 mois précédant tout changement. Sur les +15,6 points
+   d'août, seuls **+12** sont imputables. Toujours projeter la tendance d'abord.
+3. **Vérifier les articles par commande** pour distinguer montée en gamme et substitution.
+   S'ils montent pendant que les menus montent, c'est de la vente en plus. S'ils baissent,
+   une partie des menus remplace des articles déjà vendus et le gain est plus faible.
+4. **Compter les suppléments.** Le menu fait choisir une panure, donc il tire les
+   suppléments payants — 85 % de marge, et le plus gros des trois postes (973 €/mois).
+   Les oublier a fait sous-estimer le gain d'un facteur trois.
+5. **Raisonner par commande ou pour 100 commandes, jamais par jour.** Le nombre par jour
+   suit la fréquentation, qui varie de 40 % selon la saison, et masque tout le reste.
+
+**Et séparer toujours l'effet fréquentation de l'effet ticket.** Contre août 2025,
+85 % du gain vient de plus de clients (+2 430 €) et 15 % du ticket (+416 €). Un
+changement de carte agit sur le ticket, pas sur le flux : ne jamais lui attribuer
+la fréquentation. L'app fait cette décomposition automatiquement dans l'onglet
+Stats → Le mois (« D'où vient l'écart »).
+
+⚠️ **Ne pas rabaisser une estimation sur la foi d'un seul indicateur.** L'effet des menus
+a été chiffré à 1 700 €, puis rabaissé à 300 € sur le seul ticket année contre année,
+puis remonté à 2 280 € après avoir regardé les articles par commande et les suppléments.
+C'est la version haute qui était juste. Croiser au moins deux mesures avant de conclure.
+
 ## Tables clés
 
 | Table | Contenu |
@@ -468,13 +501,15 @@ y atterrit. C'est la moins fiable du dossier. Pour la vérifier il faut une **«
 commande » détaillée sur une semaine complète** — le seul export qui montre les panures
 et sauces ligne à ligne. C'est la mesure à demander.
 
-**Estimation retenue : 1 300 à 2 300 €/mois de marge.**
+**Résultat retenu : ~2 280 €/mois de marge**, fourchette 1 300 à 2 300 €.
 
 | | Marge/mois | Solidité |
 |---|---|---|
 | **Les XL** — 276 × 1,94 € de marge en plus qu'un menu à 10 € | **536 €** | **Certaine** : ils n'existaient ni en juin ni en août 2025, aucune explication saisonnière possible |
 | Menus au-dessus de la tendance — ~280 × 2,75 € | 770 € | Probable, mais dépend de la part saisonnière du mix d'août |
 | **Suppléments** — +0,49 €/cmd × 2 336 × 85 % | **973 €** | Probable, ligne calculée par différence |
+
+**Total marge : 536 + 770 + 973 = ~2 280 €/mois.** C'est le chiffre à reprendre.
 
 En CA : 800 € (XL) + 980 € (menus) + 1 145 € (suppléments) = **~2 925 €** sur les
 +4 275 € mesurés entre juin et août. **L'intuition du gérant (« au moins 3 000 €/mois
