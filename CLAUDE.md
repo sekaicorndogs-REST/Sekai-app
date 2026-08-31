@@ -237,9 +237,10 @@ soit le sujet — prix, horaires, fidélité, events.
 3. **Vérifier les articles par commande** pour distinguer montée en gamme et substitution.
    S'ils montent pendant que les menus montent, c'est de la vente en plus. S'ils baissent,
    une partie des menus remplace des articles déjà vendus et le gain est plus faible.
-4. **Compter les suppléments.** Le menu fait choisir une panure, donc il tire les
-   suppléments payants — 85 % de marge, et le plus gros des trois postes (973 €/mois).
-   Les oublier a fait sous-estimer le gain d'un facteur trois.
+4. **Compter les suppléments** — le ticket réel moins la valeur des produits. Ils
+   pèsent 1,81 à 2,41 €/commande, à 85 % de marge, et ils bougent en sens inverse des
+   menus : **le menu absorbe les suppléments** (side et boisson compris à prix fixe).
+   Les oublier fausse toute estimation, dans un sens comme dans l'autre.
 5. **Raisonner par commande ou pour 100 commandes, jamais par jour.** Le nombre par jour
    suit la fréquentation, qui varie de 40 % selon la saison, et masque tout le reste.
 
@@ -249,10 +250,21 @@ changement de carte agit sur le ticket, pas sur le flux : ne jamais lui attribue
 la fréquentation. L'app fait cette décomposition automatiquement dans l'onglet
 Stats → Le mois (« D'où vient l'écart »).
 
-⚠️ **Ne pas rabaisser une estimation sur la foi d'un seul indicateur.** L'effet des menus
-a été chiffré à 1 700 €, puis rabaissé à 300 € sur le seul ticket année contre année,
-puis remonté à 2 280 € après avoir regardé les articles par commande et les suppléments.
-C'est la version haute qui était juste. Croiser au moins deux mesures avant de conclure.
+🔴 **Un raisonnement ne remplace jamais un témoin.** L'effet des menus a été chiffré
+successivement à 1 700 €, 300 €, 2 280 €, puis **350 €/mois** — la bonne valeur, obtenue
+seulement quand les exports détaillés d'août 2025 ont donné le même mois de l'année
+précédente avec son détail produits. Les trois premières estimations comparaient des mois
+voisins ou raisonnaient. **Devant une comparaison de mois voisins, dire qu'on ne sait pas
+et demander l'export du même mois de l'année passée** — c'est le seul chemin qui a marché.
+
+⚠️ **Les exports détaillés se parsent.** Le « Rapport de vente » EasyOrder commande par
+commande est un PDF en colonnes (Commande / Produit / Nombre / Prix unitaire / Sous-total)
+dont les positions x **changent d'un export à l'autre** : détecter les colonnes depuis la
+ligne d'en-tête de chaque page, ne pas coder les x en dur. Le sous-total par commande moins
+la somme des lignes produit donne les suppléments, invisibles autrement. Le point de
+contrôle : la somme des effets doit retomber sur l'écart de ticket calculé depuis `ventes`.
+Un export « sale » (events, périodes mélangées) reste exploitable : filtrer sur les
+`reference` présentes dans `ventes`.
 
 ## Tables clés
 
@@ -436,106 +448,73 @@ croire, mais août est structurellement un mois à fort ticket (13,57 € dès 2
 12,68 € en septembre). La saison explique l'essentiel de la hausse du ticket de juillet
 à août.
 
-### Ce que valent vraiment les changements — arbitré le 31/08/2026
+### Ce que valent vraiment les changements — TRANCHÉ le 31/08/2026
 
-Deux mesures se contredisent et il faut connaître les deux.
+**Sujet clos.** Les exports détaillés d'août 2025 et septembre 2025 (« Rapport de vente »
+commande par commande, avec sous-totaux) ont été chargés. Ils donnent le témoin qui
+manquait : **le même mois, l'année précédente, avec le détail produits.**
 
-**Mesure 1 — ticket année contre année : +0,18 €/commande seulement.**
-Août 2025 faisait déjà 13,57 € de ticket (et non ~12,50 € comme ce fichier l'a longtemps
-écrit). Août est le mois au plus fort ticket de l'année : sur les onze mois précédant
-tout changement, la moyenne est de 12,50 € et août 2025 est le sommet à +8,6 %.
-Comparer juin (11,92 €, le point le plus bas de l'année) à août revient donc à mesurer
-la saison : ce passage valait déjà +1,65 € l'année précédente, sans aucun changement.
+Le parsing est validé : la somme des deux effets donne +417 €, contre +416 € calculés
+indépendamment depuis `ventes`. Les chiffres sont bons à l'euro près.
 
-**Mesure 2 — le détail produits, qui dit l'inverse et qui est plus convaincant :**
+| | Août 2025 | Août 2026 | Écart |
+|---|---|---|---|
+| Menus / 100 cmd | 32,5 | **53,7** | **+21,2** |
+| Corndogs seuls / 100 | 111,2 | 84,9 | −26,3 |
+| Signatures / 100 | 5,7 | 5,7 | 0,0 |
+| **Articles par commande** | **1,59** | **1,53** | **−0,06** |
+| Valeur des produits | 11,16 € | 11,94 € | **+0,78 €** |
+| **Suppléments** | **2,41 €** | **1,81 €** | **−0,60 €** |
+| **Ticket** | 13,57 € | 13,75 € | **+0,18 €** |
 
-| | Menus/100 | Articles/cmd | Valeur produits/cmd | Suppléments |
-|---|---|---|---|---|
-| Oct-nov 25 | 25,8 | 1,51 | 10,46 € | 1,96 € |
-| Déc 25 | 28,3 | 1,58 | 10,83 € | 1,61 € |
-| Janv-mars 26 | 32,8 | 1,55 | 10,88 € | 1,60 € |
-| Avril 26 | 34,4 | 1,51 | 10,76 € | 1,42 € |
-| Mai 26 | 36,6 | 1,52 | 10,93 € | 1,52 € |
-| Juin 26 | 38,1 | **1,46** | 10,60 € | 1,32 € |
-| **Août 26** | **53,7** | **1,53** | **11,94 €** | **1,81 €** |
+**RÉSULTAT RETENU : +417 €/mois de CA, soit ~350 €/mois de marge.**
 
-**Le nombre d'articles par commande REMONTE en août pendant que les menus explosent.**
-C'est la preuve qu'il n'y a pas substitution : si un « corndog + side + soft » (3 lignes)
-devenait un menu (1 ligne), les articles par commande baisseraient. Ils montent.
-Et la valeur produits par commande saute de 10,60 € à 11,94 € après huit mois bloquée
-entre 10,46 et 10,93.
+🔴 **Le menu ABSORBE les suppléments, il ne les tire pas.** C'est l'inverse de ce qui
+avait été conclu le 31/08 au matin. Avant, le client prenait un corndog à 6,50 € et
+ajoutait 2,41 € d'extras. Maintenant il prend un menu à 10 € où le side et la boisson
+sont compris à prix fixe. Les +1 824 € gagnés sur la valeur produits sont annulés par
+−1 407 € de suppléments perdus.
 
-⚠️ **Ne pas resservir l'argument « le menu à 10 € est une remise sur 12,50 € à la carte ».**
-Le gérant l'a réfuté et les données lui donnent raison : le taux de prise de side n'est
-que de ~10 pour 100 commandes, donc presque personne ne prenait les trois. Le menu est
-une montée en gamme, pas une remise. (L'argument valait sur oct→juin, où les articles
-par commande baissaient de 1,51 à 1,46 ; il ne vaut plus depuis juillet.)
+🔴 **Les articles par commande BAISSENT sur la vraie comparaison** (1,59 → 1,53). Il y a
+donc bien substitution. Le « pas de substitution » conclu depuis juin→août était faux :
+**juin 2026 était le point bas de l'année sur tous les indicateurs à la fois** (ticket
+11,92 €, articles 1,46, suppléments 1,32 €). Ce n'était pas un témoin, c'était un creux.
 
-⚠️ **Le taux de menu montait DÉJÀ de +1,7 point par mois avant tout changement**
-(25,8 en oct-nov → 38,1 en juin, tendance régulière sur 8 mois). Sans rien faire, août
-serait sorti à **41,7**. Le saut réellement imputable aux changements est donc de
-**+12 points**, pas +15,6. Toujours retirer la tendance avant de chiffrer un gain.
+⚠️ **Estimations successives, à ne pas refaire :** 1 700 € → 300 € → 2 280 € → **350 €**.
+Les trois premières reposaient sur des comparaisons de mois voisins ou sur des
+raisonnements. Seule la dernière s'appuie sur le même mois d'une année sur l'autre avec
+le détail produits des deux côtés. **Un raisonnement ne remplace jamais un témoin.**
 
-### Les suppléments comptent, et ils ont basculé en août
+⚠️ La tendance de « +1,7 point de menu par mois » calculée sur `ventes_produits` est
+douteuse : août et septembre 2025 sont tous deux à ~32,4 menus/100, alors que oct-nov 25
+donne 25,8 par la méthode des rapports de synthèse. Les deux méthodes ne concordent pas.
+Ne pas réutiliser cette tendance sans l'avoir revérifiée sur des exports détaillés.
 
-Soulevé par le gérant le 31/08/2026 : **le menu fait aussi choisir une panure, donc il
-tire les suppléments.** Vérifié, et c'est juste. Les suppléments par commande (ticket
-réel moins valeur des produits) :
+### Le vrai levier : le menu à 10 € est trop bon marché
 
-| | Menus/100 | Suppléments/cmd |
+C'est la conséquence directe de ce qui précède. Convertir 21 commandes sur 100 en menu
+ne rapporte que 0,18 € parce que le menu rend plus qu'il ne prend : le client qui payait
+6,50 + 2,41 = 8,91 € paie 10 € et reçoit en plus un side et une boisson.
+
+**Passer Menu Good Deal et Menu Bubble Dogs de 10 € à 10,50 € : ~490 €/mois**
+(979 menus non-XL × 0,50 €), coût nul, applicable immédiatement. Ça double le gain de
+toute l'opération. Le menu reste 2 € sous le prix à la carte.
+
+### Août 2026, mois complet — meilleur mois de l'historique
+
+Chargé le 31/08/2026 : **2 336 commandes, 32 127 €, 1 036 €/jour aux bornes**, ticket
+**13,75 €**. Avec 150 € de hors-bornes : **1 186 €/jour**, soit **~36 800 €** sur le mois.
+
+Contre août 2025 (945 €/j) : **+2 846 € sur le mois**, dont :
+
+| | Effet | Part |
 |---|---|---|
-| Oct-nov 25 | 25,8 | 1,96 € |
-| Déc 25 | 28,3 | 1,61 € |
-| Janv-mars 26 | 32,8 | 1,60 € |
-| Avril 26 | 34,4 | 1,42 € |
-| **Juin 26** | 38,1 | **1,32 €** |
-| **Août 26** | **53,7** | **1,81 €** |
+| **Plus de clients** (69,6 → 75,4 cmd/jour) | **+2 430 €** | 85 % |
+| **Ticket plus élevé** (13,57 → 13,75 €) | **+416 €** | 15 % |
 
-Avant août, la relation était **négative** : −0,04 € de supplément par point de menu
-gagné, régulier sur 8 mois. En août, les deux montent ensemble pour la première fois.
-**+0,49 €/commande, soit +1 145 € de CA et ~973 €/mois de marge** (les suppléments sont
-à 85 % de marge : 85,4 € de marge pour 100,5 € de CA dans `top_produits`).
-
-Cette ligne est calculée **par différence** (CA réel des bornes − CA du rapport produits),
-donc ce qui reste ne peut être que des options : panures, sauces, sides pris sur un
-corndog, quantités multiples.
-
-✅ **Vérifié le 31/08/2026 : la comparaison est propre.** Seules les deux périodes de
-juillet 2026 portent une ligne `SUPPLEMENTS/EXTRAS` ajoutée pour recaler les totaux —
-et juillet est exclu du tableau ci-dessus. Les sept autres périodes sont des rapports
-produits bruts, traités à l'identique. Un éventuel biais des exports EasyOrder est donc
-le même en juin et en août et **s'annule dans l'écart** : les +0,49 €/commande tiennent.
-Ne pas rabaisser cette ligne au motif qu'elle est un résidu.
-
-⚠️ Ce qui reste inconnu, c'est **qui** prend les suppléments : les clients qui prennent
-un menu, ou les autres. Seule une « Liste de commande » détaillée le dirait. C'est un
-complément d'explication, pas ce qui porte les 973 €.
-
-**Le gérant ne peut pas exporter cette liste proprement** (mélangée avec les events et
-d'anciennes périodes). Ce n'est pas bloquant : chaque commande porte une `reference`, et
-les 27 758 références des bornes Rue Neuve sont dans `ventes`. **Filtrer l'export sur ces
-références écarte automatiquement les events et les autres périodes** — donc accepter le
-fichier tel quel, même sale, et faire le tri en base.
-
-**Résultat retenu : ~2 280 €/mois de marge**, fourchette 1 300 à 2 300 €.
-
-| | Marge/mois | Solidité |
-|---|---|---|
-| **Les XL** — 276 × 1,94 € de marge en plus qu'un menu à 10 € | **536 €** | **Certaine** : ils n'existaient ni en juin ni en août 2025, aucune explication saisonnière possible |
-| Menus au-dessus de la tendance — ~280 × 2,75 € | 770 € | Probable, mais dépend de la part saisonnière du mix d'août |
-| **Suppléments** — +0,49 €/cmd × 2 336 × 85 % | **973 €** | Probable, ligne calculée par différence |
-
-**Total marge : 536 + 770 + 973 = ~2 280 €/mois.** C'est le chiffre à reprendre.
-
-En CA : 800 € (XL) + 980 € (menus) + 1 145 € (suppléments) = **~2 925 €** sur les
-+4 275 € mesurés entre juin et août. **L'intuition du gérant (« au moins 3 000 €/mois
-en plus ») est donc bien étayée sur le CA.** Ne pas la rabaisser : une première révision
-à 300 €/mois a été faite puis annulée, elle ne regardait que le ticket année contre
-année et ignorait les articles par commande et les suppléments.
-
-**Septembre 2026 contre septembre 2025 tranchera** (12,68 € de ticket, 1 978 commandes,
-ni XL ni menu renommé, mois isolé et propre dans `ventes_produits`). C'est la prochaine
-mesure à faire, et la seule qui fermera le sujet.
+**L'écart d'une année sur l'autre vient à 85 % de la fréquentation, pas de la carte.**
+L'argent est bien là — l'intuition du gérant (« au moins 3 000 €/mois en plus ») est
+juste sur le CA — mais la carte n'en porte que 15 %.
 
 ⚠️ **Le 26/08 est une fuite d'eau** : fermeture vers 16h, 663 € au lieu des ~950 €
 attendus un mercredi. Enregistré dans `jours_speciaux` (type `incident`). Sans lui, la
