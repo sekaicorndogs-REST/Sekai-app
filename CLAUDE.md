@@ -403,12 +403,56 @@ croire, mais août est structurellement un mois à fort ticket (13,57 € dès 2
 12,68 € en septembre). La saison explique l'essentiel de la hausse du ticket de juillet
 à août.
 
-⚠️ **L'estimation de 1 400 à 1 700 €/mois de marge attribuée aux menus n'est pas
-soutenue par la comparaison d'une année sur l'autre.** Elle reposait sur une coupure
-juillet/août sans témoin saisonnier. Le seul chiffre solide est l'effet ticket mesuré
-à saison neutralisée : **+416 € de CA/mois, soit ~300 €/mois de marge.** La vérité est
-probablement entre les deux, mais il faut septembre 2026 contre septembre 2025 pour
-trancher — c'est la prochaine mesure à faire.
+### Ce que valent vraiment les changements — arbitré le 31/08/2026
+
+Deux mesures se contredisent et il faut connaître les deux.
+
+**Mesure 1 — ticket année contre année : +0,18 €/commande seulement.**
+Août 2025 faisait déjà 13,57 € de ticket (et non ~12,50 € comme ce fichier l'a longtemps
+écrit). Août est le mois au plus fort ticket de l'année : sur les onze mois précédant
+tout changement, la moyenne est de 12,50 € et août 2025 est le sommet à +8,6 %.
+Comparer juin (11,92 €, le point le plus bas de l'année) à août revient donc à mesurer
+la saison : ce passage valait déjà +1,65 € l'année précédente, sans aucun changement.
+
+**Mesure 2 — le détail produits, qui dit l'inverse et qui est plus convaincant :**
+
+| | Menus/100 | Articles/cmd | Valeur produits/cmd | Suppléments |
+|---|---|---|---|---|
+| Oct-nov 25 | 25,8 | 1,51 | 10,46 € | 1,96 € |
+| Déc 25 | 28,3 | 1,58 | 10,83 € | 1,61 € |
+| Janv-mars 26 | 32,8 | 1,55 | 10,88 € | 1,60 € |
+| Avril 26 | 34,4 | 1,51 | 10,76 € | 1,42 € |
+| Mai 26 | 36,6 | 1,52 | 10,93 € | 1,52 € |
+| Juin 26 | 38,1 | **1,46** | 10,60 € | 1,32 € |
+| **Août 26** | **53,7** | **1,53** | **11,94 €** | **1,81 €** |
+
+**Le nombre d'articles par commande REMONTE en août pendant que les menus explosent.**
+C'est la preuve qu'il n'y a pas substitution : si un « corndog + side + soft » (3 lignes)
+devenait un menu (1 ligne), les articles par commande baisseraient. Ils montent.
+Et la valeur produits par commande saute de 10,60 € à 11,94 € après huit mois bloquée
+entre 10,46 et 10,93.
+
+⚠️ **Ne pas resservir l'argument « le menu à 10 € est une remise sur 12,50 € à la carte ».**
+Le gérant l'a réfuté et les données lui donnent raison : le taux de prise de side n'est
+que de ~10 pour 100 commandes, donc presque personne ne prenait les trois. Le menu est
+une montée en gamme, pas une remise. (L'argument valait sur oct→juin, où les articles
+par commande baissaient de 1,51 à 1,46 ; il ne vaut plus depuis juillet.)
+
+⚠️ **Le taux de menu montait DÉJÀ de +1,7 point par mois avant tout changement**
+(25,8 en oct-nov → 38,1 en juin, tendance régulière sur 8 mois). Sans rien faire, août
+serait sorti à **41,7**. Le saut réellement imputable aux changements est donc de
+**+12 points**, pas +15,6. Toujours retirer la tendance avant de chiffrer un gain.
+
+**Estimation retenue : 500 à 1 300 €/mois de marge.**
+
+| | Marge/mois | Solidité |
+|---|---|---|
+| **Les XL** — 276 × 1,94 € de marge en plus qu'un menu à 10 € | **536 €** | **Certaine** : ils n'existaient ni en juin ni en août 2025, aucune explication saisonnière possible |
+| Menus au-dessus de la tendance — ~280 × 2,75 € | 770 € | Probable, mais dépend de la part saisonnière du mix d'août |
+
+**Septembre 2026 contre septembre 2025 tranchera** (12,68 € de ticket, 1 978 commandes,
+ni XL ni menu renommé, mois isolé et propre dans `ventes_produits`). C'est la prochaine
+mesure à faire, et la seule qui fermera le sujet.
 
 ⚠️ **Le 26/08 est une fuite d'eau** : fermeture vers 16h, 663 € au lieu des ~950 €
 attendus un mercredi. Enregistré dans `jours_speciaux` (type `incident`). Sans lui, la
