@@ -17,9 +17,9 @@ Il contient le contexte métier durable. **À mettre à jour dès qu'une donnée
 - **Un seul point de vente**, plus des events ponctuels. Les entrées « Event 1 » et
   « Event 2 » de `RESTAURANTS` sont des **kits de stock pour charger la camionnette**,
   pas des boutiques : leurs quantités vides sont normales, ce ne sont pas des alertes.
-- CA moyen **1 042 €/jour** — **882 € bornes** + 150 € caisse/Uber (270 en août),
+- CA moyen **1 032 €/jour** — **882 € bornes** + **150 € caisse/Uber tous les mois**,
   pondéré sur les douze mois mesurés de `saisonnalite`.
-  Soit **~31 700 €/mois** et **~380 500 €/an**.
+  Soit **~31 400 €/mois** et **~376 800 €/an**.
   ⚠️ Août est désormais celui de **2026** (complet, chargé le 31/08), pas 2025.
   ✅ **L'année est complète depuis le 11/08/2026** : septembre 2025 a été chargé
   (1 978 commandes, 25 073 €, 836 €/jour). Il n'y a plus aucun mois estimé dans
@@ -190,10 +190,10 @@ Confirmé par le gérant (juillet 2026). C'est le CA caisse + Uber qui ne passe 
 les bornes de commande. `saisonnalite.hors_bornes` et `parametres.ca_hors_bornes`
 sont tous deux alignés sur 150. **Ne pas réintroduire 250.**
 
-**Exception : août est à 270 €/jour de hors-bornes** (gérant, 11/08/2026). Caisse et
-Uber montent l'été. Seul le mois d'août est concerné dans `saisonnalite` ; tous les
-autres mois restent à 150, et `parametres.ca_hors_bornes` (valeur annuelle par défaut)
-reste à 150. Août 2026 se lit donc **995 € bornes + 270 = ~1 265 €/jour tout compris**.
+⚠️ **L'exception d'août à 270 €/jour a été annulée** (gérant, 31/08/2026). Après
+vérification sur le mois complet, août revient à **150 €/jour comme tous les autres**.
+Août 2026 se lit donc **1 036 € bornes + 150 = 1 186 €/jour tout compris**.
+Ne pas réintroduire les 270 : la question a été tranchée deux fois.
 
 ### Les events se vendent plus cher qu'à Rue Neuve
 
@@ -363,8 +363,8 @@ Les XL (lancés le 30/07) ne peuvent pas expliquer une rupture au 25/07.
 | 21–31/07 | 644 | — | 13,25 € | 48,4 |
 | **1–11/08** | **796** | **10 949 €** | **13,76 €** | **~53** |
 
-Hors-bornes d'août à 270 €/j (voir plus haut) → **~1 265 €/jour tout compris**, soit
-**~39 200 €** si le rythme tient sur le mois entier. **C'est le meilleur mois de tout
+Hors-bornes à 150 €/j → **~1 145 €/jour tout compris** sur cette première quinzaine.
+Le mois complet est finalement sorti à 1 036 €/j bornes, soit 1 186 € tout compris. **C'est le meilleur mois de tout
 l'historique**, devant décembre (1 159 €/j) et avril (1 156 €/j), et 25 % au-dessus de la
 moyenne annuelle de 1 035 €/j. Contre août 2025 : +50 €/j aux bornes, mais surtout un
 ticket qui passe de ~12,50 € à 13,76 € — la hausse ne vient donc pas que de la saison.
@@ -383,7 +383,7 @@ impossible d'isoler lequel porte l'effet.
 ### Août 2026, mois complet — meilleur mois de l'historique
 
 Chargé le 31/08/2026 : **2 336 commandes, 32 127 €, 1 036 €/jour aux bornes**, ticket
-**13,75 €**. Avec 270 € de hors-bornes : **1 306 €/jour**, soit **~40 500 €** sur le mois.
+**13,75 €**. Avec 150 € de hors-bornes : **1 186 €/jour**, soit **~36 800 €** sur le mois.
 
 Contre août 2025 (945 €/j) : **+91 €/jour**, soit +2 800 € sur le mois. Le ticket passe
 de ~12,50 € à 13,75 € — la hausse ne vient donc pas que de la saison.
