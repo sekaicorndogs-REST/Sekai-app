@@ -1140,7 +1140,8 @@ export default function App() {
   const [ventesProduits, setVentesProduits] = useState<any[]>([]);
   const [resumeSection, setResumeSection] = useState<string>("essentiel");
   // Thème affiché dans Stats : le tableau de bord serait illisible d'un bloc.
-  const [statsTheme, setStatsTheme] = useState<"ca"|"panier"|"produits"|"finance">("ca");
+  const [statsTheme, setStatsTheme] = useState<"mois"|"ca"|"panier"|"produits"|"finance">("mois");
+  const [moisChoisi, setMoisChoisi] = useState(""); // "" = dernier mois disponible
   const [joursSpeciaux, setJoursSpeciaux] = useState<any[]>([]);
   const [jourSpecialDate, setJourSpecialDate] = useState("");
   const [jourSpecialMotif, setJourSpecialMotif] = useState("greve");
@@ -5110,6 +5111,7 @@ A travaillé sans être au planning — qui a été remplacé ?
             ventes: "ca", annee: "ca", produits: "produits",
             personnel: "finance", dettes: "finance",
           };
+          // Le thème « mois » est autonome : il ne réutilise aucun bloc existant.
           const show = (s: string) =>
             s === "essentiel"
               ? resumeSection === "essentiel"
@@ -5175,6 +5177,58 @@ A travaillé sans être au planning — qui a été remplacé ?
           const cmdParHeure = heureStats.length ? heureStats.reduce((t, x) => t + x.cmd, 0) / heureStats.length : 0;
           const heurePleine = heureStats.length ? [...heureStats].sort((a, b) => b.cmd - a.cmd)[0] : null;
           const MOIS_COURT = ["janv","févr","mars","avr","mai","juin","juil","août","sept","oct","nov","déc"];
+          const MOIS_LONG = ["Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Décembre"];
+
+          // ── LE MOIS : tout ce qu'on peut dire d'un mois donné ────────────
+          const moisDispo = moisStats.map(m => m.k).reverse();          // du plus récent
+          const moisVu = moisChoisi && moisDispo.includes(moisChoisi) ? moisChoisi : (moisDispo[0] || "");
+          const idxVu = moisDispo.indexOf(moisVu);
+          const statMois = (k: string) => moisStats.find(m => m.k === k) || null;
+          const mCourant = statMois(moisVu);
+          const mPrecedent = idxVu >= 0 && idxVu + 1 < moisDispo.length ? statMois(moisDispo[idxVu + 1]) : null;
+          const mAnnePassee = moisVu
+            ? statMois(String(parseInt(moisVu.slice(0, 4), 10) - 1) + moisVu.slice(4))
+            : null;
+
+          // Détail des journées du mois : jour de semaine, heures, extrêmes
+          const joursDuMois = (() => {
+            if (!moisVu) return [] as { d: string; dow: number; ca: number; n: number }[];
+            const acc: Record<string, { ca: number; n: number; dow: number }> = {};
+            V.forEach(v => {
+              const k = v.d.getFullYear() + "-" + String(v.d.getMonth() + 1).padStart(2, "0");
+              if (k !== moisVu) return;
+              const j = v.d.toISOString().slice(0, 10);
+              (acc[j] = acc[j] || { ca: 0, n: 0, dow: v.d.getDay() });
+              acc[j].ca += v.p; acc[j].n++;
+            });
+            return Object.entries(acc).map(([d, o]) => ({ d, ...o })).sort((a, b) => a.d.localeCompare(b.d));
+          })();
+          const hbVu = mCourant ? hbDuMois(mCourant.mois) : hb;
+          const dowMois = (() => {
+            const acc: Record<number, { ca: number; n: number; j: number }> = {};
+            joursDuMois.forEach(x => {
+              (acc[x.dow] = acc[x.dow] || { ca: 0, n: 0, j: 0 });
+              acc[x.dow].ca += x.ca; acc[x.dow].n += x.n; acc[x.dow].j++;
+            });
+            return [1, 2, 3, 4, 5, 6, 0].filter(d => acc[d]).map(d => ({
+              dow: d, moy: acc[d].ca / acc[d].j + hbVu, cmd: acc[d].n / acc[d].j, j: acc[d].j,
+            }));
+          })();
+          const maxDowMois = Math.max(1, ...dowMois.map(x => x.moy));
+          const topJourMois = [...joursDuMois].sort((a, b) => b.ca - a.ca)[0] || null;
+          const basJourMois = [...joursDuMois].sort((a, b) => a.ca - b.ca)[0] || null;
+          const incidentsMois = joursSpeciaux.filter((x: any) => String(x.date).startsWith(moisVu));
+          const empoteMois = (() => {
+            let e = 0, t = 0;
+            V.forEach(v => {
+              const k = v.d.getFullYear() + "-" + String(v.d.getMonth() + 1).padStart(2, "0");
+              if (k !== moisVu) return;
+              t++; if (String(v.m).toLowerCase().includes("emporter")) e++;
+            });
+            return t ? Math.round((e / t) * 100) : 0;
+          })();
+          const evol = (a: number | null | undefined, b: number | null | undefined) =>
+            a != null && b != null && b !== 0 ? ((a - b) / b) * 100 : null;
           const libMois = (k: string) => MOIS_COURT[parseInt(k.slice(5), 10) - 1] + " " + k.slice(2, 4);
 
           // Dettes : ordre de remboursement et date de sortie
@@ -5215,6 +5269,7 @@ A travaillé sans être au planning — qui a été remplacé ?
               {resumeSection === "stats" && (
                 <div style={{ display: "flex", gap: "0.35rem", overflowX: "auto", paddingBottom: "0.2rem", margin: "-0.2rem -0.2rem 0" }}>
                   {[
+                    { id: "mois",     label: "Le mois",       Icon: Calendar },
                     { id: "ca",       label: "CA & saison",   Icon: TrendingUp },
                     { id: "panier",   label: "Clients",       Icon: Users },
                     { id: "produits", label: "Produits",      Icon: Utensils },
@@ -5227,6 +5282,166 @@ A travaillé sans être au planning — qui a été remplacé ?
                   ))}
                 </div>
               )}
+
+              {/* ══════ THÈME : LE MOIS ══════ */}
+              {theme("mois") && mCourant && (() => {
+                const nomM = MOIS_LONG[mCourant.mois - 1] + " " + moisVu.slice(0, 4);
+                const dCA = evol(mCourant.caJour, mPrecedent?.caJour);
+                const dTicket = evol(mCourant.panier, mPrecedent?.panier);
+                const dCmd = evol(mCourant.cmdJour, mPrecedent?.cmdJour);
+                const dAn = evol(mCourant.caJour, mAnnePassee?.caJour);
+                const fleche = (v: number | null) => v == null ? "" : v >= 0 ? "▲" : "▼";
+                const coul = (v: number | null) => v == null ? "#c8a878" : v >= 0 ? "#1f6e42" : "#e8213a";
+                const pct = (v: number | null) => v == null ? "—" : (v >= 0 ? "+" : "") + v.toFixed(1) + " %";
+                const JOURS_L = ["Dimanche","Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"];
+                return (<>
+                  {/* Sélecteur de mois */}
+                  <div style={{ display: "flex", gap: "0.35rem", overflowX: "auto", paddingBottom: "0.2rem" }}>
+                    {moisDispo.slice(0, 14).map(k => {
+                      const actif = k === moisVu;
+                      const st = statMois(k)!;
+                      return (
+                        <button key={k} onClick={() => setMoisChoisi(k)}
+                          style={{ background: actif ? "#3d1a0a" : "#fff", color: actif ? "#fff" : "#a07848", border: `1px solid ${actif ? "#3d1a0a" : "#efe0c9"}`, borderRadius: "10px", padding: "0.35rem 0.6rem", fontSize: "0.72rem", fontWeight: 700, cursor: "pointer", fontFamily: "'Poppins', sans-serif", flexShrink: 0, whiteSpace: "nowrap" as const, textTransform: "capitalize" as const }}>
+                          {MOIS_COURT[st.mois - 1]} {k.slice(2, 4)}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* En-tête du mois */}
+                  <div style={{ ...CARD, padding: "1rem", background: "linear-gradient(135deg,#3d1a0a 0%,#5a2a14 100%)" }}>
+                    <div style={{ color: "#f0d8b8", fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase" as const }}>{nomM}</div>
+                    <div style={{ color: "#fff", fontSize: "1.9rem", fontWeight: 800, lineHeight: 1.15 }}>
+                      {fmt(mCourant.caTot)} €
+                    </div>
+                    <div style={{ color: "#c8a878", fontSize: "0.7rem", marginBottom: "0.7rem" }}>
+                      {mCourant.jours} jours d'ouverture · caisse et Uber inclus
+                    </div>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "0.5rem" }}>
+                      {[
+                        { l: "Par jour", v: fmt(mCourant.caJour) + " €", d: dCA },
+                        { l: "Ticket", v: mCourant.panier.toFixed(2) + " €", d: dTicket },
+                        { l: "Commandes/j", v: mCourant.cmdJour.toFixed(0), d: dCmd },
+                      ].map(x => (
+                        <div key={x.l} style={{ textAlign: "center" as const }}>
+                          <div style={{ color: "#a08868", fontSize: "0.6rem", textTransform: "uppercase" as const }}>{x.l}</div>
+                          <div style={{ color: "#fff", fontSize: "1.05rem", fontWeight: 800 }}>{x.v}</div>
+                          <div style={{ color: x.d == null ? "#8a7a68" : x.d >= 0 ? "#8fd6a6" : "#ff9b9b", fontSize: "0.62rem", fontWeight: 700 }}>
+                            {fleche(x.d)} {pct(x.d)}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <div style={{ color: "#c8a878", fontSize: "0.64rem", marginTop: "0.6rem", paddingTop: "0.5rem", borderTop: "1px solid #ffffff1a" }}>
+                      Évolutions par rapport à {mPrecedent ? MOIS_LONG[mPrecedent.mois - 1].toLowerCase() : "—"}
+                      {mAnnePassee && <> · sur un an : <strong style={{ color: dAn != null && dAn >= 0 ? "#8fd6a6" : "#ff9b9b" }}>{pct(dAn)}</strong></>}
+                    </div>
+                  </div>
+
+                  {/* Objectif */}
+                  <div style={{ ...CARD, padding: "0.9rem 1rem" }}>
+                    {(() => {
+                      const ok = mCourant.caJour >= objJour;
+                      const ecart = (mCourant.caJour - objJour) * mCourant.jours;
+                      return (
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                          <div>
+                            <div style={{ ...LBL }}>Face au seuil de {fmt(objJour)} €/jour</div>
+                            <div style={{ color: "#c8a878", fontSize: "0.66rem" }}>
+                              {ok ? "Charges et dettes couvertes" : "Mois déficitaire sur les sorties"}
+                            </div>
+                          </div>
+                          <div style={{ textAlign: "right" as const }}>
+                            <div style={{ color: ok ? "#1f6e42" : "#e8213a", fontSize: "1.2rem", fontWeight: 800 }}>
+                              {ecart >= 0 ? "+" : ""}{fmt(ecart)} €
+                            </div>
+                            <div style={{ color: "#c8a878", fontSize: "0.62rem" }}>sur le mois</div>
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </div>
+
+                  {/* Jour de semaine */}
+                  {dowMois.length > 2 && (
+                    <div style={{ ...CARD, padding: "0.9rem 1rem" }}>
+                      <div style={{ ...LBL, marginBottom: "0.1rem" }}>Par jour de semaine</div>
+                      <div style={{ color: "#c8a878", fontSize: "0.66rem", marginBottom: "0.7rem" }}>Tout compris · trait = seuil</div>
+                      {dowMois.map(x => {
+                        const sous = x.moy < objJour;
+                        return (
+                          <div key={x.dow} style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.3rem" }}>
+                            <span style={{ width: "62px", color: "#a07848", fontSize: "0.7rem", flexShrink: 0 }}>{JOURS_L[x.dow].slice(0, 3)}. <span style={{ color: "#c8a878" }}>×{x.j}</span></span>
+                            <div style={{ flex: 1, background: "#f4e8d6", borderRadius: "20px", height: "9px", position: "relative" as const }}>
+                              <div style={{ width: `${(x.moy / maxDowMois) * 100}%`, height: "9px", borderRadius: "20px", background: sous ? "#e8213a" : "#1f6e42" }} />
+                              <div style={{ position: "absolute" as const, left: `${Math.min(100, (objJour / maxDowMois) * 100)}%`, top: "-3px", width: "2px", height: "15px", background: "#3d1a0a" }} />
+                            </div>
+                            <span style={{ width: "48px", textAlign: "right" as const, fontSize: "0.74rem", fontWeight: 700, color: sous ? "#e8213a" : "#1f6e42" }}>{fmt(x.moy)} €</span>
+                            <span style={{ width: "40px", textAlign: "right" as const, fontSize: "0.66rem", color: "#a07848" }}>{x.cmd.toFixed(0)} cmd</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {/* Extrêmes, mode de service, incidents */}
+                  <div style={{ ...CARD, padding: "0.9rem 1rem" }}>
+                    <div style={{ ...LBL, marginBottom: "0.6rem" }}>Les faits du mois</div>
+                    {topJourMois && (
+                      <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.78rem", padding: "0.2rem 0" }}>
+                        <span style={{ color: "#a07848" }}>Meilleure journée</span>
+                        <span style={{ color: "#1f6e42", fontWeight: 700, textTransform: "capitalize" as const }}>
+                          {new Date(topJourMois.d + "T12:00:00").toLocaleDateString("fr-BE", { weekday: "short", day: "numeric" })} · {fmt(topJourMois.ca + hbVu)} €
+                        </span>
+                      </div>
+                    )}
+                    {basJourMois && (
+                      <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.78rem", padding: "0.2rem 0" }}>
+                        <span style={{ color: "#a07848" }}>Journée la plus faible</span>
+                        <span style={{ color: "#e8213a", fontWeight: 700, textTransform: "capitalize" as const }}>
+                          {new Date(basJourMois.d + "T12:00:00").toLocaleDateString("fr-BE", { weekday: "short", day: "numeric" })} · {fmt(basJourMois.ca + hbVu)} €
+                        </span>
+                      </div>
+                    )}
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.78rem", padding: "0.2rem 0" }}>
+                      <span style={{ color: "#a07848" }}>À emporter</span>
+                      <span style={{ color: "#3d1a0a", fontWeight: 700 }}>{empoteMois} % · sur place {100 - empoteMois} %</span>
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.78rem", padding: "0.2rem 0" }}>
+                      <span style={{ color: "#a07848" }}>Effectif conseillé</span>
+                      <span style={{ color: "#3d1a0a", fontWeight: 700 }}>
+                        {saisonnalite.find((x: any) => x.mois === mCourant.mois)?.effectif_semaine ?? "—"} en semaine ·{" "}
+                        {saisonnalite.find((x: any) => x.mois === mCourant.mois)?.effectif_weekend ?? "—"} le samedi
+                      </span>
+                    </div>
+                    {incidentsMois.length > 0 && (
+                      <div style={{ marginTop: "0.6rem", paddingTop: "0.55rem", borderTop: "1px dashed #f0e0cc" }}>
+                        <div style={{ color: "#c98a17", fontSize: "0.68rem", fontWeight: 700, marginBottom: "0.3rem" }}>JOURNÉES PARTICULIÈRES</div>
+                        {incidentsMois.map((x: any) => (
+                          <div key={x.id} style={{ fontSize: "0.74rem", color: "#a07848", padding: "0.12rem 0" }}>
+                            <strong style={{ color: "#3d1a0a", textTransform: "capitalize" as const }}>
+                              {new Date(String(x.date) + "T12:00:00").toLocaleDateString("fr-BE", { weekday: "short", day: "numeric" })}
+                            </strong> — {x.motif}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Note de saisonnalité : le commentaire durable du mois */}
+                  {(() => {
+                    const l = saisonnalite.find((x: any) => x.mois === mCourant.mois);
+                    if (!l?.note) return null;
+                    return (
+                      <div style={{ ...CARD, padding: "0.9rem 1rem" }}>
+                        <div style={{ ...LBL, marginBottom: "0.4rem" }}>Ce qu'il faut retenir</div>
+                        <div style={{ color: "#5a4632", fontSize: "0.76rem", lineHeight: 1.5 }}>{l.note}</div>
+                      </div>
+                    );
+                  })()}
+                </>);
+              })()}
 
               {/* ══════ THÈME : CA & SAISON ══════ */}
               {theme("ca") && moisStats.length > 1 && (
