@@ -385,8 +385,30 @@ impossible d'isoler lequel porte l'effet.
 Chargé le 31/08/2026 : **2 336 commandes, 32 127 €, 1 036 €/jour aux bornes**, ticket
 **13,75 €**. Avec 150 € de hors-bornes : **1 186 €/jour**, soit **~36 800 €** sur le mois.
 
-Contre août 2025 (945 €/j) : **+91 €/jour**, soit +2 800 € sur le mois. Le ticket passe
-de ~12,50 € à 13,75 € — la hausse ne vient donc pas que de la saison.
+Contre août 2025 (945 €/j) : **+91 €/jour**, soit **+2 846 € sur le mois**.
+
+⚠️ **CORRECTION DU 31/08/2026 — le ticket d'août 2025 était de 13,57 €, pas ~12,50 €.**
+Le chiffre de 12,50 € était faux et traînait dans ce fichier. Conséquence : l'écart de
+ticket sur un an n'est que de **+0,18 €**, et la décomposition du gain annuel est :
+
+| | Effet | Part |
+|---|---|---|
+| **Plus de clients** (69,6 → 75,4 cmd/jour) | **+2 430 €** | 85 % |
+| **Ticket plus élevé** (13,57 → 13,75 €) | **+416 €** | 15 % |
+| **Total** | **+2 846 €** | |
+
+**L'écart d'une année sur l'autre vient à 85 % de la fréquentation, pas de la carte.**
+Ne pas attribuer les +2 800 € aux menus : la comparaison juillet → août 2026 le laissait
+croire, mais août est structurellement un mois à fort ticket (13,57 € dès 2025, contre
+12,68 € en septembre). La saison explique l'essentiel de la hausse du ticket de juillet
+à août.
+
+⚠️ **L'estimation de 1 400 à 1 700 €/mois de marge attribuée aux menus n'est pas
+soutenue par la comparaison d'une année sur l'autre.** Elle reposait sur une coupure
+juillet/août sans témoin saisonnier. Le seul chiffre solide est l'effet ticket mesuré
+à saison neutralisée : **+416 € de CA/mois, soit ~300 €/mois de marge.** La vérité est
+probablement entre les deux, mais il faut septembre 2026 contre septembre 2025 pour
+trancher — c'est la prochaine mesure à faire.
 
 ⚠️ **Le 26/08 est une fuite d'eau** : fermeture vers 16h, 663 € au lieu des ~950 €
 attendus un mercredi. Enregistré dans `jours_speciaux` (type `incident`). Sans lui, la
