@@ -496,10 +496,26 @@ gagné, régulier sur 8 mois. En août, les deux montent ensemble pour la premi�
 **+0,49 €/commande, soit +1 145 € de CA et ~973 €/mois de marge** (les suppléments sont
 à 85 % de marge : 85,4 € de marge pour 100,5 € de CA dans `top_produits`).
 
-⚠️ Cette ligne est calculée **par différence**, donc toute erreur de `ventes_produits`
-y atterrit. C'est la moins fiable du dossier. Pour la vérifier il faut une **« Liste de
-commande » détaillée sur une semaine complète** — le seul export qui montre les panures
-et sauces ligne à ligne. C'est la mesure à demander.
+Cette ligne est calculée **par différence** (CA réel des bornes − CA du rapport produits),
+donc ce qui reste ne peut être que des options : panures, sauces, sides pris sur un
+corndog, quantités multiples.
+
+✅ **Vérifié le 31/08/2026 : la comparaison est propre.** Seules les deux périodes de
+juillet 2026 portent une ligne `SUPPLEMENTS/EXTRAS` ajoutée pour recaler les totaux —
+et juillet est exclu du tableau ci-dessus. Les sept autres périodes sont des rapports
+produits bruts, traités à l'identique. Un éventuel biais des exports EasyOrder est donc
+le même en juin et en août et **s'annule dans l'écart** : les +0,49 €/commande tiennent.
+Ne pas rabaisser cette ligne au motif qu'elle est un résidu.
+
+⚠️ Ce qui reste inconnu, c'est **qui** prend les suppléments : les clients qui prennent
+un menu, ou les autres. Seule une « Liste de commande » détaillée le dirait. C'est un
+complément d'explication, pas ce qui porte les 973 €.
+
+**Le gérant ne peut pas exporter cette liste proprement** (mélangée avec les events et
+d'anciennes périodes). Ce n'est pas bloquant : chaque commande porte une `reference`, et
+les 27 758 références des bornes Rue Neuve sont dans `ventes`. **Filtrer l'export sur ces
+références écarte automatiquement les events et les autres périodes** — donc accepter le
+fichier tel quel, même sale, et faire le tri en base.
 
 **Résultat retenu : ~2 280 €/mois de marge**, fourchette 1 300 à 2 300 €.
 
