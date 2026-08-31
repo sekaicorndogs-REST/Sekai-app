@@ -5253,6 +5253,47 @@ A travaillé sans être au planning — qui a été remplacé ?
           const famVu = moisVu ? famillesMois(moisVu) : null;
           const famPrec = mPrecedent ? famillesMois(mPrecedent.k) : null;
 
+          // Décomposition du ticket : ce que valent les produits choisis, et ce
+          // que les clients ajoutent par-dessus (panures et sauces payantes).
+          // La ligne « suppléments » est calculée PAR DIFFÉRENCE : toute erreur
+          // de ventes_produits y atterrit, c'est la moins fiable du tableau.
+          const ticketDecomp = (k: string) => {
+            const f = famillesMois(k);
+            const st = moisStats.find(m => m.k === k) || null;
+            if (!f || !st || !f.cmd) return null;
+            const caProd = f.lignes.reduce((t: number, r: any) => t + (parseFloat(r.ca) || 0), 0);
+            const qte = f.lignes.reduce((t: number, r: any) => t + (Number(r.quantite) || 0), 0);
+            return {
+              articles: qte / f.cmd,
+              produits: caProd / f.cmd,
+              suppl: st.panier - caProd / f.cmd,
+              menus100: f.p100(f.menus),
+            };
+          };
+          const decVu = moisVu ? ticketDecomp(moisVu) : null;
+          const decPrec = mPrecedent ? ticketDecomp(mPrecedent.k) : null;
+
+          // Tendance de fond du taux de prise de menu, ajustée sur TOUS les mois
+          // qui ont un détail produits sauf celui qu'on regarde. Sert à séparer
+          // ce qui monte tout seul de ce qui vient d'un changement de carte.
+          const tendanceMenu = (() => {
+            const pts = moisStats
+              .filter(m => m.k !== moisVu)
+              .map(m => ({ x: (parseInt(m.k.slice(0, 4), 10) * 12) + parseInt(m.k.slice(5), 10), d: ticketDecomp(m.k) }))
+              .filter(o => o.d) as { x: number; d: any }[];
+            if (pts.length < 4 || !decVu) return null;
+            const n = pts.length;
+            const mx = pts.reduce((t, o) => t + o.x, 0) / n;
+            const my = pts.reduce((t, o) => t + o.d.menus100, 0) / n;
+            const den = pts.reduce((t, o) => t + (o.x - mx) ** 2, 0);
+            if (!den) return null;
+            const b = pts.reduce((t, o) => t + (o.x - mx) * (o.d.menus100 - my), 0) / den;
+            const a0 = my - b * mx;
+            const xVu = parseInt(moisVu.slice(0, 4), 10) * 12 + parseInt(moisVu.slice(5), 10);
+            const attendu = a0 + b * xVu;
+            return { pente: b, attendu, saut: decVu.menus100 - attendu, n };
+          })();
+
           // Répartition horaire du mois vu. Dénominateur = tous les jours
           // d'ouverture du mois, pas seulement ceux où l'heure a vu une commande.
           const heuresMois = (() => {
@@ -5626,6 +5667,96 @@ A travaillé sans être au planning — qui a été remplacé ?
                       </div>
                     );
                   })()}
+
+                  {/* De quoi le ticket est fait : produits choisis + suppléments */}
+                  {decVu && (
+                    <div style={{ ...CARD, padding: "0.9rem 1rem" }}>
+                      <div style={{ ...LBL, marginBottom: "0.1rem" }}>De quoi le ticket est fait</div>
+                      <div style={{ color: "#c8a878", fontSize: "0.66rem", marginBottom: "0.8rem" }}>
+                        Par commande{decPrec ? ` · écart avec ${MOIS_LONG[mPrecedent!.mois - 1].toLowerCase()}` : ""}
+                      </div>
+                      {[
+                        { l: "Articles par commande", v: decVu.articles, av: decPrec?.articles ?? null, u: "", dec: 2,
+                          aide: "S'il monte pendant que les menus montent, c'est de la vente en plus. S'il baisse, les menus remplacent des articles déjà vendus." },
+                        { l: "Valeur des produits", v: decVu.produits, av: decPrec?.produits ?? null, u: " €", dec: 2, aide: "" },
+                        { l: "Suppléments (panures, sauces)", v: decVu.suppl, av: decPrec?.suppl ?? null, u: " €", dec: 2,
+                          aide: "Calculé par différence, donc la ligne la moins fiable. 85 % de marge." },
+                      ].map(x => {
+                        const d = x.av == null ? null : x.v - x.av;
+                        return (
+                          <div key={x.l} style={{ padding: "0.3rem 0", borderBottom: "1px dashed #f6ecdd" }}>
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+                              <span style={{ color: "#3d1a0a", fontSize: "0.76rem", fontWeight: 600 }}>{x.l}</span>
+                              <span>
+                                <strong style={{ color: "#3d1a0a", fontSize: "0.92rem", fontWeight: 800 }}>{x.v.toFixed(x.dec)}{x.u}</strong>
+                                <span style={{ marginLeft: "0.45rem", fontSize: "0.68rem", fontWeight: 700, color: d == null ? "#d8c4a8" : d >= 0 ? "#1f6e42" : "#e8213a" }}>
+                                  {d == null ? "—" : (d >= 0 ? "+" : "") + d.toFixed(x.dec)}
+                                </span>
+                              </span>
+                            </div>
+                            {x.aide && <div style={{ color: "#c8a878", fontSize: "0.62rem", lineHeight: 1.4, marginTop: "0.1rem" }}>{x.aide}</div>}
+                          </div>
+                        );
+                      })}
+                      <div style={{ display: "flex", justifyContent: "space-between", marginTop: "0.5rem" }}>
+                        <span style={{ color: "#a07848", fontSize: "0.76rem", fontWeight: 700 }}>Ticket total</span>
+                        <span style={{ color: "#3d1a0a", fontSize: "0.95rem", fontWeight: 800 }}>{mCourant.panier.toFixed(2)} €</span>
+                      </div>
+                      {decPrec && (() => {
+                        const dArt = decVu.articles - decPrec.articles;
+                        const dMenu = decVu.menus100 - decPrec.menus100;
+                        const dSup = decVu.suppl - decPrec.suppl;
+                        const cmdM = mCourant.cmdJour * mCourant.jours;
+                        return (
+                          <div style={{ marginTop: "0.6rem", background: "#fdf6ec", borderRadius: "8px", padding: "0.5rem 0.6rem" }}>
+                            <div style={{ color: "#a07848", fontSize: "0.68rem", lineHeight: 1.45 }}>
+                              {dMenu > 3 && dArt >= 0
+                                ? "Les menus montent ET les articles par commande aussi : c'est de la montée en gamme, pas de la substitution."
+                                : dMenu > 3 && dArt < 0
+                                  ? "Les menus montent mais les articles par commande baissent : une partie des menus remplace des articles déjà vendus, le gain réel est plus faible."
+                                  : "Pas de bascule marquée dans la composition du ticket ce mois-ci."}
+                            </div>
+                            {Math.abs(dSup) > 0.1 && (
+                              <div style={{ color: dSup >= 0 ? "#1f6e42" : "#e8213a", fontSize: "0.68rem", marginTop: "0.35rem", fontWeight: 600 }}>
+                                Suppléments : {dSup >= 0 ? "+" : ""}{(dSup * cmdM).toFixed(0)} € de CA sur le mois, soit {dSup >= 0 ? "+" : ""}{(dSup * cmdM * 0.85).toFixed(0)} € de marge.
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })()}
+                    </div>
+                  )}
+
+                  {/* Le taux de menu monte-t-il plus vite que sa tendance de fond ? */}
+                  {tendanceMenu && (
+                    <div style={{ ...CARD, padding: "0.9rem 1rem" }}>
+                      <div style={{ ...LBL, marginBottom: "0.1rem" }}>Le taux de menu contre sa tendance</div>
+                      <div style={{ color: "#c8a878", fontSize: "0.66rem", marginBottom: "0.7rem" }}>
+                        Tendance ajustée sur les {tendanceMenu.n} autres mois mesurés · {tendanceMenu.pente >= 0 ? "+" : ""}{tendanceMenu.pente.toFixed(2)} point par mois
+                      </div>
+                      <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.78rem", padding: "0.2rem 0" }}>
+                        <span style={{ color: "#a07848" }}>Attendu sans rien changer</span>
+                        <span style={{ color: "#3d1a0a", fontWeight: 700 }}>{tendanceMenu.attendu.toFixed(1)} / 100 cmd</span>
+                      </div>
+                      <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.78rem", padding: "0.2rem 0" }}>
+                        <span style={{ color: "#a07848" }}>Réel</span>
+                        <span style={{ color: "#3d1a0a", fontWeight: 700 }}>{decVu!.menus100.toFixed(1)} / 100 cmd</span>
+                      </div>
+                      <div style={{ display: "flex", justifyContent: "space-between", marginTop: "0.4rem", paddingTop: "0.45rem", borderTop: "1px solid #f0e0cc" }}>
+                        <span style={{ color: "#3d1a0a", fontSize: "0.8rem", fontWeight: 700 }}>Saut au-dessus de la tendance</span>
+                        <span style={{ color: tendanceMenu.saut >= 0 ? "#1f6e42" : "#e8213a", fontSize: "1rem", fontWeight: 800 }}>
+                          {tendanceMenu.saut >= 0 ? "+" : ""}{tendanceMenu.saut.toFixed(1)}
+                        </span>
+                      </div>
+                      <div style={{ color: "#a07848", fontSize: "0.68rem", lineHeight: 1.45, marginTop: "0.5rem", background: "#fdf6ec", borderRadius: "8px", padding: "0.45rem 0.55rem" }}>
+                        {tendanceMenu.saut > 4
+                          ? `Rupture nette. Seul le saut compte pour chiffrer un gain : ${tendanceMenu.saut.toFixed(1)} points × ${fmt(mCourant.cmdJour * mCourant.jours / 100)} = ${fmt((tendanceMenu.saut / 100) * mCourant.cmdJour * mCourant.jours * 2.75)} € de marge sur le mois, à 2,75 € par menu gagné.`
+                          : tendanceMenu.saut < -4
+                            ? "Le taux de menu décroche sous sa tendance : quelque chose a changé en défaveur des menus ce mois-ci."
+                            : "Le mois suit sa tendance de fond. Le taux de menu montait déjà tout seul — ne pas attribuer cette hausse à un changement de carte."}
+                      </div>
+                    </div>
+                  )}
 
                   {/* Les heures du mois : où se fait le CA dans la journée */}
                   {heuresMois.length > 2 && (
