@@ -5497,10 +5497,19 @@ A travaillé sans être au planning — qui a été remplacé ?
                         </div>
                         <div style={{ color: "#a07848", fontSize: "0.68rem", lineHeight: 1.45, marginTop: "0.45rem", background: "#fdf6ec", borderRadius: "8px", padding: "0.45rem 0.55rem" }}>
                           {Math.abs(effFreq) > Math.abs(effTicket) * 1.5
-                            ? "C'est le nombre de clients qui fait l'écart, pas ce qu'ils dépensent. Un changement de carte ne peut donc pas s'en attribuer le mérite."
+                            ? "Ce mois-ci, c'est surtout le nombre de clients qui fait l'écart, pas ce que chacun dépense."
                             : Math.abs(effTicket) > Math.abs(effFreq) * 1.5
                               ? "C'est le ticket qui fait l'écart, à fréquentation quasi identique. Là, c'est bien la carte et la borne qui travaillent."
                               : "Les deux effets pèsent autant : ni la carte seule ni la saison seule n'expliquent le mois."}
+                        </div>
+                        {/* Un changement de carte ne se juge JAMAIS sur ce seul chiffre :
+                            l'effet ticket année contre année a fait sous-estimer le gain
+                            des menus d'un facteur trois (31/08/2026). */}
+                        <div style={{ color: "#c98a17", fontSize: "0.66rem", lineHeight: 1.45, marginTop: "0.4rem", background: "#fff8e8", borderRadius: "8px", padding: "0.45rem 0.55rem", border: "1px solid #f2e0bc" }}>
+                          <strong>Ne pas juger un changement de carte sur ce seul chiffre.</strong> Il ne voit que le
+                          ticket global, où la saison pèse lourd. Pour savoir ce que la carte a rapporté, regarde plus
+                          bas « De quoi le ticket est fait » (articles par commande, suppléments) et « Le taux de menu
+                          contre sa tendance » — ils peuvent dire l'inverse, et c'est arrivé.
                         </div>
                         <div style={{ color: "#c8a878", fontSize: "0.62rem", marginTop: "0.4rem" }}>
                           Marge indicative sur cet écart : {tot >= 0 ? "+" : ""}{fmt(tot * 0.72)} € (72 % après matière)
