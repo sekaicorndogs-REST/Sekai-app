@@ -281,6 +281,7 @@ Un export « sale » (events, périodes mélangées) reste exploitable : filtrer
 | `ventes` | **27 758 commandes bornes, historique complet sans trou** (01/08/2025 → 31/08/2026, 395 jours). Source de référence pour toute analyse par jour, par jour de semaine ou par heure. La commande erronée #ZHATPX (01/08/2026, 1 903,80 €) a été volontairement exclue à la demande du gérant |
 | `courses_remplacements` | Remplacement ponctuel de courses, une ligne par semaine (lundi) |
 | `parametres` | Clé/valeur partagé : `ca_hors_bornes`, `courses_ordre`, `courses_ancrage` |
+| `ca_jour_declare` | **CA quotidien annoncé par le gérant en fin de journée, tout compris.** Créée le 01/09/2026. `ca_total` − CA bornes de `ventes` = **hors-bornes réel du jour** |
 
 ⚠️ Les horodatages de `ventes` sont des **heures locales stockées avec un fuseau UTC**.
 Ne pas convertir les fuseaux, lire l'heure telle quelle. Seules 2 commandes sur 23 444
@@ -746,6 +747,30 @@ demandé qu'il n'apparaisse pas deux fois). Ordre et semaine de départ dans
 Un remplacement ponctuel s'enregistre dans `courses_remplacements` et **n'écrase que
 la semaine concernée** : le cycle sous-jacent n'est pas décalé, chacun garde son tour
 les semaines suivantes.
+
+## 📆 Relevé quotidien de septembre 2026 — en cours
+
+Le gérant envoie chaque soir le CA total de la journée (tout compris). Enregistrer dans
+`ca_jour_declare`, une ligne par date. **Ne pas confondre avec `ventes`**, qui ne porte que
+les bornes : la différence entre les deux EST le hors-bornes réel.
+
+| Date | Annoncé | Bornes | Hors-bornes |
+|---|---|---|---|
+| Lun 31/08 | 1 430 € | 1 200 € | **230 €** |
+| Mar 01/09 | 1 213 € | à charger | — |
+
+⚠️ **Le premier jour mesuré donne 230 € de hors-bornes, pas 150 €.** Si ça se confirme sur
+le mois, tout le CA du dossier est sous-évalué de ~80 €/jour, soit ~2 400 €/mois. Ne pas
+corriger `parametres.ca_hors_bornes` avant d'avoir le mois complet — un jour ne prouve rien,
+et la valeur de 150 € a déjà été confirmée deux fois par le gérant.
+
+**À produire fin septembre :**
+1. Le hors-bornes réel du mois, mesuré au lieu d'estimé.
+2. **Septembre 2026 contre septembre 2025** — le témoin propre attendu depuis le 31/08
+   (sept 2025 : 1 978 commandes, 836 €/j, ticket 12,68 €, ni XL ni menu renommé, et son
+   détail produits est en base depuis le 01/09/2026).
+3. Le jour par jour contre la moyenne : le creux du jeudi tient-il, et les ouvertures
+   avancées du week-end se confirment-elles ?
 
 ## ⚠️ Décisions déjà prises — À LIRE AVANT TOUTE ANALYSE
 
