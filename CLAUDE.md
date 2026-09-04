@@ -1,5 +1,38 @@
 # Sekai Corndogs — contexte projet
 
+## 🧠 PROTOCOLE DE MÉMOIRE — À LIRE ET APPLIQUER À CHAQUE SESSION
+
+Je ne me souviens de rien d'une session à l'autre. **Seuls ce fichier et la base
+survivent.** Une conversation n'est pas un enregistrement : tout ce qui n'est pas écrit
+est définitivement perdu. Un projet entier (l'intégration API Uber Eats / EasyOrder) a
+déjà disparu comme ça.
+
+**Au démarrage de chaque session, dans cet ordre :**
+1. Lire ce fichier en entier.
+2. `SELECT * FROM journal ORDER BY date DESC LIMIT 30;` — le journal de bord.
+3. `SELECT * FROM actions_conversion; SELECT * FROM propositions_menu;` avant toute
+   proposition, pour ne pas refaire un travail déjà fait.
+
+**Pendant la session, écrire IMMÉDIATEMENT, sans attendre la fin :**
+
+| Ce qui est dit | Où l'écrire |
+|---|---|
+| Un chiffre vérifié, une règle métier, une décision tranchée | `CLAUDE.md`, dans sa section |
+| Une idée, un projet évoqué, une question ouverte, du contexte | table `journal` |
+| Une correction d'un chiffre que ce fichier portait | `CLAUDE.md`, **et dire ce qui était faux** |
+| Le CA annoncé le soir | table `ca_jour_declare` |
+
+🔴 **Ne jamais finir une session sans avoir écrit.** Si le gérant dit quelque chose que
+ce fichier ne contient pas — même en passant, même sans le demander — l'écrire. Le coût
+d'une note inutile est nul ; le coût d'une information perdue est un projet entier.
+
+🔴 **Le journal est append-only.** Ne jamais supprimer ni réécrire une ligne : on y ajoute
+une correction datée. Même règle pour les dettes (voir « Dettes supprimées » plus bas).
+
+**Quand le gérant dit « note ça » ou « retiens ça » :** écrire tout de suite, puis
+confirmer où c'est écrit.
+
+
 Ce fichier est lu automatiquement au démarrage de chaque session Claude Code.
 Il contient le contexte métier durable. **À mettre à jour dès qu'une donnée change.**
 
@@ -281,6 +314,7 @@ Un export « sale » (events, périodes mélangées) reste exploitable : filtrer
 | `ventes` | **27 758 commandes bornes, historique complet sans trou** (01/08/2025 → 31/08/2026, 395 jours). Source de référence pour toute analyse par jour, par jour de semaine ou par heure. La commande erronée #ZHATPX (01/08/2026, 1 903,80 €) a été volontairement exclue à la demande du gérant |
 | `courses_remplacements` | Remplacement ponctuel de courses, une ligne par semaine (lundi) |
 | `parametres` | Clé/valeur partagé : `ca_hors_bornes`, `courses_ordre`, `courses_ancrage` |
+| `journal` | **Journal de bord append-only.** Idées, projets évoqués, décisions, questions ouvertes. **À lire au démarrage de chaque session.** Ne jamais supprimer une ligne |
 | `ca_jour_declare` | **CA quotidien annoncé par le gérant en fin de journée, tout compris.** Créée le 01/09/2026. `ca_total` − CA bornes de `ventes` = **hors-bornes réel du jour** |
 
 ⚠️ Les horodatages de `ventes` sont des **heures locales stockées avec un fuseau UTC**.
