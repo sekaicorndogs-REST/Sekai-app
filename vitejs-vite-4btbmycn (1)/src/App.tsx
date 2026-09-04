@@ -1316,6 +1316,7 @@ export default function App() {
   const [newChargeMontant, setNewChargeMontant] = useState("");
   const [newChargeCategorie, setNewChargeCategorie] = useState("Autre");
   const [paiementPartiel, setPaiementPartiel] = useState("");
+  const [paiementEnCours, setPaiementEnCours] = useState(false);
   const [paieDocDate, setPaieDocDate] = useState(new Date().toISOString().slice(0,10));
   const [pdfModal, setPdfModal] = useState<string | null>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -2164,15 +2165,29 @@ export default function App() {
       flash("✅ Dette ajoutée"); setShowAddDette(false); setNewDetteNom(""); setNewDetteMontant(""); setNewDetteAvecPlan(false); setNewDetteMensualite(""); loadFinances();
     } catch (e: any) { flash("❌ " + e.message); }
   }
+  /** Arrondit au centime : les soustractions en virgule flottante laissent
+      des traînes (2 633 − 877,66 = 1755.3400000000001) qui empêchent une dette
+      de retomber exactement sur zéro. */
+  const arrondi2 = (n: number) => Math.round(n * 100) / 100;
   async function handlePayerPartielDette(dette: any) {
-    const montant = parseFloat(paiementPartiel.replace(",", "."));
+    if (paiementEnCours) return;                       // évite la double déduction sur double-clic
+    const montant = arrondi2(parseFloat(paiementPartiel.replace(",", ".")));
     if (isNaN(montant) || montant <= 0) { flash("❌ Montant invalide"); return; }
-    const restant = Math.max(0, Number(dette.montant_restant) - montant);
+    const avant = arrondi2(Number(dette.montant_restant));
+    if (montant > avant + 0.005) {
+      if (!confirm(`Tu paies ${montant.toFixed(2)} € alors qu'il ne reste que ${avant.toFixed(2)} €.\nLa dette sera soldée. Continuer ?`)) return;
+    }
+    // Arrondi au centime : sans lui, 2 633 − 877,66 donne 1755.3400000000001 et
+    // la dette ne retombe jamais exactement sur zéro.
+    const restant = Math.max(0, arrondi2(avant - montant));
+    const solde = restant < 0.005;
+    setPaiementEnCours(true);
     try {
-      await updateDette(dette.id, { montant_restant: restant, statut: restant === 0 ? "regle" : "en_cours" });
-      flash(restant === 0 ? "✅ Dette réglée !" : `✅ -${montant}€ appliqué`);
+      await updateDette(dette.id, { montant_restant: restant, statut: solde ? "regle" : "en_cours" });
+      flash(solde ? "✅ Dette réglée !" : `✅ −${montant.toFixed(2)} € · reste ${restant.toFixed(2)} €`);
       setPaiementPartiel(""); setEditingDette(null); loadFinances();
     } catch { flash("❌ Erreur"); }
+    finally { setPaiementEnCours(false); }
   }
   async function handleReglerDette(id: number) {
     if (!confirm("Marquer cette dette comme réglée ?")) return;
@@ -7570,9 +7585,22 @@ A travaillé sans être au planning — qui a été remplacé ?
               <div style={{ color: "#a07848", fontSize: "0.82rem" }}>Restant: <strong>{parseFloat(editingDette.montant_restant).toLocaleString("fr-BE", { minimumFractionDigits: 2 })} €</strong></div>
               <input value={paiementPartiel} onChange={e => setPaiementPartiel(e.target.value.replace(",", "."))} placeholder="Montant payé (€)" inputMode="decimal" type="text"
                 style={{ background: "#faebd7", border: "1.5px solid #f5c842", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "1rem", outline: "none", width: "100%", boxSizing: "border-box" as const, fontFamily: "'Poppins', sans-serif" }} />
+              {(() => {
+                const m = parseFloat(paiementPartiel.replace(",", "."));
+                if (isNaN(m) || m <= 0) return null;
+                const avant = Math.round(Number(editingDette.montant_restant) * 100) / 100;
+                const apres = Math.max(0, Math.round((avant - m) * 100) / 100);
+                return (
+                  <div style={{ color: apres < 0.005 ? "#1f6e42" : "#a07848", fontSize: "0.8rem", background: "#faebd7", borderRadius: "8px", padding: "0.5rem 0.7rem" }}>
+                    Après ce paiement : <strong>{apres.toLocaleString("fr-BE", { minimumFractionDigits: 2 })} €</strong>
+                    {apres < 0.005 && " — dette soldée"}
+                    {m > avant + 0.005 && <div style={{ color: "#c98a17", marginTop: "0.2rem" }}>⚠ Montant supérieur au restant de {(m - avant).toFixed(2)} €</div>}
+                  </div>
+                );
+              })()}
               <div style={{ display: "flex", gap: "0.6rem" }}>
                 <button onClick={() => setEditingDette(null)} style={{ flex: 1, background: "#faebd7", color: "#a07848", border: "1.5px solid #f0d8b8", padding: "0.8rem", borderRadius: "10px", fontWeight: "bold", cursor: "pointer", fontFamily: "'Poppins', sans-serif" }}>Annuler</button>
-                <button onClick={() => handlePayerPartielDette(editingDette)} style={{ flex: 2, background: "#e8213a", color: "#fff", border: "none", padding: "0.8rem", borderRadius: "10px", fontWeight: "bold", cursor: "pointer", fontFamily: "'Poppins', sans-serif" }}>Confirmer</button>
+                <button onClick={() => handlePayerPartielDette(editingDette)} disabled={paiementEnCours} style={{ flex: 2, background: paiementEnCours ? "#c8a878" : "#e8213a", color: "#fff", border: "none", padding: "0.8rem", borderRadius: "10px", fontWeight: "bold", cursor: paiementEnCours ? "default" : "pointer", fontFamily: "'Poppins', sans-serif" }}>{paiementEnCours ? "..." : "Confirmer"}</button>
               </div>
             </div>
           </div>
