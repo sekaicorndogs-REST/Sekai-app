@@ -2194,8 +2194,20 @@ export default function App() {
     try { await updateDette(id, { montant_restant: 0, statut: "regle" }); flash("✅ Réglée !"); loadFinances(); }
     catch { flash("❌ Erreur"); }
   }
-  async function handleDeleteDette(id: number) {
-    if (!confirm("Supprimer cette dette ?")) return;
+  /** Une dette sur laquelle on a déjà payé porte l'historique du remboursement :
+      la supprimer efface définitivement ce qui a été versé, et le total remboursé
+      depuis le début devient faux. On ne supprime donc que les saisies vierges. */
+  async function handleDeleteDette(id: number, dette?: any) {
+    const d = dette || dettes.find((x: any) => x.id === id);
+    const paye = d ? (parseFloat(d.montant_initial) || 0) - (parseFloat(d.montant_restant) || 0) : 0;
+    if (paye > 0.005) {
+      flash(`⛔ ${paye.toLocaleString("fr-BE", { maximumFractionDigits: 0 })} € déjà remboursés — on garde la trace`);
+      alert(`Cette dette porte ${paye.toLocaleString("fr-BE", { minimumFractionDigits: 2 })} € de remboursements.\n\n`
+        + `La supprimer effacerait cet historique et fausserait le total remboursé depuis le début.\n\n`
+        + `Une dette finie se marque « réglée » : elle sort des totaux en cours mais reste dans l'historique.`);
+      return;
+    }
+    if (!confirm("Supprimer cette dette ? Aucun remboursement n'y est enregistré.")) return;
     try {
       await deleteDette(id);
       const updated = await fetchDettes();
@@ -4871,8 +4883,31 @@ A travaillé sans être au planning — qui a été remplacé ?
                 {(() => {
                   const actives = dettes.filter(d => d.statut !== "regle" && parseFloat(d.montant_restant) > 0);
                   const reglees = dettes.filter(d => d.statut === "regle" || parseFloat(d.montant_restant) <= 0);
+                  // Depuis le début : sur TOUTES les dettes, réglées comprises.
+                  // C'est ce total qui disparaissait quand une dette réglée était supprimée.
+                  const initTot = dettes.reduce((t: number, d: any) => t + (parseFloat(d.montant_initial) || 0), 0);
+                  const restTot = dettes.reduce((t: number, d: any) => t + (parseFloat(d.montant_restant) || 0), 0);
+                  const payeTot = initTot - restTot;
                   return (
                     <>
+                      {initTot > 0 && (
+                        <div style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "12px", padding: "0.8rem 1rem", marginBottom: "0.7rem" }}>
+                          <div style={{ color: "#a07848", fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase" as const, marginBottom: "0.45rem" }}>Depuis le début</div>
+                          <div style={{ background: "#f4e8d6", borderRadius: "20px", height: "10px", overflow: "hidden", marginBottom: "0.45rem" }}>
+                            <div style={{ width: `${Math.min(100, (payeTot / initTot) * 100)}%`, height: "10px", background: "#4caf50" }} />
+                          </div>
+                          <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.78rem" }}>
+                            <span style={{ color: "#1f6e42", fontWeight: 700 }}>
+                              {payeTot.toLocaleString("fr-BE", { maximumFractionDigits: 0 })} € remboursés
+                              <span style={{ color: "#a07848", fontWeight: 400 }}> · {((payeTot / initTot) * 100).toFixed(0)} %</span>
+                            </span>
+                            <span style={{ color: "#e8213a", fontWeight: 700 }}>{restTot.toLocaleString("fr-BE", { maximumFractionDigits: 0 })} € restants</span>
+                          </div>
+                          <div style={{ color: "#c8a878", fontSize: "0.62rem", marginTop: "0.35rem" }}>
+                            Sur {initTot.toLocaleString("fr-BE", { maximumFractionDigits: 0 })} € empruntés au total · une dette réglée reste comptée ici
+                          </div>
+                        </div>
+                      )}
                       {actives.length === 0 && <div style={{ color: "#4caf50", textAlign: "center", padding: "2rem", fontSize: "0.9rem", fontWeight: "bold" }}>Aucune dette en cours !</div>}
                       {actives.map(d => {
                         const montant = parseFloat(d.montant_initial) || 0;
@@ -4909,7 +4944,7 @@ A travaillé sans être au planning — qui a été remplacé ?
                                 style={{ background: "#4caf50", color: "#fff", border: "none", borderRadius: "8px", padding: "0.35rem 0.7rem", fontSize: "0.75rem", cursor: "pointer", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", display: "inline-flex", alignItems: "center", gap: "4px" }}>
                                 <Check size={14} /> Réglé
                               </button>
-                              <button onClick={() => handleDeleteDette(d.id)}
+                              <button onClick={() => handleDeleteDette(d.id, d)}
                                 style={{ background: "#fff5f5", color: "#e57373", border: "none", borderRadius: "8px", padding: "0.35rem 0.5rem", fontSize: "0.75rem", cursor: "pointer" }}>
                                 <Trash2 size={13} />
                               </button>
@@ -4920,7 +4955,9 @@ A travaillé sans être au planning — qui a été remplacé ?
                       {reglees.length > 0 && (
                         <div style={{ background: "#f5fff8", border: "1.5px solid #4caf5033", borderRadius: "10px", padding: "0.7rem 1rem", marginTop: "0.5rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                           <div style={{ color: "#4caf50", fontSize: "0.85rem", fontWeight: "bold" }}>{reglees.length} dette{reglees.length > 1 ? "s" : ""} réglée{reglees.length > 1 ? "s" : ""}</div>
-                          <button onClick={() => reglees.forEach(d => handleDeleteDette(d.id))} style={{ background: "none", color: "#c8a878", border: "none", fontSize: "0.72rem", cursor: "pointer" }}>Supprimer</button>
+                          <span style={{ color: "#4caf50", fontSize: "0.75rem", fontWeight: 700 }}>
+                            {reglees.reduce((t: number, d: any) => t + (parseFloat(d.montant_initial) || 0), 0).toLocaleString("fr-BE", { maximumFractionDigits: 0 })} € remboursés
+                          </span>
                         </div>
                       )}
                     </>
