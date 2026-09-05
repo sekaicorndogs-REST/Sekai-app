@@ -5172,14 +5172,18 @@ A travaillé sans être au planning — qui a été remplacé ?
 
           // CA moyen par jour de semaine (données réelles)
           const JOURS_N = ["Dimanche","Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"];
-          const caParDow: Record<number, { tot: number; jours: Set<string> }> = {};
+          const caParDow: Record<number, { tot: number; cmd: number; jours: Set<string> }> = {};
           V.forEach(v => {
             const wd = v.d.getDay();
-            (caParDow[wd] = caParDow[wd] || { tot: 0, jours: new Set() });
-            caParDow[wd].tot += v.p; caParDow[wd].jours.add(v.d.toDateString());
+            (caParDow[wd] = caParDow[wd] || { tot: 0, cmd: 0, jours: new Set() });
+            caParDow[wd].tot += v.p; caParDow[wd].cmd++; caParDow[wd].jours.add(v.d.toDateString());
           });
           const dowStats = Object.entries(caParDow)
-            .map(([k, o]) => ({ j: +k, moy: o.tot / o.jours.size + hb, n: o.jours.size }))
+            .map(([k, o]) => ({
+              j: +k, moy: o.tot / o.jours.size + hb, n: o.jours.size,
+              cmd: o.cmd / o.jours.size,          // commandes/jour, aux bornes
+              ticket: o.cmd ? o.tot / o.cmd : 0,
+            }))
             .sort((a, b) => b.moy - a.moy);
           const maxDow = dowStats.length ? dowStats[0].moy : 1;
 
@@ -6346,11 +6350,35 @@ A travaillé sans être au planning — qui a été remplacé ?
                       <div style={{ position: "absolute" as const, left: `${Math.min(100, (objJour / maxDow) * 100)}%`, top: "-3px", width: "2px", height: "16px", background: "#3d1a0a" }} />
                     </div>
                     <span style={{ width: "56px", textAlign: "right" as const, fontSize: "0.78rem", fontWeight: 700, color: d.moy >= objJour ? "#1f6e42" : "#e8213a" }}>{fmt(d.moy)} €</span>
+                    <span style={{ width: "44px", textAlign: "right" as const, fontSize: "0.7rem", color: "#a07848" }}>{d.cmd.toFixed(0)} cmd</span>
+                    <span style={{ width: "48px", textAlign: "right" as const, fontSize: "0.68rem", color: "#c8a878" }}>{d.ticket.toFixed(2)} €</span>
                   </div>
                 ))}
                 <div style={{ color: "#c8a878", fontSize: "0.66rem", marginTop: "0.5rem" }}>
-                  Trait = ton seuil de {fmt(objJour)} €/jour · caisse et Uber inclus
+                  Trait = ton seuil de {fmt(objJour)} €/jour · caisse et Uber inclus ·
+                  les commandes et le ticket sont aux bornes seules
                 </div>
+                {(() => {
+                  const tot = dowStats.reduce((t, d) => t + d.cmd, 0);
+                  const hi = [...dowStats].sort((a, b) => b.cmd - a.cmd)[0];
+                  const lo = [...dowStats].sort((a, b) => a.cmd - b.cmd)[0];
+                  if (!hi || !lo) return null;
+                  return (
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "0.4rem", marginTop: "0.6rem", paddingTop: "0.55rem", borderTop: "1px dashed #f0e0cc" }}>
+                      {[
+                        { l: "Commandes/jour", v: (tot / dowStats.length).toFixed(0), s: "en moyenne" },
+                        { l: JOURS_N[hi.j], v: hi.cmd.toFixed(0), s: "le plus chargé" },
+                        { l: JOURS_N[lo.j], v: lo.cmd.toFixed(0), s: "le plus calme" },
+                      ].map(x => (
+                        <div key={x.l} style={{ textAlign: "center" as const }}>
+                          <div style={{ color: "#a07848", fontSize: "0.6rem", textTransform: "uppercase" as const }}>{x.l}</div>
+                          <div style={{ color: "#3d1a0a", fontSize: "1.05rem", fontWeight: 800 }}>{x.v}</div>
+                          <div style={{ color: "#c8a878", fontSize: "0.6rem" }}>{x.s}</div>
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })()}
               </div>
               </>)}
 
