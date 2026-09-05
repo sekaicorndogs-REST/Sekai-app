@@ -5268,6 +5268,7 @@ A travaillé sans être au planning — qui a été remplacé ?
             });
             return [1, 2, 3, 4, 5, 6, 0].filter(d => acc[d]).map(d => ({
               dow: d, moy: acc[d].ca / acc[d].j + hbVu, cmd: acc[d].n / acc[d].j, j: acc[d].j,
+              ticket: acc[d].n ? acc[d].ca / acc[d].n : 0,   // aux bornes seules
             }));
           })();
           const maxDowMois = Math.max(1, ...dowMois.map(x => x.moy));
@@ -5590,9 +5591,33 @@ A travaillé sans être au planning — qui a été remplacé ?
                             </div>
                             <span style={{ width: "48px", textAlign: "right" as const, fontSize: "0.74rem", fontWeight: 700, color: sous ? "#e8213a" : "#1f6e42" }}>{fmt(x.moy)} €</span>
                             <span style={{ width: "40px", textAlign: "right" as const, fontSize: "0.66rem", color: "#a07848" }}>{x.cmd.toFixed(0)} cmd</span>
+                            <span style={{ width: "44px", textAlign: "right" as const, fontSize: "0.64rem", color: "#c8a878" }}>{x.ticket.toFixed(2)} €</span>
                           </div>
                         );
                       })}
+                      {(() => {
+                        const hi = [...dowMois].sort((a, b) => b.cmd - a.cmd)[0];
+                        const lo = [...dowMois].sort((a, b) => a.cmd - b.cmd)[0];
+                        if (!hi || !lo) return null;
+                        return (
+                          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "0.4rem", marginTop: "0.6rem", paddingTop: "0.55rem", borderTop: "1px dashed #f0e0cc" }}>
+                            {[
+                              { l: "Commandes/jour", v: mCourant.cmdJour.toFixed(0), s: "sur le mois" },
+                              { l: JOURS_L[hi.dow], v: hi.cmd.toFixed(0), s: "le plus chargé" },
+                              { l: JOURS_L[lo.dow], v: lo.cmd.toFixed(0), s: "le plus calme" },
+                            ].map(x => (
+                              <div key={x.l} style={{ textAlign: "center" as const }}>
+                                <div style={{ color: "#a07848", fontSize: "0.6rem", textTransform: "uppercase" as const }}>{x.l}</div>
+                                <div style={{ color: "#3d1a0a", fontSize: "1.05rem", fontWeight: 800 }}>{x.v}</div>
+                                <div style={{ color: "#c8a878", fontSize: "0.6rem" }}>{x.s}</div>
+                              </div>
+                            ))}
+                          </div>
+                        );
+                      })()}
+                      <div style={{ color: "#c8a878", fontSize: "0.62rem", marginTop: "0.5rem" }}>
+                        Commandes et ticket aux bornes seules · le CA inclut caisse et Uber
+                      </div>
                     </div>
                   )}
 
