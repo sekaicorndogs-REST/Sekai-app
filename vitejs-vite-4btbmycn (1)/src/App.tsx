@@ -8721,8 +8721,12 @@ A travaillé sans être au planning — qui a été remplacé ?
     </div>
   );
 
+  // L'écran d'accueil doit défiler quand le contenu dépasse : avec
+  // justify-content:center et sans overflow, le bas (le dernier point de vente)
+  // passait sous la barre d'onglets et restait inaccessible.
   if (!restaurant) return (
-    <div style={{ ...s, minHeight: "100svh", background: "#faebd7", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "2rem", paddingTop: isAdmin ? "5rem" : "2rem", paddingBottom: isAdmin ? "5rem" : "2rem", boxSizing: "border-box" as const }}>
+    <div style={{ ...s, height: "100svh", background: "#faebd7", overflowY: "auto" as const, WebkitOverflowScrolling: "touch" as const, display: "flex", flexDirection: "column", boxSizing: "border-box" as const }}>
+    <div style={{ margin: "auto", display: "flex", flexDirection: "column", alignItems: "center", padding: "2rem", paddingTop: isAdmin ? "5rem" : "2rem", paddingBottom: isAdmin ? "calc(6rem + env(safe-area-inset-bottom))" : "2rem", width: "100%", boxSizing: "border-box" as const }}>
       <picture style={{ flexShrink: 0, lineHeight: 0 }}>
         <source type="image/webp" srcSet="/logo-sekai.webp 1x, /logo-sekai@2x.webp 2x" />
         <img src="/logo-sekai.png" alt="Sekai Corndogs" width={168} height={171}
@@ -8744,6 +8748,7 @@ A travaillé sans être au planning — qui a été remplacé ?
           </button>
         ))}
       </div>
+    </div>
       <BottomNav />
     </div>
   );
