@@ -788,10 +788,30 @@ Le gérant envoie chaque soir le CA total de la journée (tout compris). Enregis
 `ca_jour_declare`, une ligne par date. **Ne pas confondre avec `ventes`**, qui ne porte que
 les bornes : la différence entre les deux EST le hors-bornes réel.
 
-| Date | Annoncé | Bornes | Hors-bornes |
+| Date | Annoncé | Réf. sept 2025 | Écart |
 |---|---|---|---|
-| Lun 31/08 | 1 430 € | 1 200 € | **230 €** |
-| Mar 01/09 | 1 213 € | à charger | — |
+| Lun 31/08 | 1 430 € | *(août)* 1 200 € bornes | **230 € de hors-bornes** |
+| Mar 01/09 | 1 213 € | 889 € | +36 % |
+| Mer 02/09 | 1 400 € | 944 € | +48 % |
+| **Jeu 03/09** | **962 €** | 939 € | **+2 %** |
+| Ven 04/09 | 1 101 € | 978 € | +13 % |
+| Sam 05/09 | 2 135 € | 1 566 € | +36 % |
+| **Dim 06/09** | **755 €** | 719 € | **+5 %** |
+| Lun 07/09 | 1 010 € | 909 € | +11 % |
+| Mar 08/09 | 960 € | 889 € | +8 % |
+| **Total 8 j** | **9 536 €** | 7 833 € | **+22 %** |
+
+**1 192 €/jour sur les 8 premiers jours.** Référence = septembre 2025 par jour de semaine,
+CA bornes + 150 € de hors-bornes.
+
+⚠️ **L'effet rentrée s'estompe** : le mardi 01/09 faisait 1 213 €, le mardi 08/09 fait
+960 € — **−21 % d'un mardi à l'autre**. Ne pas extrapoler le mois depuis la première
+semaine, elle est portée par la rentrée.
+
+⚠️ **Deux jours ne suivent pas la progression** : jeudi (+2 %) et dimanche (+5 %), alors
+que mercredi et samedi font +36 à +48 %. Le creux du jeudi tient donc aussi en septembre,
+et c'est d'autant plus net que septembre 2025 était son meilleur mois de l'année (−22 €
+contre le mercredi). **Confirme l'action « deux personnes le jeudi 14h-17h ».**
 
 ⚠️ **Le premier jour mesuré donne 230 € de hors-bornes, pas 150 €.** Si ça se confirme sur
 le mois, tout le CA du dossier est sous-évalué de ~80 €/jour, soit ~2 400 €/mois. Ne pas
