@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from "react";
-import { Package, Calendar, CreditCard, Users, UserCircle, ArrowLeft, RefreshCw, AlertTriangle, AlertCircle, CheckCircle, Pencil, Save, Eye, EyeOff, Check, Lock, User, ArrowRight, Trash2, Plus, ChevronRight, Settings, LogOut, Shield, Star, ListChecks, FileText, Wallet, Target, Lightbulb, Banknote, Receipt, PartyPopper, Utensils, Heart, TrendingUp, Coins, PiggyBank, HandCoins, Percent, Moon, Clock, Box, Home, X, BarChart3 } from "lucide-react";
+import { Package, Calendar, CreditCard, Users, UserCircle, ArrowLeft, RefreshCw, AlertTriangle, AlertCircle, CheckCircle, Pencil, Save, Eye, EyeOff, Check, Lock, User, ArrowRight, Trash2, Plus, ChevronRight, Settings, LogOut, Shield, Star, ListChecks, FileText, Wallet, Target, Lightbulb, Banknote, Receipt, PartyPopper, Utensils, Heart, TrendingUp, Coins, PiggyBank, HandCoins, Percent, Moon, Clock, Box, Home, X, BarChart3, Wrench } from "lucide-react";
 import { computeIndicateurs, masseColor as calcMasseColor, masseLabel as calcMasseLabel } from "./finances";
 
 const SUPABASE_URL = "https://ldpxgfgcnlzktaymtnwd.supabase.co";
@@ -1452,6 +1452,11 @@ export default function App() {
   // Accès au projet Maroc : réservé à Abdel & Mohammed (admins)
   const MAROC_ALLOWED = ["abdel", "mohammed"];
   const canSeeMaroc = isAdmin && MAROC_ALLOWED.includes((currentUser?.prenom || "").trim().toLowerCase());
+  // Onglet Finances affiché « en maintenance » pour ces comptes : l'onglet reste
+  // visible, mais son contenu et ses chargements de données sont remplacés par
+  // un écran de travaux. Abdel et Mohammed gardent l'accès normal.
+  const FINANCES_MAINTENANCE = ["nabil"];
+  const financesEnMaintenance = FINANCES_MAINTENANCE.includes((currentUser?.prenom || "").trim().toLowerCase());
 
   const s = { fontFamily: "'Poppins', sans-serif", color: '#3d1a0a' };
   const inputStyle: React.CSSProperties = { background: "#fff8f0", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.9rem 1.2rem", borderRadius: "12px", fontSize: "1rem", width: "100%", fontFamily: "'Poppins', sans-serif", outline: "none", boxSizing: "border-box" };
@@ -2920,7 +2925,7 @@ export default function App() {
         { id: "paie", label: "Paie", icon: "paie", adminOnly: true },
         { id: "profil", label: "Profil", icon: "profil", adminOnly: false }
       ].filter(tab => !tab.adminOnly || isAdmin).map(tab => (
-        <button key={tab.id} onClick={() => { setPage(tab.id); if (tab.id === "profil") { loadDocuments(); loadFichesPaie(); if (isAdmin && !allUsers.length) loadUsers(); } if (tab.id === "comptes") loadUsers(); if (tab.id === "horaires") { if (!horaires.length) fetchHoraires(horaireRestaurant); fetchHeuresJours(horaireRestaurant); if (isAdmin && !allUsers.length) loadUsers(); } if (tab.id === "finances") { setFinancesView("resume"); loadFinances(); loadTodoTaches(); loadEvents(); loadVentes(); } if (tab.id === "fermetures") { loadFermetureHistorique(); loadFermetureData(); } if (tab.id === "paie") { loadFichesPaie(); loadUsers(); } }} style={{ flex: 1, background: "none", border: "none", padding: "0.7rem 0", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: "0.15rem" }}>
+        <button key={tab.id} onClick={() => { setPage(tab.id); if (tab.id === "profil") { loadDocuments(); loadFichesPaie(); if (isAdmin && !allUsers.length) loadUsers(); } if (tab.id === "comptes") loadUsers(); if (tab.id === "horaires") { if (!horaires.length) fetchHoraires(horaireRestaurant); fetchHeuresJours(horaireRestaurant); if (isAdmin && !allUsers.length) loadUsers(); } if (tab.id === "finances" && !financesEnMaintenance) { setFinancesView("resume"); loadFinances(); loadTodoTaches(); loadEvents(); loadVentes(); } if (tab.id === "fermetures") { loadFermetureHistorique(); loadFermetureData(); } if (tab.id === "paie") { loadFichesPaie(); loadUsers(); } }} style={{ flex: 1, background: "none", border: "none", padding: "0.7rem 0", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: "0.15rem" }}>
           <span style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
             {tab.icon === "stock" && <Package size={20} color={page === tab.id ? "#e8213a" : "#c8a878"} />}
             {tab.icon === "horaires" && <Calendar size={20} color={page === tab.id ? "#e8213a" : "#c8a878"} />}
@@ -4446,6 +4451,25 @@ A travaillé sans être au planning — qui a été remplacé ?
   }
 
     // ── FINANCES PAGE ────────────────────────────────────────
+  if (page === "finances" && isAdmin && financesEnMaintenance) return (
+    <div style={{ ...s, minHeight: "100dvh", background: "#faebd7", display: "flex", flexDirection: "column" }}>
+      <div style={{ background: "#fff8f0", padding: "1rem 1.2rem", borderBottom: "1.5px solid #f0d8b8" }}>
+        <h2 style={{ color: "#3d1a0a", fontSize: "1.05rem", fontWeight: "bold", margin: 0 }}>Finances</h2>
+      </div>
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "2rem", textAlign: "center" as const, paddingBottom: "6rem" }}>
+        <div style={{ width: "4.5rem", height: "4.5rem", borderRadius: "50%", background: "#fff3d6", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "1.2rem" }}>
+          <Wrench size={30} color="#c98a17" />
+        </div>
+        <div style={{ color: "#3d1a0a", fontSize: "1.1rem", fontWeight: 800, marginBottom: "0.5rem" }}>Travaux en cours</div>
+        <div style={{ color: "#a07848", fontSize: "0.85rem", lineHeight: 1.55, maxWidth: "300px" }}>
+          Cette partie est en maintenance le temps qu'on refasse les calculs.
+          Elle sera de nouveau disponible bientôt.
+        </div>
+      </div>
+      <BottomNav />
+    </div>
+  );
+
   if (page === "finances" && isAdmin) {
     const totalDettes = dettes.reduce((s, d) => s + (parseFloat(d.montant_restant) || 0), 0);
     const totalMensualites = dettes.filter(d => d.avec_plan && d.mensualite).reduce((s, d) => s + (parseFloat(d.mensualite) || 0), 0);
