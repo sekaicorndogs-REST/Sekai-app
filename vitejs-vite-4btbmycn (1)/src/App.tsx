@@ -1455,8 +1455,13 @@ export default function App() {
   // Onglet Finances affiché « en maintenance » pour ces comptes : l'onglet reste
   // visible, mais son contenu et ses chargements de données sont remplacés par
   // un écran de travaux. Abdel et Mohammed gardent l'accès normal.
+  // On teste l'id ET le prénom : l'id ne dépend pas de l'orthographe, le prénom
+  // couvre le cas où le compte serait recréé avec un autre id.
   const FINANCES_MAINTENANCE = ["nabil"];
-  const financesEnMaintenance = FINANCES_MAINTENANCE.includes((currentUser?.prenom || "").trim().toLowerCase());
+  const FINANCES_MAINTENANCE_IDS = [2];
+  const financesEnMaintenance =
+    FINANCES_MAINTENANCE.includes((currentUser?.prenom || "").trim().toLowerCase()) ||
+    FINANCES_MAINTENANCE_IDS.includes(Number(currentUser?.id));
 
   const s = { fontFamily: "'Poppins', sans-serif", color: '#3d1a0a' };
   const inputStyle: React.CSSProperties = { background: "#fff8f0", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.9rem 1.2rem", borderRadius: "12px", fontSize: "1rem", width: "100%", fontFamily: "'Poppins', sans-serif", outline: "none", boxSizing: "border-box" };
