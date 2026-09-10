@@ -38,6 +38,14 @@ Il contient le contexte métier durable. **À mettre à jour dès qu'une donnée
 
 ## L'app
 
+- **Adresse de production : https://project-ynxry.vercel.app** (confirmée par le gérant
+  le 10/09/2026). ⚠️ Il existe aussi un projet Vercel **`sekai-corndogs`** qui n'est PAS
+  celui que l'équipe utilise. Toujours vérifier que c'est bien `project-ynxry` qui reçoit
+  les déploiements avant de conclure qu'une mise à jour est en ligne.
+- Déploiement automatique à chaque push sur `main`. Le site n'est joignable ni depuis
+  l'environnement Claude (proxy sortant bloqué) ni depuis le compte Vercel des outils MCP :
+  **pour savoir quelle version tourne, demander au gérant la ligne « Version » affichée en
+  bas de l'onglet Profil.** Elle porte la date et l'heure du build.
 - Front : React + Vite, un seul gros fichier `vitejs-vite-4btbmycn (1)/src/App.tsx`
 - Données : Supabase, projet `ldpxgfgcnlzktaymtnwd`, accès via MCP Supabase
 - L'app lit tout depuis la base via l'API REST Supabase. Les catégories de menu sont
