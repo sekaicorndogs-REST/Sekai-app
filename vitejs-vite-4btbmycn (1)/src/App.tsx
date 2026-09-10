@@ -8374,6 +8374,12 @@ A travaillé sans être au planning — qui a été remplacé ?
           </div>
         )}
       </div>
+      {/* Version installée : sert à vérifier qu'un téléphone tourne bien sur le
+          dernier build. La PWA garde une copie en cache et peut rester en
+          retard plusieurs heures. */}
+      <div style={{ textAlign: "center", color: "#c8a878", fontSize: "0.66rem", padding: "1rem 1rem 0" }}>
+        Version {__BUILD_ID__}
+      </div>
       <BottomNav />
     </div>
   );
