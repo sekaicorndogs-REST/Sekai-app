@@ -32,6 +32,18 @@ const updateSW = registerSW({
   },
 })
 
+// Quand un nouveau service worker prend le contrôle, on recharge une fois pour
+// que la page affiche réellement la nouvelle version. Le garde-fou évite la
+// boucle de rechargement.
+let dejaRecharge = false
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (dejaRecharge) return
+    dejaRecharge = true
+    window.location.reload()
+  })
+}
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <App />

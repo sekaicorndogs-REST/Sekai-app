@@ -38,6 +38,12 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,webp,woff2}'],
+        // Un nouveau service worker prend la main immédiatement au lieu
+        // d'attendre la fermeture de tous les onglets : sans ça, une PWA
+        // installée sur iPhone pouvait rester des jours sur l'ancien build.
+        skipWaiting: true,
+        clientsClaim: true,
+        cleanupOutdatedCaches: true,
         // Ne jamais servir index.html en cache pour les requêtes vers l'API Supabase
         navigateFallbackDenylist: [/^\/rest\//, /^\/auth\//],
         runtimeCaching: [
