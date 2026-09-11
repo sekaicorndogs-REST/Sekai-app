@@ -2533,10 +2533,18 @@ export default function App() {
   }
 
   /** Journée en sous-effectif : Abdel ajoute lui-même la personne qui manque. */
-  /** Inscrit quelqu'un qui a travaillé un jour donné. Sans heures, on reprend
-      celles d'ouverture du jour. Réservé au superadmin côté interface. */
+  /** Inscrit quelqu'un sur une journée.
+      Pour un jour passé ou aujourd'hui, c'est un FAIT : on écrit dans
+      `heures_jours`, la table qui fait foi pour « a travaillé », qui colore le
+      calendrier et qui alimente la paie. Pour un jour à venir, c'est une
+      PRÉVISION : on écrit dans `horaires`.
+      Sans cette distinction, un ajout sur un jour passé restait invisible. */
   async function ajouterManquant(dateStr, qui, debut?: string, fin?: string) {
     if (!qui) return;
+    if (dateStr <= getTodayDateStr()) {
+      await inscrireATravaille(dateStr, qui, debut, fin);
+      return;
+    }
     const h = getAutoHoraire(dateStr);
     try {
       await addHoraire({
