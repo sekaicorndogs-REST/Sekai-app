@@ -1489,8 +1489,10 @@ export default function App() {
   // un écran de travaux. Abdel et Mohammed gardent l'accès normal.
   // On teste l'id ET le prénom : l'id ne dépend pas de l'orthographe, le prénom
   // couvre le cas où le compte serait recréé avec un autre id.
-  const FINANCES_MAINTENANCE = ["nabil"];
-  const FINANCES_MAINTENANCE_IDS = [2];
+  // Vide = tout le monde a l'accès normal. Mettre un prénom ou un id ici
+  // remet les sections Essentiel et Stats en « travaux » pour ce compte.
+  const FINANCES_MAINTENANCE: string[] = [];
+  const FINANCES_MAINTENANCE_IDS: number[] = [];
   const financesEnMaintenance =
     FINANCES_MAINTENANCE.includes((currentUser?.prenom || "").trim().toLowerCase()) ||
     FINANCES_MAINTENANCE_IDS.includes(Number(currentUser?.id));
