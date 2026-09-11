@@ -2571,10 +2571,13 @@ export default function App() {
         method: "POST", headers: HEADERS,
         body: JSON.stringify({ employe_nom: qui, date: dateStr, heures: h, restaurant_id: horaireRestaurant }),
       });
-      if (!res.ok) throw new Error("insert");
+      if (!res.ok) throw new Error(`${res.status} ${await res.text()}`);
       await fetchHeuresJours(horaireRestaurant);
       flash(`✅ ${qui} · ${h} h`);
-    } catch { flash("❌ Erreur"); }
+    } catch (e: any) {
+      // Message explicite : un échec muet est impossible à diagnostiquer.
+      flash("❌ " + String(e?.message || e).slice(0, 90));
+    }
   }
 
   /** Abdel seul complète l'horaire : qui, parmi les prévus, s'est fait remplacer. */
@@ -3491,15 +3494,19 @@ export default function App() {
                     que la journée soit complète ou non. */}
                 {isSuperAdmin && (() => {
                   const auto = getAutoHoraire(heuresDayDetail);
-                  const deja = equipeDuJour(heuresDayDetail);
-                  const dispo = NOMS_EQUIPE.filter(n => !deja.includes(n));
+                  const dejaNotes = heuresJours.filter((h: any) => h.date === heuresDayDetail).map((h: any) => h.employe_nom);
+                  const dispo = NOMS_EQUIPE.filter(n => !dejaNotes.includes(n));
+                  const d0 = ajoutDebut || auto.debut;
+                  const f0 = ajoutFin || auto.fin;
+                  const nbH = parseFloat(calcHeures(d0, f0));
                   return (
                     <div style={{ background: "#fff8f0", border: "1.5px dashed #f0d8b8", borderRadius: "10px", padding: "0.8rem" }}>
                       <div style={{ color: "#a07848", fontSize: "0.68rem", fontWeight: "bold", marginBottom: "0.2rem", display: "flex", alignItems: "center", gap: "5px" }}>
                         <Plus size={13} /> AJOUTER QUELQU'UN QUI A TRAVAILLÉ
                       </div>
                       <div style={{ color: "#c8a878", fontSize: "0.68rem", marginBottom: "0.55rem" }}>
-                        Sans heures, on prend celles du jour ({auto.debut}–{auto.fin}).
+                        {ajoutQui ? <>Sera noté <strong style={{ color: "#3d1a0a" }}>{ajoutQui} · {isNaN(nbH) ? "—" : nbH + " h"}</strong> ({d0}–{f0}).</>
+                                  : "Choisis d'abord la personne, puis ajuste les heures si besoin."}
                       </div>
                       <div style={{ display: "flex", alignItems: "center", gap: "0.35rem", flexWrap: "wrap" }}>
                         <select value={ajoutQui} onChange={e => setAjoutQui(e.target.value)}
@@ -3507,9 +3514,9 @@ export default function App() {
                           <option value="">Qui ?</option>
                           {dispo.map(n => <option key={n} value={n}>{n}</option>)}
                         </select>
-                        <input type="time" value={ajoutDebut} onChange={e => setAjoutDebut(e.target.value)} placeholder={auto.debut}
+                        <input type="time" value={d0} onChange={e => setAjoutDebut(e.target.value)}
                           style={{ background: "#faebd7", border: "1px solid #f0d8b8", color: "#3d1a0a", borderRadius: "7px", padding: "0.3rem 0.4rem", fontSize: "0.74rem", fontFamily: "'Poppins', sans-serif", width: "5.6rem" }} />
-                        <input type="time" value={ajoutFin} onChange={e => setAjoutFin(e.target.value)} placeholder={auto.fin}
+                        <input type="time" value={f0} onChange={e => setAjoutFin(e.target.value)}
                           style={{ background: "#faebd7", border: "1px solid #f0d8b8", color: "#3d1a0a", borderRadius: "7px", padding: "0.3rem 0.4rem", fontSize: "0.74rem", fontFamily: "'Poppins', sans-serif", width: "5.6rem" }} />
                         <button onClick={async () => {
                             await inscrireATravaille(heuresDayDetail, ajoutQui, ajoutDebut || undefined, ajoutFin || undefined);
@@ -3522,7 +3529,7 @@ export default function App() {
                       </div>
                       {dispo.length === 0 && (
                         <div style={{ color: "#c8a878", fontSize: "0.68rem", marginTop: "0.4rem" }}>
-                          Tout le monde est déjà inscrit ce jour-là.
+                          Tout le monde a déjà ses heures notées ce jour-là.
                         </div>
                       )}
                     </div>
