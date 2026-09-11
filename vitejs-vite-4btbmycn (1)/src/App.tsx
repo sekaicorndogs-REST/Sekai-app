@@ -1232,6 +1232,9 @@ export default function App() {
   const [heuresModalExisting, setHeuresModalExisting] = useState<any>(null);
   const [heuresDayDetail, setHeuresDayDetail] = useState<string>("");
   const [rempVenu, setRempVenu] = useState("");
+  const [ajoutQui, setAjoutQui] = useState("");          // ajout manuel d'un travailleur
+  const [ajoutDebut, setAjoutDebut] = useState("");
+  const [ajoutFin, setAjoutFin] = useState("");
   const [remplaceDetail, setRemplaceDetail] = useState(""); // nom déplié dans le récap des remplacements // personne que Abdel ajoute quand il en manque une
   const [remplacementMois, setRemplacementMois] = useState(getPeriodeCourante());
   // ── Events team ──
@@ -2530,7 +2533,9 @@ export default function App() {
   }
 
   /** Journée en sous-effectif : Abdel ajoute lui-même la personne qui manque. */
-  async function ajouterManquant(dateStr, qui) {
+  /** Inscrit quelqu'un qui a travaillé un jour donné. Sans heures, on reprend
+      celles d'ouverture du jour. Réservé au superadmin côté interface. */
+  async function ajouterManquant(dateStr, qui, debut?: string, fin?: string) {
     if (!qui) return;
     const h = getAutoHoraire(dateStr);
     try {
@@ -2538,8 +2543,8 @@ export default function App() {
         restaurant_id: horaireRestaurant,
         employe_nom: qui,
         date: dateStr,
-        heure_debut: h.debut,
-        heure_fin: h.fin,
+        heure_debut: debut || h.debut,
+        heure_fin: fin || h.fin,
         est_remplacement: false,
         remplace_nom: null,
         extra: false,
@@ -3458,6 +3463,48 @@ export default function App() {
                     );
                   }
                   return null;
+                })()}
+
+                {/* Abdel seul : inscrire quelqu'un qui a travaillé ce jour-là,
+                    que la journée soit complète ou non. */}
+                {isSuperAdmin && (() => {
+                  const auto = getAutoHoraire(heuresDayDetail);
+                  const deja = equipeDuJour(heuresDayDetail);
+                  const dispo = NOMS_EQUIPE.filter(n => !deja.includes(n));
+                  return (
+                    <div style={{ background: "#fff8f0", border: "1.5px dashed #f0d8b8", borderRadius: "10px", padding: "0.8rem" }}>
+                      <div style={{ color: "#a07848", fontSize: "0.68rem", fontWeight: "bold", marginBottom: "0.2rem", display: "flex", alignItems: "center", gap: "5px" }}>
+                        <Plus size={13} /> AJOUTER QUELQU'UN QUI A TRAVAILLÉ
+                      </div>
+                      <div style={{ color: "#c8a878", fontSize: "0.68rem", marginBottom: "0.55rem" }}>
+                        Sans heures, on prend celles du jour ({auto.debut}–{auto.fin}).
+                      </div>
+                      <div style={{ display: "flex", alignItems: "center", gap: "0.35rem", flexWrap: "wrap" }}>
+                        <select value={ajoutQui} onChange={e => setAjoutQui(e.target.value)}
+                          style={{ background: "#faebd7", border: "1px solid #f0d8b8", color: "#3d1a0a", borderRadius: "7px", padding: "0.35rem 0.5rem", fontSize: "0.76rem", fontFamily: "'Poppins', sans-serif" }}>
+                          <option value="">Qui ?</option>
+                          {dispo.map(n => <option key={n} value={n}>{n}</option>)}
+                        </select>
+                        <input type="time" value={ajoutDebut} onChange={e => setAjoutDebut(e.target.value)} placeholder={auto.debut}
+                          style={{ background: "#faebd7", border: "1px solid #f0d8b8", color: "#3d1a0a", borderRadius: "7px", padding: "0.3rem 0.4rem", fontSize: "0.74rem", fontFamily: "'Poppins', sans-serif", width: "5.6rem" }} />
+                        <input type="time" value={ajoutFin} onChange={e => setAjoutFin(e.target.value)} placeholder={auto.fin}
+                          style={{ background: "#faebd7", border: "1px solid #f0d8b8", color: "#3d1a0a", borderRadius: "7px", padding: "0.3rem 0.4rem", fontSize: "0.74rem", fontFamily: "'Poppins', sans-serif", width: "5.6rem" }} />
+                        <button onClick={async () => {
+                            await ajouterManquant(heuresDayDetail, ajoutQui, ajoutDebut || undefined, ajoutFin || undefined);
+                            setAjoutQui(""); setAjoutDebut(""); setAjoutFin("");
+                          }}
+                          disabled={!ajoutQui}
+                          style={{ background: ajoutQui ? "#3d1a0a" : "#e8d8c4", color: "#fff", border: "none", borderRadius: "7px", padding: "0.35rem 0.8rem", fontSize: "0.76rem", fontWeight: 700, cursor: ajoutQui ? "pointer" : "default", fontFamily: "'Poppins', sans-serif" }}>
+                          Ajouter
+                        </button>
+                      </div>
+                      {dispo.length === 0 && (
+                        <div style={{ color: "#c8a878", fontSize: "0.68rem", marginTop: "0.4rem" }}>
+                          Tout le monde est déjà inscrit ce jour-là.
+                        </div>
+                      )}
+                    </div>
+                  );
                 })()}
 
                 {/* Remplacements du jour : la personne remplacée le voit ici. */}
