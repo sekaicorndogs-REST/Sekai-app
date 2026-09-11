@@ -572,14 +572,14 @@ function getCurrentMois() {
   return d.getFullYear() + "-" + month;
 }
 
-// ── Période de comptage des remplacements : du 10 d'un mois au 9 du suivant
-//    (demande du gérant, 11/09/2026). Le sélecteur reste un mois : c'est le
-//    mois dont le 10 OUVRE la période.
+// ── Période de comptage des remplacements : du 11 d'un mois au 10 du suivant
+//    (gérant, 11/09/2026). Le sélecteur reste un mois : c'est le mois dont
+//    le 11 ouvre la période. Aucune journée n'appartient à deux périodes.
 function periodeDu10(mois: string) {
   const [a, m] = mois.split("-").map(Number);
   const f = new Date(a, m, 10);           // m est 1-based → 10 du mois suivant
   const fin = f.getFullYear() + "-" + String(f.getMonth() + 1).padStart(2, "0") + "-10";
-  return { debut: mois + "-10", fin };    // les deux 10 sont comptés
+  return { debut: mois + "-11", fin };    // du 11 au 10 : aucune journée comptée deux fois
 }
 function dansPeriodeDu10(date: string, mois: string) {
   const { debut, fin } = periodeDu10(mois);
@@ -597,7 +597,7 @@ function libellePeriodeDu10(mois: string) {
 /** Mois dont le 10 a ouvert la période en cours. */
 function getPeriodeCourante() {
   const d = new Date();
-  if (d.getDate() < 10) d.setMonth(d.getMonth() - 1);
+  if (d.getDate() <= 10) d.setMonth(d.getMonth() - 1);   // le 10 clôt la période précédente
   return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0");
 }
 
