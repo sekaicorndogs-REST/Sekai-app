@@ -2376,7 +2376,7 @@ export default function App() {
     const noms = allUsers
       .filter((u: any) => u.role !== "tablette")
       .map((u: any) => (u.prenom || "").trim())
-      .filter((n: string) => n && n.toLowerCase() !== "tablette" && n.length > 1);
+      .filter((n: string) => n && n.toLowerCase() !== "tablette");
     const secours = ["Abdel", "Nabil", "Mohammed", "Wassim", "Rachid", "Ali", "Momo"];
     const tout = Array.from(new Set([...(noms.length ? noms : secours), ...getAutoEmployes(getTodayDateStr())]));
     return tout.sort((a, b) => a.localeCompare(b, "fr"));
@@ -2552,6 +2552,28 @@ export default function App() {
       });
       await fetchHoraires(horaireRestaurant);
       flash(`✅ ${qui} ajouté`);
+    } catch { flash("❌ Erreur"); }
+  }
+
+  /** Abdel inscrit quelqu'un qui A TRAVAILLÉ un jour donné.
+      Écrit dans `heures_jours` et non dans `horaires` : c'est cette table qui
+      fait foi pour « a travaillé », qui colore le calendrier en vert et qui
+      alimente les heures du mois. */
+  async function inscrireATravaille(dateStr: string, qui: string, debut?: string, fin?: string) {
+    if (!qui) return;
+    const auto = getAutoHoraire(dateStr);
+    const h = parseFloat(calcHeures(debut || auto.debut, fin || auto.fin));
+    if (isNaN(h) || h <= 0) { flash("❌ Heures invalides"); return; }
+    const deja = heuresJours.find((x: any) => x.date === dateStr && x.employe_nom === qui);
+    if (deja) { flash(`⚠️ ${qui} est déjà noté ce jour-là`); return; }
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/heures_jours`, {
+        method: "POST", headers: HEADERS,
+        body: JSON.stringify({ employe_nom: qui, date: dateStr, heures: h, restaurant_id: horaireRestaurant }),
+      });
+      if (!res.ok) throw new Error("insert");
+      await fetchHeuresJours(horaireRestaurant);
+      flash(`✅ ${qui} · ${h} h`);
     } catch { flash("❌ Erreur"); }
   }
 
@@ -3490,7 +3512,7 @@ export default function App() {
                         <input type="time" value={ajoutFin} onChange={e => setAjoutFin(e.target.value)} placeholder={auto.fin}
                           style={{ background: "#faebd7", border: "1px solid #f0d8b8", color: "#3d1a0a", borderRadius: "7px", padding: "0.3rem 0.4rem", fontSize: "0.74rem", fontFamily: "'Poppins', sans-serif", width: "5.6rem" }} />
                         <button onClick={async () => {
-                            await ajouterManquant(heuresDayDetail, ajoutQui, ajoutDebut || undefined, ajoutFin || undefined);
+                            await inscrireATravaille(heuresDayDetail, ajoutQui, ajoutDebut || undefined, ajoutFin || undefined);
                             setAjoutQui(""); setAjoutDebut(""); setAjoutFin("");
                           }}
                           disabled={!ajoutQui}
