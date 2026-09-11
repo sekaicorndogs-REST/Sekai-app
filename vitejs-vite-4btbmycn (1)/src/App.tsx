@@ -577,9 +577,9 @@ function getCurrentMois() {
 //    mois dont le 10 OUVRE la période.
 function periodeDu10(mois: string) {
   const [a, m] = mois.split("-").map(Number);
-  const f = new Date(a, m, 9);            // m est 1-based → 9 du mois suivant
-  const fin = f.getFullYear() + "-" + String(f.getMonth() + 1).padStart(2, "0") + "-09";
-  return { debut: mois + "-10", fin };
+  const f = new Date(a, m, 10);           // m est 1-based → 10 du mois suivant
+  const fin = f.getFullYear() + "-" + String(f.getMonth() + 1).padStart(2, "0") + "-10";
+  return { debut: mois + "-10", fin };    // les deux 10 sont comptés
 }
 function dansPeriodeDu10(date: string, mois: string) {
   const { debut, fin } = periodeDu10(mois);
