@@ -572,6 +572,35 @@ function getCurrentMois() {
   return d.getFullYear() + "-" + month;
 }
 
+// ── Période de comptage des remplacements : du 10 d'un mois au 9 du suivant
+//    (demande du gérant, 11/09/2026). Le sélecteur reste un mois : c'est le
+//    mois dont le 10 OUVRE la période.
+function periodeDu10(mois: string) {
+  const [a, m] = mois.split("-").map(Number);
+  const f = new Date(a, m, 9);            // m est 1-based → 9 du mois suivant
+  const fin = f.getFullYear() + "-" + String(f.getMonth() + 1).padStart(2, "0") + "-09";
+  return { debut: mois + "-10", fin };
+}
+function dansPeriodeDu10(date: string, mois: string) {
+  const { debut, fin } = periodeDu10(mois);
+  const d = String(date).slice(0, 10);
+  return d >= debut && d <= fin;
+}
+/** Libellé lisible d'une période, ex. « 10 sept → 9 oct 2026 ». */
+function libellePeriodeDu10(mois: string) {
+  const { debut, fin } = periodeDu10(mois);
+  const fmt = (x: string, avecAnnee: boolean) =>
+    new Date(x + "T12:00:00").toLocaleDateString("fr-BE",
+      avecAnnee ? { day: "numeric", month: "short", year: "numeric" } : { day: "numeric", month: "short" });
+  return fmt(debut, false) + " → " + fmt(fin, true);
+}
+/** Mois dont le 10 a ouvert la période en cours. */
+function getPeriodeCourante() {
+  const d = new Date();
+  if (d.getDate() < 10) d.setMonth(d.getMonth() - 1);
+  return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0");
+}
+
 // ── EVENT WORKERS API ──────────────────────────────────────
 async function fetchEventWorkers() {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/event_workers?select=*&order=event_date.asc`, { headers: HEADERS });
@@ -1204,7 +1233,7 @@ export default function App() {
   const [heuresDayDetail, setHeuresDayDetail] = useState<string>("");
   const [rempVenu, setRempVenu] = useState("");
   const [remplaceDetail, setRemplaceDetail] = useState(""); // nom déplié dans le récap des remplacements // personne que Abdel ajoute quand il en manque une
-  const [remplacementMois, setRemplacementMois] = useState(getCurrentMois());
+  const [remplacementMois, setRemplacementMois] = useState(getPeriodeCourante());
   // ── Events team ──
   const [eventWorkers, setEventWorkers] = useState([]);
   const [eventWorkersLoading, setEventWorkersLoading] = useState(false);
@@ -3049,7 +3078,7 @@ export default function App() {
     const todayStr = getTodayDateStr();
     const weekDates = getWeekDates();
 
-    const moisHoraires = horaires.filter(h => normalizeDate(h.date).startsWith(remplacementMois));
+    const moisHoraires = horaires.filter(h => dansPeriodeDu10(normalizeDate(h.date), remplacementMois));
     // Les deux sources : postes encodés et heures déclarées avec un remplacé.
     const remplacementsParPersonne = {};
     const ajouterRemplacement = (nom, heures, detail) => {
@@ -3063,7 +3092,7 @@ export default function App() {
       ajouterRemplacement(h.remplace_nom, parseFloat(calcHeures(h.heure_debut.slice(0,5), h.heure_fin.slice(0,5))), h);
     });
     heuresJours
-      .filter((h: any) => h.remplace_nom && h.date.startsWith(remplacementMois))
+      .filter((h: any) => h.remplace_nom && dansPeriodeDu10(h.date, remplacementMois))
       .forEach((h: any) => {
         const autoH = getAutoHoraire(h.date);
         ajouterRemplacement(h.remplace_nom, parseFloat(h.heures) || 0, {
@@ -3859,7 +3888,7 @@ A travaillé sans être au planning — qui a été remplacé ?
                   style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#e8213a", borderRadius: "8px", padding: "0.3rem 0.5rem", fontSize: "0.75rem", fontFamily: "'Poppins', sans-serif", outline: "none" }} />
               </div>
               {Object.keys(remplacementsParPersonne).length === 0 && (
-                <div style={{ color: "#c8a878", fontSize: "0.82rem", textAlign: "center", padding: "2rem" }}>Aucun remplacement ce mois-ci</div>
+                <div style={{ color: "#c8a878", fontSize: "0.82rem", textAlign: "center", padding: "2rem" }}>Aucun remplacement sur cette période</div>
               )}
               {(isAdmin
                 ? Object.entries(remplacementsParPersonne)
@@ -4024,7 +4053,7 @@ A travaillé sans être au planning — qui a été remplacé ?
             <div>
               {/* ── COMBIEN DE FOIS CHACUN S'EST FAIT REMPLACER ── */}
               {(() => {
-                const duMois = tousRemplacements().filter(r => r.date.startsWith(remplacementMois));
+                const duMois = tousRemplacements().filter(r => dansPeriodeDu10(r.date, remplacementMois));
                 const [ouvert, setOuvert] = [remplaceDetail, setRemplaceDetail];
                 const lignes = GERANTS_FIXES.map(nom => ({
                   nom,
@@ -4033,8 +4062,7 @@ A travaillé sans être au planning — qui a été remplacé ?
                 })).sort((a, b) => b.total - a.total);
                 const max = Math.max(1, ...lignes.map(l => l.total));
                 const totalGeneral = lignes.reduce((t, l) => t + l.total, 0);
-                const nomDuMois = new Date(remplacementMois + "-01T12:00:00")
-                  .toLocaleDateString("fr-BE", { month: "long", year: "numeric" });
+                const nomDuMois = libellePeriodeDu10(remplacementMois);
                 return (
                   <div style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "12px", padding: "1rem", marginBottom: "0.9rem" }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "0.5rem", marginBottom: "0.15rem" }}>
@@ -4044,7 +4072,7 @@ A travaillé sans être au planning — qui a été remplacé ?
                       <input type="month" value={remplacementMois} onChange={e => setRemplacementMois(e.target.value)}
                         style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#e8213a", borderRadius: "8px", padding: "0.25rem 0.45rem", fontSize: "0.72rem", fontFamily: "'Poppins', sans-serif", flexShrink: 0, outline: "none" }} />
                     </div>
-                    <div style={{ color: "#c8a878", fontSize: "0.66rem", marginBottom: "0.8rem", textTransform: "capitalize" as const }}>
+                    <div style={{ color: "#c8a878", fontSize: "0.66rem", marginBottom: "0.8rem" }}>
                       {nomDuMois} · {totalGeneral} remplacement{totalGeneral > 1 ? "s" : ""}
                     </div>
                     {lignes.map(l => (
@@ -4073,7 +4101,7 @@ A travaillé sans être au planning — qui a été remplacé ?
                       </div>
                     ))}
                     <div style={{ color: "#c8a878", fontSize: "0.64rem", marginTop: "0.6rem", paddingTop: "0.5rem", borderTop: "1px dashed #f0e0cc" }}>
-                      {totalGeneral > 0 ? "Touche un nom pour voir les dates et par qui." : "Aucun remplacement noté ce mois-ci."}
+                      {totalGeneral > 0 ? "Touche un nom pour voir les dates et par qui." : "Aucun remplacement noté sur cette période."}
                     </div>
                   </div>
                 );
