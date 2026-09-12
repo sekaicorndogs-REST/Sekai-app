@@ -4141,39 +4141,72 @@ A travaillé sans être au planning — qui a été remplacé ?
               {(() => {
                 const duMois = tousRemplacements().filter(r => dansPeriodeDu10(r.date, remplacementMois));
                 const [ouvert, setOuvert] = [remplaceDetail, setRemplaceDetail];
+                // Jours travaillés en plus : les journées où la personne a bossé
+                // alors qu'elle n'était PAS au cycle de base ce jour-là.
+                const joursEnPlus = (nom: string) => {
+                  const dates = new Set<string>();
+                  const garder = (d: string) => {
+                    if (!dansPeriodeDu10(d, remplacementMois)) return;
+                    if (!getAutoEmployes(d).includes(nom)) dates.add(d);
+                  };
+                  heuresJours.forEach((h: any) => { if (h.employe_nom === nom) garder(String(h.date).slice(0, 10)); });
+                  horaires.forEach((h: any) => { if (h.employe_nom === nom) garder(normalizeDate(h.date)); });
+                  return Array.from(dates).sort();
+                };
                 const lignes = GERANTS_FIXES.map(nom => ({
                   nom,
                   total: duMois.filter(r => r.remplace === nom).length,
                   details: duMois.filter(r => r.remplace === nom),
-                })).sort((a, b) => b.total - a.total);
+                  enPlus: joursEnPlus(nom),
+                })).sort((a, b) => (b.total + b.enPlus.length) - (a.total + a.enPlus.length));
                 const max = Math.max(1, ...lignes.map(l => l.total));
                 const totalGeneral = lignes.reduce((t, l) => t + l.total, 0);
+                const totalEnPlus = lignes.reduce((t, l) => t + l.enPlus.length, 0);
                 const nomDuMois = libellePeriodeDu10(remplacementMois);
                 return (
                   <div style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "12px", padding: "1rem", marginBottom: "0.9rem" }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "0.5rem", marginBottom: "0.15rem" }}>
                       <div style={{ color: "#a07848", fontSize: "0.7rem", fontWeight: 800, letterSpacing: "0.06em" }}>
-                        COMBIEN DE FOIS CHACUN S'EST FAIT REMPLACER
+                        REMPLACEMENTS ENTRE GÉRANTS
                       </div>
                       <input type="month" value={remplacementMois} onChange={e => setRemplacementMois(e.target.value)}
                         style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#e8213a", borderRadius: "8px", padding: "0.25rem 0.45rem", fontSize: "0.72rem", fontFamily: "'Poppins', sans-serif", flexShrink: 0, outline: "none" }} />
                     </div>
                     <div style={{ color: "#c8a878", fontSize: "0.66rem", marginBottom: "0.8rem" }}>
                       {nomDuMois} · {totalGeneral} remplacement{totalGeneral > 1 ? "s" : ""}
+                      {totalEnPlus > 0 && <> · <span style={{ color: "#1f6e42", fontWeight: 700 }}>{totalEnPlus} jour{totalEnPlus > 1 ? "s" : ""} en plus</span></>}
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "flex-end", gap: "0.5rem", fontSize: "0.6rem", color: "#c8a878", marginBottom: "0.3rem", paddingRight: "2px" }}>
+                      <span style={{ width: "30px", textAlign: "right" as const }}>remp.</span>
+                      <span style={{ width: "38px", textAlign: "right" as const }}>en plus</span>
                     </div>
                     {lignes.map(l => (
                       <div key={l.nom} style={{ marginBottom: "0.55rem" }}>
                         <div onClick={() => setOuvert(ouvert === l.nom ? "" : l.nom)}
-                          style={{ display: "flex", alignItems: "center", gap: "0.5rem", cursor: l.total ? "pointer" : "default" }}>
+                          style={{ display: "flex", alignItems: "center", gap: "0.5rem", cursor: (l.total || l.enPlus.length) ? "pointer" : "default" }}>
                           <span style={{ width: "9px", height: "9px", borderRadius: "50%", background: couleurEmploye(l.nom), flexShrink: 0 }} />
                           <span style={{ width: "74px", color: "#3d1a0a", fontSize: "0.8rem", fontWeight: 600, flexShrink: 0 }}>{l.nom}</span>
                           <div style={{ flex: 1, background: "#f4e8d6", borderRadius: "20px", height: "9px" }}>
                             <div style={{ width: `${(l.total / max) * 100}%`, height: "9px", borderRadius: "20px", background: couleurEmploye(l.nom) }} />
                           </div>
                           <span style={{ width: "30px", textAlign: "right" as const, color: l.total ? "#3d1a0a" : "#c8a878", fontSize: "0.9rem", fontWeight: 800 }}>{l.total}</span>
+                          <span style={{ width: "38px", textAlign: "right" as const, color: l.enPlus.length ? "#1f6e42" : "#d8c4a8", fontSize: "0.9rem", fontWeight: 800 }}>
+                            {l.enPlus.length ? "+" + l.enPlus.length : "—"}
+                          </span>
                         </div>
+                        {ouvert === l.nom && l.enPlus.length > 0 && (
+                          <div style={{ marginTop: "0.4rem", marginLeft: "1.2rem", borderLeft: "2px solid #1f6e4233", paddingLeft: "0.6rem" }}>
+                            <div style={{ color: "#1f6e42", fontSize: "0.66rem", fontWeight: 700, marginBottom: "0.15rem" }}>JOURS EN PLUS</div>
+                            {l.enPlus.map(d => (
+                              <div key={d} style={{ fontSize: "0.74rem", color: "#a07848", textTransform: "capitalize" as const, padding: "0.1rem 0" }}>
+                                {new Date(d + "T12:00:00").toLocaleDateString("fr-BE", { weekday: "short", day: "numeric", month: "short", year: "2-digit" })}
+                              </div>
+                            ))}
+                          </div>
+                        )}
                         {ouvert === l.nom && l.details.length > 0 && (
                           <div style={{ marginTop: "0.4rem", marginLeft: "1.2rem", borderLeft: `2px solid ${couleurEmploye(l.nom)}33`, paddingLeft: "0.6rem" }}>
+                            <div style={{ color: "#c98a17", fontSize: "0.66rem", fontWeight: 700, marginBottom: "0.15rem" }}>S'EST FAIT REMPLACER</div>
                             {l.details.map(r => (
                               <div key={r.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.74rem", padding: "0.12rem 0" }}>
                                 <span style={{ color: "#a07848", textTransform: "capitalize" as const }}>
@@ -4187,7 +4220,9 @@ A travaillé sans être au planning — qui a été remplacé ?
                       </div>
                     ))}
                     <div style={{ color: "#c8a878", fontSize: "0.64rem", marginTop: "0.6rem", paddingTop: "0.5rem", borderTop: "1px dashed #f0e0cc" }}>
-                      {totalGeneral > 0 ? "Touche un nom pour voir les dates et par qui." : "Aucun remplacement noté sur cette période."}
+                      {totalGeneral + totalEnPlus > 0
+                        ? "Touche un nom pour voir les dates. « En plus » = les jours travaillés hors du cycle de base."
+                        : "Rien de noté sur cette période."}
                     </div>
                   </div>
                 );
