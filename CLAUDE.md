@@ -164,8 +164,11 @@ toutes deux à coût nul :
 - **Capacité de service : deux personnes tiennent jusqu'à 1 350 €/jour** (tout compris),
   au-delà il en faut trois (gérant, 12/08/2026). C'est la règle qui pilote
   `saisonnalite.effectif_semaine` / `effectif_weekend`, recalculés depuis `ventes`.
-  Résultat : **2 personnes en semaine tous les mois de l'année, 3 le samedi** (sauf juin,
-  1 309 €). Aucune moyenne hebdomadaire ne dépasse 1 350 € — seul le samedi le fait.
+  **Règle posée par le gérant, sans exception : 2 personnes tous les jours, 3 le samedi.**
+  Réaffirmée le 13/09/2026. `effectifCible()` dans `App.tsx` l'applique déjà. L'exception
+  de juin (week-end à 2, la moyenne du samedi y étant de 1 309 €) a été **supprimée de
+  `saisonnalite` le 13/09/2026** : les douze mois portent désormais 2 en semaine et 3 le
+  samedi. Ne pas la réintroduire au motif que juin est sous le seuil de 1 350 €.
   ⚠️ Le dimanche (685 €) est noyé dans la moyenne « week-end » : ne pas mettre 3 personnes
   le dimanche sous prétexte que c'est le week-end, c'est le samedi qui porte la charge.
 - **Capacité ~50 corndogs/heure.** Le samedi, le meilleur jour, tourne autour de
