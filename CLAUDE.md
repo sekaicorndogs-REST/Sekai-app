@@ -799,43 +799,60 @@ Le gérant envoie chaque soir le CA total de la journée (tout compris). Enregis
 `ca_jour_declare`, une ligne par date. **Ne pas confondre avec `ventes`**, qui ne porte que
 les bornes : la différence entre les deux EST le hors-bornes réel.
 
-| Date | Annoncé | Réf. sept 2025 | Écart |
+### 🔴 CORRECTION DU 15/09/2026 — la référence à utiliser
+
+Les écarts annoncés du 01 au 14/09 (+19 % à +24 %) étaient **faux**. Ils comparaient
+chaque journée à la **moyenne du jour de semaine sur tout septembre 2025**. Or septembre
+2025 s'effondre en deuxième quinzaine : cette moyenne est tirée vers le bas, et tout
+début de mois paraît excellent en face.
+
+**Règle : comparer les MÊMES DATES d'une année sur l'autre, jamais une journée à une
+moyenne mensuelle par jour de semaine.** Vérifier que les deux périodes contiennent le
+même nombre de samedis et de dimanches.
+
+| 1er au 15 septembre, tout compris | 2025 | 2026 | Écart |
 |---|---|---|---|
-| Lun 31/08 | 1 430 € | *(août)* 1 200 € bornes | **230 € de hors-bornes** |
-| Mar 01/09 | 1 213 € | 889 € | +36 % |
-| Mer 02/09 | 1 400 € | 944 € | +48 % |
-| **Jeu 03/09** | **962 €** | 939 € | **+2 %** |
-| Ven 04/09 | 1 101 € | 978 € | +13 % |
-| Sam 05/09 | 2 135 € | 1 566 € | +36 % |
-| **Dim 06/09** | **755 €** | 719 € | **+5 %** |
-| Lun 07/09 | 1 010 € | 909 € | +11 % |
-| Mar 08/09 | 960 € | 889 € | +8 % |
-| **Total 8 j** | **9 536 €** | 7 833 € | **+22 %** |
+| Total 15 jours | 16 060 € | **17 124 €** | **+6,6 %** |
 
-**1 192 €/jour sur les 8 premiers jours.** Référence = septembre 2025 par jour de semaine,
-CA bornes + 150 € de hors-bornes.
+### Le creux de la mi-septembre est structurel
 
-⚠️ **L'effet rentrée s'estompe** : le mardi 01/09 faisait 1 213 €, le mardi 08/09 fait
-960 € — **−21 % d'un mardi à l'autre**. Ne pas extrapoler le mois depuis la première
-semaine, elle est portée par la rentrée.
+Hypothèse du gérant le 15/09/2026 — la rentrée des hautes écoles — **confirmée par les
+données de 2025**. CA bornes par semaine en septembre 2025 :
 
-⚠️ **Deux jours ne suivent pas la progression** : jeudi (+2 %) et dimanche (+5 %), alors
-que mercredi et samedi font +36 à +48 %. Le creux du jeudi tient donc aussi en septembre,
-et c'est d'autant plus net que septembre 2025 était son meilleur mois de l'année (−22 €
-contre le mercredi). **Confirme l'action « deux personnes le jeudi 14h-17h ».**
+| Semaine | 2025 |
+|---|---|
+| 01-07 | **1 060 €/jour** |
+| 08-14 | 810 € |
+| **15-21** | **674 €** ← le creux |
+| 22-28 | 844 € |
 
-⚠️ **Le premier jour mesuré donne 230 € de hors-bornes, pas 150 €.** Si ça se confirme sur
-le mois, tout le CA du dossier est sous-évalué de ~80 €/jour, soit ~2 400 €/mois. Ne pas
-corriger `parametres.ca_hors_bornes` avant d'avoir le mois complet — un jour ne prouve rien,
-et la valeur de 150 € a déjà été confirmée deux fois par le gérant.
+Le dimanche 14/09/2025 est tombé à **335 €**. Le dimanche 13/09/2026 à 500 € est donc
+**meilleur** que son équivalent. Ne pas traiter les journées faibles de la mi-septembre
+comme un décrochage : c'est le calendrier. La reprise intervient dans la semaine du 22.
+
+### Comparaison semaine par semaine, tout compris
+
+| Semaine | 2025 | 2026 | Écart |
+|---|---|---|---|
+| 01-07 | 1 210 € | 1 225 € | +1 % |
+| 08-14 | 960 € | 1 090 € | **+13 %** |
+| 15 (1 jour) | 824 € | 921 € | +12 % |
+
+**La progression se fait surtout pendant le creux**, pas sur les pics. Moins spectaculaire
+que ce qui avait été annoncé, mais plus solide.
+
+⚠️ **Le seul jour mesuré de hors-bornes donne 230 €, pas 150 €** (lun 31/08 : 1 430 €
+annoncés contre 1 200 € aux bornes). Un jour ne prouve rien, et la valeur de 150 € a été
+confirmée deux fois par le gérant. Ne pas corriger `parametres.ca_hors_bornes` avant
+d'avoir le mois complet et plusieurs points de mesure.
 
 **À produire fin septembre :**
 1. Le hors-bornes réel du mois, mesuré au lieu d'estimé.
-2. **Septembre 2026 contre septembre 2025** — le témoin propre attendu depuis le 31/08
-   (sept 2025 : 1 978 commandes, 836 €/j, ticket 12,68 €, ni XL ni menu renommé, et son
-   détail produits est en base depuis le 01/09/2026).
-3. Le jour par jour contre la moyenne : le creux du jeudi tient-il, et les ouvertures
-   avancées du week-end se confirment-elles ?
+2. **Septembre 2026 contre septembre 2025, aux mêmes dates** — le témoin propre attendu
+   depuis le 31/08 (sept 2025 : 1 978 commandes, 836 €/j, ticket 12,68 €, ni XL ni menu
+   renommé, détail produits en base depuis le 01/09/2026).
+3. Le creux de la mi-septembre s'est-il comporté comme en 2025 ? La reprise de la semaine
+   du 22 a-t-elle eu lieu ?
 
 ## ⚠️ Décisions déjà prises — À LIRE AVANT TOUTE ANALYSE
 
