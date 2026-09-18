@@ -951,3 +951,27 @@ Par ordre de valeur, avec les montants estimés :
 
 Séquence recommandée pour Rue Neuve : appliquer le court terme (1 mois) → solder les
 23 839 € de dettes (5-7 mois) → constituer 3 mois de charges en réserve (12-15 mois).
+
+## Module EasyOrder (API) — en place depuis le 18/09/2026
+
+EasyOrder POST chaque commande sur un webhook et **attend un HTTP 201** ; sans ce 201
+il rejoue l'appel. Leur doc ne prévoit **ni signature ni jeton** : la seule protection
+est un secret long placé en dernier segment de l'URL du webhook. Ne jamais publier
+cette URL, et ne jamais écrire le secret dans le dépôt Git.
+
+| Table | Contenu |
+|---|---|
+| `commandes_live` | En-tête de commande + `payload` JSON brut. `imprime` et `accuse_easyorder` pilotent l'impression et l'accusé de réception |
+| `commandes_live_lignes` | Détail par produit : catégorie, quantité, prix, TVA, commentaire, ingrédients |
+
+Edge Function **`easyorder-webhook`**. Elle est idempotente (contrainte unique
+`source, source_id`, lignes réécrites à chaque rejeu) et miroite dans `ventes`
+avec `canal = 'easyorder'` — d'où l'index unique posé sur `ventes.reference`.
+
+⚠️ Une Edge Function est déployée avec `verify_jwt = true` par défaut : dans cet état
+**tout appel externe est rejeté en 401 avant d'atteindre le code**. À basculer sur
+`false` dans le dashboard Supabase, sinon le webhook ne recevra jamais rien.
+
+Restent à obtenir d'EasyOrder : les identifiants `access_token` et l'**URL de
+production** (leur doc pointe sur `api-staging.easyorderapp.com`). Ensuite seulement
+on pourra appeler `/pos/orders-processed` et poser les statuts de commande.
