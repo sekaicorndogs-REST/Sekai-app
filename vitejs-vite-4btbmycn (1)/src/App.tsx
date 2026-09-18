@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { Package, Calendar, CreditCard, Users, UserCircle, ArrowLeft, RefreshCw, AlertTriangle, AlertCircle, CheckCircle, Pencil, Save, Eye, EyeOff, Check, Lock, User, ArrowRight, Trash2, Plus, ChevronRight, Settings, LogOut, Shield, Star, ListChecks, FileText, Wallet, Target, Lightbulb, Banknote, Receipt, PartyPopper, Utensils, Heart, TrendingUp, Coins, PiggyBank, HandCoins, Percent, Moon, Clock, Box, Home, X, BarChart3, Wrench, Radio } from "lucide-react";
 import { computeIndicateurs, masseColor as calcMasseColor, masseLabel as calcMasseLabel } from "./finances";
+import { RealtimeClient } from "@supabase/realtime-js";
 
 const SUPABASE_URL = "https://ldpxgfgcnlzktaymtnwd.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkcHhnZmdjbmx6a3RheW10bndkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxOTgyMTAsImV4cCI6MjA5MTc3NDIxMH0.N_yUwjRvBM9rfxu0Xj-FCCGJ9eJ3UomPZdcUYAb8B8s";
@@ -2481,10 +2482,11 @@ export default function App() {
     setDirectLoading(false);
   }
 
-  // Une sonde légère toutes les 3 secondes : elle ne demande que l'horodatage de la
-  // dernière commande. Le rechargement complet n'a lieu que s'il a changé — donc une
-  // commande apparaît en ~3 s sans qu'on tire 60 lignes en boucle.
+  // Temps réel : Supabase pousse l'insertion dès qu'elle est écrite, sans qu'on demande.
+  // La sonde reste en secours — un websocket peut tomber sans prévenir (réseau du
+  // magasin, veille du téléphone), et on ne veut pas d'un écran muet dans ce cas.
   const dernierRecu = useRef<string | null>(null);
+  const [directLive, setDirectLive] = useState(false);
 
   async function sonderDirect() {
     try {
@@ -2495,19 +2497,38 @@ export default function App() {
       const premiereFois = dernierRecu.current === null;
       dernierRecu.current = top;
       await loadDirect();
-      // Une nouvelle commande pendant qu'on regarde l'écran : on la signale.
       if (!premiereFois && top) { try { navigator.vibrate?.(120); } catch {} }
-    } catch { /* réseau instable : on retentera dans 3 secondes */ }
+    } catch { /* réseau instable : on retentera au prochain tour */ }
   }
 
   useEffect(() => {
     if (page !== "direct") return;
+
     sonderDirect();
-    const t = setInterval(() => { if (!document.hidden) sonderDirect(); }, 3000);
-    // Au retour sur l'app (écran rallumé, onglet réaffiché) on ne fait pas attendre.
+
+    const rt = new RealtimeClient(`${SUPABASE_URL.replace("https://", "wss://")}/realtime/v1`, {
+      params: { apikey: SUPABASE_KEY },
+    });
+    const canal = rt
+      .channel("commandes-direct")
+      .on("postgres_changes", { event: "*", schema: "public", table: "commandes_live" }, () => {
+        dernierRecu.current = null;   // force le rechargement, quel que soit l'horodatage
+        loadDirect();
+        try { navigator.vibrate?.(120); } catch {}
+      })
+      .subscribe((statut: string) => setDirectLive(statut === "SUBSCRIBED"));
+
+    // Filet de sécurité, espacé puisque le temps réel fait le travail.
+    const t = setInterval(() => { if (!document.hidden) sonderDirect(); }, 25000);
     const onVisible = () => { if (!document.hidden) sonderDirect(); };
     document.addEventListener("visibilitychange", onVisible);
-    return () => { clearInterval(t); document.removeEventListener("visibilitychange", onVisible); };
+
+    return () => {
+      clearInterval(t);
+      document.removeEventListener("visibilitychange", onVisible);
+      try { canal.unsubscribe(); rt.disconnect(); } catch {}
+      setDirectLive(false);
+    };
   }, [page]);
 
   function getTodayDateStr() {
@@ -8482,7 +8503,11 @@ A travaillé sans être au planning — qui a été remplacé ?
         </div>
 
         <div style={{ padding: "0.6rem 1rem 0", color: "#a07848", fontSize: "0.72rem" }}>
-          {directMaj ? `Mis à jour à ${directMaj.toLocaleTimeString("fr-BE", { hour: "2-digit", minute: "2-digit", second: "2-digit" })} · rafraîchit tout seul` : "Chargement..."}
+          <span style={{ display: "inline-flex", alignItems: "center", gap: "5px" }}>
+            <span style={{ width: "7px", height: "7px", borderRadius: "50%", background: directLive ? "#2e7d32" : "#c8a878", display: "inline-block" }} />
+            {directLive ? "En direct" : "Secours (toutes les 25 s)"}
+            {directMaj && ` · ${directMaj.toLocaleTimeString("fr-BE", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}`}
+          </span>
         </div>
 
         <div style={{ padding: "0.8rem 1rem", display: "flex", flexDirection: "column", gap: "0.6rem" }}>

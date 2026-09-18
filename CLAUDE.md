@@ -1031,16 +1031,24 @@ réservé aux admins : c'est un écran d'exploitation, pas de gestion.
 
 Il affiche les **60 dernières commandes** de `commandes_live` avec leur détail produit.
 
-**Délai d'affichage : ~3 secondes.** Une sonde légère tourne toutes les 3 s et ne demande
-que `recu_le` de la dernière ligne ; le rechargement complet (60 commandes + leurs lignes)
-n'a lieu que si cet horodatage a changé. Ne pas remplacer ça par un rechargement complet
-toutes les 3 s, ce serait 20× plus de données pour le même résultat.
-La sonde s'arrête quand l'écran est éteint (`document.hidden`) et repart au retour sur
-l'app (`visibilitychange`). Une vibration de 120 ms signale une nouvelle commande.
+**Affichage en temps réel** (18/09/2026). L'app ouvre un websocket avec
+**`@supabase/realtime-js`** — la seule dépendance réseau du projet, `@supabase/supabase-js`
+complet n'étant pas nécessaire (+17 Ko gzip au lieu de bien plus). Supabase pousse
+l'insertion dès qu'elle est écrite : la commande s'affiche sans délai perceptible.
 
-⚠️ Le **vrai temps réel** (Supabase Realtime, push par websocket) demanderait
-`@supabase/supabase-js`, que l'app n'a pas — elle n'utilise que `fetch`. À ne faire que
-si les 3 secondes ne suffisent pas : la dépendance pèse plus que le gain.
+🔴 **Deux choses en base sont indispensables, sinon Realtime n'émet rien :**
+`alter table commandes_live replica identity full;` et l'ajout de la table à la
+publication `supabase_realtime`. Les deux sont posées. Si un jour l'écran cesse de
+réagir en direct, c'est la première chose à vérifier.
+
+**La sonde de secours est conservée**, à 25 secondes : un websocket peut tomber sans
+prévenir (réseau du magasin, veille du téléphone) et l'écran ne doit jamais rester muet.
+Elle ne demande que `recu_le` de la dernière ligne et ne recharge que si ça a changé.
+Elle est suspendue écran éteint (`document.hidden`) et relancée au retour
+(`visibilitychange`). **Ne pas la supprimer au motif que le temps réel marche.**
+
+Un point vert « En direct » s'affiche quand le websocket est connecté, gris « Secours »
+sinon. Une vibration de 120 ms signale chaque nouvelle commande.
 
 Deux totaux fixés au-dessus de la barre de navigation :
 - **Total affiché** — la somme des commandes listées, avec leur nombre.
