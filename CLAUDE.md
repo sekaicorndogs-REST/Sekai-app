@@ -841,10 +841,38 @@ comme un décrochage : c'est le calendrier. La reprise intervient dans la semain
 **La progression se fait surtout pendant le creux**, pas sur les pics. Moins spectaculaire
 que ce qui avait été annoncé, mais plus solide.
 
-⚠️ **Le seul jour mesuré de hors-bornes donne 230 €, pas 150 €** (lun 31/08 : 1 430 €
-annoncés contre 1 200 € aux bornes). Un jour ne prouve rien, et la valeur de 150 € a été
-confirmée deux fois par le gérant. Ne pas corriger `parametres.ca_hors_bornes` avant
-d'avoir le mois complet et plusieurs points de mesure.
+### Hors-bornes : deux points de mesure, très écartés
+
+| Jour | Annoncé | Bornes | **Hors-bornes réel** |
+|---|---|---|---|
+| lun 31/08 | 1 430 € | 1 200 € | **230 €** |
+| **ven 18/09** | **1 203 €** | **1 104,80 €** | **98 €** |
+
+La valeur de 150 €/jour reste **cohérente entre les deux**. Ne pas corriger
+`parametres.ca_hors_bornes` avant le mois complet : deux jours qui vont du simple au
+double ne tranchent rien.
+
+### 🟢 Première journée complète mesurée automatiquement — ven 18/09/2026
+
+Le webhook a capté la journée entière : **références 001 à 094 sans aucun trou**,
+11h40 → 20h02, les 94 commandes présentes dans `commandes_live` **et** dans `ventes`,
+zéro rejet. **La continuité du compteur de la borne est la preuve de complétude** —
+c'est le contrôle à refaire chaque jour.
+
+| Contre un vendredi moyen | Moyenne annuelle | 18/09 |
+|---|---|---|
+| CA bornes | 912 € | **1 105 €** (+21 %) |
+| Commandes | 75 | **94** (+25 %) |
+| Ticket | 12,14 € | **11,75 €** (−0,39 €) |
+
+Très bon vendredi, **mais tout vient de la fréquentation** : le ticket est sous la normale.
+
+Mix du jour : **42,6 menus / 100 commandes** (dont 9,6 XL), 80,9 corndogs seuls,
+**1,36 article par commande**. Contre août 2026 : 53,7 menus, 13,7 XL, 1,53 article.
+
+⚠️ **Ne rien conclure de cet écart.** C'est **un seul jour**, et le comparer à août
+viole la règle 1 de la méthode de chiffrage — août est structurellement un mois à fort
+ticket. À resuivre sur plusieurs semaines, ce qui est désormais automatique.
 
 **À produire fin septembre :**
 1. Le hors-bornes réel du mois, mesuré au lieu d'estimé.
