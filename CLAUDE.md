@@ -966,7 +966,14 @@ cette URL, et ne jamais écrire le secret dans le dépôt Git.
 
 Edge Function **`easyorder-webhook`**. Elle est idempotente (contrainte unique
 `source, source_id`, lignes réécrites à chaque rejeu) et miroite dans `ventes`
-avec `canal = 'easyorder'` — d'où l'index unique posé sur `ventes.reference`.
+avec `canal = 'easyorder:<compte>'`.
+
+🔴 **La `reference` EasyOrder n'est PAS unique** — le premier appel réel, reçu le
+18/09/2026, portait la référence `001`. C'est un compteur qui repart. L'index unique
+posé le matin sur `ventes.reference` a donc été **supprimé** : il aurait fait écraser
+des commandes légitimes les unes par les autres. La colonne **`ventes.source_id`**
+(identifiant de commande EasyOrder, un UUID) a été ajoutée et porte l'unicité, et c'est
+sur elle que le miroir dédoublonne. Ne jamais remettre l'unicité sur `reference`.
 
 **Une URL par compte EasyOrder** : `/easyorder-webhook/<secret>/<compte>`. Le compte est
 stocké dans `commandes_live.compte` et dans `ventes.canal` sous la forme
@@ -1001,6 +1008,21 @@ déployée avec `verify_jwt = false` depuis la v2. Ne pas le remettre à `true`.
 bloque l'appel. La vérification passe par un test envoyé par EasyOrder, puis une lecture
 de `commandes_live`.
 
-Restent à obtenir d'EasyOrder : les identifiants `access_token` et l'**URL de
-production** (leur doc pointe sur `api-staging.easyorderapp.com`). Ensuite seulement
-on pourra appeler `/pos/orders-processed` et poser les statuts de commande.
+### Premier appel réel — 18/09/2026, concluant
+
+Commande `001` : à emporter, cash, non payée, 2,00 €, client « Kiosk » (donc une borne),
+une ligne `COCA` / catégorie `SOFTS` / 1 × 2,00 € / unité « Pièces ». En-tête, ligne
+produit et miroir dans `ventes` tous corrects au centime.
+
+Deux constats issus de ce test :
+
+1. La référence `001` n'est pas unique → correction ci-dessus (`source_id`).
+2. ⚠️ **La ligne COCA porte une TVA de 0 %.** Un soft devrait être à 21 % (6 % à
+   emporter selon le régime appliqué). Si les produits sont configurés à 0 % dans
+   EasyOrder, les exports de TVA sont faux à la source. **À vérifier avec le comptable
+   avant d'utiliser une TVA issue d'EasyOrder dans un calcul.** Ne touche pas au chiffre
+   de 900 €/mois, qui vient de Skytax et reste la référence.
+
+Reste à obtenir d'EasyOrder : **comment échanger les identifiants contre un
+`access_token`** — la doc montre `Authorization: Bearer {{access_token}}` mais pas
+l'appel d'authentification. Sans lui, pas d'accusé de réception ni de statuts.
