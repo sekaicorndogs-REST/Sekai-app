@@ -968,12 +968,27 @@ Edge Function **`easyorder-webhook`**. Elle est idempotente (contrainte unique
 `source, source_id`, lignes réécrites à chaque rejeu) et miroite dans `ventes`
 avec `canal = 'easyorder:<compte>'`.
 
-🔴 **La `reference` EasyOrder n'est PAS unique** — le premier appel réel, reçu le
-18/09/2026, portait la référence `001`. C'est un compteur qui repart. L'index unique
-posé le matin sur `ventes.reference` a donc été **supprimé** : il aurait fait écraser
-des commandes légitimes les unes par les autres. La colonne **`ventes.source_id`**
-(identifiant de commande EasyOrder, un UUID) a été ajoutée et porte l'unicité, et c'est
-sur elle que le miroir dédoublonne. Ne jamais remettre l'unicité sur `reference`.
+🔴 **La `reference` EasyOrder n'est PAS unique** — les commandes arrivent numérotées
+`001`, `002`… et le compteur repart. Deux contraintes d'unicité sur `ventes.reference`
+ont donc été supprimées : celle posée par erreur le matin du 18/09, **et
+`ventes_reference_key`, la contrainte d'ORIGINE de la table**, qui aurait fait refuser
+la commande `001` de demain parce que celle d'aujourd'hui existe déjà.
+**Ne jamais remettre d'unicité sur `reference`.**
+
+L'unicité est portée par **`ventes.source_id`** (l'identifiant de commande EasyOrder,
+un UUID), et c'est sur elle que le miroir dédoublonne.
+
+🔴 **L'index de `source_id` doit être SIMPLE, pas partiel.** Il avait d'abord été créé
+avec `WHERE source_id IS NOT NULL` : PostgreSQL refuse d'utiliser un index partiel pour
+un `ON CONFLICT`, donc **chaque écriture dans `ventes` échouait**, silencieusement pour
+l'utilisateur. Un index unique simple convient — Postgres autorise plusieurs `NULL`,
+ce dont a besoin l'historique importé. Symptôme vu à l'écran le 18/09 : 18 commandes
+dans l'onglet Direct mais « Aujourd'hui · bornes » bloqué à 1 commande.
+
+⚠️ **Rien n'avait été perdu** : les 19 commandes étaient intactes dans `commandes_live`
+avec leur détail, seul le miroir échouait. Elles ont été réinjectées dans `ventes` par
+un `insert … select … on conflict (source_id) do nothing`. **C'est la raison d'être des
+deux tables** — `commandes_live` est la source brute, `ventes` la table d'analyse.
 
 **Une URL par compte EasyOrder** : `/easyorder-webhook/<secret>/<compte>`. Le compte est
 stocké dans `commandes_live.compte` et dans `ventes.canal` sous la forme
