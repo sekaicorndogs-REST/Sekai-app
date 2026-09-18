@@ -1067,10 +1067,23 @@ Elle est suspendue écran éteint (`document.hidden`) et relancée au retour
 Un point vert « En direct » s'affiche quand le websocket est connecté, gris « Secours »
 sinon. Une vibration de 120 ms signale chaque nouvelle commande.
 
-Deux totaux fixés au-dessus de la barre de navigation :
+Quatre chiffres fixés au-dessus de la barre de navigation :
 - **Total affiché** — la somme des commandes listées, avec leur nombre.
 - **Aujourd'hui · bornes** — lu depuis **`ventes`**, la table de référence, filtré sur
   la date du jour. Pas depuis `commandes_live`, qui ne porte que ce que le webhook a reçu.
+- **Ticket moyen** du jour — CA du jour ÷ nombre de commandes du jour.
+- **Menus vendus** du jour, avec le taux **pour 100 commandes** — l'indicateur de
+  pilotage retenu dans tout ce fichier (règle 5 de la méthode de chiffrage : jamais par
+  jour, toujours par commande).
+
+⚠️ Les menus sont comptés sur **toutes** les lignes de la journée, via une jointure
+`commandes_live_lignes → commandes_live` filtrée sur `recu_le`, **pas** sur les 60
+commandes affichées — la liste serait trop courte dès un samedi chargé.
+
+La reconnaissance d'un menu est volontairement large (`MENU`, `GOOD DEAL`, `GOODEAL`,
+`BUBBLE DOG`, `ETUDIANT`) parce que les libellés changent : l'historique porte encore
+`MENU ETUDIANT`. Vérifié le 18/09/2026 sur les vraies commandes — `MENU GOODEAL`,
+`MENU GOODEAL XL` et `MENU BUBBLE DOGS` sont comptés, `CORNDOG …` et `SUISSE` non.
 
 🔴 **CORRECTION DU 18/09/2026 — les deux sources n'ont pas la même convention d'heure.**
 J'avais d'abord affiché les heures sans conversion, en appliquant au webhook la règle

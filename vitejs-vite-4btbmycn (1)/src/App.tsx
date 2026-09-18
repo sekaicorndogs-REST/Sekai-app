@@ -2451,10 +2451,16 @@ export default function App() {
   }
 
   // ── COMMANDES EN DIRECT (webhook EasyOrder) ────────────────
+  // Good Deal, Bubble Dogs et leurs XL. Les libellés bougent d'une saison à l'autre
+  // (« MENU ETUDIANT » avant le renommage du 21/07/2026), d'où la reconnaissance large.
+  const estMenu = (nom?: string | null) =>
+    !!nom && /MENU|GOOD ?DEAL|GOODEAL|BUBBLE ?DOG|ETUDIANT/i.test(nom);
+
   const [directCmds, setDirectCmds] = useState<any[]>([]);
   const [directLignes, setDirectLignes] = useState<any[]>([]);
   const [directCaJour, setDirectCaJour] = useState(0);
   const [directCmdJour, setDirectCmdJour] = useState(0);
+  const [directMenusJour, setDirectMenusJour] = useState(0);
   const [directLoading, setDirectLoading] = useState(false);
   const [directMaj, setDirectMaj] = useState<Date | null>(null);
 
@@ -2477,6 +2483,15 @@ export default function App() {
       const v = rv.ok ? await rv.json() : [];
       setDirectCaJour(v.reduce((t: number, x: any) => t + (parseFloat(x.prix) || 0), 0));
       setDirectCmdJour(v.length);
+
+      // Les menus du jour, comptés sur TOUTES les lignes de la journée — pas sur les
+      // 60 commandes affichées, qui ne suffiraient plus dès qu'un samedi sera chargé.
+      const rm = await fetch(
+        `${SUPABASE_URL}/rest/v1/commandes_live_lignes?select=quantite,produit_nom,commandes_live!inner(recu_le)&commandes_live.recu_le=gte.${jour}T00:00:00&commandes_live.recu_le=lte.${jour}T23:59:59`,
+        { headers: HEADERS },
+      );
+      const lj = rm.ok ? await rm.json() : [];
+      setDirectMenusJour(lj.reduce((t: number, l: any) => t + (estMenu(l.produit_nom) ? (parseFloat(l.quantite) || 1) : 0), 0));
       setDirectMaj(new Date());
     } catch { /* on garde l'affichage précédent plutôt que de vider l'écran */ }
     setDirectLoading(false);
@@ -8492,7 +8507,7 @@ A travaillé sans être au planning — qui a été remplacé ?
     const totalListe = directCmds.reduce((t, c) => t + (parseFloat(c.total) || 0), 0);
 
     return (
-      <div style={{ ...s, minHeight: "100dvh", background: "#faebd7", paddingBottom: "11rem" }}>
+      <div style={{ ...s, minHeight: "100dvh", background: "#faebd7", paddingBottom: "14rem" }}>
         {toast && <div style={{ position: "fixed", top: "1rem", left: "50%", transform: "translateX(-50%)", background: toast.type === "success" ? "#f0fff4" : toast.type === "warn" ? "#fffbe6" : "#fff0f0", color: toast.type === "success" ? "#2e7d32" : toast.type === "warn" ? "#b45309" : "#e8213a", padding: "0.6rem 1.4rem", borderRadius: "20px", fontSize: "0.88rem", zIndex: 999, border: "1.5px solid #f5c8c8", whiteSpace: "nowrap", pointerEvents: "none", fontWeight: "600" }}>{toast.msg}</div>}
 
         <div style={{ background: "#e8213a", padding: "1.2rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -8558,18 +8573,36 @@ A travaillé sans être au planning — qui a été remplacé ?
           })}
         </div>
 
-        {/* Les deux totaux, toujours visibles au-dessus de la barre de navigation */}
-        <div style={{ position: "fixed", left: 0, right: 0, bottom: "calc(3.4rem + env(safe-area-inset-bottom, 0px))", background: "#fff8f0", borderTop: "1.5px solid #f0d8b8", padding: "0.7rem 1rem", display: "flex", gap: "0.7rem", zIndex: 39 }}>
-          <div style={{ flex: 1, textAlign: "center" }}>
-            <div style={{ fontSize: "0.68rem", color: "#a07848", textTransform: "uppercase", letterSpacing: "0.02em" }}>Total affiché</div>
-            <div style={{ fontSize: "1.15rem", fontWeight: "bold" }}>{eur(totalListe)}</div>
-            <div style={{ fontSize: "0.65rem", color: "#a07848" }}>{directCmds.length} commande{directCmds.length > 1 ? "s" : ""}</div>
+        {/* Les totaux du jour, toujours visibles au-dessus de la barre de navigation */}
+        <div style={{ position: "fixed", left: 0, right: 0, bottom: "calc(3.4rem + env(safe-area-inset-bottom, 0px))", background: "#fff8f0", borderTop: "1.5px solid #f0d8b8", padding: "0.6rem 1rem", zIndex: 39 }}>
+          <div style={{ display: "flex", gap: "0.7rem" }}>
+            <div style={{ flex: 1, textAlign: "center" }}>
+              <div style={{ fontSize: "0.68rem", color: "#a07848", textTransform: "uppercase", letterSpacing: "0.02em" }}>Total affiché</div>
+              <div style={{ fontSize: "1.15rem", fontWeight: "bold" }}>{eur(totalListe)}</div>
+              <div style={{ fontSize: "0.65rem", color: "#a07848" }}>{directCmds.length} commande{directCmds.length > 1 ? "s" : ""}</div>
+            </div>
+            <div style={{ width: "1px", background: "#f0d8b8" }} />
+            <div style={{ flex: 1, textAlign: "center" }}>
+              <div style={{ fontSize: "0.68rem", color: "#e8213a", textTransform: "uppercase", letterSpacing: "0.02em", fontWeight: "600" }}>Aujourd'hui · bornes</div>
+              <div style={{ fontSize: "1.15rem", fontWeight: "bold", color: "#e8213a" }}>{eur(directCaJour)}</div>
+              <div style={{ fontSize: "0.65rem", color: "#a07848" }}>{directCmdJour} commande{directCmdJour > 1 ? "s" : ""}</div>
+            </div>
           </div>
-          <div style={{ width: "1px", background: "#f0d8b8" }} />
-          <div style={{ flex: 1, textAlign: "center" }}>
-            <div style={{ fontSize: "0.68rem", color: "#e8213a", textTransform: "uppercase", letterSpacing: "0.02em", fontWeight: "600" }}>Aujourd'hui · bornes</div>
-            <div style={{ fontSize: "1.15rem", fontWeight: "bold", color: "#e8213a" }}>{eur(directCaJour)}</div>
-            <div style={{ fontSize: "0.65rem", color: "#a07848" }}>{directCmdJour} commande{directCmdJour > 1 ? "s" : ""}</div>
+
+          {/* Le détail du jour : ticket moyen et menus déjà vendus */}
+          <div style={{ display: "flex", gap: "0.7rem", marginTop: "0.5rem", borderTop: "1px dashed #f0d8b8", paddingTop: "0.45rem" }}>
+            <div style={{ flex: 1, textAlign: "center" }}>
+              <div style={{ fontSize: "0.63rem", color: "#a07848", textTransform: "uppercase" }}>Ticket moyen</div>
+              <div style={{ fontSize: "0.95rem", fontWeight: "bold" }}>{directCmdJour ? eur(directCaJour / directCmdJour) : "—"}</div>
+            </div>
+            <div style={{ width: "1px", background: "#f0d8b8" }} />
+            <div style={{ flex: 1, textAlign: "center" }}>
+              <div style={{ fontSize: "0.63rem", color: "#a07848", textTransform: "uppercase" }}>Menus vendus</div>
+              <div style={{ fontSize: "0.95rem", fontWeight: "bold" }}>
+                {directMenusJour}
+                {directCmdJour > 0 && <span style={{ fontSize: "0.7rem", color: "#a07848", fontWeight: "normal" }}> · {Math.round(directMenusJour / directCmdJour * 100)}/100</span>}
+              </div>
+            </div>
           </div>
         </div>
 
