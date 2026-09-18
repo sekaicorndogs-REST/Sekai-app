@@ -968,9 +968,19 @@ Edge Function **`easyorder-webhook`**. Elle est idempotente (contrainte unique
 `source, source_id`, lignes réécrites à chaque rejeu) et miroite dans `ventes`
 avec `canal = 'easyorder'` — d'où l'index unique posé sur `ventes.reference`.
 
+**Deux comptes EasyOrder, une URL chacun.** L'adresse se termine par un segment libre
+qui nomme le compte : `/easyorder-webhook/<secret>/<compte>`. Il est stocké dans
+`commandes_live.compte` et dans `ventes.canal` sous la forme `easyorder:<compte>`.
+Une seule URL pour les deux mélangerait les flux sans moyen de les démêler ensuite.
+Ce segment est libre — en changer ne demande **aucun redéploiement**.
+
 ⚠️ Une Edge Function est déployée avec `verify_jwt = true` par défaut : dans cet état
-**tout appel externe est rejeté en 401 avant d'atteindre le code**. À basculer sur
-`false` dans le dashboard Supabase, sinon le webhook ne recevra jamais rien.
+**tout appel externe est rejeté en 401 avant d'atteindre le code**. La fonction est
+déployée avec `verify_jwt = false` depuis la v2. Ne pas le remettre à `true`.
+
+⚠️ Le webhook n'est **pas testable depuis l'environnement Claude** : le proxy sortant
+bloque l'appel. La vérification passe par un test envoyé par EasyOrder, puis une lecture
+de `commandes_live`.
 
 Restent à obtenir d'EasyOrder : les identifiants `access_token` et l'**URL de
 production** (leur doc pointe sur `api-staging.easyorderapp.com`). Ensuite seulement
