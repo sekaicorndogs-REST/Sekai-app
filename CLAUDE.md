@@ -1017,11 +1017,12 @@ produit et miroir dans `ventes` tous corrects au centime.
 Deux constats issus de ce test :
 
 1. La référence `001` n'est pas unique → correction ci-dessus (`source_id`).
-2. ⚠️ **La ligne COCA porte une TVA de 0 %.** Un soft devrait être à 21 % (6 % à
-   emporter selon le régime appliqué). Si les produits sont configurés à 0 % dans
-   EasyOrder, les exports de TVA sont faux à la source. **À vérifier avec le comptable
-   avant d'utiliser une TVA issue d'EasyOrder dans un calcul.** Ne touche pas au chiffre
-   de 900 €/mois, qui vient de Skytax et reste la référence.
+2. ⚠️ **La ligne COCA porte une TVA de 0 %.** Le gérant a précisé que seules les
+   factures partent au comptable et que la borne n'entre pas dans la comptabilité :
+   **aucune conséquence comptable, sujet clos, ne pas le relancer.** La conséquence qui
+   demeure est analytique — le champ `vat_percentage` d'EasyOrder n'est pas fiable et ne
+   doit servir à **aucun** calcul, ni ventilation du CA par taux, ni estimation de TVA.
+   La référence reste Skytax et les 900 €/mois.
 
 Reste à obtenir d'EasyOrder : **comment échanger les identifiants contre un
 `access_token`** — la doc montre `Authorization: Bearer {{access_token}}` mais pas
