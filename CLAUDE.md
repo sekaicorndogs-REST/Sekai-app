@@ -1029,9 +1029,18 @@ Deux constats issus de ce test :
 Nouvel onglet de la barre du bas (icône radio), **visible par tout le monde**, pas
 réservé aux admins : c'est un écran d'exploitation, pas de gestion.
 
-Il affiche les **60 dernières commandes** de `commandes_live` avec leur détail produit,
-et se rafraîchit **tout seul toutes les 20 secondes** tant que la page est ouverte
-(`useEffect` sur `page === "direct"`, intervalle nettoyé à la sortie).
+Il affiche les **60 dernières commandes** de `commandes_live` avec leur détail produit.
+
+**Délai d'affichage : ~3 secondes.** Une sonde légère tourne toutes les 3 s et ne demande
+que `recu_le` de la dernière ligne ; le rechargement complet (60 commandes + leurs lignes)
+n'a lieu que si cet horodatage a changé. Ne pas remplacer ça par un rechargement complet
+toutes les 3 s, ce serait 20× plus de données pour le même résultat.
+La sonde s'arrête quand l'écran est éteint (`document.hidden`) et repart au retour sur
+l'app (`visibilitychange`). Une vibration de 120 ms signale une nouvelle commande.
+
+⚠️ Le **vrai temps réel** (Supabase Realtime, push par websocket) demanderait
+`@supabase/supabase-js`, que l'app n'a pas — elle n'utilise que `fetch`. À ne faire que
+si les 3 secondes ne suffisent pas : la dépendance pèse plus que le gain.
 
 Deux totaux fixés au-dessus de la barre de navigation :
 - **Total affiché** — la somme des commandes listées, avec leur nombre.

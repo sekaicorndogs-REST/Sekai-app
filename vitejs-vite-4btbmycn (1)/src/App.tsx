@@ -2481,12 +2481,33 @@ export default function App() {
     setDirectLoading(false);
   }
 
-  // Rafraîchissement automatique tant que la page est ouverte.
+  // Une sonde légère toutes les 3 secondes : elle ne demande que l'horodatage de la
+  // dernière commande. Le rechargement complet n'a lieu que s'il a changé — donc une
+  // commande apparaît en ~3 s sans qu'on tire 60 lignes en boucle.
+  const dernierRecu = useRef<string | null>(null);
+
+  async function sonderDirect() {
+    try {
+      const r = await fetch(`${SUPABASE_URL}/rest/v1/commandes_live?select=recu_le&order=recu_le.desc&limit=1`, { headers: HEADERS });
+      if (!r.ok) return;
+      const top = (await r.json())[0]?.recu_le ?? null;
+      if (top === dernierRecu.current) return;
+      const premiereFois = dernierRecu.current === null;
+      dernierRecu.current = top;
+      await loadDirect();
+      // Une nouvelle commande pendant qu'on regarde l'écran : on la signale.
+      if (!premiereFois && top) { try { navigator.vibrate?.(120); } catch {} }
+    } catch { /* réseau instable : on retentera dans 3 secondes */ }
+  }
+
   useEffect(() => {
     if (page !== "direct") return;
-    loadDirect();
-    const t = setInterval(loadDirect, 20000);
-    return () => clearInterval(t);
+    sonderDirect();
+    const t = setInterval(() => { if (!document.hidden) sonderDirect(); }, 3000);
+    // Au retour sur l'app (écran rallumé, onglet réaffiché) on ne fait pas attendre.
+    const onVisible = () => { if (!document.hidden) sonderDirect(); };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => { clearInterval(t); document.removeEventListener("visibilitychange", onVisible); };
   }, [page]);
 
   function getTodayDateStr() {
