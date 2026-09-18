@@ -1038,10 +1038,18 @@ Deux totaux fixés au-dessus de la barre de navigation :
 - **Aujourd'hui · bornes** — lu depuis **`ventes`**, la table de référence, filtré sur
   la date du jour. Pas depuis `commandes_live`, qui ne porte que ce que le webhook a reçu.
 
-⚠️ Les heures s'affichent avec `toISOString().slice(11,16)`, **volontairement sans
-conversion de fuseau** : les horodatages EasyOrder sont des heures locales stockées en
-UTC (voir la règle sur `ventes` plus haut). Ne pas « corriger » en heure locale, ça
-décalerait tout d'une ou deux heures.
+🔴 **CORRECTION DU 18/09/2026 — les deux sources n'ont pas la même convention d'heure.**
+J'avais d'abord affiché les heures sans conversion, en appliquant au webhook la règle
+valable pour `ventes`. C'était faux, et l'écran décalait de deux heures.
+
+| Source | Convention | Affichage |
+|---|---|---|
+| `ventes` (historique importé) | heure **locale** stockée avec un fuseau UTC | lire l'heure telle quelle, **ne pas convertir** |
+| Webhook EasyOrder (`commandes_live`) | **UTC réel** | **convertir** vers `Europe/Brussels` |
+
+Preuve : une commande reçue à 12h08 à Bruxelles porte `cree_le` **et** `recu_le` à
+10h08 UTC — les deux concordent, donc c'est bien de l'UTC réel. L'onglet Direct utilise
+désormais `toLocaleTimeString` avec `timeZone: "Europe/Brussels"`.
 
 Reste à obtenir d'EasyOrder : **comment échanger les identifiants contre un
 `access_token`** — la doc montre `Authorization: Bearer {{access_token}}` mais pas

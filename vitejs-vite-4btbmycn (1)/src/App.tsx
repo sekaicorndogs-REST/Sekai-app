@@ -8442,7 +8442,11 @@ A travaillé sans être au planning — qui a été remplacé ?
   // ── COMMANDES EN DIRECT ────────────────────────────────────
   if (page === "direct") {
     const eur = (n: number) => n.toLocaleString("fr-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €";
-    const heure = (v: string | null) => v ? new Date(v).toISOString().slice(11, 16) : "--:--";
+    // Contrairement à `ventes` (heures locales stockées en UTC), le webhook EasyOrder
+    // envoie de l'UTC réel : il faut donc bien convertir vers l'heure de Bruxelles.
+    const heure = (v: string | null) => v
+      ? new Date(v).toLocaleTimeString("fr-BE", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Brussels" })
+      : "--:--";
     const totalListe = directCmds.reduce((t, c) => t + (parseFloat(c.total) || 0), 0);
 
     return (
