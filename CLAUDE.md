@@ -968,11 +968,14 @@ Edge Function **`easyorder-webhook`**. Elle est idempotente (contrainte unique
 `source, source_id`, lignes réécrites à chaque rejeu) et miroite dans `ventes`
 avec `canal = 'easyorder'` — d'où l'index unique posé sur `ventes.reference`.
 
-**Deux comptes EasyOrder, une URL chacun.** L'adresse se termine par un segment libre
-qui nomme le compte : `/easyorder-webhook/<secret>/<compte>`. Il est stocké dans
-`commandes_live.compte` et dans `ventes.canal` sous la forme `easyorder:<compte>`.
-Une seule URL pour les deux mélangerait les flux sans moyen de les démêler ensuite.
-Ce segment est libre — en changer ne demande **aucun redéploiement**.
+**Les deux comptes EasyOrder tapent sur la MÊME URL** (gérant, 18/09/2026) : ils sont
+reliés au même restaurant, il n'y a donc rien à démêler. Ne pas reproposer de les séparer.
+
+L'adresse accepte malgré tout un segment final optionnel qui nomme le compte
+(`/easyorder-webhook/<secret>/<compte>`), stocké dans `commandes_live.compte` et dans
+`ventes.canal` sous la forme `easyorder:<compte>`. Il vaut `NULL` aujourd'hui et
+resservira le jour où un flux devra être distingué. En changer ne demande **aucun
+redéploiement**.
 
 ⚠️ Une Edge Function est déployée avec `verify_jwt = true` par défaut : dans cet état
 **tout appel externe est rejeté en 401 avant d'atteindre le code**. La fonction est
