@@ -968,14 +968,30 @@ Edge Function **`easyorder-webhook`**. Elle est idempotente (contrainte unique
 `source, source_id`, lignes réécrites à chaque rejeu) et miroite dans `ventes`
 avec `canal = 'easyorder'` — d'où l'index unique posé sur `ventes.reference`.
 
-**Les deux comptes EasyOrder tapent sur la MÊME URL** (gérant, 18/09/2026) : ils sont
-reliés au même restaurant, il n'y a donc rien à démêler. Ne pas reproposer de les séparer.
+**Une URL par compte EasyOrder** : `/easyorder-webhook/<secret>/<compte>`. Le compte est
+stocké dans `commandes_live.compte` et dans `ventes.canal` sous la forme
+`easyorder:<compte>`. Segments en service : `rueneuve` et `enseignement`.
 
-L'adresse accepte malgré tout un segment final optionnel qui nomme le compte
-(`/easyorder-webhook/<secret>/<compte>`), stocké dans `commandes_live.compte` et dans
-`ventes.canal` sous la forme `easyorder:<compte>`. Il vaut `NULL` aujourd'hui et
-resservira le jour où un flux devra être distingué. En changer ne demande **aucun
-redéploiement**.
+⚠️ Ce n'est **pas** un choix de confort. Chaque compte a ses propres identifiants donc
+son propre jeton : sans savoir de quel compte vient une commande, impossible de
+l'acquitter sur le bon via `/pos/orders-processed`. La décision inverse prise le matin
+du 18/09 (une seule URL) a été renversée le soir même pour cette raison.
+
+**Base URL de production : `https://api.easyorderapp.com`** (Matijs, 18/09/2026).
+
+🔴 **Les identifiants des deux comptes sont dans la table `integrations_comptes`**, avec
+RLS activée et aucune policy — la clé anon ne peut pas les lire. **Ne jamais les écrire
+ici ni ailleurs dans le dépôt Git.**
+
+**EasyOrder ne signe pas ses appels** (confirmé par Matijs). Les deux seuls garde-fous
+sont le secret dans l'URL et le contrôle de forme de la requête, fait en v3 : `data.id`
+chaîne d'au moins 8 caractères, `data.reference` non vide, `data.total_price` numérique,
+`data.order_details` tableau — sinon 400.
+
+**Polling de rattrapage** : la consigne de Matijs est de marquer chaque commande comme
+traitée dès réception. Un polling de fin de journée ne remonte alors que ce qui n'a
+jamais été livré. Il ne fera aucun test manuel : le premier appel viendra d'une vraie
+commande.
 
 ⚠️ Une Edge Function est déployée avec `verify_jwt = true` par défaut : dans cet état
 **tout appel externe est rejeté en 401 avant d'atteindre le code**. La fonction est
