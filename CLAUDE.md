@@ -991,9 +991,26 @@ RLS activée et aucune policy — la clé anon ne peut pas les lire. **Ne jamais
 ici ni ailleurs dans le dépôt Git.**
 
 **EasyOrder ne signe pas ses appels** (confirmé par Matijs). Les deux seuls garde-fous
-sont le secret dans l'URL et le contrôle de forme de la requête, fait en v3 : `data.id`
-chaîne d'au moins 8 caractères, `data.reference` non vide, `data.total_price` numérique,
+sont le secret dans l'URL et le contrôle de forme de la requête : `data.id` chaîne d'au
+moins 8 caractères, `data.reference` non vide, `data.total_price` numérique,
 `data.order_details` tableau — sinon 400.
+
+### 🔴 Aucune commande ne doit être perdue — règles de la v5 (18/09/2026)
+
+Deux trous ont été trouvés en auditant la v4 et bouchés le jour même.
+
+**Un 201 signifie « tout est écrit », jamais moins.** EasyOrder rejoue tant qu'il n'a pas
+son 201 ; dès qu'il l'a, il ne renverra **plus jamais** cette commande. La fonction renvoie
+donc **500** si les lignes produit ou le miroir `ventes` échouent, alors que la v4
+renvoyait 201 et perdait le détail en silence. Le rejeu est sans risque : tout est
+idempotent, l'en-tête déjà écrit est simplement mis à jour.
+**Ne jamais transformer un de ces 500 en 201 « parce que l'en-tête est passé ».**
+
+**Table `commandes_live_rejets`** : tout appel refusé y est archivé avec son motif, son
+JSON et, si le corps est illisible, son texte brut. Un 400 est définitif — EasyOrder ne
+rejoue pas — donc sans cette table un changement de format de leur côté nous ferait jeter
+de vraies commandes sans laisser de trace. **À consulter si un jour un total ne tombe pas
+juste.**
 
 **Polling de rattrapage** : la consigne de Matijs est de marquer chaque commande comme
 traitée dès réception. Un polling de fin de journée ne remonte alors que ce qui n'a
