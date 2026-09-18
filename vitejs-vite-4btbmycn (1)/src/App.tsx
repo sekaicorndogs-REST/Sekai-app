@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from "react";
-import { Package, Calendar, CreditCard, Users, UserCircle, ArrowLeft, RefreshCw, AlertTriangle, AlertCircle, CheckCircle, Pencil, Save, Eye, EyeOff, Check, Lock, User, ArrowRight, Trash2, Plus, ChevronRight, Settings, LogOut, Shield, Star, ListChecks, FileText, Wallet, Target, Lightbulb, Banknote, Receipt, PartyPopper, Utensils, Heart, TrendingUp, Coins, PiggyBank, HandCoins, Percent, Moon, Clock, Box, Home, X, BarChart3, Wrench } from "lucide-react";
+import { Package, Calendar, CreditCard, Users, UserCircle, ArrowLeft, RefreshCw, AlertTriangle, AlertCircle, CheckCircle, Pencil, Save, Eye, EyeOff, Check, Lock, User, ArrowRight, Trash2, Plus, ChevronRight, Settings, LogOut, Shield, Star, ListChecks, FileText, Wallet, Target, Lightbulb, Banknote, Receipt, PartyPopper, Utensils, Heart, TrendingUp, Coins, PiggyBank, HandCoins, Percent, Moon, Clock, Box, Home, X, BarChart3, Wrench, Radio } from "lucide-react";
 import { computeIndicateurs, masseColor as calcMasseColor, masseLabel as calcMasseLabel } from "./finances";
 
 const SUPABASE_URL = "https://ldpxgfgcnlzktaymtnwd.supabase.co";
@@ -2449,6 +2449,46 @@ export default function App() {
     return HORAIRES_JOUR[planDay] || { debut: "11:30", fin: "20:30" };
   }
 
+  // ── COMMANDES EN DIRECT (webhook EasyOrder) ────────────────
+  const [directCmds, setDirectCmds] = useState<any[]>([]);
+  const [directLignes, setDirectLignes] = useState<any[]>([]);
+  const [directCaJour, setDirectCaJour] = useState(0);
+  const [directCmdJour, setDirectCmdJour] = useState(0);
+  const [directLoading, setDirectLoading] = useState(false);
+  const [directMaj, setDirectMaj] = useState<Date | null>(null);
+
+  async function loadDirect() {
+    setDirectLoading(true);
+    try {
+      // Les 60 dernières commandes reçues, et leurs lignes en une seule requête.
+      const rc = await fetch(`${SUPABASE_URL}/rest/v1/commandes_live?select=*&order=recu_le.desc&limit=60`, { headers: HEADERS });
+      const cmds = rc.ok ? await rc.json() : [];
+      setDirectCmds(cmds);
+      const ids = cmds.map((c: any) => c.id);
+      if (ids.length) {
+        const rl = await fetch(`${SUPABASE_URL}/rest/v1/commandes_live_lignes?select=*&commande_id=in.(${ids.join(",")})`, { headers: HEADERS });
+        setDirectLignes(rl.ok ? await rl.json() : []);
+      } else setDirectLignes([]);
+
+      // Le chiffre du jour aux bornes vient de `ventes`, la table de référence.
+      const jour = getTodayDateStr();
+      const rv = await fetch(`${SUPABASE_URL}/rest/v1/ventes?select=prix&date_commande=gte.${jour}T00:00:00&date_commande=lte.${jour}T23:59:59`, { headers: HEADERS });
+      const v = rv.ok ? await rv.json() : [];
+      setDirectCaJour(v.reduce((t: number, x: any) => t + (parseFloat(x.prix) || 0), 0));
+      setDirectCmdJour(v.length);
+      setDirectMaj(new Date());
+    } catch { /* on garde l'affichage précédent plutôt que de vider l'écran */ }
+    setDirectLoading(false);
+  }
+
+  // Rafraîchissement automatique tant que la page est ouverte.
+  useEffect(() => {
+    if (page !== "direct") return;
+    loadDirect();
+    const t = setInterval(loadDirect, 20000);
+    return () => clearInterval(t);
+  }, [page]);
+
   function getTodayDateStr() {
     const d = new Date();
     const year = d.getFullYear();
@@ -2995,6 +3035,7 @@ export default function App() {
       {[
         { id: "stock", label: "Stock", icon: "stock", adminOnly: false },
         { id: "horaires", label: "Horaires", icon: "horaires", adminOnly: false },
+        { id: "direct", label: "Direct", icon: "direct", adminOnly: false },
         { id: "finances", label: "Finances", icon: "finances", adminOnly: true },
         { id: "paie", label: "Paie", icon: "paie", adminOnly: true },
         { id: "profil", label: "Profil", icon: "profil", adminOnly: false }
@@ -3003,6 +3044,7 @@ export default function App() {
           <span style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
             {tab.icon === "stock" && <Package size={20} color={page === tab.id ? "#e8213a" : "#c8a878"} />}
             {tab.icon === "horaires" && <Calendar size={20} color={page === tab.id ? "#e8213a" : "#c8a878"} />}
+            {tab.icon === "direct" && <Radio size={20} color={page === tab.id ? "#e8213a" : "#c8a878"} />}
             {tab.icon === "finances" && <CreditCard size={20} color={page === tab.id ? "#e8213a" : "#c8a878"} />}
             {tab.icon === "paie" && <FileText size={20} color={page === tab.id ? "#e8213a" : "#c8a878"} />}
             {tab.icon === "profil" && <UserCircle size={20} color={page === tab.id ? "#e8213a" : "#c8a878"} />}
@@ -8392,6 +8434,95 @@ A travaillé sans être au planning — qui a été remplacé ?
             </div>
           </div>
         )}
+        <BottomNav />
+      </div>
+    );
+  }
+
+  // ── COMMANDES EN DIRECT ────────────────────────────────────
+  if (page === "direct") {
+    const eur = (n: number) => n.toLocaleString("fr-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €";
+    const heure = (v: string | null) => v ? new Date(v).toISOString().slice(11, 16) : "--:--";
+    const totalListe = directCmds.reduce((t, c) => t + (parseFloat(c.total) || 0), 0);
+
+    return (
+      <div style={{ ...s, minHeight: "100dvh", background: "#faebd7", paddingBottom: "11rem" }}>
+        {toast && <div style={{ position: "fixed", top: "1rem", left: "50%", transform: "translateX(-50%)", background: toast.type === "success" ? "#f0fff4" : toast.type === "warn" ? "#fffbe6" : "#fff0f0", color: toast.type === "success" ? "#2e7d32" : toast.type === "warn" ? "#b45309" : "#e8213a", padding: "0.6rem 1.4rem", borderRadius: "20px", fontSize: "0.88rem", zIndex: 999, border: "1.5px solid #f5c8c8", whiteSpace: "nowrap", pointerEvents: "none", fontWeight: "600" }}>{toast.msg}</div>}
+
+        <div style={{ background: "#e8213a", padding: "1.2rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <h1 style={{ color: "#fff", fontSize: "1.1rem", margin: 0, display: "flex", alignItems: "center", gap: "7px" }}><Radio size={19} /> Commandes en direct</h1>
+          <button onClick={loadDirect} disabled={directLoading} style={{ background: "rgba(255,255,255,0.15)", color: "#fff", border: "none", borderRadius: "8px", padding: "0.45rem 0.8rem", fontFamily: "'Poppins', sans-serif", fontSize: "0.8rem", cursor: directLoading ? "default" : "pointer", display: "flex", alignItems: "center", gap: "6px" }}>
+            <RefreshCw size={14} style={directLoading ? { animation: "spin 1s linear infinite" } : undefined} /> {directLoading ? "..." : "Actualiser"}
+          </button>
+        </div>
+
+        <div style={{ padding: "0.6rem 1rem 0", color: "#a07848", fontSize: "0.72rem" }}>
+          {directMaj ? `Mis à jour à ${directMaj.toLocaleTimeString("fr-BE", { hour: "2-digit", minute: "2-digit", second: "2-digit" })} · rafraîchit tout seul` : "Chargement..."}
+        </div>
+
+        <div style={{ padding: "0.8rem 1rem", display: "flex", flexDirection: "column", gap: "0.6rem" }}>
+          {!directCmds.length && !directLoading && (
+            <div style={{ background: "#fff8f0", border: "1.5px dashed #f0d8b8", borderRadius: "14px", padding: "2rem 1rem", textAlign: "center", color: "#a07848", fontSize: "0.85rem" }}>
+              Aucune commande reçue pour l'instant.<br />
+              <span style={{ fontSize: "0.75rem" }}>Elles apparaîtront ici dès qu'un client commande.</span>
+            </div>
+          )}
+
+          {directCmds.map(c => {
+            const lignes = directLignes.filter(l => l.commande_id === c.id);
+            return (
+              <div key={c.id} style={{ background: "#fff", border: "1.5px solid #efe0c9", borderRadius: "14px", padding: "0.9rem", boxShadow: "0 1px 4px rgba(0,0,0,0.04)" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: "0.5rem" }}>
+                  <div style={{ display: "flex", alignItems: "baseline", gap: "0.5rem", minWidth: 0 }}>
+                    <span style={{ fontWeight: "bold", fontSize: "1rem", color: "#e8213a" }}>#{c.reference || "?"}</span>
+                    <span style={{ fontSize: "0.75rem", color: "#a07848", whiteSpace: "nowrap" }}>{heure(c.cree_le || c.recu_le)}</span>
+                  </div>
+                  <span style={{ fontWeight: "bold", fontSize: "1.05rem", whiteSpace: "nowrap" }}>{eur(parseFloat(c.total) || 0)}</span>
+                </div>
+
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "0.35rem", margin: "0.5rem 0 0.2rem" }}>
+                  {c.mode_livraison && <span style={{ background: "#fff8f0", border: "1px solid #f0d8b8", borderRadius: "20px", padding: "0.15rem 0.6rem", fontSize: "0.7rem", color: "#a07848" }}>{c.mode_livraison === "pickup" ? "À emporter" : c.mode_livraison === "delivery" ? "Livraison" : c.mode_livraison}</span>}
+                  {c.mode_paiement && <span style={{ background: "#fff8f0", border: "1px solid #f0d8b8", borderRadius: "20px", padding: "0.15rem 0.6rem", fontSize: "0.7rem", color: "#a07848" }}>{c.mode_paiement}</span>}
+                  <span style={{ background: c.paye ? "#f0fff4" : "#fff0f0", border: `1px solid ${c.paye ? "#a5d6a7" : "#f5c8c8"}`, borderRadius: "20px", padding: "0.15rem 0.6rem", fontSize: "0.7rem", color: c.paye ? "#2e7d32" : "#e8213a", fontWeight: "600" }}>{c.paye ? "Payé" : "Non payé"}</span>
+                  {c.client_nom && <span style={{ background: "#fff8f0", border: "1px solid #f0d8b8", borderRadius: "20px", padding: "0.15rem 0.6rem", fontSize: "0.7rem", color: "#a07848" }}>{c.client_nom}</span>}
+                </div>
+
+                {lignes.length > 0 && (
+                  <div style={{ marginTop: "0.5rem", borderTop: "1px dashed #f0d8b8", paddingTop: "0.5rem", display: "flex", flexDirection: "column", gap: "0.25rem" }}>
+                    {lignes.map(l => (
+                      <div key={l.id} style={{ display: "flex", justifyContent: "space-between", gap: "0.5rem", fontSize: "0.82rem" }}>
+                        <span style={{ minWidth: 0 }}>
+                          <span style={{ color: "#a07848", fontWeight: "600" }}>{Number(l.quantite) % 1 === 0 ? Number(l.quantite) : Number(l.quantite).toFixed(1)}×</span>{" "}
+                          {l.produit_nom || "?"}
+                          {l.commentaire && <span style={{ color: "#a07848", fontStyle: "italic" }}> — {l.commentaire}</span>}
+                        </span>
+                        <span style={{ whiteSpace: "nowrap", color: "#a07848" }}>{eur((parseFloat(l.prix) || 0) * (parseFloat(l.quantite) || 1))}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {c.commentaire && <div style={{ marginTop: "0.5rem", background: "#fffbe6", border: "1px solid #fde68a", borderRadius: "8px", padding: "0.4rem 0.6rem", fontSize: "0.78rem", color: "#b45309" }}>{c.commentaire}</div>}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Les deux totaux, toujours visibles au-dessus de la barre de navigation */}
+        <div style={{ position: "fixed", left: 0, right: 0, bottom: "calc(3.4rem + env(safe-area-inset-bottom, 0px))", background: "#fff8f0", borderTop: "1.5px solid #f0d8b8", padding: "0.7rem 1rem", display: "flex", gap: "0.7rem", zIndex: 39 }}>
+          <div style={{ flex: 1, textAlign: "center" }}>
+            <div style={{ fontSize: "0.68rem", color: "#a07848", textTransform: "uppercase", letterSpacing: "0.02em" }}>Total affiché</div>
+            <div style={{ fontSize: "1.15rem", fontWeight: "bold" }}>{eur(totalListe)}</div>
+            <div style={{ fontSize: "0.65rem", color: "#a07848" }}>{directCmds.length} commande{directCmds.length > 1 ? "s" : ""}</div>
+          </div>
+          <div style={{ width: "1px", background: "#f0d8b8" }} />
+          <div style={{ flex: 1, textAlign: "center" }}>
+            <div style={{ fontSize: "0.68rem", color: "#e8213a", textTransform: "uppercase", letterSpacing: "0.02em", fontWeight: "600" }}>Aujourd'hui · bornes</div>
+            <div style={{ fontSize: "1.15rem", fontWeight: "bold", color: "#e8213a" }}>{eur(directCaJour)}</div>
+            <div style={{ fontSize: "0.65rem", color: "#a07848" }}>{directCmdJour} commande{directCmdJour > 1 ? "s" : ""}</div>
+          </div>
+        </div>
+
         <BottomNav />
       </div>
     );
