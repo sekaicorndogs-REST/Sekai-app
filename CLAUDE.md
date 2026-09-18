@@ -1024,6 +1024,25 @@ Deux constats issus de ce test :
    doit servir à **aucun** calcul, ni ventilation du CA par taux, ni estimation de TVA.
    La référence reste Skytax et les 900 €/mois.
 
+### Onglet « Direct » dans l'app
+
+Nouvel onglet de la barre du bas (icône radio), **visible par tout le monde**, pas
+réservé aux admins : c'est un écran d'exploitation, pas de gestion.
+
+Il affiche les **60 dernières commandes** de `commandes_live` avec leur détail produit,
+et se rafraîchit **tout seul toutes les 20 secondes** tant que la page est ouverte
+(`useEffect` sur `page === "direct"`, intervalle nettoyé à la sortie).
+
+Deux totaux fixés au-dessus de la barre de navigation :
+- **Total affiché** — la somme des commandes listées, avec leur nombre.
+- **Aujourd'hui · bornes** — lu depuis **`ventes`**, la table de référence, filtré sur
+  la date du jour. Pas depuis `commandes_live`, qui ne porte que ce que le webhook a reçu.
+
+⚠️ Les heures s'affichent avec `toISOString().slice(11,16)`, **volontairement sans
+conversion de fuseau** : les horodatages EasyOrder sont des heures locales stockées en
+UTC (voir la règle sur `ventes` plus haut). Ne pas « corriger » en heure locale, ça
+décalerait tout d'une ou deux heures.
+
 Reste à obtenir d'EasyOrder : **comment échanger les identifiants contre un
 `access_token`** — la doc montre `Authorization: Bearer {{access_token}}` mais pas
 l'appel d'authentification. Sans lui, pas d'accusé de réception ni de statuts.
