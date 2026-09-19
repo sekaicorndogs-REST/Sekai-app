@@ -929,22 +929,53 @@ au menu **rapporte**. Décomposition propre de l'écart de ticket de −0,82 €
 L'estimation du gérant (+3,50 € par conversion × 18 conversions/100 = +0,63 €) tombe à
 un centime du calcul. **Ne plus écrire que le menu absorbe les suppléments.**
 
-🔴 **LE VRAI SUJET EST AILLEURS ET IL EST PLUS GROS.** Les suppléments s'effondrent
-**aussi sur les commandes SANS menu** (2,46 € → 1,54 €) : le menu n'y est pour rien.
-Ces −1,46 €/commande valent **~3 600 €/mois de CA** sur ~2 500 commandes, moitié
-suppléments (≈85 % de marge), moitié produits moins chers dans chaque groupe.
+⚠️ **Les −1,46 € « intra-groupe » étaient largement un ARTEFACT** (corrigé le même jour).
+Le gérant a précisé qu'en juillet **« on a mis les menus en avant »** sur la borne, sans
+rien rendre gratuit. Conséquence : le groupe « sans menu » de 2026 n'est pas comparable à
+celui de 2025 — les clients qui chargeaient leur commande d'extras sont justement passés
+au menu, ne laissant que les plus économes. **Toute comparaison par sous-groupe est
+contaminée par cette sélection.**
 
-**Piste à vérifier en priorité : le changement de borne du 25/07/2026.** Si le parcours
-de commande propose moins les panures et sauces payantes qu'avant, il produit exactement
-ce signal — une baisse d'extras sur toutes les commandes, menu ou pas. **C'est le
-chantier le plus rentable identifié à ce jour ; il passe avant la hausse du prix du menu.**
+**Le test propre : comparer un contenu de commande IDENTIQUE d'une année sur l'autre.**
+
+| Commande identique, 1–17 septembre | Extras 2025 | Extras 2026 | Écart |
+|---|---|---|---|
+| 1 corndog Saucisse/Mozza seul (285 → 299 cmd) | 1,42 € | 1,12 € | **−0,30 €** |
+| 1 corndog Mozza seul (133 → 164 cmd) | 1,44 € | 1,14 € | **−0,30 €** |
+| 1 Menu Goodeal seul (123 → 282 cmd) | 0,61 € | 0,41 € | −0,20 € |
+
+La vraie perte à contenu identique est donc de **0,25 à 0,30 €**, pas 1,46 €.
+**Utiliser ce test à contenu identique pour toute question de ce type ; une comparaison
+par sous-groupe est trompeuse dès que la carte oriente le choix des clients.**
+
+🔴 **ANOMALIE À VÉRIFIER : exactement −0,30 € sur les DEUX corndogs, au centime près.**
+Un écart aussi identique sur deux produits différents ressemble à **un changement de prix
+d'une option** (panure ou sauce payante), pas à un changement de comportement. Le gérant
+confirme que rien n'est devenu gratuit → **regarder les tarifs des options sur la borne.**
+Enjeu : ~650 €/mois de CA à très forte marge.
+
+### L'économie du menu, en clair
+
+| Commande d'un seul article | Total encaissé |
+|---|---|
+| 1 corndog Saucisse/Mozza seul | 7,62 € |
+| 1 Menu Goodeal seul | 10,41 € |
+| **Écart** | **2,79 €** |
+
+**Le menu ajoute un side et une boisson pour 2,79 € net**, alors qu'un side vaut 3,50 à
+4,90 € et un soft 2,50 € — soit ~6 € de marchandise donnés pour 2,79 €.
+
+🔴 **C'est LA conclusion à retenir : le menu n'absorbe pas les suppléments, il est vendu
+trop peu cher.** Il ramène du monde (+21 % de commandes) mais chaque conversion dilue le
+ticket parce que la remise est trop forte.
 
 ⚠️ **La conclusion d'août (+417 €/mois, « le menu absorbe les suppléments ») repose sur
 le même raisonnement et n'a PAS été retestée avec cette séparation avec/sans menu.
 À refaire avant de la réutiliser.**
 
-**Action toujours valable, mais secondaire :** passer Menu Good Deal et Menu Bubble Dogs
-de 10 € à 10,50 € — ~530 €/mois, coût nul, le menu restant 2 € sous le prix à la carte.
+**ACTION PRIORITAIRE, désormais étayée par un test propre : passer Menu Good Deal et
+Menu Bubble Dogs de 10 € à 10,50 €.** ~1 048 menus non-XL/mois au rythme de septembre
+× 0,50 € = **~525 €/mois**, coût nul, le menu restant très en dessous du prix à la carte.
 
 ⚠️ `ventes_produits` porte la période `2026-09-01 → 2026-09-17` (24 produits + la ligne
 `SUPPLEMENTS/EXTRAS` à 1 648 €). Son total est de 16 820 € contre 16 995 € dans `ventes` :
