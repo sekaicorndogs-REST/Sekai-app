@@ -847,10 +847,11 @@ que ce qui avait été annoncé, mais plus solide.
 |---|---|---|---|
 | lun 31/08 | 1 430 € | 1 200 € | **230 €** |
 | **ven 18/09** | **1 203 €** | **1 104,80 €** | **98 €** |
+| **01–17/09 (17 jours)** | **19 280 €** | **16 995 €** | **2 285 €, soit 134 €/jour** |
 
-La valeur de 150 €/jour reste **cohérente entre les deux**. Ne pas corriger
-`parametres.ca_hors_bornes` avant le mois complet : deux jours qui vont du simple au
-double ne tranchent rien.
+**La mesure sur 17 jours est la seule qui compte** — les jours isolés vont du simple au
+double. Elle donne **134 €/jour**, soit un peu moins que les 150 € du paramètre.
+Ne pas corriger `parametres.ca_hors_bornes` avant le mois complet le 30/09.
 
 ### 🟢 Première journée complète mesurée automatiquement — ven 18/09/2026
 
@@ -873,6 +874,56 @@ Mix du jour : **42,6 menus / 100 commandes** (dont 9,6 XL), 80,9 corndogs seuls,
 ⚠️ **Ne rien conclure de cet écart.** C'est **un seul jour**, et le comparer à août
 viole la règle 1 de la méthode de chiffrage — août est structurellement un mois à fort
 ticket. À resuivre sur plusieurs semaines, ce qui est désormais automatique.
+
+### 🔴 SEPTEMBRE TRANCHE LE SUJET DU TICKET — 19/09/2026
+
+Le témoin attendu depuis le 31/08 est arrivé : export CSV + « Rapport de vente » détaillé
+du **01 au 17/09/2026**, comparés au **même export de septembre 2025**, mêmes dates,
+même code de parsing. `ventes` porte désormais septembre 2026 en entier
+(1 414 commandes du 01-17 par l'export, puis le webhook à partir du 18).
+
+**Composition vérifiée** : 2 samedis et 2 dimanches de chaque côté. 2025 a un lundi de
+plus, 2026 un jeudi de plus — donc **2026 est légèrement désavantagé**, le jeudi étant
+le jour creux. L'écart mesuré est réel, voire sous-estimé.
+
+| 1–17 septembre, aux bornes | 2025 | 2026 | Écart |
+|---|---|---|---|
+| CA | 14 944 € | **16 995 €** | **+13,7 %** |
+| Commandes | 1 166 | **1 414** | **+21,3 %** |
+| Menus / 100 cmd | 32,4 | **50,6** | **+18,2** |
+| dont XL / 100 | 0 | 8,2 | +8,2 |
+| Corndogs seuls / 100 | 105,3 | 76,0 | −29,3 |
+| Signatures / 100 | 5,6 | 6,0 | +0,4 |
+| **Articles par commande** | **1,51** | **1,39** | **−0,12** |
+| Valeur des produits | 10,68 € | 10,82 € | **+0,14 €** |
+| **Suppléments** | **2,14 €** | **1,18 €** | **−0,97 €** |
+| **Ticket** | **12,82 €** | **12,00 €** | **−0,82 €** |
+
+Parsing validé : l'écart de ticket du détail produits (−0,82 €) retombe sur celui calculé
+indépendamment depuis `ventes` (12,82 → 12,02, soit −0,80 €).
+
+🔴 **Convertir 18 commandes sur 100 en menu n'a rapporté que +0,14 € de valeur produits,
+pendant que les suppléments perdaient 0,97 €. Solde : −0,82 € par commande.**
+En août le solde était de **+0,18 €** ; en septembre il est **négatif**. Sur deux mois
+témoins distincts, la conclusion est la même et elle se durcit :
+**le menu à 10 € rend plus qu'il ne prend.**
+
+**Décomposition du gain de septembre** : fréquentation **+3 180 €**, ticket **−1 130 €**,
+total **+2 050 €**. Autrement dit **le gain vient à 100 % de la fréquentation**, et le
+ticket en reprend une partie. Ne jamais attribuer ce gain à la carte.
+
+⚠️ **Ne pas en conclure que les menus sont une erreur** : la fréquentation est en hausse
+de 21 % et c'est là qu'est l'argent. Ce qui est établi, c'est que **le prix du menu est
+trop bas**, pas que le menu soit mauvais.
+
+**Action confirmée par deux témoins : passer Menu Good Deal et Menu Bubble Dogs de
+10 € à 10,50 €.** Au rythme de septembre (~2 500 commandes/mois, 42,4 menus non-XL pour
+100), cela fait **~530 €/mois**, à coût nul, le menu restant 2 € sous le prix à la carte.
+
+⚠️ `ventes_produits` porte la période `2026-09-01 → 2026-09-17` (24 produits + la ligne
+`SUPPLEMENTS/EXTRAS` à 1 648 €). Son total est de 16 820 € contre 16 995 € dans `ventes` :
+l'écart de 175 € vient de **12 commandes dont le PDF ne donne pas les prix unitaires**,
+volontairement exclues. Pour un CA global, préférer `ventes`.
 
 **À produire fin septembre :**
 1. Le hors-bornes réel du mois, mesuré au lieu d'estimé.
