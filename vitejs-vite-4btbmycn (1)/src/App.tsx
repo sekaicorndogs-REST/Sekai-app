@@ -8504,7 +8504,13 @@ A travaillé sans être au planning — qui a été remplacé ?
     const heure = (v: string | null) => v
       ? new Date(v).toLocaleTimeString("fr-BE", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Brussels" })
       : "--:--";
-    const totalListe = directCmds.reduce((t, c) => t + (parseFloat(c.total) || 0), 0);
+    // Le jour d'une commande se lit à l'heure de Bruxelles, pas en UTC : une commande
+    // de 20h02 appartient bien à la veille (voir la règle des fuseaux plus haut).
+    const jourDe = (c: any) => new Date(c.cree_le || c.recu_le)
+      .toLocaleDateString("fr-CA", { timeZone: "Europe/Brussels" });
+    const aujourdhui = new Date().toLocaleDateString("fr-CA", { timeZone: "Europe/Brussels" });
+    const cmdsDuJour = directCmds.filter(c => jourDe(c) === aujourdhui);
+    const totalListe = cmdsDuJour.reduce((t, c) => t + (parseFloat(c.total) || 0), 0);
 
     return (
       <div style={{ ...s, minHeight: "100dvh", background: "#faebd7", paddingBottom: "14rem" }}>
@@ -8533,9 +8539,19 @@ A travaillé sans être au planning — qui a été remplacé ?
             </div>
           )}
 
-          {directCmds.map(c => {
+          {directCmds.map((c, i) => {
             const lignes = directLignes.filter(l => l.commande_id === c.id);
+            const jour = jourDe(c);
+            const nouveauJour = i === 0 ? jour !== aujourdhui : jour !== jourDe(directCmds[i - 1]);
             return (
+              <div key={"g" + c.id}>
+              {nouveauJour && (
+                <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", margin: "0.4rem 0 0.7rem", color: "#a07848", fontSize: "0.72rem", textTransform: "capitalize" }}>
+                  <div style={{ flex: 1, height: "1px", background: "#f0d8b8" }} />
+                  {new Date(c.cree_le || c.recu_le).toLocaleDateString("fr-BE", { weekday: "long", day: "numeric", month: "long", timeZone: "Europe/Brussels" })}
+                  <div style={{ flex: 1, height: "1px", background: "#f0d8b8" }} />
+                </div>
+              )}
               <div key={c.id} style={{ background: "#fff", border: "1.5px solid #efe0c9", borderRadius: "14px", padding: "0.9rem", boxShadow: "0 1px 4px rgba(0,0,0,0.04)" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: "0.5rem" }}>
                   <div style={{ display: "flex", alignItems: "baseline", gap: "0.5rem", minWidth: 0 }}>
@@ -8569,6 +8585,7 @@ A travaillé sans être au planning — qui a été remplacé ?
 
                 {c.commentaire && <div style={{ marginTop: "0.5rem", background: "#fffbe6", border: "1px solid #fde68a", borderRadius: "8px", padding: "0.4rem 0.6rem", fontSize: "0.78rem", color: "#b45309" }}>{c.commentaire}</div>}
               </div>
+              </div>
             );
           })}
         </div>
@@ -8577,9 +8594,9 @@ A travaillé sans être au planning — qui a été remplacé ?
         <div style={{ position: "fixed", left: 0, right: 0, bottom: "calc(3.4rem + env(safe-area-inset-bottom, 0px))", background: "#fff8f0", borderTop: "1.5px solid #f0d8b8", padding: "0.6rem 1rem", zIndex: 39 }}>
           <div style={{ display: "flex", gap: "0.7rem" }}>
             <div style={{ flex: 1, textAlign: "center" }}>
-              <div style={{ fontSize: "0.68rem", color: "#a07848", textTransform: "uppercase", letterSpacing: "0.02em" }}>Total affiché</div>
+              <div style={{ fontSize: "0.68rem", color: "#a07848", textTransform: "uppercase", letterSpacing: "0.02em" }}>Aujourd'hui · reçues</div>
               <div style={{ fontSize: "1.15rem", fontWeight: "bold" }}>{eur(totalListe)}</div>
-              <div style={{ fontSize: "0.65rem", color: "#a07848" }}>{directCmds.length} commande{directCmds.length > 1 ? "s" : ""}</div>
+              <div style={{ fontSize: "0.65rem", color: "#a07848" }}>{cmdsDuJour.length} commande{cmdsDuJour.length > 1 ? "s" : ""}</div>
             </div>
             <div style={{ width: "1px", background: "#f0d8b8" }} />
             <div style={{ flex: 1, textAlign: "center" }}>

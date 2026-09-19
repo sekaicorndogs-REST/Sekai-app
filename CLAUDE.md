@@ -1266,9 +1266,20 @@ Un point vert « En direct » s'affiche quand le websocket est connecté, gris �
 sinon. Une vibration de 120 ms signale chaque nouvelle commande.
 
 Quatre chiffres fixés au-dessus de la barre de navigation :
-- **Total affiché** — la somme des commandes listées, avec leur nombre.
+- **Aujourd'hui · reçues** — la somme des commandes **de la journée en cours** parmi
+  celles affichées, avec leur nombre. ⚠️ **Ne compte PAS les 60 commandes affichées** :
+  la liste déborde sur la veille dès le matin, et le gérant a demandé le 19/09 que ce
+  total ne porte que sur le jour en cours. Le jour d'une commande se lit **à l'heure de
+  Bruxelles**, sinon une commande de 20h02 bascule sur la veille.
 - **Aujourd'hui · bornes** — lu depuis **`ventes`**, la table de référence, filtré sur
   la date du jour. Pas depuis `commandes_live`, qui ne porte que ce que le webhook a reçu.
+
+💡 Les deux premiers chiffres sont volontairement **redondants** : l'un vient du webhook,
+l'autre de `ventes`. **S'ils divergent, le miroir est cassé** — c'est exactement le bug
+du 18/09. C'est un contrôle gratuit, ne pas les fusionner.
+
+Un **séparateur de date** s'affiche dans la liste au changement de jour, pour qu'on voie
+où s'arrête la journée en cours.
 - **Ticket moyen** du jour — CA du jour ÷ nombre de commandes du jour.
 - **Menus vendus** du jour, avec le taux **pour 100 commandes** — l'indicateur de
   pilotage retenu dans tout ce fichier (règle 5 de la méthode de chiffrage : jamais par
