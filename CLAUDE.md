@@ -902,23 +902,49 @@ le jour creux. L'écart mesuré est réel, voire sous-estimé.
 Parsing validé : l'écart de ticket du détail produits (−0,82 €) retombe sur celui calculé
 indépendamment depuis `ventes` (12,82 → 12,02, soit −0,80 €).
 
-🔴 **Convertir 18 commandes sur 100 en menu n'a rapporté que +0,14 € de valeur produits,
-pendant que les suppléments perdaient 0,97 €. Solde : −0,82 € par commande.**
-En août le solde était de **+0,18 €** ; en septembre il est **négatif**. Sur deux mois
-témoins distincts, la conclusion est la même et elle se durcit :
-**le menu à 10 € rend plus qu'il ne prend.**
+### 🔴 CORRECTION DU 19/09/2026 — « le menu absorbe les suppléments » est FAUX
 
-**Décomposition du gain de septembre** : fréquentation **+3 180 €**, ticket **−1 130 €**,
-total **+2 050 €**. Autrement dit **le gain vient à 100 % de la fréquentation**, et le
-ticket en reprend une partie. Ne jamais attribuer ce gain à la carte.
+**Le gérant a objecté, pour la deuxième fois, que les suppléments s'additionnent aussi
+sur les menus. Il avait raison, et la vérification lui donne raison.** En séparant les
+commandes avec et sans menu :
 
-⚠️ **Ne pas en conclure que les menus sont une erreur** : la fréquentation est en hausse
-de 21 % et c'est là qu'est l'argent. Ce qui est établi, c'est que **le prix du menu est
-trop bas**, pas que le menu soit mauvais.
+| 1–17 septembre | 2025 | 2026 | Écart |
+|---|---|---|---|
+| **Part des commandes AVEC menu** | 24,2 % | **39,9 %** | +15,7 pts |
+| — ticket | 15,87 € | 14,64 € | −1,23 € |
+| — suppléments | 1,13 € | 0,63 € | −0,50 € |
+| **Commandes SANS menu** | 75,8 % | 60,1 % | |
+| — ticket | 11,84 € | 10,24 € | −1,60 € |
+| — suppléments | **2,46 €** | **1,54 €** | **−0,92 €** |
 
-**Action confirmée par deux témoins : passer Menu Good Deal et Menu Bubble Dogs de
-10 € à 10,50 €.** Au rythme de septembre (~2 500 commandes/mois, 42,4 menus non-XL pour
-100), cela fait **~530 €/mois**, à coût nul, le menu restant 2 € sous le prix à la carte.
+**Une commande avec menu vaut 4,40 € de plus qu'une commande sans menu.** La conversion
+au menu **rapporte**. Décomposition propre de l'écart de ticket de −0,82 € :
+
+| | Effet |
+|---|---|
+| **Passage aux menus (effet de mix)** | **+0,64 €** |
+| **Autre chose (effet intra-groupe)** | **−1,46 €** |
+| Total | **−0,82 €** |
+
+L'estimation du gérant (+3,50 € par conversion × 18 conversions/100 = +0,63 €) tombe à
+un centime du calcul. **Ne plus écrire que le menu absorbe les suppléments.**
+
+🔴 **LE VRAI SUJET EST AILLEURS ET IL EST PLUS GROS.** Les suppléments s'effondrent
+**aussi sur les commandes SANS menu** (2,46 € → 1,54 €) : le menu n'y est pour rien.
+Ces −1,46 €/commande valent **~3 600 €/mois de CA** sur ~2 500 commandes, moitié
+suppléments (≈85 % de marge), moitié produits moins chers dans chaque groupe.
+
+**Piste à vérifier en priorité : le changement de borne du 25/07/2026.** Si le parcours
+de commande propose moins les panures et sauces payantes qu'avant, il produit exactement
+ce signal — une baisse d'extras sur toutes les commandes, menu ou pas. **C'est le
+chantier le plus rentable identifié à ce jour ; il passe avant la hausse du prix du menu.**
+
+⚠️ **La conclusion d'août (+417 €/mois, « le menu absorbe les suppléments ») repose sur
+le même raisonnement et n'a PAS été retestée avec cette séparation avec/sans menu.
+À refaire avant de la réutiliser.**
+
+**Action toujours valable, mais secondaire :** passer Menu Good Deal et Menu Bubble Dogs
+de 10 € à 10,50 € — ~530 €/mois, coût nul, le menu restant 2 € sous le prix à la carte.
 
 ⚠️ `ventes_produits` porte la période `2026-09-01 → 2026-09-17` (24 produits + la ligne
 `SUPPLEMENTS/EXTRAS` à 1 648 €). Son total est de 16 820 € contre 16 995 € dans `ventes` :
