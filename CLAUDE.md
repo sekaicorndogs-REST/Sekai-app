@@ -948,11 +948,50 @@ La vraie perte à contenu identique est donc de **0,25 à 0,30 €**, pas 1,46 �
 **Utiliser ce test à contenu identique pour toute question de ce type ; une comparaison
 par sous-groupe est trompeuse dès que la carte oriente le choix des clients.**
 
-🔴 **ANOMALIE À VÉRIFIER : exactement −0,30 € sur les DEUX corndogs, au centime près.**
-Un écart aussi identique sur deux produits différents ressemble à **un changement de prix
-d'une option** (panure ou sauce payante), pas à un changement de comportement. Le gérant
-confirme que rien n'est devenu gratuit → **regarder les tarifs des options sur la borne.**
-Enjeu : ~650 €/mois de CA à très forte marge.
+⚠️ **La piste « un prix d'option a baissé » est ÉCARTÉE** (testée le 19/09, ne pas la
+rouvrir). En séparant *combien de clients prennent un extra* de *combien ils paient* :
+
+| Commandes « un seul corndog » | 2025 | 2026 |
+|---|---|---|
+| Ne prennent **aucun** extra | 31,8 % | **45,2 %** |
+| Montant moyen **quand ils en prennent** | 2,22 € | 2,05 € |
+
+Les montants les plus fréquents sont **identiques des deux côtés** (0,50 · 1,00 · 1,50 ·
+2,00 · 2,50 · 3,00 · 3,50 €) : **aucun tarif n'a bougé.** Le « −0,30 € exactement » était
+une coïncidence de moyenne. Il y a simplement 13 points de clients en moins qui prennent
+un extra — ils sont passés au menu.
+
+### Le client type n'achète PAS de side — ce qui change tout
+
+| Ce que le client ajoute à un corndog seul | 2025 | 2026 |
+|---|---|---|
+| Rien | 31,8 % | 45,2 % |
+| 0,01 à 1,50 € — sauces, panures | 36,3 % | 26,9 % |
+| 1,51 à 3,00 € | 17,9 % | 19,6 % |
+| 3,01 à 4,99 € — **un side** | 5,7 % | **4,1 %** |
+| 5,00 € et plus | 8,3 % | 4,1 % |
+
+**Seulement ~8 % des commandes « un corndog seul » contiennent quelque chose de la taille
+d'un side.** Le client type ajoute une sauce ou une panure, autour d'un euro.
+
+🔴 **Conséquence : chaque conversion au menu RAPPORTE.** Ce client payait 6,50 + 1,00 =
+**7,50 €** ; il prend maintenant un menu à **10 €**, soit **+2,50 €**. Le side qu'on lui
+offre, il ne l'aurait jamais acheté — il ne coûte que sa matière. **L'objection du gérant
+était fondée et le raisonnement initial de Claude était faux.**
+
+### D'où vient alors la baisse du ticket : du HAUT de la distribution
+
+| 1–17 septembre | 2025 | 2026 |
+|---|---|---|
+| Ticket médian | 10,50 € | 10,00 € |
+| Commandes à **8 € ou moins** | 33,4 % | **31,7 %** |
+| Commandes à **20 € ou plus** | 16,9 % | **13,8 %** |
+
+**Il n'y a pas plus de petites commandes — il y en a un peu moins. Ce sont les GROSSES qui
+ont reculé**, de 3,1 points. Mécanisme : deux personnes qui prenaient 2 corndogs +
+2 sides + 2 boissons (20-25 €) prennent aujourd'hui **2 menus = 20 €**, sides et boissons
+compris. **Le menu ne comprime pas les petits paniers, il comprime les gros** — il agit
+comme une remise de volume que personne n'a décidée.
 
 ### L'économie du menu, en clair
 
@@ -965,17 +1004,25 @@ Enjeu : ~650 €/mois de CA à très forte marge.
 **Le menu ajoute un side et une boisson pour 2,79 € net**, alors qu'un side vaut 3,50 à
 4,90 € et un soft 2,50 € — soit ~6 € de marchandise donnés pour 2,79 €.
 
-🔴 **C'est LA conclusion à retenir : le menu n'absorbe pas les suppléments, il est vendu
-trop peu cher.** Il ramène du monde (+21 % de commandes) mais chaque conversion dilue le
-ticket parce que la remise est trop forte.
+🔴 **CONCLUSION STABILISÉE (19/09/2026), après deux erreurs successives de Claude :**
+le menu n'absorbe pas les suppléments et **chaque conversion individuelle rapporte**.
+La baisse du ticket vient des **paniers de groupe**, où le menu joue une remise de volume
+non décidée. Le menu est simplement **vendu trop peu cher**, surtout à plusieurs.
 
 ⚠️ **La conclusion d'août (+417 €/mois, « le menu absorbe les suppléments ») repose sur
 le même raisonnement et n'a PAS été retestée avec cette séparation avec/sans menu.
 À refaire avant de la réutiliser.**
 
-**ACTION PRIORITAIRE, désormais étayée par un test propre : passer Menu Good Deal et
-Menu Bubble Dogs de 10 € à 10,50 €.** ~1 048 menus non-XL/mois au rythme de septembre
-× 0,50 € = **~525 €/mois**, coût nul, le menu restant très en dessous du prix à la carte.
+**ACTION PRIORITAIRE : passer Menu Good Deal et Menu Bubble Dogs de 10 € à 10,50 €.**
+~1 048 menus non-XL/mois au rythme de septembre × 0,50 € = **~525 €/mois**, coût nul.
+Elle frappe exactement là où ça fuit : le client seul paie 0,50 € de plus sur un achat
+déjà très avantageux pour lui, **et le groupe de deux paie 1 € de plus**. La valeur à la
+carte reste de 12,90 €, soit encore 19 % de remise.
+
+⚠️ **Question ouverte posée au gérant, non tranchée :** est-ce le **prix rond de 10 €**
+qui produit l'effet, ou le **fait que le menu soit mis en avant sur la borne** ? Si c'est
+le prix rond, la hausse casse quelque chose. Si c'est la mise en avant, elle ne change
+rien à la perception. Le gérant est au comptoir, c'est lui qui peut le dire.
 
 ⚠️ `ventes_produits` porte la période `2026-09-01 → 2026-09-17` (24 produits + la ligne
 `SUPPLEMENTS/EXTRAS` à 1 648 €). Son total est de 16 820 € contre 16 995 € dans `ventes` :
