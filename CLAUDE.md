@@ -1386,6 +1386,8 @@ filet de rattrapage. **Le contrôle de complétude devient donc la continuité d
 de la borne** (références 001, 002, … sans trou) : c'est désormais le SEUL filet, à
 vérifier chaque jour.
 
-⚠️ À clarifier un jour si le sujet revient : « EasyOrder est fini » veut-il dire que le
-contrat s'arrête et que les bornes vont changer de fournisseur ? Si oui, tout ce module
-est à durée de vie limitée. Le gérant ne l'a pas dit, ne pas le supposer.
+✅ **Précision du gérant, même jour : c'est l'ÉCHANGE PAR MAIL qui est fini, pas
+EasyOrder.** *« On a encore leur app. »* Le restaurant reste client, les bornes
+continuent de tourner et le webhook aussi. Ce module n'a **aucune** durée de vie
+limitée — j'avais supposé le contraire, c'était faux. Seul le canal de questions à
+Matijs est fermé.
