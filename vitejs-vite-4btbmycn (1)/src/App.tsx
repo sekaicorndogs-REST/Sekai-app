@@ -2455,12 +2455,20 @@ export default function App() {
   // (« MENU ETUDIANT » avant le renommage du 21/07/2026), d'où la reconnaissance large.
   const estMenu = (nom?: string | null) =>
     !!nom && /MENU|GOOD ?DEAL|GOODEAL|BUBBLE ?DOG|ETUDIANT/i.test(nom);
+  // Un « plat » = corndog, menu ou signature. Une commande qui n'en contient aucun est
+  // un passage rapide (une canette, des frites) : ~2 % des commandes, ticket ~5 €.
+  // Le gérant a demandé le 19/09 de les exclure du ticket moyen, elles ne sont pas
+  // représentatives. Elles restent comptées dans le CA et le nombre de commandes.
+  const estPlat = (nom?: string | null) =>
+    !!nom && /CORNDOG|MENU|GOOD ?DEAL|GOODEAL|BUBBLE ?DOG|ETUDIANT|SAITAMA|ACE|SUISSE|SEKAI/i.test(nom);
 
   const [directCmds, setDirectCmds] = useState<any[]>([]);
   const [directLignes, setDirectLignes] = useState<any[]>([]);
   const [directCaJour, setDirectCaJour] = useState(0);
   const [directCmdJour, setDirectCmdJour] = useState(0);
   const [directMenusJour, setDirectMenusJour] = useState(0);
+  const [directTicketJour, setDirectTicketJour] = useState<number | null>(null);
+  const [directPlatsJour, setDirectPlatsJour] = useState(0);
   const [directLoading, setDirectLoading] = useState(false);
   const [directMaj, setDirectMaj] = useState<Date | null>(null);
 
@@ -2487,11 +2495,25 @@ export default function App() {
       // Les menus du jour, comptés sur TOUTES les lignes de la journée — pas sur les
       // 60 commandes affichées, qui ne suffiraient plus dès qu'un samedi sera chargé.
       const rm = await fetch(
-        `${SUPABASE_URL}/rest/v1/commandes_live_lignes?select=quantite,produit_nom,commandes_live!inner(recu_le)&commandes_live.recu_le=gte.${jour}T00:00:00&commandes_live.recu_le=lte.${jour}T23:59:59`,
+        `${SUPABASE_URL}/rest/v1/commandes_live_lignes?select=commande_id,quantite,produit_nom,commandes_live!inner(recu_le)&commandes_live.recu_le=gte.${jour}T00:00:00&commandes_live.recu_le=lte.${jour}T23:59:59`,
         { headers: HEADERS },
       );
       const lj = rm.ok ? await rm.json() : [];
       setDirectMenusJour(lj.reduce((t: number, l: any) => t + (estMenu(l.produit_nom) ? (parseFloat(l.quantite) || 1) : 0), 0));
+
+      // Ticket moyen hors passages rapides : on ne garde que les commandes du jour qui
+      // contiennent au moins un plat.
+      const avecPlat = new Set(lj.filter((l: any) => estPlat(l.produit_nom)).map((l: any) => l.commande_id));
+      const rt = await fetch(
+        `${SUPABASE_URL}/rest/v1/commandes_live?select=id,total&recu_le=gte.${jour}T00:00:00&recu_le=lte.${jour}T23:59:59`,
+        { headers: HEADERS },
+      );
+      const cj = rt.ok ? await rt.json() : [];
+      const plats = cj.filter((c: any) => avecPlat.has(c.id));
+      setDirectPlatsJour(plats.length);
+      setDirectTicketJour(plats.length
+        ? plats.reduce((t: number, c: any) => t + (parseFloat(c.total) || 0), 0) / plats.length
+        : null);
       setDirectMaj(new Date());
     } catch { /* on garde l'affichage précédent plutôt que de vider l'écran */ }
     setDirectLoading(false);
@@ -8610,14 +8632,15 @@ A travaillé sans être au planning — qui a été remplacé ?
           <div style={{ display: "flex", gap: "0.7rem", marginTop: "0.5rem", borderTop: "1px dashed #f0d8b8", paddingTop: "0.45rem" }}>
             <div style={{ flex: 1, textAlign: "center" }}>
               <div style={{ fontSize: "0.63rem", color: "#a07848", textTransform: "uppercase" }}>Ticket moyen</div>
-              <div style={{ fontSize: "0.95rem", fontWeight: "bold" }}>{directCmdJour ? eur(directCaJour / directCmdJour) : "—"}</div>
+              <div style={{ fontSize: "0.95rem", fontWeight: "bold" }}>{directTicketJour !== null ? eur(directTicketJour) : "—"}</div>
+              <div style={{ fontSize: "0.6rem", color: "#a07848" }}>hors passages rapides</div>
             </div>
             <div style={{ width: "1px", background: "#f0d8b8" }} />
             <div style={{ flex: 1, textAlign: "center" }}>
               <div style={{ fontSize: "0.63rem", color: "#a07848", textTransform: "uppercase" }}>Menus vendus</div>
               <div style={{ fontSize: "0.95rem", fontWeight: "bold" }}>
                 {directMenusJour}
-                {directCmdJour > 0 && <span style={{ fontSize: "0.7rem", color: "#a07848", fontWeight: "normal" }}> · {Math.round(directMenusJour / directCmdJour * 100)}/100</span>}
+                {directPlatsJour > 0 && <span style={{ fontSize: "0.7rem", color: "#a07848", fontWeight: "normal" }}> · {Math.round(directMenusJour / directPlatsJour * 100)}/100</span>}
               </div>
             </div>
           </div>

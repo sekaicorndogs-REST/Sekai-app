@@ -1280,10 +1280,20 @@ du 18/09. C'est un contrôle gratuit, ne pas les fusionner.
 
 Un **séparateur de date** s'affiche dans la liste au changement de jour, pour qu'on voie
 où s'arrête la journée en cours.
-- **Ticket moyen** du jour — CA du jour ÷ nombre de commandes du jour.
-- **Menus vendus** du jour, avec le taux **pour 100 commandes** — l'indicateur de
+- **Ticket moyen** du jour, **hors passages rapides** (19/09/2026). Une commande qui ne
+  contient ni corndog, ni menu, ni signature — une canette, des frites — est un passage
+  rapide, pas un client représentatif. Le gérant a demandé de les exclure du ticket.
+  Elles **restent comptées** dans le CA et dans le nombre de commandes.
+  Effet mesuré sur le vendredi 18/09 : 3 commandes sur 94, ticket 11,75 € → **12,05 €**.
+- **Menus vendus** du jour, avec le taux **pour 100 commandes** — rapporté aux seules
+  commandes **avec plat**, pour rester cohérent avec le ticket. C'est l'indicateur de
   pilotage retenu dans tout ce fichier (règle 5 de la méthode de chiffrage : jamais par
   jour, toujours par commande).
+
+⚠️ Sur l'ensemble de septembre, ces passages rapides pèsent **2,1 % des commandes** pour
+un ticket de ~5,20 €, contre 1,8 % en 2025 : **ils n'expliquent AUCUNE part de la baisse
+du ticket** (−0,82 € avec ou sans eux). Le filtre est une question de justesse, pas une
+explication. Ne pas refaire ce test.
 
 ⚠️ Les menus sont comptés sur **toutes** les lignes de la journée, via une jointure
 `commandes_live_lignes → commandes_live` filtrée sur `recu_le`, **pas** sur les 60
