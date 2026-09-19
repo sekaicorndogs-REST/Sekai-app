@@ -55,7 +55,13 @@ Il contient le contexte métier durable. **À mettre à jour dès qu'une donnée
 ## Le commerce
 
 - Corndogs coréens, Rue Neuve à Bruxelles (rue commerçante, très fort flux piéton)
-- **Un seul point de vente**, plus des events ponctuels. Les entrées « Event 1 » et
+- **Un seul point de vente**, plus des events ponctuels.
+  ⚠️ **Rue de l'Enseignement était un SECOND restaurant, aujourd'hui FERMÉ** (gérant,
+  19/09/2026) : *« il n'était plus viable »*. C'est pourquoi un deuxième compte EasyOrder
+  porte ce nom. Il n'envoie donc plus de commandes, et **aucun chiffre de ce fichier ne le
+  concerne** — CA, saisonnalité, charges et seuil de rentabilité ne portent que sur Rue
+  Neuve. Ne pas chercher à réconcilier les deux comptes, et ne pas rouvrir le segment
+  « deuxième point de vente » : il a déjà été essayé et il a échoué. Les entrées « Event 1 » et
   « Event 2 » de `RESTAURANTS` sont des **kits de stock pour charger la camionnette**,
   pas des boutiques : leurs quantités vides sont normales, ce ne sont pas des alertes.
 - CA moyen **1 032 €/jour** — **882 € bornes** + **150 € caisse/Uber tous les mois**,
@@ -1361,6 +1367,25 @@ Preuve : une commande reçue à 12h08 à Bruxelles porte `cree_le` **et** `recu_
 10h08 UTC — les deux concordent, donc c'est bien de l'UTC réel. L'onglet Direct utilise
 désormais `toLocaleTimeString` avec `timeZone: "Europe/Brussels"`.
 
-Reste à obtenir d'EasyOrder : **comment échanger les identifiants contre un
-`access_token`** — la doc montre `Authorization: Bearer {{access_token}}` mais pas
-l'appel d'authentification. Sans lui, pas d'accusé de réception ni de statuts.
+### 🔴 L'échange avec EasyOrder est TERMINÉ — 19/09/2026
+
+Le gérant : *« pour le mail on peut plus avoir plus de données car EasyOrder est fini »*.
+**Ne plus écrire à Matijs, ne plus attendre de réponse d'EasyOrder.** Ce qui restait
+demandé ne viendra pas :
+
+- **Comment échanger les identifiants contre un `access_token`** — la doc montre
+  `Authorization: Bearer {{access_token}}` mais pas l'appel d'authentification.
+  **Sans lui : pas d'accusé de réception `/pos/orders-processed`, pas de statuts, pas de
+  polling de rattrapage.** Ne pas relancer ce sujet.
+- Le passage aux deux URL par compte n'a pas été confirmé de leur côté.
+
+**Ce qui continue de marcher sans eux, et c'est l'essentiel :** le webhook reçoit les
+commandes et les écrit ; l'onglet Direct, `commandes_live`, les options et le miroir
+`ventes` ne dépendent d'aucun jeton. La seule perte est l'accusé de réception, donc le
+filet de rattrapage. **Le contrôle de complétude devient donc la continuité du compteur
+de la borne** (références 001, 002, … sans trou) : c'est désormais le SEUL filet, à
+vérifier chaque jour.
+
+⚠️ À clarifier un jour si le sujet revient : « EasyOrder est fini » veut-il dire que le
+contrat s'arrête et que les bornes vont changer de fournisseur ? Si oui, tout ce module
+est à durée de vie limitée. Le gérant ne l'a pas dit, ne pas le supposer.
