@@ -625,6 +625,8 @@ perdront leur raison d'être en carte. Pas d'action pour l'instant.
 ⚠️ Le « Rapport de vente » EasyOrder ne liste **pas** les options (sides, panures,
 suppléments) — seulement les produits. Pour tout ce qui est pris en option, il faut la
 « Liste de commande » détaillée. Ne pas conclure à l'absence de ventes depuis un rapport.
+**✅ Ne vaut plus que pour les exports PDF : depuis le 19/09/2026 le WEBHOOK fournit les
+options avec leur prix (table `commandes_live_options`).**
 4. **`top_produits` régénéré le 12/08/2026** sur le rapport produits du 01-11/08
    (800 commandes, commande erronée exclue), prix de `menu_produits`, coûts de
    `menu_recettes`. Total : **996 €/jour de CA, 844 €/jour de marge**, cohérent avec
@@ -1238,6 +1240,48 @@ Deux constats issus de ce test :
    demeure est analytique — le champ `vat_percentage` d'EasyOrder n'est pas fiable et ne
    doit servir à **aucun** calcul, ni ventilation du CA par taux, ni estimation de TVA.
    La référence reste Skytax et les 900 €/mois.
+
+### 🟢 LES OPTIONS SONT DANS LE WEBHOOK — 19/09/2026, l'angle mort est comblé
+
+🔴 **Corrige une affirmation qui traînait partout dans ce fichier :** « les options
+(sides, panures, suppléments) n'apparaissent pas dans les exports EasyOrder, il faut
+demander la Liste de commande détaillée ». **C'est vrai des exports PDF, c'est FAUX du
+webhook.** Chaque ligne de commande porte un tableau `product_options` avec, pour chaque
+groupe, le choix retenu **et son prix**.
+
+Table **`commandes_live_options`** (créée le 19/09) : `commande_id`, `ligne_id`, `groupe`,
+`choix`, `prix`. Remplie automatiquement par la fonction v6, et **rétroactivement depuis
+les `payload` déjà reçus** — rien n'avait été perdu.
+
+🔴 **Le prix d'une option s'applique PAR UNITÉ** : il faut le multiplier par
+`commandes_live_lignes.quantite`. Sans ça, 4 commandes sur 105 ne se réconciliaient pas.
+Avec, **105 sur 105 tombent au centime** :
+`total = Σ(lignes.prix × quantite) + Σ(options.prix × quantite de la ligne)`.
+
+**Premier relevé (105 commandes, 18-19/09 — une journée et demie, indicatif) :**
+
+| Option payante | Prix | Fois | CA |
+|---|---|---|---|
+| **Panure POTATOE** | 1,00 € | 32 | **32,00 €** |
+| **Panure BLUE** | 1,00 € | 15 | 16,00 € |
+| Panure SPICY (+ supplément panure) | 0,50 € | 19 | 12,00 € |
+| Panure BLUE en supplément | 1,00 € | 3 | 3,00 € |
+| Softs en supplément | 2,00 € | 11 | 22,00 € |
+| Side Tempura crevette | 4,90 € | 2 | 14,70 € |
+| Side Poulet karaage | 4,60 € | 1 | 9,20 € |
+| Side Frites | 3,50 € | 2 | 7,00 € |
+| **Oignons frits** | 0,50 € | 16 | 10,00 € |
+| **Total** | | | **131,90 €** |
+
+🔴 **Ce sont les PANURES qui font les suppléments, pas les sides** : 63 € sur 132, près
+de la moitié. La Potatoe à 1 € est prise sur ~3 commandes sur 10.
+
+✅ **Contrôle croisé réussi** : 131,90 € / 105 commandes = **1,26 €/commande**, contre
+**1,18 €** calculé indépendamment sur septembre par soustraction (ticket − valeur
+produits). Les deux méthodes concordent — la mesure des suppléments est fiable.
+
+⚠️ Échantillon d'une journée et demie : les proportions sont indicatives, pas encore
+solides. À reprendre après une semaine pleine.
 
 ### Onglet « Direct » dans l'app
 
