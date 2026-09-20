@@ -855,11 +855,13 @@ que ce qui avait été annoncé, mais plus solide.
 |---|---|---|---|
 | lun 31/08 | 1 430 € | 1 200 € | **230 €** |
 | **ven 18/09** | **1 203 €** | **1 104,80 €** | **98 €** |
-| **01–17/09 (17 jours)** | **19 280 €** | **16 995 €** | **2 285 €, soit 134 €/jour** |
+| sam 19/09 | 1 592,50 € | 1 453,70 € | **139 €** |
+| **01–19/09 (19 jours)** | **22 075,50 €** | **19 553,70 €** | **2 522 €, soit 133 €/jour** |
 
-**La mesure sur 17 jours est la seule qui compte** — les jours isolés vont du simple au
-double. Elle donne **134 €/jour**, soit un peu moins que les 150 € du paramètre.
-Ne pas corriger `parametres.ca_hors_bornes` avant le mois complet le 30/09.
+**La mesure cumulée est la seule qui compte** — les jours isolés vont du simple au
+double. Elle donne **133 €/jour**, stable entre 17 et 19 jours, soit un peu moins que les
+150 € du paramètre. Ne pas corriger `parametres.ca_hors_bornes` avant le mois complet
+le 30/09.
 
 ### 🟢 Première journée complète mesurée automatiquement — ven 18/09/2026
 
@@ -882,6 +884,27 @@ Mix du jour : **42,6 menus / 100 commandes** (dont 9,6 XL), 80,9 corndogs seuls,
 ⚠️ **Ne rien conclure de cet écart.** C'est **un seul jour**, et le comparer à août
 viole la règle 1 de la méthode de chiffrage — août est structurellement un mois à fort
 ticket. À resuivre sur plusieurs semaines, ce qui est désormais automatique.
+
+### 🟢 Samedi 19/09/2026 — deuxième journée complète captée
+
+Références **001 à 118 sans trou**, 12h17 → 20h55. Le contrôle de complétude passe.
+
+| | 19/09/2026 | Témoin : sam 20/09/2025 |
+|---|---|---|
+| CA bornes | **1 453,70 €** | 869,70 € |
+| Commandes | **118** | 66 |
+| Ticket | 12,32 € | 13,18 € |
+
+**+67 % de CA, +79 % de commandes** contre le samedi équivalent de la semaine creuse de
+2025. ⚠️ Le témoin est le samedi **de la même semaine du mois**, pas une moyenne : le
+19/09/2026 tombe dans le creux de rentrée, et le 20/09/2025 aussi.
+
+Les trois samedis de septembre 2026 : **2 018 € (05/09) · 1 481 € (12/09) · 1 454 €
+(19/09)**. La décrue est celle du creux, elle était attendue.
+
+Mix : **47,5 menus / 100 commandes** (dont 9,3 XL), 1,43 article par commande.
+Options payantes **152,10 €, soit 1,29 €/commande** — cohérent avec les 1,26 € du 18/09
+et les 1,18 € calculés sur septembre. La mesure des suppléments tient.
 
 ### 🔴 SEPTEMBRE TRANCHE LE SUJET DU TICKET — 19/09/2026
 
