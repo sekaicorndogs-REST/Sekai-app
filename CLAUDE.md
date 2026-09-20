@@ -593,9 +593,16 @@ Les deux journées sont les **meilleures de l'été** dans leur catégorie.
 soit ~60 € de main-d'œuvre à deux. Marge nette de l'ordre de **150 à 190 € sur deux jours**.
 Généralisé à tous les week-ends : ~15 000 €/an de CA, **~650 €/mois de marge**.
 
-⚠️ Deux jours seulement, et une fin août portée par la rentrée. À reconfirmer sur
-septembre avant d'en faire une règle. Mais c'est le premier test à coût quasi nul qui
-donne un résultat franchement positif.
+✅ **CONFIRMÉ UNE TROISIÈME FOIS — dimanche 20/09/2026.** Première commande à 13h05 au
+lieu de ~14h05 : **97,50 € sur l'heure gagnée**. C'est le **seul dimanche de septembre
+2026 avec des ventes avant 14h**, donc la mesure est propre.
+Et toujours pas de report : le reste de la journée fait **618 € après 14h**, contre 653 €
+le 06/09 et 375 € le 13/09 — dans la fourchette normale, pas en dessous.
+
+**Trois mesures : 116 € · 179 € · 97,50 €**, soit ~130 € de CA par jour d'ouverture
+avancée pour ~30 € de main-d'œuvre. La reconfirmation demandée sur septembre a eu lieu.
+**C'est l'action la mieux établie du dossier** — trois observations, toutes positives,
+aucune baisse du reste de la journée.
 
 ### Les XL ne cannibalisent PAS les menus normaux — vérifié le 11/08/2026
 
@@ -856,11 +863,12 @@ que ce qui avait été annoncé, mais plus solide.
 | lun 31/08 | 1 430 € | 1 200 € | **230 €** |
 | **ven 18/09** | **1 203 €** | **1 104,80 €** | **98 €** |
 | sam 19/09 | 1 592,50 € | 1 453,70 € | **139 €** |
-| **01–19/09 (19 jours)** | **22 075,50 €** | **19 553,70 €** | **2 522 €, soit 133 €/jour** |
+| dim 20/09 | 778 € | 715,60 € | **62 €** |
+| **01–20/09 (20 jours)** | **22 853,50 €** | **20 269,30 €** | **2 584 €, soit 129 €/jour** |
 
 **La mesure cumulée est la seule qui compte** — les jours isolés vont du simple au
-double. Elle donne **133 €/jour**, stable entre 17 et 19 jours, soit un peu moins que les
-150 € du paramètre. Ne pas corriger `parametres.ca_hors_bornes` avant le mois complet
+double (62 € le 20/09, 230 € le 31/08). Elle donne **129 €/jour**, stable entre 17 et
+20 jours, soit un peu moins que les 150 € du paramètre. Ne pas corriger `parametres.ca_hors_bornes` avant le mois complet
 le 30/09.
 
 ### 🟢 Première journée complète mesurée automatiquement — ven 18/09/2026
@@ -905,6 +913,27 @@ Les trois samedis de septembre 2026 : **2 018 € (05/09) · 1 481 € (12/09) �
 Mix : **47,5 menus / 100 commandes** (dont 9,3 XL), 1,43 article par commande.
 Options payantes **152,10 €, soit 1,29 €/commande** — cohérent avec les 1,26 € du 18/09
 et les 1,18 € calculés sur septembre. La mesure des suppléments tient.
+
+### 🟢 Dimanche 20/09/2026 — troisième journée complète captée
+
+Références **001 à 060 sans trou**, 13h05 → 19h40.
+
+| | 20/09/2026 | Témoin : dim 21/09/2025 |
+|---|---|---|
+| CA bornes | **715,60 €** | 509,20 € |
+| Commandes | **60** | 33 |
+| Ticket | 11,93 € | 15,43 € |
+
+**+40 % de CA, +82 % de commandes** contre le dimanche équivalent de la semaine creuse
+de 2025. Le ticket est plus bas mais le flux double presque — même structure que le
+18/09. Voir aussi l'ouverture avancée ci-dessus, confirmée ce jour-là.
+
+**Position à mi-parcours (01–20/09) : 1 013 €/jour aux bornes, 1 143 €/jour tout
+compris.** Contre un seuil de rentabilité de 895 €.
+
+⚠️ Sur les mêmes dates, 2026 compte **3 samedis contre 2 en 2025** et un lundi de moins :
+le calendrier offre ~28 €/jour. L'écart réel contre 2025 est donc de ~+136 €/jour, pas
++164 €. **Toujours vérifier la composition en jours de semaine avant d'annoncer un écart.**
 
 ### 🔴 SEPTEMBRE TRANCHE LE SUJET DU TICKET — 19/09/2026
 
