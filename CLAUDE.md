@@ -845,6 +845,26 @@ Le dimanche 14/09/2025 est tombé à **335 €**. Le dimanche 13/09/2026 à 500 
 **meilleur** que son équivalent. Ne pas traiter les journées faibles de la mi-septembre
 comme un décrochage : c'est le calendrier. La reprise intervient dans la semaine du 22.
 
+### 🟢 LA SEMAINE CREUSE 2026 EST BOUCLÉE — le meilleur résultat du dossier (21/09)
+
+| Semaine 15–21 septembre, aux bornes | 2025 | 2026 | Écart |
+|---|---|---|---|
+| CA | 4 718 € | **6 992 €** | **+48 %** |
+| **Par jour** | **674 €** | **999 €** | **+325 €** |
+| Commandes | 363 | **588** | **+62 %** |
+| Ticket | 13,00 € | 11,89 € | −1,11 € |
+
+⚠️ **Composition vérifiée et IDENTIQUE** : 15-21/09/2025 va du lundi au dimanche,
+15-21/09/2026 du mardi au lundi. Les deux fenêtres contiennent **chacun des sept jours
+de semaine exactement une fois**. Aucun effet de calendrier, la comparaison est propre.
+
+**C'était la pire semaine de l'automne 2025** (674 €/jour, sous le seuil de rentabilité).
+En 2026 elle tient **999 €/jour, au-dessus du seuil de 895 €**. Le creux de rentrée
+existe toujours, mais il ne fait plus perdre d'argent.
+
+Même structure que tout septembre : **le ticket recule, la fréquentation explose.**
+C'est du volume, pas du panier.
+
 ### Comparaison semaine par semaine, tout compris
 
 | Semaine | 2025 | 2026 | Écart |
@@ -864,11 +884,12 @@ que ce qui avait été annoncé, mais plus solide.
 | **ven 18/09** | **1 203 €** | **1 104,80 €** | **98 €** |
 | sam 19/09 | 1 592,50 € | 1 453,70 € | **139 €** |
 | dim 20/09 | 778 € | 715,60 € | **62 €** |
-| **01–20/09 (20 jours)** | **22 853,50 €** | **20 269,30 €** | **2 584 €, soit 129 €/jour** |
+| lun 21/09 | 951 € | 856,50 € | **95 €** |
+| **01–21/09 (21 jours)** | **23 804,50 €** | **21 125,80 €** | **2 679 €, soit 128 €/jour** |
 
 **La mesure cumulée est la seule qui compte** — les jours isolés vont du simple au
-double (62 € le 20/09, 230 € le 31/08). Elle donne **129 €/jour**, stable entre 17 et
-20 jours, soit un peu moins que les 150 € du paramètre. Ne pas corriger `parametres.ca_hors_bornes` avant le mois complet
+double (62 € le 20/09, 230 € le 31/08). Elle donne **128 €/jour**, stable entre 17 et
+21 jours, soit un peu moins que les 150 € du paramètre. Ne pas corriger `parametres.ca_hors_bornes` avant le mois complet
 le 30/09.
 
 ### 🟢 Première journée complète mesurée automatiquement — ven 18/09/2026
@@ -934,6 +955,13 @@ compris.** Contre un seuil de rentabilité de 895 €.
 ⚠️ Sur les mêmes dates, 2026 compte **3 samedis contre 2 en 2025** et un lundi de moins :
 le calendrier offre ~28 €/jour. L'écart réel contre 2025 est donc de ~+136 €/jour, pas
 +164 €. **Toujours vérifier la composition en jours de semaine avant d'annoncer un écart.**
+
+### 🟢 Lundi 21/09/2026 — quatrième journée complète captée
+
+Références **001 à 066 sans trou**, 12h15 → 19h40. **856,50 €**, 66 commandes,
+ticket 12,98 €. Témoin — lundi 22/09/2025 : 651,40 € et 60 commandes.
+
+**Position 01–21/09 : 1 006 €/jour aux bornes, 1 134 €/jour tout compris.**
 
 ### 🔴 SEPTEMBRE TRANCHE LE SUJET DU TICKET — 19/09/2026
 
