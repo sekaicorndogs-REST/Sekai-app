@@ -1011,11 +1011,37 @@ hors-bornes du jour est **bas** (69,80 €) — si la borne était tombée en pa
 auraient basculé sur la caisse et le hors-bornes aurait grimpé. **Ce n'est donc pas un
 problème d'enregistrement : les commandes n'ont pas eu lieu.**
 
-⚠️ **Cause non déterminée.** Les données disent *quand* et *combien*, pas *pourquoi*.
-Les données ne peuvent pas trancher entre : rue vide (météo, travaux, incident Rue Neuve),
-borne en panne d'affichage côté client sans erreur côté serveur, ou hasard. **Ne pas
-inventer d'explication dans une session future** — si la cause n'a pas été retrouvée,
-laisser « inexpliqué ».
+✅ **Le gérant a écarté la dernière hypothèse technique : « la borne fonctionnait
+normalement sans changement »**, et le total de 705 € est le **montant final réel** de la
+journée. Donc : aucune vente perdue, aucun incident. **La journée a simplement été
+faible.**
+
+### 🧮 Ce que vaut une journée isolée — la variabilité, chiffrée (22/09/2026)
+
+Mesuré sur les **53 mardis des 12 derniers mois**, aux bornes :
+
+| | |
+|---|---|
+| Moyenne | **793 €** |
+| Médiane | 763 € |
+| Minimum | 241 € |
+| Maximum | 1 554 € |
+| **Écart-type** | **310 €** |
+
+Le 22/09 à 635 € est à **0,5 écart-type sous la moyenne**, et **15 mardis sur 53 (28 %)
+ont fait moins**. Plus d'un mardi sur quatre est pire. **Ce n'est pas une anomalie, c'est
+une journée faible ordinaire.**
+
+🔴 **RÈGLE À APPLIQUER À TOUT RELEVÉ QUOTIDIEN.** Avec un écart-type de 310 € sur un
+mardi, **une journée isolée ne porte presque aucune information**. Une journée à −150 €
+de la moyenne est du **bruit**, pas un signal — et une journée forte isolée non plus.
+Ne pas chercher de cause à une journée isolée, dans un sens comme dans l'autre.
+**Le premier niveau où le signal dépasse le bruit est la SEMAINE**, ce que fait déjà le
+suivi (semaine 15-21 : +48 %, et là c'est un vrai résultat).
+
+⚠️ Reste **un seul** élément réellement atypique le 22/09 : zéro vente après 19h, ce qui
+n'était arrivé aucun des 14 jours précédents. Cause inconnue, aucune piste technique ne
+tient. **Si ça ne se reproduit pas, ne pas y revenir.**
 
 ### 🔴 SEPTEMBRE TRANCHE LE SUJET DU TICKET — 19/09/2026
 
