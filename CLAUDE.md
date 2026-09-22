@@ -885,11 +885,12 @@ que ce qui avait été annoncé, mais plus solide.
 | sam 19/09 | 1 592,50 € | 1 453,70 € | **139 €** |
 | dim 20/09 | 778 € | 715,60 € | **62 €** |
 | lun 21/09 | 951 € | 856,50 € | **95 €** |
-| **01–21/09 (21 jours)** | **23 804,50 €** | **21 125,80 €** | **2 679 €, soit 128 €/jour** |
+| mar 22/09 | 705 € | 635,20 € | **70 €** |
+| **01–22/09 (22 jours)** | **24 509,50 €** | **21 761,00 €** | **2 749 €, soit 125 €/jour** |
 
 **La mesure cumulée est la seule qui compte** — les jours isolés vont du simple au
-double (62 € le 20/09, 230 € le 31/08). Elle donne **128 €/jour**, stable entre 17 et
-21 jours, soit un peu moins que les 150 € du paramètre. Ne pas corriger `parametres.ca_hors_bornes` avant le mois complet
+double (62 € le 20/09, 230 € le 31/08). Elle donne **125 €/jour**, stable entre 17 et
+22 jours, soit un peu moins que les 150 € du paramètre. Ne pas corriger `parametres.ca_hors_bornes` avant le mois complet
 le 30/09.
 
 ### 🟢 Première journée complète mesurée automatiquement — ven 18/09/2026
@@ -962,6 +963,33 @@ Références **001 à 066 sans trou**, 12h15 → 19h40. **856,50 €**, 66 comma
 ticket 12,98 €. Témoin — lundi 22/09/2025 : 651,40 € et 60 commandes.
 
 **Position 01–21/09 : 1 006 €/jour aux bornes, 1 134 €/jour tout compris.**
+
+### 🔴 Mardi 22/09/2026 — premier trou de référence, et une fermeture anticipée
+
+**705 € annoncés · 635,20 € aux bornes · 52 commandes · ticket 12,22 €.**
+
+**1. Le contrôle de complétude s'est déclenché pour la première fois.** Références 001 à
+**053** mais seulement **52 commandes** : la **044 manque**. Elle est absente de `ventes`
+**et** de `commandes_live`, et `commandes_live_rejets` est **vide** — donc elle n'a pas
+été refusée pour cause de format. Trou de 22 minutes entre la 043 (17h31) et la 045
+(17h53). Deux explications, non départageables sans EasyOrder : **commande abandonnée à
+la borne** après attribution du numéro (le plus probable vu les 22 minutes), ou appel
+webhook perdu sans rejeu. Enjeu ~10 € maximum.
+✅ **Ce qu'il faut retenir : le contrôle marche.** Premier déclenchement en 5 jours.
+
+**2. La journée faible s'explique par une fermeture anticipée, pas par la demande.**
+Dernière commande à **18h54** alors que la fermeture est à 20h.
+
+| CA de 19h | 22/09 | 15/09 | 08/09 |
+|---|---|---|---|
+| | **0 €** | 95 € | 131 € |
+
+Le reste de la journée est normal. **635 € + ~100 € de l'heure perdue ≈ 735 €**, soit le
+niveau exact du mardi témoin de 2025 (731,90 €). **La journée n'était pas mauvaise, elle
+était courte.** Sans cette correction, le 22/09 est le premier jour du suivi *sous* 2025
+(−13 % de CA, −20 % de commandes) — ne pas en tirer de conclusion sur la demande.
+
+⚠️ À demander au gérant : fermeture volontaire, rupture, ou problème technique ?
 
 ### 🔴 SEPTEMBRE TRANCHE LE SUJET DU TICKET — 19/09/2026
 
@@ -1446,6 +1474,19 @@ valable pour `ventes`. C'était faux, et l'écran décalait de deux heures.
 Preuve : une commande reçue à 12h08 à Bruxelles porte `cree_le` **et** `recu_le` à
 10h08 UTC — les deux concordent, donc c'est bien de l'UTC réel. L'onglet Direct utilise
 désormais `toLocaleTimeString` avec `timeZone: "Europe/Brussels"`.
+
+🔴 **LE MÊME PIÈGE EN SQL — rencontré le 22/09/2026.** `ventes` contient maintenant
+**les deux conventions** : les lignes importées (jusqu'au 17/09/2026 et tout 2025) et
+les lignes du webhook (depuis le 18/09/2026). Appliquer
+`date_commande at time zone 'Europe/Brussels'` à une ligne **importée** ajoute 2 heures
+à une heure déjà locale : les fermetures sortaient à **21h51 et 22h05** au lieu de 19h51
+et 20h05, ce qui a failli faire conclure à des journées anormalement longues.
+
+**Règle : convertir uniquement les lignes du webhook (≥ 18/09/2026), lire les autres
+telles quelles.** Les **totaux par jour** ne sont quasiment pas affectés (seules
+2 commandes de tout l'historique dépassent 22h), donc les comparaisons de CA déjà
+publiées restent valables — mais **toute lecture d'HEURE sur l'historique importé doit
+se faire sans conversion**.
 
 ### 🔴 L'échange avec EasyOrder est TERMINÉ — 19/09/2026
 
