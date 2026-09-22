@@ -1043,6 +1043,40 @@ suivi (semaine 15-21 : +48 %, et là c'est un vrai résultat).
 n'était arrivé aucun des 14 jours précédents. Cause inconnue, aucune piste technique ne
 tient. **Si ça ne se reproduit pas, ne pas y revenir.**
 
+### 🟡 Le cycle de paie — hypothèse du gérant testée le 22/09/2026
+
+Le gérant : *« peut-être fin du mois avec la rentrée scolaire, les gens doivent faire des
+économies »*. Testé sur les 12 derniers mois.
+
+**Méthode** : chaque journée est rapportée à la moyenne de **son jour de semaine** sur
+l'année, ce qui neutralise l'effet jour de semaine (qui écrase tout le reste : samedi
+1 414 € contre dimanche 531 €). Puis moyenne des ratios par tranche de jour du mois.
+
+| Jours du mois | CA vs journée normale |
+|---|---|
+| 01-05 | **106,5 %** |
+| 06-10 | 103,3 % |
+| 11-15 | **91,2 %** |
+| 16-20 | 98,0 % |
+| **21-25** | **92,8 %** ← le 22/09 est ici |
+| **26-fin** | **107,4 %** |
+
+🔴 **L'intuition est bonne mais la date est décalée. Le creux n'est PAS la fin du mois :
+le 26-fin est la MEILLEURE tranche (+7,4 %).** Le creux est le **21-25, juste AVANT que
+les salaires tombent** — cycle de paie classique, argent serré avant le virement, rebond
+dès qu'il arrive.
+
+⚠️ **À ne pas surinterpréter.** Sur 12 mois, **8 seulement** montrent 21-25 sous 26-fin
+(un tirage à pile ou face donnerait 8+ dans 19 % des cas). L'erreur type d'une tranche
+est de ~4,3 points, donc le −7,2 vaut ~1,7 erreur type : **signal réel mais à la limite.**
+L'amplitude est nette (92,5 % contre 106,2 % en moyenne sur 12 mois), la régularité non.
+**Hypothèse de travail crédible, pas un fait établi** — à reconfirmer maintenant que le
+webhook mesure tout automatiquement.
+
+⚠️ **La part « rentrée scolaire » n'est PAS testable** : il n'y a qu'un seul septembre
+complet avant 2026 dans l'historique. Impossible de séparer un effet rentrée d'un effet
+cycle de paie avec une seule observation. **Ne pas conclure là-dessus.**
+
 ### 🔴 SEPTEMBRE TRANCHE LE SUJET DU TICKET — 19/09/2026
 
 Le témoin attendu depuis le 31/08 est arrivé : export CSV + « Rapport de vente » détaillé
