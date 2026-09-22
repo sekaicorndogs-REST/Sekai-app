@@ -964,7 +964,7 @@ ticket 12,98 €. Témoin — lundi 22/09/2025 : 651,40 € et 60 commandes.
 
 **Position 01–21/09 : 1 006 €/jour aux bornes, 1 134 €/jour tout compris.**
 
-### 🔴 Mardi 22/09/2026 — premier trou de référence, et une fermeture anticipée
+### 🔴 Mardi 22/09/2026 — premier trou de référence, et une soirée morte inexpliquée
 
 **705 € annoncés · 635,20 € aux bornes · 52 commandes · ticket 12,22 €.**
 
@@ -977,19 +977,45 @@ la borne** après attribution du numéro (le plus probable vu les 22 minutes), o
 webhook perdu sans rejeu. Enjeu ~10 € maximum.
 ✅ **Ce qu'il faut retenir : le contrôle marche.** Premier déclenchement en 5 jours.
 
-**2. La journée faible s'explique par une fermeture anticipée, pas par la demande.**
-Dernière commande à **18h54** alors que la fermeture est à 20h.
+**2. La soirée est morte — et ce N'EST PAS une fermeture anticipée.**
 
-| CA de 19h | 22/09 | 15/09 | 08/09 |
+🔴 **CORRECTION, même jour.** J'avais écrit que la journée s'expliquait par une fermeture
+anticipée. **Le gérant a répondu « pas du tout » : le magasin est resté ouvert.** C'était
+une supposition de ma part, elle est fausse. Ce qui suit est ce que les données disent
+vraiment.
+
+**Dernière commande à 18h54, puis plus rien jusqu'à la fermeture.**
+
+| CA après 19h | 22/09 | 15/09 | 08/09 |
 |---|---|---|---|
 | | **0 €** | 95 € | 131 € |
 
-Le reste de la journée est normal. **635 € + ~100 € de l'heure perdue ≈ 735 €**, soit le
-niveau exact du mardi témoin de 2025 (731,90 €). **La journée n'était pas mauvaise, elle
-était courte.** Sans cette correction, le 22/09 est le premier jour du suivi *sous* 2025
-(−13 % de CA, −20 % de commandes) — ne pas en tirer de conclusion sur la demande.
+⚠️ **C'est un fait sans précédent : sur les 14 jours précédents, TOUS ont des ventes après
+19h**, entre 43 € et 282 €. Le 22/09 est le seul à zéro.
 
-⚠️ À demander au gérant : fermeture volontaire, rupture, ou problème technique ?
+**Le creux n'est pas que le soir, il commence l'après-midi.** Rythme des commandes :
+midi normal et soutenu (une commande toutes les 1 à 10 minutes jusqu'à 14h), puis des
+silences anormaux — **49 minutes sans aucune commande entre 15h57 et 16h46**, 21 minutes
+entre 17h31 et 17h53 (le trou de la 044), puis l'arrêt total à 18h54.
+
+| Tranche | 22/09 | 15/09 | 08/09 |
+|---|---|---|---|
+| 12h-14h | 250 € | 267 € | 311 € |
+| 14h-17h | 226 € | 260 € | 176 € |
+| 17h-19h | 160 € | 209 € | 272 € |
+| **19h+** | **0 €** | 95 € | 131 € |
+
+**Côté technique, rien n'est cassé** : le webhook n'a rien reçu après 18h54:28, les
+52 commandes reçues sont toutes miroitées dans `ventes`, aucun rejet archivé. Et le
+hors-bornes du jour est **bas** (69,80 €) — si la borne était tombée en panne, les ventes
+auraient basculé sur la caisse et le hors-bornes aurait grimpé. **Ce n'est donc pas un
+problème d'enregistrement : les commandes n'ont pas eu lieu.**
+
+⚠️ **Cause non déterminée.** Les données disent *quand* et *combien*, pas *pourquoi*.
+Les données ne peuvent pas trancher entre : rue vide (météo, travaux, incident Rue Neuve),
+borne en panne d'affichage côté client sans erreur côté serveur, ou hasard. **Ne pas
+inventer d'explication dans une session future** — si la cause n'a pas été retrouvée,
+laisser « inexpliqué ».
 
 ### 🔴 SEPTEMBRE TRANCHE LE SUJET DU TICKET — 19/09/2026
 
