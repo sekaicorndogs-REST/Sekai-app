@@ -18,14 +18,22 @@ html, body {
   font-family: var(--sans);
   background: #faebd7;
   overscroll-behavior-y: none;
+  /* Le rognage horizontal vit ICI, sur le défilement du document.
+     Surtout pas sur #root : voir le commentaire ci-dessous. */
+  overflow-x: hidden;
 }
 
+/* 🔴 NE JAMAIS remettre `overflow-x: hidden` (ni auto/scroll) sur #root.
+   En CSS, un `overflow-x` non-visible force `overflow-y` à `auto` : #root
+   devient alors un conteneur de défilement imbriqué. Sur iOS, la barre de
+   navigation `position: fixed` reste alors collée à la position qu'elle
+   avait au début du défilement — elle se retrouve figée au milieu de
+   l'écran, avec du contenu en dessous (bug signalé le 23/09/2026). */
 #root {
   width: 100%;
   margin: 0 auto;
   min-height: 100svh;
   box-sizing: border-box;
-  overflow-x: hidden;
 }
 
 /* Tactile feedback on all buttons */

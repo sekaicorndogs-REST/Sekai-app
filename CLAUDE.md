@@ -1588,6 +1588,25 @@ qu'elles viennent de l'export CSV, donc en heure locale. `fetchVentes()` ramène
 `source_id` rempli → `new Date(t)` ; sinon → `new Date(t.slice(0, 19))`, que JS lit en
 heure locale. **Ne pas « simplifier » ce helper en un seul `new Date()`.**
 
+### 🔴 La barre de navigation figée au milieu de l'écran — corrigé le 23/09/2026
+
+Symptôme signalé par le gérant : la barre du bas **reste bloquée au milieu de l'écran**,
+avec du contenu qui continue en dessous. Permanent, pas un artefact de capture.
+
+**Cause : `#root` portait `overflow-x: hidden` dans `src/index.css`.** En CSS, un
+`overflow-x` non-`visible` force `overflow-y` à `auto` : `#root` devenait donc un
+**conteneur de défilement imbriqué**. Sur iOS, un élément `position: fixed` à l'intérieur
+d'un tel conteneur reste collé à la position qu'il avait au début du défilement — d'où la
+barre figée en plein écran.
+
+**Correction : le rognage horizontal a été déplacé sur `html, body`**, c'est-à-dire sur le
+défilement du document, et `#root` n'a plus aucune règle d'`overflow`.
+
+🔴 **Ne jamais remettre `overflow-x` (ni `auto`/`scroll`) sur `#root`.** Un commentaire le
+dit dans le fichier. Si un jour un débordement horizontal réapparaît, le corriger sur
+l'élément fautif ou avec `overflow-x: clip` (qui ne crée pas de conteneur de défilement),
+jamais en rétablissant `hidden` sur `#root`.
+
 ### 🔴 L'échange avec EasyOrder est TERMINÉ — 19/09/2026
 
 Le gérant : *« pour le mail on peut plus avoir plus de données car EasyOrder est fini »*.
