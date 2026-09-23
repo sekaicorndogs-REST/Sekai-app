@@ -5006,7 +5006,9 @@ A travaillé sans être au planning — qui a été remplacé ?
                       const champSc = (label: string, key: string, suffixe = "") => (
                         <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
                           <label style={{ color: "#a07848", fontSize: "0.7rem", fontWeight: 600 }}>{label}{suffixe && ` (${suffixe})`}</label>
-                          <input key={`sc-${sc.id}-${key}`} defaultValue={sc[key]} inputMode="decimal"
+                          {/* la valeur est dans la key : la case se rafraîchit si le champ est
+                              modifié indirectement (ex. CA/jour recalculé depuis le CA mensuel) */}
+                          <input key={`sc-${sc.id}-${key}-${sc[key]}`} defaultValue={sc[key]} inputMode="decimal"
                             onBlur={e => saveMarocScenario(sc, { [key]: parseFloat(e.target.value.replace(",", ".")) || 0 })}
                             style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.55rem 0.7rem", borderRadius: "8px", fontSize: "0.88rem", outline: "none", width: "100%", boxSizing: "border-box" as const, fontFamily: "'Poppins', sans-serif" }} />
                         </div>
@@ -5037,6 +5039,22 @@ A travaillé sans être au planning — qui a été remplacé ?
                               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.6rem" }}>
                                 {champSc("CA par jour", "ca_jour", "€")}
                                 {champSc("Jours ouverts", "jours_ouverts_mois", "/mois")}
+                                {/* CA mensuel saisissable directement : on reconvertit en CA/jour,
+                                    qui reste la donnée stockée. Les deux cases restent donc cohérentes. */}
+                                <div style={{ gridColumn: "1 / -1", display: "flex", flexDirection: "column", gap: "0.25rem" }}>
+                                  <label style={{ color: "#a07848", fontSize: "0.7rem", fontWeight: 600 }}>ou CA mensuel directement (€/mois)</label>
+                                  <input key={`sc-${sc.id}-camois-${sc.ca_jour}-${sc.jours_ouverts_mois}`}
+                                    defaultValue={caSc ? Math.round(caSc) : ""} inputMode="decimal" placeholder="ex: 30000"
+                                    onBlur={e => {
+                                      const v = parseFloat(e.target.value.replace(",", ".")) || 0;
+                                      const j = jrs > 0 ? jrs : 30;
+                                      saveMarocScenario(sc, jrs > 0 ? { ca_jour: v / j } : { ca_jour: v / j, jours_ouverts_mois: 30 });
+                                    }}
+                                    style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.55rem 0.7rem", borderRadius: "8px", fontSize: "0.88rem", outline: "none", width: "100%", boxSizing: "border-box" as const, fontFamily: "'Poppins', sans-serif" }} />
+                                  <div style={{ color: "#c8a878", fontSize: "0.66rem" }}>
+                                    Met à jour le CA par jour tout seul{jrs > 0 ? ` (÷ ${jrs} jours)` : " (30 jours par défaut)"}.
+                                  </div>
+                                </div>
                                 {champSc("Food cost", "food_cost_pct", "% du CA")}
                                 {champSc("Autres charges variables", "charges_variables", "€/mois")}
                                 {champSc("Charges fixes", "charges_fixes", "€/mois")}
