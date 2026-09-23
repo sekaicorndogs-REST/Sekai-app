@@ -886,11 +886,12 @@ que ce qui avait été annoncé, mais plus solide.
 | dim 20/09 | 778 € | 715,60 € | **62 €** |
 | lun 21/09 | 951 € | 856,50 € | **95 €** |
 | mar 22/09 | 705 € | 635,20 € | **70 €** |
-| **01–22/09 (22 jours)** | **24 509,50 €** | **21 761,00 €** | **2 749 €, soit 125 €/jour** |
+| mer 23/09 | 1 015 € | 874,40 € | **141 €** |
+| **01–23/09 (23 jours)** | **25 524,50 €** | **22 635,40 €** | **2 889 €, soit 126 €/jour** |
 
 **La mesure cumulée est la seule qui compte** — les jours isolés vont du simple au
-double (62 € le 20/09, 230 € le 31/08). Elle donne **125 €/jour**, stable entre 17 et
-22 jours, soit un peu moins que les 150 € du paramètre. Ne pas corriger `parametres.ca_hors_bornes` avant le mois complet
+double (62 € le 20/09, 230 € le 31/08). Elle donne **126 €/jour**, stable entre 17 et
+23 jours, soit un peu moins que les 150 € du paramètre. Ne pas corriger `parametres.ca_hors_bornes` avant le mois complet
 le 30/09.
 
 ### 🟢 Première journée complète mesurée automatiquement — ven 18/09/2026
@@ -1042,6 +1043,30 @@ suivi (semaine 15-21 : +48 %, et là c'est un vrai résultat).
 ⚠️ Reste **un seul** élément réellement atypique le 22/09 : zéro vente après 19h, ce qui
 n'était arrivé aucun des 14 jours précédents. Cause inconnue, aucune piste technique ne
 tient. **Si ça ne se reproduit pas, ne pas y revenir.**
+
+### 🟢 Mercredi 23/09/2026 — la soirée est revenue, le 22/09 était bien isolé
+
+**1 015 € annoncés · 874,40 € aux bornes · 77 commandes · ticket 11,36 €.**
+Références **001 à 077 sans trou**, 12h03 → 19h43.
+
+✅ **68,50 € après 19h**, contre **0 €** la veille. La soirée morte du 22/09 ne s'est pas
+reproduite : c'était bien un jour isolé, **sujet clos**.
+
+| | 23/09/2026 | Témoin : mer 24/09/2025 |
+|---|---|---|
+| CA bornes | **874,40 €** | 531,20 € |
+| Commandes | **77** | 43 |
+| Ticket | 11,36 € | 12,35 € |
+
+**+65 % de CA, +79 % de commandes.** Toujours la même structure : le flux explose, le
+ticket recule.
+
+**Position 01–23/09 : 984 €/jour aux bornes, 1 110 €/jour tout compris** (cumul annoncé
+25 525 €). Hors-bornes stabilisé à **126 €/jour**.
+
+⚠️ La « reprise de la semaine du 22 » de 2025 n'était pas uniforme : le 22-23/09/2025
+fait 692 €/jour et le mercredi 24/09/2025 tombe à 531 €. Ne pas prendre les 844 €/jour
+de la semaine 22-28/2025 comme un plancher quotidien.
 
 ### 🟡 Le cycle de paie — hypothèse du gérant testée le 22/09/2026
 
