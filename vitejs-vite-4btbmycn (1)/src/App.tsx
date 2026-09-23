@@ -433,9 +433,21 @@ async function deleteUser(id) {
 // PostgREST plafonne à 1 000 lignes par requête. On demande d'abord le nombre total
 // (requête vide + en-tête Content-Range), puis on tire toutes les pages EN PARALLÈLE.
 // En série, les 26 000 ventes prenaient 27 allers-retours enchaînés.
+// 🔴 `ventes` porte DEUX conventions d'heure et il faut les lire différemment :
+//  · lignes importées (source_id vide) : heure LOCALE stockée avec un fuseau UTC.
+//    `new Date(...)` les décalerait de +2h — le pic de 17h s'affichait à 19h.
+//    On relit donc les 19 premiers caractères, que JS interprète en heure locale.
+//  · lignes du webhook EasyOrder (source_id rempli) : de l'UTC réel, à convertir
+//    normalement.
+// Ne pas « simplifier » en un seul `new Date(v.date_commande)`.
+function dateVente(v: any): Date {
+  const t = String(v?.date_commande || "");
+  return v?.source_id ? new Date(t) : new Date(t.slice(0, 19));
+}
+
 async function fetchVentes() {
   const PAGE = 1000;
-  const base = `${SUPABASE_URL}/rest/v1/ventes?select=date_commande,prix,mode_livraison&order=date_commande.desc`;
+  const base = `${SUPABASE_URL}/rest/v1/ventes?select=date_commande,prix,mode_livraison,source_id&order=date_commande.desc`;
   const page = async (offset: number) => {
     const res = await fetch(`${base}&limit=${PAGE}&offset=${offset}`, { headers: HEADERS });
     if (!res.ok) throw new Error("Fetch ventes failed");
@@ -5317,7 +5329,7 @@ A travaillé sans être au planning — qui a été remplacé ?
           const alertePrincipale = pointsTries[0] || null;
 
           // ── Ventes réelles (import caisse/bornes) ──
-          const V = ventes.map(v => ({ p: parseFloat(v.prix) || 0, d: new Date(v.date_commande), m: v.mode_livraison }));
+          const V = ventes.map(v => ({ p: parseFloat(v.prix) || 0, d: dateVente(v), m: v.mode_livraison }));
           const vNb = V.length;
           const vCA = V.reduce((s, v) => s + v.p, 0);
           const panierMoyen = vNb ? vCA / vNb : 0;

@@ -1574,6 +1574,20 @@ telles quelles.** Les **totaux par jour** ne sont quasiment pas affectés (seule
 publiées restent valables — mais **toute lecture d'HEURE sur l'historique importé doit
 se faire sans conversion**.
 
+🔴 **ET L'APP AVAIT LE MÊME BUG — corrigé le 23/09/2026.** L'onglet Finances → Stats
+construisait ses dates avec `new Date(v.date_commande)`, ce qui décale les lignes
+importées de +2 h. Symptôme vu à l'écran : **« Heure de pointe 19h »**, alors que le vrai
+pic est **17h** (4 386 commandes contre 4 245 à 16h, vérifié en base). Les trois analyses
+horaires de l'onglet (heure de pointe, CA par heure, détail horaire du mois) lisent toutes
+la même liste `V` et étaient donc fausses de deux heures.
+
+**Le discriminateur est `ventes.source_id`** : rempli uniquement par le webhook.
+`canal` ne suffit pas — les 1 414 lignes du 01-17/09 portent `easyorder:rueneuve` alors
+qu'elles viennent de l'export CSV, donc en heure locale. `fetchVentes()` ramène désormais
+`source_id`, et le helper **`dateVente(v)`** applique la bonne convention :
+`source_id` rempli → `new Date(t)` ; sinon → `new Date(t.slice(0, 19))`, que JS lit en
+heure locale. **Ne pas « simplifier » ce helper en un seul `new Date()`.**
+
 ### 🔴 L'échange avec EasyOrder est TERMINÉ — 19/09/2026
 
 Le gérant : *« pour le mail on peut plus avoir plus de données car EasyOrder est fini »*.
