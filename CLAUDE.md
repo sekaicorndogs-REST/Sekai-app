@@ -240,6 +240,35 @@ Confirmé par le gérant (juillet 2026). C'est le CA caisse + Uber qui ne passe 
 les bornes de commande. `saisonnalite.hors_bornes` et `parametres.ca_hors_bornes`
 sont tous deux alignés sur 150. **Ne pas réintroduire 250.**
 
+### 🔴 SEPTEMBRE EST PASSÉ À 126 €/JOUR — mesuré, appliqué le 24/09/2026
+
+**Ce qui était faux :** `saisonnalite` portait **150 €** pour septembre, une estimation.
+Le hors-bornes de septembre a été **mesuré jour par jour** pendant 23 jours
+(`ca_jour_declare` moins le CA bornes de `ventes`) : il vaut **126 €/jour**, et il ne
+bouge plus depuis le 17e jour.
+
+| | |
+|---|---|
+| Bornes 01–23/09 | 22 635,40 € |
+| **Annoncé par le gérant** | **25 524,50 €** |
+| **Hors-bornes réel** | **2 889 €, soit 126 €/jour** |
+
+**Appliqué sur le mois de septembre uniquement** (`saisonnalite.mois = 9` :
+`hors_bornes` 150 → 126, `ca_total_jour` 986 → 962). Décision du gérant, option B :
+corriger tout de suite plutôt qu'attendre le 30.
+
+🔴 **`parametres.ca_hors_bornes` reste à 150** et les onze autres mois aussi —
+**septembre est le seul mois où le hors-bornes a été mesuré.** Ne pas propager les 126 €
+aux autres mois tant qu'ils n'ont pas été mesurés de la même façon : ce serait réécrire
+du passé jamais observé.
+
+✅ Contrôle : l'app affichait **26 085 €** pour septembre (bornes + 23 × 150). Avec 126
+elle affiche **25 533 €**, contre **25 524,50 €** réellement annoncés — **8,90 € d'écart
+sur 23 jours**, soit l'arrondi du 126. L'écran et le terrain disent enfin la même chose.
+
+💡 Ce n'était **pas** un bug : les deux chiffres étaient justes, ils ne mesuraient pas la
+même chose. L'app estimait, le relevé du soir mesure.
+
 ⚠️ **L'exception d'août à 270 €/jour a été annulée** (gérant, 31/08/2026). Après
 vérification sur le mois complet, août revient à **150 €/jour comme tous les autres**.
 Août 2026 se lit donc **1 036 € bornes + 150 = 1 186 €/jour tout compris**.
