@@ -916,11 +916,12 @@ que ce qui avait été annoncé, mais plus solide.
 | lun 21/09 | 951 € | 856,50 € | **95 €** |
 | mar 22/09 | 705 € | 635,20 € | **70 €** |
 | mer 23/09 | 1 015 € | 874,40 € | **141 €** |
-| **01–23/09 (23 jours)** | **25 524,50 €** | **22 635,40 €** | **2 889 €, soit 126 €/jour** |
+| jeu 24/09 | 790 € | 758,30 € | **32 €** |
+| **01–24/09 (24 jours)** | **26 314,50 €** | **23 393,70 €** | **2 921 €, soit 122 €/jour** |
 
 **La mesure cumulée est la seule qui compte** — les jours isolés vont du simple au
-double (62 € le 20/09, 230 € le 31/08). Elle donne **126 €/jour**, stable entre 17 et
-23 jours, soit un peu moins que les 150 € du paramètre. Ne pas corriger `parametres.ca_hors_bornes` avant le mois complet
+double (62 € le 20/09, 230 € le 31/08). Elle donne **122 €/jour**, stable entre 17 et
+24 jours, soit un peu moins que les 150 € du paramètre. Ne pas corriger `parametres.ca_hors_bornes` avant le mois complet
 le 30/09.
 
 ### 🟢 Première journée complète mesurée automatiquement — ven 18/09/2026
