@@ -917,15 +917,51 @@ que ce qui avait été annoncé, mais plus solide.
 | mar 22/09 | 705 € | 635,20 € | **70 €** |
 | mer 23/09 | 1 015 € | 874,40 € | **141 €** |
 | jeu 24/09 | 790 € | 758,30 € | **32 €** |
-| ven 25/09 | 1 030 € | 1 025,20 € | **4,80 €** ⚠️ à confirmer |
+| **ven 25/09** ⚠️ | 1 030 € | 1 025,20 € | **4,80 €** — *jour à 1 personne, voir ci-dessous* |
 | **01–25/09 (25 jours)** | **27 344,50 €** | **24 418,90 €** | **2 926 €, soit 117 €/jour** |
 
-⚠️ **Le 25/09 est douteux et attend confirmation du gérant.** 1 030 € annoncés pour
-1 025,20 € aux bornes donnent **4,80 € de hors-bornes**, alors que tous les autres jours
-mesurés vont de 32 € à 230 €. L'hypothèse la plus probable est que le chiffre donné soit
-**le total des bornes arrondi** (1 025,20 → « 1030 ») et non le total tout compris.
-Tant que ce n'est pas tranché, **la moyenne de 117 €/jour est tirée vers le bas** : sans
-le 25/09 elle reste à 122 €. Ne pas figer le hors-bornes du mois sur cette base.
+### ⚠️ Le 25/09 est un jour à EXCLURE du calcul du hors-bornes
+
+🔴 **Ma réserve du 26/09 (« le gérant a dû me donner le total des bornes arrondi ») était
+fausse.** Le gérant a expliqué : **« il y avait juste un travailleur, du coup toutes les
+commandes à la borne, et pour ne pas le déborder, pas de Uber. »**
+
+Le chiffre de 1 030 € est donc **bien le total tout compris**, et les **4,80 €** de
+hors-bornes sont **réels et expliqués** :
+- la **caisse** a été volontairement basculée sur la borne — ce n'est pas une perte, c'est
+  un **transfert** ;
+- **Uber a été coupé** — ça, c'est une vraie perte, ~50 €/jour de recette effective.
+
+**Pour le calcul du hors-bornes « d'un jour normal », ce jour ne compte pas.**
+
+| Hors-bornes de septembre | Valeur |
+|---|---|
+| Avec le 25/09 | 117 €/jour *(faussé vers le bas)* |
+| **Sans le 25/09 (24 jours)** | **122 €/jour** ← la bonne référence |
+
+⚠️ **Le 25/09 reste compté dans le CA du mois** — c'est de l'argent réellement encaissé.
+Il n'est écarté que du calcul du **paramètre** hors-bornes, qui doit représenter une
+journée normale. Même logique que la fuite d'eau du 26/08, écartée des moyennes du mercredi.
+
+### 🟢 Ce que le 25/09 apprend sur la CAPACITÉ — une personne a tenu 1 025 €
+
+**Une seule personne a encaissé 1 025,20 € et 80 commandes aux bornes**, soit plus que la
+moyenne du mois (977 €/jour). À comparer à la règle en vigueur : *« deux personnes
+tiennent jusqu'à 1 350 €/jour »*.
+
+⚠️ **Ne pas en conclure qu'une personne suffit.** Trois réserves, toutes importantes :
+1. **Uber a été coupé pour y arriver** — la journée a donc été rendue tenable en
+   supprimant un canal, pas en absorbant la charge normale.
+2. C'est **un seul jour**, et on ne sait rien de la file d'attente, du temps d'attente
+   ni de la qualité de service ce jour-là. Les données ne mesurent que ce qui a été vendu,
+   pas ce qui a été perdu par des clients partis.
+3. La règle **« 2 personnes tous les jours, 3 le samedi »** a été posée par le gérant sans
+   exception et **reste en vigueur** — ce jour-là était subi, pas choisi.
+
+💡 Ce que ça dit quand même : **la borne encaisse la bascule.** Quand la caisse s'arrête,
+les clients passent à la borne sans que le total s'effondre (1 030 € contre 1 094 € de
+moyenne du mois). C'est un argument de robustesse, à ressortir si un jour la question
+« que se passe-t-il si quelqu'un manque ? » revient.
 
 **La mesure cumulée est la seule qui compte** — les jours isolés vont du simple au
 double (62 € le 20/09, 230 € le 31/08). Elle donnait **122 €/jour**, stable entre 17 et
