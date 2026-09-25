@@ -843,6 +843,13 @@ Le gérant envoie chaque soir le CA total de la journée (tout compris). Enregis
 `ca_jour_declare`, une ligne par date. **Ne pas confondre avec `ventes`**, qui ne porte que
 les bornes : la différence entre les deux EST le hors-bornes réel.
 
+✅ **Convenu avec le gérant le 26/09/2026 : il signale les journées à effectif réduit.**
+(*« Ok je te dirai. »*) Ces journées faussent le hors-bornes sans laisser de trace —
+le 25/09, avec une seule personne et Uber coupé, il est tombé à 4,80 € et j'ai failli
+conclure à une erreur de saisie. **Les écarter du calcul du hors-bornes normal, les garder
+dans le CA du mois.** Si un jour le hors-bornes s'effondre sans explication, poser la
+question avant de conclure.
+
 ### 🔴 CORRECTION DU 15/09/2026 — la référence à utiliser
 
 Les écarts annoncés du 01 au 14/09 (+19 % à +24 %) étaient **faux**. Ils comparaient
