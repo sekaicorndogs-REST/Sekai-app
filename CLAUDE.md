@@ -917,11 +917,19 @@ que ce qui avait été annoncé, mais plus solide.
 | mar 22/09 | 705 € | 635,20 € | **70 €** |
 | mer 23/09 | 1 015 € | 874,40 € | **141 €** |
 | jeu 24/09 | 790 € | 758,30 € | **32 €** |
-| **01–24/09 (24 jours)** | **26 314,50 €** | **23 393,70 €** | **2 921 €, soit 122 €/jour** |
+| ven 25/09 | 1 030 € | 1 025,20 € | **4,80 €** ⚠️ à confirmer |
+| **01–25/09 (25 jours)** | **27 344,50 €** | **24 418,90 €** | **2 926 €, soit 117 €/jour** |
+
+⚠️ **Le 25/09 est douteux et attend confirmation du gérant.** 1 030 € annoncés pour
+1 025,20 € aux bornes donnent **4,80 € de hors-bornes**, alors que tous les autres jours
+mesurés vont de 32 € à 230 €. L'hypothèse la plus probable est que le chiffre donné soit
+**le total des bornes arrondi** (1 025,20 → « 1030 ») et non le total tout compris.
+Tant que ce n'est pas tranché, **la moyenne de 117 €/jour est tirée vers le bas** : sans
+le 25/09 elle reste à 122 €. Ne pas figer le hors-bornes du mois sur cette base.
 
 **La mesure cumulée est la seule qui compte** — les jours isolés vont du simple au
-double (62 € le 20/09, 230 € le 31/08). Elle donne **122 €/jour**, stable entre 17 et
-24 jours, soit un peu moins que les 150 € du paramètre. Ne pas corriger `parametres.ca_hors_bornes` avant le mois complet
+double (62 € le 20/09, 230 € le 31/08). Elle donnait **122 €/jour**, stable entre 17 et
+24 jours (voir la réserve sur le 25/09 ci-dessus), soit un peu moins que les 150 € du paramètre. Ne pas corriger `parametres.ca_hors_bornes` avant le mois complet
 le 30/09.
 
 ### 🟢 Première journée complète mesurée automatiquement — ven 18/09/2026
