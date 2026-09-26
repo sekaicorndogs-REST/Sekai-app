@@ -628,10 +628,14 @@ lieu de ~14h05 : **97,50 € sur l'heure gagnée**. C'est le **seul dimanche de 
 Et toujours pas de report : le reste de la journée fait **618 € après 14h**, contre 653 €
 le 06/09 et 375 € le 13/09 — dans la fourchette normale, pas en dessous.
 
-**Trois mesures : 116 € · 179 € · 97,50 €**, soit ~130 € de CA par jour d'ouverture
-avancée pour ~30 € de main-d'œuvre. La reconfirmation demandée sur septembre a eu lieu.
-**C'est l'action la mieux établie du dossier** — trois observations, toutes positives,
-aucune baisse du reste de la journée.
+✅ **QUATRIÈME CONFIRMATION — samedi 26/09/2026.** Première commande à **12h11** au lieu
+de ~13h05 : **132,80 € sur l'heure gagnée**, 8 commandes. C'est la plus grosse des quatre
+mesures.
+
+**Quatre mesures : 116 € · 179 € · 97,50 € · 132,80 €**, moyenne **131 €** de CA par jour
+d'ouverture avancée pour ~30 € de main-d'œuvre. **C'est l'action la mieux établie du
+dossier** — quatre observations, toutes positives, aucune baisse du reste de la journée.
+Sur les deux jours du week-end : **~15 000 €/an de CA, ~650 €/mois de marge.**
 
 ### Les XL ne cannibalisent PAS les menus normaux — vérifié le 11/08/2026
 
@@ -925,7 +929,8 @@ que ce qui avait été annoncé, mais plus solide.
 | mer 23/09 | 1 015 € | 874,40 € | **141 €** |
 | jeu 24/09 | 790 € | 758,30 € | **32 €** |
 | **ven 25/09** ⚠️ | 1 030 € | 1 025,20 € | **4,80 €** — *jour à 1 personne, voir ci-dessous* |
-| **01–25/09 (25 jours)** | **27 344,50 €** | **24 418,90 €** | **2 926 €, soit 117 €/jour** |
+| **sam 26/09** | 1 635 € | 1 434,00 € | **201 €** |
+| **01–26/09, hors le 25 (25 j)** | **27 949,50 €** | **24 827,70 €** | **3 122 €, soit 125 €/jour** |
 
 ### ⚠️ Le 25/09 est un jour à EXCLURE du calcul du hors-bornes
 
@@ -1148,6 +1153,39 @@ ticket recule.
 ⚠️ La « reprise de la semaine du 22 » de 2025 n'était pas uniforme : le 22-23/09/2025
 fait 692 €/jour et le mercredi 24/09/2025 tombe à 531 €. Ne pas prendre les 844 €/jour
 de la semaine 22-28/2025 comme un plancher quotidien.
+
+### 🟡 Samedi 26/09/2026 — le premier jour SOUS son témoin de 2025
+
+**1 635 € annoncés · 1 434,00 € aux bornes · 109 commandes · ticket 13,16 €.**
+Références **001 à 109 sans trou**, 12h11 → 20h42.
+
+| | 26/09/2026 | Témoin : sam 27/09/2025 |
+|---|---|---|
+| CA bornes | **1 434,00 €** | **1 540,60 €** |
+| Commandes | 109 | 110 |
+| Ticket | 13,16 € | 14,01 € |
+
+🔴 **C'est le premier jour du suivi qui fait MOINS que son équivalent de 2025** (−7 %),
+après huit jours d'affilée à +40 % / +67 %. Et pour une fois ce n'est pas le flux :
+**109 commandes contre 110, c'est identique.** Tout l'écart vient du ticket (−0,85 €).
+
+⚠️ **Ne rien en conclure.** Deux raisons :
+1. C'est **une journée isolée** — voir la règle sur l'écart-type (310 € un mardi, du même
+   ordre un samedi). Un écart de 107 € est du bruit.
+2. Le **27/09/2025 était un samedi exceptionnel** : 1 540 € alors que la moyenne des
+   samedis de septembre 2025 est bien plus basse. Le témoin est haut, pas la journée basse.
+   Le 26/09/2026 reste **au-dessus de la moyenne annuelle du samedi** (1 414 €).
+
+Le ticket de 13,16 € est d'ailleurs **le meilleur de tout septembre 2026** (moyenne du
+mois ~12,0 €). **Si un signal existe, il va dans le bon sens, pas le mauvais.**
+À revoir sur la semaine complète, pas sur ce jour.
+
+⚠️ **Hors-bornes de 201 €**, le deuxième plus élevé mesuré (après les 230 € du 31/08) et
+le lendemain du jour à 4,80 €. Les deux s'annulent presque : c'est exactement pourquoi
+seule la mesure cumulée compte.
+
+**Position 01–26/09 : 994 €/jour aux bornes, 1 115 €/jour tout compris** (cumul annoncé
+28 979,50 €). Hors-bornes cumulé hors le 25/09 : **125 €/jour**.
 
 ### 🟡 Le cycle de paie — hypothèse du gérant testée le 22/09/2026
 
