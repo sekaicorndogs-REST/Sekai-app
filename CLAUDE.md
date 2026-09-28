@@ -936,7 +936,8 @@ que ce qui avait été annoncé, mais plus solide.
 | **ven 25/09** ⚠️ | 1 030 € | 1 025,20 € | **4,80 €** — *jour à 1 personne, voir ci-dessous* |
 | **sam 26/09** | 1 635 € | 1 434,00 € | **201 €** |
 | **dim 27/09** | 538 € | 484,00 € | **54 €** |
-| **01–27/09, hors le 25 (26 j)** | **28 487,50 €** | **25 311,70 €** | **3 176 €, soit 122 €/jour** |
+| **lun 28/09** | 965 € | 813,80 € | **151 €** |
+| **01–28/09, hors le 25 (27 j)** | **29 452,50 €** | **26 125,50 €** | **3 327 €, soit 123 €/jour** |
 
 ### ⚠️ Le 25/09 est un jour à EXCLURE du calcul du hors-bornes
 
@@ -1258,6 +1259,25 @@ c'est leur agrégat hebdomadaire qui porte le signal, et il dit +2,7 %.
 
 **Position 01–27/09 : 975 €/jour aux bornes, 1 093 €/jour tout compris** (cumul annoncé
 29 517,50 €). Hors-bornes cumulé hors le 25/09 : **122 €/jour**, stable.
+
+### 🟢 Lundi 28/09/2026 — retour au-dessus du témoin, la série de deux jours s'arrête
+
+**965 € annoncés · 813,80 € aux bornes · 71 commandes · ticket 11,46 €.**
+Références **001 à 071 sans trou**, 12h12 → 19h54.
+
+| | 28/09/2026 | Témoin : lun 29/09/2025 |
+|---|---|---|
+| CA bornes | **813,80 €** | 646,20 € |
+| Commandes | **71** | 58 |
+| Ticket | 11,46 € | 11,14 € |
+
+**+26 % de CA, +22 % de commandes.** Les deux jours sous le témoin (26 et 27/09) ne se
+prolongent pas — **ce n'était pas le début d'un décrochage.** Journée ordinaire et
+correcte, rien de plus à en dire : voir la règle sur la variabilité d'une journée isolée.
+
+**Position 01–28/09 : 970 €/jour aux bornes, 1 089 €/jour tout compris** (cumul annoncé
+30 482,50 €). Hors-bornes cumulé hors le 25/09 : **123 €/jour**, toujours stable.
+Il reste deux jours avant le bilan du mois.
 
 ### 🟡 Le cycle de paie — hypothèse du gérant testée le 22/09/2026
 
