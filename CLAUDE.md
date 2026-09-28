@@ -632,10 +632,15 @@ le 06/09 et 375 € le 13/09 — dans la fourchette normale, pas en dessous.
 de ~13h05 : **132,80 € sur l'heure gagnée**, 8 commandes. C'est la plus grosse des quatre
 mesures.
 
-**Quatre mesures : 116 € · 179 € · 97,50 € · 132,80 €**, moyenne **131 €** de CA par jour
-d'ouverture avancée pour ~30 € de main-d'œuvre. **C'est l'action la mieux établie du
-dossier** — quatre observations, toutes positives, aucune baisse du reste de la journée.
-Sur les deux jours du week-end : **~15 000 €/an de CA, ~650 €/mois de marge.**
+✅ **CINQUIÈME — dimanche 27/09/2026** : première commande à **13h24**, **61,80 €** sur
+l'heure gagnée, 3 commandes. La plus faible des cinq, sur une journée globalement creuse.
+
+**Cinq mesures : 116 € · 179 € · 97,50 € · 132,80 € · 61,80 €**, moyenne **117 €** de CA
+par jour d'ouverture avancée pour ~30 € de main-d'œuvre. **C'est l'action la mieux établie
+du dossier** — cinq observations, toutes positives, aucune baisse du reste de la journée.
+Sur les deux jours du week-end : **~12 000 à 15 000 €/an de CA, ~550 à 650 €/mois de
+marge.** ⚠️ La moyenne a baissé de 131 à 117 € en ajoutant le 27/09 : retenir plutôt le
+bas de la fourchette.
 
 ### Les XL ne cannibalisent PAS les menus normaux — vérifié le 11/08/2026
 
@@ -930,7 +935,8 @@ que ce qui avait été annoncé, mais plus solide.
 | jeu 24/09 | 790 € | 758,30 € | **32 €** |
 | **ven 25/09** ⚠️ | 1 030 € | 1 025,20 € | **4,80 €** — *jour à 1 personne, voir ci-dessous* |
 | **sam 26/09** | 1 635 € | 1 434,00 € | **201 €** |
-| **01–26/09, hors le 25 (25 j)** | **27 949,50 €** | **24 827,70 €** | **3 122 €, soit 125 €/jour** |
+| **dim 27/09** | 538 € | 484,00 € | **54 €** |
+| **01–27/09, hors le 25 (26 j)** | **28 487,50 €** | **25 311,70 €** | **3 176 €, soit 122 €/jour** |
 
 ### ⚠️ Le 25/09 est un jour à EXCLURE du calcul du hors-bornes
 
@@ -1186,6 +1192,72 @@ seule la mesure cumulée compte.
 
 **Position 01–26/09 : 994 €/jour aux bornes, 1 115 €/jour tout compris** (cumul annoncé
 28 979,50 €). Hors-bornes cumulé hors le 25/09 : **125 €/jour**.
+
+### 🔴 LA SEMAINE DU 22 REFROIDIT LE +48 % — mesuré le 28/09/2026
+
+**C'est la correction la plus importante du suivi de septembre.** Le résultat du 21/09
+(« +48 %, le meilleur résultat du dossier ») était juste, mais il mesurait surtout **à quel
+point la semaine creuse de 2025 avait été mauvaise**, pas à quel point 2026 est bon.
+
+Semaine suivante, composition **identique** (lundi → dimanche des deux côtés) :
+
+| Semaine complète lun→dim | 2025 *(22–28/09)* | 2026 *(21–27/09)* | Écart |
+|---|---|---|---|
+| CA bornes | 5 907 € | **6 068 €** | **+2,7 %** |
+| **Par jour** | **844 €** | **867 €** | **+23 €** |
+| Commandes | 468 | **479** | +2,4 % |
+
+**+2,7 %, contre +48 % la semaine précédente.** Et l'écart s'est fermé **par les deux
+bouts** :
+
+| | 2025 | 2026 |
+|---|---|---|
+| Semaine 15-21 | 674 €/j *(le creux)* | 999 €/j |
+| Semaine du 22 | **844 €/j** *(+25 %)* | **867 €/j** *(−13 %)* |
+
+2025 a rebondi de 25 %, 2026 a reculé de 13 %. **Le témoin a plus bougé que nous.**
+
+🔴 **Ce qu'il faut en retenir, et ne pas réécrire :** l'avance de 2026 sur 2025 est
+**très inégale selon la semaine du mois**. Elle est énorme pendant le creux de rentrée et
+quasi nulle dès que 2025 redevient normal. **Ne jamais annoncer un écart annuel depuis une
+seule semaine** — c'est la même erreur que celle du 15/09 avec les moyennes par jour de
+semaine, d'un cran plus haut. Le mois complet est la bonne maille pour cette question, et
+il tombe le 30/09.
+
+⚠️ Réserve honnête : les deux fenêtres 2026 partagent le lundi 21/09. L'effet est marginal
+(un lundi sur sept jours) mais la comparaison n'est pas parfaitement disjointe.
+
+⚠️ **867 €/jour aux bornes est SOUS le seuil de rentabilité de 895 €.** Avec les 122 € de
+hors-bornes la journée tient (989 €), donc la semaine est rentable — mais la marge s'est
+mince. Ne pas présenter cette semaine comme un bon résultat.
+
+### 🟡 Dimanche 27/09/2026 — deuxième jour de suite sous son témoin, et un ticket record
+
+**538 € annoncés · 484,00 € aux bornes · 32 commandes · ticket 15,13 €.**
+Références **001 à 032 sans trou**, 13h24 → 19h50.
+
+| | 27/09/2026 | Témoin : dim 28/09/2025 |
+|---|---|---|
+| CA bornes | **484,00 €** | 634,90 € |
+| Commandes | **32** | 48 |
+| Ticket | **15,13 €** | 13,23 € |
+
+**−24 % de CA et −33 % de commandes** contre le dimanche équivalent. C'est le **deuxième
+jour d'affilée sous son témoin**, après le 26/09 — et cette fois **le flux décroche
+vraiment** (32 commandes contre 39 de moyenne annuelle du dimanche, et 48 en 2025).
+
+**Mais le ticket est de 15,13 € : le plus élevé de tout septembre 2026**, très au-dessus
+de la moyenne du mois (~12,0 €) et même du dimanche moyen (13,42 €).
+
+⚠️ **Sur 32 commandes, un ticket ne veut presque rien dire** — deux gros paniers suffisent
+à le déplacer d'un euro. Ne pas en tirer de conclusion sur la carte.
+
+💡 **La vraie information est ailleurs : c'est la SEMAINE qui a ralenti**, pas ce dimanche
+en particulier. Voir la section ci-dessus. Deux jours faibles de suite restent deux jours ;
+c'est leur agrégat hebdomadaire qui porte le signal, et il dit +2,7 %.
+
+**Position 01–27/09 : 975 €/jour aux bornes, 1 093 €/jour tout compris** (cumul annoncé
+29 517,50 €). Hors-bornes cumulé hors le 25/09 : **122 €/jour**, stable.
 
 ### 🟡 Le cycle de paie — hypothèse du gérant testée le 22/09/2026
 
