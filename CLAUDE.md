@@ -937,7 +937,8 @@ que ce qui avait été annoncé, mais plus solide.
 | **sam 26/09** | 1 635 € | 1 434,00 € | **201 €** |
 | **dim 27/09** | 538 € | 484,00 € | **54 €** |
 | **lun 28/09** | 965 € | 813,80 € | **151 €** |
-| **01–28/09, hors le 25 (27 j)** | **29 452,50 €** | **26 125,50 €** | **3 327 €, soit 123 €/jour** |
+| **mar 29/09** | 1 005 € | 832,40 € | **173 €** |
+| **01–29/09, hors le 25 (28 j)** | **30 457,50 €** | **26 957,90 €** | **3 500 €, soit 125 €/jour** |
 
 ### ⚠️ Le 25/09 est un jour à EXCLURE du calcul du hors-bornes
 
@@ -1278,6 +1279,19 @@ correcte, rien de plus à en dire : voir la règle sur la variabilité d'une jou
 **Position 01–28/09 : 970 €/jour aux bornes, 1 089 €/jour tout compris** (cumul annoncé
 30 482,50 €). Hors-bornes cumulé hors le 25/09 : **123 €/jour**, toujours stable.
 Il reste deux jours avant le bilan du mois.
+
+### 🟢 Mardi 29/09/2026 — le ticket remonte
+
+**1 005 € annoncés · 832,40 € aux bornes · 68 commandes · ticket 12,24 €.**
+Références **001 à 068 sans trou**, 12h27 → 19h53.
+
+Témoin mardi 30/09/2025 : 714,50 € et 67 commandes, ticket 10,66 €.
+**+16,5 % de CA — et pour une fois l'écart vient du TICKET** (+1,58 €), pas du flux
+(68 commandes contre 67, identique). C'est l'inverse de la structure de tout septembre.
+⚠️ Un seul jour, ne rien en conclure.
+
+**Position 01–29/09 : 965 €/jour aux bornes, 1 086 €/jour tout compris** (cumul annoncé
+31 487,50 €). Hors-bornes cumulé hors le 25/09 : **125 €/jour**.
 
 ### 🟡 Le cycle de paie — hypothèse du gérant testée le 22/09/2026
 
