@@ -64,9 +64,13 @@ Il contient le contexte métier durable. **À mettre à jour dès qu'une donnée
   « deuxième point de vente » : il a déjà été essayé et il a échoué. Les entrées « Event 1 » et
   « Event 2 » de `RESTAURANTS` sont des **kits de stock pour charger la camionnette**,
   pas des boutiques : leurs quantités vides sont normales, ce ne sont pas des alertes.
-- CA moyen **1 032 €/jour** — **882 € bornes** + **150 € caisse/Uber tous les mois**,
-  pondéré sur les douze mois mesurés de `saisonnalite`.
-  Soit **~31 400 €/mois** et **~376 800 €/an**.
+- CA moyen **1 040 €/jour** — **893 € bornes** + le hors-bornes,
+  moyenne des douze mois de `saisonnalite`.
+  Soit **~31 200 €/mois** et **~379 700 €/an**.
+  ⚠️ Recalculé le 30/09/2026 après le passage de septembre en 2026 (les valeurs
+  précédentes, 1 032 € et 882 €, portaient encore septembre 2025).
+  ⚠️ **Le hors-bornes n'est plus uniforme** : septembre porte **124 € mesurés**, les onze
+  autres mois portent toujours **150 € estimés**.
   ⚠️ Août est désormais celui de **2026** (complet, chargé le 31/08), pas 2025.
   ✅ **L'année est complète depuis le 11/08/2026** : septembre 2025 a été chargé
   (1 978 commandes, 25 073 €, 836 €/jour). Il n'y a plus aucun mois estimé dans
@@ -938,7 +942,9 @@ que ce qui avait été annoncé, mais plus solide.
 | **dim 27/09** | 538 € | 484,00 € | **54 €** |
 | **lun 28/09** | 965 € | 813,80 € | **151 €** |
 | **mar 29/09** | 1 005 € | 832,40 € | **173 €** |
-| **01–29/09, hors le 25 (28 j)** | **30 457,50 €** | **26 957,90 €** | **3 500 €, soit 125 €/jour** |
+| **mer 30/09** | 1 234 € | 1 031,60 € | **202 €** |
+| **✅ MOIS COMPLET (30 j)** | **32 721,50 €** | **29 014,70 €** | **3 706,80 €, soit 124 €/jour** |
+| *hors le 25/09 (29 j)* | *31 691,50 €* | *27 989,50 €* | *3 702 €, soit **127 €/jour*** |
 
 ### ⚠️ Le 25/09 est un jour à EXCLURE du calcul du hors-bornes
 
@@ -1481,13 +1487,112 @@ rien à la perception. Le gérant est au comptoir, c'est lui qui peut le dire.
 l'écart de 175 € vient de **12 commandes dont le PDF ne donne pas les prix unitaires**,
 volontairement exclues. Pour un CA global, préférer `ventes`.
 
-**À produire fin septembre :**
-1. Le hors-bornes réel du mois, mesuré au lieu d'estimé.
-2. **Septembre 2026 contre septembre 2025, aux mêmes dates** — le témoin propre attendu
-   depuis le 31/08 (sept 2025 : 1 978 commandes, 836 €/j, ticket 12,68 €, ni XL ni menu
-   renommé, détail produits en base depuis le 01/09/2026).
-3. Le creux de la mi-septembre s'est-il comporté comme en 2025 ? La reprise de la semaine
-   du 22 a-t-elle eu lieu ?
+## 🟢 BILAN DE SEPTEMBRE 2026 — MOIS COMPLET, LE TÉMOIN PROPRE EST ARRIVÉ (30/09/2026)
+
+**C'est la comparaison attendue depuis le 31/08 : le même mois, l'année précédente, sur
+30 jours de chaque côté.**
+
+| Septembre, aux bornes | 2025 | 2026 | Écart |
+|---|---|---|---|
+| CA | 25 072,80 € | **29 014,70 €** | **+3 942 € (+15,7 %)** |
+| **Par jour** | **836 €** | **967 €** | **+131 €** |
+| Commandes | 1 978 | **2 391** | **+413 (+20,9 %)** |
+| **Ticket** | **12,68 €** | **12,14 €** | **−0,54 €** |
+
+**Tout compris, déclaré par le gérant : 32 721,50 €, soit 1 091 €/jour.**
+
+✅ **Composition en jours de semaine vérifiée, et elle est quasi identique** : autant de
+dimanches (4), mardis (5), jeudis (4), vendredis (4) et **samedis (4)** des deux côtés.
+2026 a seulement **un lundi de moins et un mercredi de plus**, soit ~19 € sur tout le mois.
+**Aucun effet de calendrier : l'écart de +15,7 % est réel.**
+
+### D'où vient le gain — la fréquentation, et elle seule
+
+| | Effet |
+|---|---|
+| **Plus de clients** (+413 commandes) | **+5 237 €** |
+| **Ticket plus bas** (−0,54 €) | **−1 291 €** |
+| **Net** | **+3 942 €** |
+
+🔴 **Le ticket COÛTE 1 291 € sur le mois.** Sans sa baisse, le gain aurait été de
++5 237 € au lieu de +3 942 €. C'est la confirmation à l'échelle du mois de ce qui était
+déjà vu au jour le jour : **on gagne du volume et on perd du panier.**
+
+### Le vrai résultat : le plancher s'est relevé, pas le plafond
+
+CA bornes par jour, semaine par semaine :
+
+| Semaine | 2025 | 2026 | Écart |
+|---|---|---|---|
+| 01-07 | 1 060 € | 1 058 € | **−0,2 %** |
+| 08-14 | 810 € | **961 €** | **+18,6 %** |
+| **15-21** | **674 €** | **999 €** | **+48,2 %** |
+| 22-28 | 844 € | 861 € | **+2,0 %** |
+| 29-30 | 680 € | **932 €** | **+37,1 %** |
+
+🔴 **C'est le résultat le plus important du mois, et il est structurel.** Sur la semaine
+forte (01-07), 2026 fait *exactement* comme 2025. Sur la semaine de reprise (22-28), à
+peine mieux. **Tout le gain est concentré sur les semaines FAIBLES** — le creux de rentrée
+et la fin de mois.
+
+**Sekai n'a pas de meilleurs bons jours. Il n'a plus de mauvaises semaines.**
+En 2025, deux semaines sur cinq tombaient sous le seuil de rentabilité (674 € et 680 €).
+En 2026, **aucune** : la plus basse est à 861 €, et avec le hors-bornes toutes les cinq
+semaines sont rentables.
+
+⚠️ **Conséquence pour toute projection :** ne pas extrapoler le +15,7 % sur un mois à
+forte saison. Le gain vient du remplissage des creux ; sur un mois déjà plein (juillet,
+août, décembre) il sera nettement plus faible.
+
+### Hors-bornes : mesuré, pas estimé
+
+| | |
+|---|---|
+| Annoncé sur 30 jours | 32 721,50 € |
+| Bornes sur 30 jours | 29 014,70 € |
+| **Hors-bornes réel** | **3 706,80 €, soit 124 €/jour** |
+| En écartant le 25/09 (1 personne, Uber coupé) | **127 €/jour** |
+
+✅ **`saisonnalite.mois = 9` est passé en 2026** (migration `saisonnalite_septembre_2026_mois_complet`) :
+`ca_jour_bornes` 836 → **967**, `hors_bornes` 126 → **124**, `ca_total_jour` 962 → **1 091**,
+`annee_mesure` 2025 → 2026. Semaine **927 €/jour** (22 j), week-end **1 077 €/jour** (8 j).
+
+🔴 **`parametres.ca_hors_bornes` reste à 150** et les onze autres mois aussi. **Septembre
+est le seul mois où le hors-bornes a été mesuré**, sur un relevé quotidien de 30 jours.
+Ne pas propager les 124 € : ce serait réécrire du passé jamais observé.
+
+### Résultat économique du mois
+
+| | |
+|---|---|
+| CA tout compris | 32 721,50 € |
+| Charges (`finances_charges`) | −25 071 € |
+| **Résultat avant dettes** | **~7 650 €** |
+| Dettes | −1 793 € |
+| **Résultat après dettes** | **~5 857 €** |
+
+C'est **au-dessus des ~4 600 €/mois modélisés**. ⚠️ Avant impôt, et `finances_charges` ne
+porte aucune ligne d'impôt.
+
+### Mercredi 30/09/2026, le dernier jour
+
+**1 234 € annoncés · 1 031,60 € aux bornes · 87 commandes · ticket 11,86 €.**
+Références **001 à 087 sans trou**. Témoin mercredi 01/10/2025 : 1 029,10 € et 77 commandes.
+**CA quasi identique (+0,2 %) mais +13 % de commandes** — encore la même structure.
+Hors-bornes du jour : **202 €**, le deuxième plus élevé du mois.
+
+✅ **Contrôle de ma propre estimation :** j'avais annoncé **~32 650 €** la veille, le mois
+sort à **32 721,50 €** — **0,2 % d'écart**. La méthode d'estimation en fin de mois est
+fiable, on peut s'en servir.
+
+### Ce qui reste ouvert après ce bilan
+
+1. **Le détail produits de septembre 2026 complet** n'est en base que pour le 01-17
+   (`ventes_produits`). Le mix menus/XL du 18-30 vient du webhook et n'a pas été agrégé.
+2. **La conclusion d'août (+417 €/mois)** n'a toujours pas été retestée avec la séparation
+   avec/sans menu. À refaire avant de la réutiliser.
+3. Le relevé quotidien continue-t-il en octobre ? À demander au gérant — il a beaucoup de valeur,
+   et c'est lui qui a permis de mesurer le hors-bornes.
 
 ## ⚠️ Décisions déjà prises — À LIRE AVANT TOUTE ANALYSE
 
