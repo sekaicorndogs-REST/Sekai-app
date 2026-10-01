@@ -1594,6 +1594,43 @@ fiable, on peut s'en servir.
 3. Le relevé quotidien continue-t-il en octobre ? À demander au gérant — il a beaucoup de valeur,
    et c'est lui qui a permis de mesurer le hors-bornes.
 
+## 📆 Relevé quotidien d'OCTOBRE 2026 — en cours
+
+✅ **Le gérant a continué le relevé en octobre** (il a donné le CA du 01/10 sans qu'on le
+redemande). Même méthode : une ligne par date dans `ca_jour_declare`, contrôle de la
+continuité des références de borne, témoin = le même jour de semaine de la même semaine
+du mois en 2025.
+
+⚠️ **`saisonnalite` porte encore octobre 2025** : 959 €/jour aux bornes, hors-bornes **150 €
+estimés**, `annee_mesure` 2025. À remplacer fin octobre par la mesure 2026, comme on l'a
+fait pour septembre.
+
+| Jour | Annoncé | Bornes | **Hors-bornes réel** |
+|---|---|---|---|
+| **jeu 01/10** | 1 175 € | 897,40 € | **277,60 €** |
+
+### 🟢 Jeudi 01/10/2026 — très bon jeudi, et un hors-bornes record
+
+**1 175 € annoncés · 897,40 € aux bornes · 82 commandes · ticket 10,94 €.**
+Références **001 à 082 sans trou**, 12h07 → 19h44.
+
+| | 01/10/2026 | Témoin : jeu 02/10/2025 |
+|---|---|---|
+| CA bornes | **897,40 €** | 505,60 € |
+| Commandes | **82** | 48 |
+| Ticket | 10,94 € | 10,53 € |
+
+**+78 % de CA, +71 % de commandes.** Et c'est un **jeudi**, le jour structurellement creux
+(718 €/jour de moyenne annuelle) : 897 € est très au-dessus.
+
+⚠️ **Hors-bornes de 277,60 €, le plus élevé jamais mesuré** — record précédent 230 € le
+31/08, puis 202 € le 30/09. Octobre démarre donc très au-dessus des 124 €/jour mesurés en
+septembre. **Un seul jour ne vaut rien** (les jours isolés vont de 4,80 € à 277 €), mais si
+le cumul se tient au-dessus de 150 €, le paramètre d'octobre devra monter et non descendre.
+
+⚠️ Ticket à 10,94 €, sous la moyenne du jeudi (11,98 €). Toujours la même structure :
+**du volume, pas du panier.**
+
 ## ⚠️ Décisions déjà prises — À LIRE AVANT TOUTE ANALYSE
 
 Le travail des sessions précédentes est stocké en base, **pas dans la conversation**.
