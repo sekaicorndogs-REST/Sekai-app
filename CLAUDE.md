@@ -1607,7 +1607,9 @@ fait pour septembre.
 
 | Jour | Annoncé | Bornes | **Hors-bornes réel** |
 |---|---|---|---|
-| **jeu 01/10** | 1 175 € | 897,40 € | **277,60 €** |
+| **jeu 01/10** | 1 175 € | 897,40 € | **277,60 €** ← record haut |
+| **ven 02/10** | 1 315 € | 1 288,80 € | **26,20 €** ← 2e plus bas de tout le suivi |
+| **01–02/10 (2 j)** | **2 490 €** | **2 186,20 €** | **303,80 €, soit 152 €/jour** |
 
 ### 🟢 Jeudi 01/10/2026 — très bon jeudi, et un hors-bornes record
 
@@ -1630,6 +1632,36 @@ le cumul se tient au-dessus de 150 €, le paramètre d'octobre devra monter et 
 
 ⚠️ Ticket à 10,94 €, sous la moyenne du jeudi (11,98 €). Toujours la même structure :
 **du volume, pas du panier.**
+
+### 🟢 Vendredi 02/10/2026 — très bon vendredi, et le ticket contribue enfin
+
+**1 315 € annoncés · 1 288,80 € aux bornes · 111 commandes · ticket 11,61 €.**
+Références **001 à 111 sans trou**, 11h58 → 19h53.
+
+| | 02/10/2026 | Témoin : ven 03/10/2025 |
+|---|---|---|
+| CA bornes | **1 288,80 €** | 1 084,00 € |
+| Commandes | **111** | 101 |
+| Ticket | **11,61 €** | 10,73 € |
+
+**+19 % de CA, +10 % de commandes — et +0,88 € de ticket.** Pour une fois les deux
+leviers jouent ensemble, au lieu du « volume en hausse, panier en baisse » de tout
+septembre. Dans l'absolu c'est aussi un très bon vendredi : **1 289 € contre 912 €** de
+moyenne annuelle, soit **+41 %**.
+
+### 💡 La démonstration par l'absurde du hors-bornes journalier
+
+| | Hors-bornes |
+|---|---|
+| jeu 01/10 | **277,60 €** *(record haut de tout le suivi)* |
+| ven 02/10 | **26,20 €** *(2e plus bas, après les 4,80 € du 25/09)* |
+| **Cumul sur 2 jours** | **152 €/jour** |
+
+🔴 **251 € d'écart en deux jours consécutifs, et la moyenne des deux tombe pile sur le
+paramètre de 150 €.** C'est l'illustration la plus nette possible de la règle : **un
+hors-bornes journalier ne porte aucune information**, seul le cumul en porte. Ne jamais
+réagir à un hors-bornes isolé, ni à la hausse ni à la baisse — et ne pas avoir conclu
+quoi que ce soit du record du 01/10 était le bon réflexe.
 
 ## ⚠️ Décisions déjà prises — À LIRE AVANT TOUTE ANALYSE
 
