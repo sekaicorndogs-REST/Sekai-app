@@ -2012,6 +2012,35 @@ qu'elles viennent de l'export CSV, donc en heure locale. `fetchVentes()` ramène
 `source_id` rempli → `new Date(t)` ; sinon → `new Date(t.slice(0, 19))`, que JS lit en
 heure locale. **Ne pas « simplifier » ce helper en un seul `new Date()`.**
 
+### Comparaison sur un an dans l'onglet Stats — ajouté le 02/10/2026
+
+Demande du gérant : comparer à l'année passée **partout où c'est possible**.
+Les trois graphiques mensuels (CA/jour, panier, commandes/jour) portent une colonne
+« sur un an » en bout de barre, et le thème CA ouvre sur une carte
+**« Sur un an, mois contre mois »** avec la décomposition fréquentation / panier.
+
+Trois garde-fous, chacun imposé par une erreur déjà commise dans ce dossier :
+
+1. **Pas de témoin → « — », jamais le mois voisin.** `ventes` démarre au 01/08/2025 :
+   un mois sans équivalent l'année d'avant n'est pas comparé du tout. C'est la règle 1
+   de la méthode de chiffrage (le ticket va de 11,92 € à 13,57 € sans qu'aucun
+   changement ait eu lieu).
+2. **Contrôle de composition en jours de semaine**, affiché en infobulle et signalé par
+   un ⚠ : un samedi vaut 1 414 € contre 531 € un dimanche, donc un écart annuel ne se
+   lit jamais sans vérifier que les deux mois portent les mêmes jours.
+3. 🔴 **Un mois EN COURS est signalé en rouge et EXCLU de la décomposition.** Seuil :
+   moins de 80 % des jours du témoin. Octobre 2026 à 2 jours face aux 31 jours
+   d'octobre 2025 donnerait un écart qui ne mesure que le choix des deux jours.
+
+⚠️ **Le hors-bornes appliqué est le même des deux côtés** — `hbDuMois()` lit
+`saisonnalite` **par numéro de mois, sans l'année**, donc septembre 2025 reçoit les
+124 € mesurés en 2026. La réserve est écrite dans la carte : **l'écart affiché vient
+des bornes.** Ne pas lire ces euros comme un écart tout compris.
+
+⚠️ **Les thèmes « Produits » et « Finances » n'ont aucun témoin possible** :
+`ventes_produits` ne porte le détail qu'à partir du 01/09/2026 et `finances_charges`
+n'a pas d'historique. Ne pas chercher à y ajouter une comparaison annuelle.
+
 ### 🔴 La barre de navigation figée au milieu de l'écran — corrigé le 23/09/2026
 
 Symptôme signalé par le gérant : la barre du bas **reste bloquée au milieu de l'écran**,
