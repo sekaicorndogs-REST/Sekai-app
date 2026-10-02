@@ -5700,6 +5700,69 @@ A travaillé sans être au planning — qui a été remplacé ?
             a != null && b != null && b !== 0 ? ((a - b) / b) * 100 : null;
           const libMois = (k: string) => MOIS_COURT[parseInt(k.slice(5), 10) - 1] + " " + k.slice(2, 4);
 
+          // ── Comparaison sur UN AN : le même mois de l'année précédente ──────
+          // `ventes` démarre le 01/08/2025 : un mois n'a de témoin que si le même
+          // mois de l'année d'avant est dans l'historique. Quand il manque, on
+          // affiche « — » au lieu de comparer au mois précédent en silence —
+          // c'est la règle 1 de la méthode de chiffrage (jamais deux mois voisins,
+          // le ticket varie de 11,92 € à 13,57 € sans qu'aucun changement ait eu lieu).
+          const kAnPasse = (k: string) => String(parseInt(k.slice(0, 4), 10) - 1) + k.slice(4);
+          // Composition en jours de semaine. Deux mêmes mois peuvent porter un
+          // samedi d'écart, et un samedi vaut 1 414 € contre 531 € un dimanche :
+          // un écart annuel ne se lit JAMAIS sans vérifier ça d'abord.
+          const JC = ["dim", "lun", "mar", "mer", "jeu", "ven", "sam"];
+          const compoMois = (k: string) => {
+            const c: Record<number, number> = {}; const vus = new Set<string>();
+            V.forEach(v => {
+              const km = v.d.getFullYear() + "-" + String(v.d.getMonth() + 1).padStart(2, "0");
+              if (km !== k) return;
+              const j = v.d.toDateString();
+              if (vus.has(j)) return;
+              vus.add(j);
+              c[v.d.getDay()] = (c[v.d.getDay()] || 0) + 1;
+            });
+            return c;
+          };
+          const ecartCompo = (k: string, kRef: string) => {
+            const a = compoMois(k), b = compoMois(kRef); const out: string[] = [];
+            [1, 2, 3, 4, 5, 6, 0].forEach(d => {
+              const diff = (a[d] || 0) - (b[d] || 0);
+              if (diff !== 0) out.push(`${diff > 0 ? "+" : "−"}${Math.abs(diff)} ${JC[d]}`);
+            });
+            return out;
+          };
+          // 🔴 Un mois EN COURS ne se compare pas à un mois complet. Octobre 2026
+          // à 2 jours (un jeudi et un vendredi) face aux 31 jours d'octobre 2025
+          // donnerait un écart qui ne mesure que le choix des deux jours. On le
+          // signale, et on l'exclut de la décomposition agrégée.
+          const anPasse = (k: string) => {
+            const ref = moisStats.find(m => m.k === kAnPasse(k));
+            if (!ref) return null;
+            const cur = moisStats.find(m => m.k === k);
+            const partiel = !!cur && cur.jours < ref.jours * 0.8;
+            return { ref, compo: ecartCompo(k, ref.k), partiel, jours: cur?.jours || 0 };
+          };
+          const moisAvecTemoin = moisStats.filter(m => anPasse(m.k));
+          const pctAn = (v: number | null) => v == null ? "—" : (v >= 0 ? "+" : "") + v.toFixed(1) + " %";
+          // Badge « sur un an » posé en bout de chaque barre mensuelle.
+          const badgeAn = (k: string, val: number, champ: "caJour" | "panier" | "cmdJour") => {
+            const a = anPasse(k);
+            const d = a ? evol(val, a.ref[champ]) : null;
+            const titre = a
+              ? `Contre ${libMois(a.ref.k)} : ${champ === "panier" ? a.ref.panier.toFixed(2) + " €" : champ === "cmdJour" ? a.ref.cmdJour.toFixed(0) : fmt(a.ref.caJour) + " €"}`
+                + (a.partiel ? ` · ⚠ MOIS EN COURS : ${a.jours} jours contre ${a.ref.jours}, l'écart ne veut encore rien dire` : "")
+                + (a.compo.length ? ` · ⚠ composition : ${a.compo.join(", ")}` : " · même composition en jours de semaine")
+              : "Pas de témoin : ce mois n'existe pas dans l'historique de l'année précédente";
+            return (
+              <span title={titre}
+                style={{ width: "44px", textAlign: "right" as const, fontSize: "0.63rem", fontWeight: 700, flexShrink: 0,
+                  color: d == null ? "#d8c4a8" : d >= 0 ? "#1f6e42" : "#e8213a" }}>
+                {d == null ? "—" : (d >= 0 ? "+" : "") + d.toFixed(0) + "%"}
+                {a && (a.partiel || a.compo.length > 0) && <span style={{ color: "#c98a17" }}> ⚠</span>}
+              </span>
+            );
+          };
+
           // Dettes : ordre de remboursement et date de sortie
           const dettesTriees = [...dettes]
             .filter((d: any) => (parseFloat(d.montant_restant) || 0) > 0)
@@ -6243,10 +6306,89 @@ A travaillé sans être au planning — qui a été remplacé ?
               })()}
 
               {/* ══════ THÈME : CA & SAISON ══════ */}
+              {/* Comparaison annuelle : le seul témoin honnête. Un mois sans
+                  équivalent l'année d'avant est affiché comme tel, jamais comparé
+                  au mois précédent. */}
+              {theme("ca") && moisAvecTemoin.length > 0 && (
+                <div style={{ ...CARD, padding: "0.9rem 1rem" }}>
+                  <div style={{ ...LBL, marginBottom: "0.1rem" }}>Sur un an, mois contre mois</div>
+                  <div style={{ color: "#c8a878", fontSize: "0.66rem", marginBottom: "0.7rem" }}>
+                    Le même mois de l'année précédente — la seule comparaison qui vaut.
+                    {moisStats.length > moisAvecTemoin.length && <> {moisStats.length - moisAvecTemoin.length} mois n'ont pas de témoin et n'apparaissent pas ici.</>}
+                    {" "}Le hors-bornes appliqué est le même des deux côtés (il n'a été mesuré qu'en 2026) :
+                    tout l'écart affiché vient donc des bornes.
+                  </div>
+                  {moisAvecTemoin.map(m => {
+                    const a = anPasse(m.k)!;
+                    const d = evol(m.caJour, a.ref.caJour);
+                    return (
+                      <div key={m.k} style={{ marginBottom: "0.5rem" }}>
+                        <div style={{ display: "flex", alignItems: "baseline", gap: "0.4rem" }}>
+                          <span style={{ width: "54px", color: "#3d1a0a", fontSize: "0.74rem", fontWeight: 700, flexShrink: 0 }}>{libMois(m.k)}</span>
+                          <span style={{ color: "#a07848", fontSize: "0.7rem" }}>{fmt(a.ref.caJour)} €</span>
+                          <span style={{ color: "#c8a878", fontSize: "0.7rem" }}>→</span>
+                          <span style={{ color: "#3d1a0a", fontSize: "0.78rem", fontWeight: 800 }}>{fmt(m.caJour)} €</span>
+                          <span style={{ marginLeft: "auto", fontSize: "0.78rem", fontWeight: 800, color: d != null && d >= 0 ? "#1f6e42" : "#e8213a" }}>{pctAn(d)}</span>
+                        </div>
+                        <div style={{ color: a.partiel ? "#e8213a" : a.compo.length ? "#c98a17" : "#c8a878", fontSize: "0.62rem", paddingLeft: "58px" }}>
+                          {a.partiel
+                            ? `⚠ mois en cours — ${a.jours} jour${a.jours > 1 ? "s" : ""} contre ${a.ref.jours} : cet écart ne mesure que les jours écoulés, pas le mois`
+                            : a.compo.length
+                            ? `⚠ ${a.compo.join(", ")} — le calendrier joue, l'écart n'est pas entièrement réel`
+                            : "même composition en jours de semaine · comparaison propre"}
+                        </div>
+                      </div>
+                    );
+                  })}
+                  {(() => {
+                    // Décomposition fréquentation / ticket sur l'ensemble des mois comparables.
+                    // Aux bornes seules : le hors-bornes est un paramètre, pas une mesure par commande.
+                    let n26 = 0, n25 = 0, ca26 = 0, ca25 = 0, nbMois = 0;
+                    moisAvecTemoin.forEach(m => {
+                      const x = anPasse(m.k)!;
+                      if (x.partiel) return;          // un mois en cours fausserait tout
+                      const r = x.ref;
+                      const a = m.cmdJour * m.jours, b = r.cmdJour * r.jours;
+                      n26 += a; n25 += b; ca26 += m.panier * a; ca25 += r.panier * b; nbMois++;
+                    });
+                    if (!n25 || !n26) return null;
+                    const t25 = ca25 / n25, t26 = ca26 / n26;
+                    const eFreq = (n26 - n25) * t25;
+                    const eTicket = (t26 - t25) * n26;
+                    return (
+                      <div style={{ marginTop: "0.6rem", paddingTop: "0.6rem", borderTop: "1px dashed #f0e0cc" }}>
+                        <div style={{ ...LBL, marginBottom: "0.35rem" }}>D'où vient l'écart · {nbMois} mois complet{nbMois > 1 ? "s" : ""}</div>
+                        {[
+                          { l: "Plus de clients", v: eFreq, d: `${Math.round(n25)} → ${Math.round(n26)} commandes` },
+                          { l: "Ticket", v: eTicket, d: `${t25.toFixed(2)} € → ${t26.toFixed(2)} €` },
+                        ].map(x => (
+                          <div key={x.l} style={{ display: "flex", alignItems: "baseline", gap: "0.4rem", marginBottom: "0.2rem" }}>
+                            <span style={{ color: "#3d1a0a", fontSize: "0.72rem", fontWeight: 600, width: "98px", flexShrink: 0 }}>{x.l}</span>
+                            <span style={{ color: "#a07848", fontSize: "0.64rem" }}>{x.d}</span>
+                            <span style={{ marginLeft: "auto", fontSize: "0.78rem", fontWeight: 800, color: x.v >= 0 ? "#1f6e42" : "#e8213a" }}>
+                              {x.v >= 0 ? "+" : "−"}{fmt(Math.abs(x.v))} €
+                            </span>
+                          </div>
+                        ))}
+                        <div style={{ color: "#a07848", fontSize: "0.66rem", marginTop: "0.35rem" }}>
+                          Aux bornes seules. {Math.abs(eFreq) > Math.abs(eTicket) * 2
+                            ? "Le gain vient de la fréquentation, pas du panier — un changement de carte n'y est pour rien."
+                            : Math.abs(eTicket) > Math.abs(eFreq) * 2
+                            ? "Le gain vient du panier, pas du nombre de clients."
+                            : "Les deux leviers jouent ensemble."}
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+              )}
+
               {theme("ca") && moisStats.length > 1 && (
                 <div style={{ ...CARD, padding: "0.9rem 1rem" }}>
                   <div style={{ ...LBL, marginBottom: "0.1rem" }}>CA réel mois par mois · €/jour</div>
-                  <div style={{ color: "#c8a878", fontSize: "0.66rem", marginBottom: "0.7rem" }}>Caisse et Uber inclus · trait = seuil {fmt(objJour)} €</div>
+                  <div style={{ color: "#c8a878", fontSize: "0.66rem", marginBottom: "0.7rem" }}>
+                    Caisse et Uber inclus · trait = seuil {fmt(objJour)} € · dernière colonne = <strong style={{ color: "#a07848" }}>écart sur un an</strong>, « — » quand le mois n'a pas de témoin
+                  </div>
                   {moisStats.map(m => {
                     const sous = m.caJour < objJour;
                     return (
@@ -6257,6 +6399,7 @@ A travaillé sans être au planning — qui a été remplacé ?
                           <div style={{ position: "absolute" as const, left: `${Math.min(100, (objJour / maxMois) * 100)}%`, top: "-3px", width: "2px", height: "15px", background: "#3d1a0a" }} />
                         </div>
                         <span style={{ width: "50px", textAlign: "right" as const, fontSize: "0.74rem", fontWeight: 700, color: sous ? "#e8213a" : "#1f6e42" }}>{fmt(m.caJour)} €</span>
+                        {badgeAn(m.k, m.caJour, "caJour")}
                       </div>
                     );
                   })}
@@ -6330,7 +6473,7 @@ A travaillé sans être au planning — qui a été remplacé ?
               {theme("panier") && moisStats.length > 1 && (<>
                 <div style={{ ...CARD, padding: "0.9rem 1rem" }}>
                   <div style={{ ...LBL, marginBottom: "0.1rem" }}>Panier moyen mois par mois</div>
-                  <div style={{ color: "#c8a878", fontSize: "0.66rem", marginBottom: "0.7rem" }}>Aux bornes · ce que dépense un client par commande</div>
+                  <div style={{ color: "#c8a878", fontSize: "0.66rem", marginBottom: "0.7rem" }}>Aux bornes · ce que dépense un client par commande · dernière colonne = écart sur un an</div>
                   {moisStats.map(m => (
                     <div key={m.k} style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.3rem" }}>
                       <span style={{ width: "54px", color: "#a07848", fontSize: "0.7rem", flexShrink: 0 }}>{libMois(m.k)}</span>
@@ -6338,6 +6481,7 @@ A travaillé sans être au planning — qui a été remplacé ?
                         <div style={{ width: `${(m.panier / maxPanier) * 100}%`, height: "9px", borderRadius: "20px", background: "#7a4bd6" }} />
                       </div>
                       <span style={{ width: "52px", textAlign: "right" as const, fontSize: "0.74rem", fontWeight: 700, color: "#3d1a0a" }}>{m.panier.toFixed(2)} €</span>
+                      {badgeAn(m.k, m.panier, "panier")}
                     </div>
                   ))}
                   {(() => {
@@ -6351,7 +6495,8 @@ A travaillé sans être au planning — qui a été remplacé ?
                   })()}
                 </div>
                 <div style={{ ...CARD, padding: "0.9rem 1rem" }}>
-                  <div style={{ ...LBL, marginBottom: "0.7rem" }}>Commandes par jour</div>
+                  <div style={{ ...LBL, marginBottom: "0.1rem" }}>Commandes par jour</div>
+                  <div style={{ color: "#c8a878", fontSize: "0.66rem", marginBottom: "0.7rem" }}>Aux bornes · dernière colonne = écart sur un an</div>
                   {moisStats.map(m => (
                     <div key={m.k} style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.3rem" }}>
                       <span style={{ width: "54px", color: "#a07848", fontSize: "0.7rem", flexShrink: 0 }}>{libMois(m.k)}</span>
@@ -6359,6 +6504,7 @@ A travaillé sans être au planning — qui a été remplacé ?
                         <div style={{ width: `${(m.cmdJour / Math.max(...moisStats.map(x => x.cmdJour))) * 100}%`, height: "9px", borderRadius: "20px", background: "#1f6e42" }} />
                       </div>
                       <span style={{ width: "46px", textAlign: "right" as const, fontSize: "0.74rem", fontWeight: 700, color: "#3d1a0a" }}>{m.cmdJour.toFixed(0)}</span>
+                      {badgeAn(m.k, m.cmdJour, "cmdJour")}
                     </div>
                   ))}
                 </div>
