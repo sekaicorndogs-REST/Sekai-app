@@ -2086,6 +2086,76 @@ qui force l'autre à `auto`) **ni** un ancêtre portant `transform`, `filter`,
 chaîne — `html`, `body`, `#root`, puis le conteneur de la page — et pas seulement le
 dernier coupable connu.
 
+## 🏗️ PROJET EN COURS : la borne de commande maison (depuis le 03/10/2026)
+
+**Le gérant veut remplacer EasyOrder par sa propre borne.** Décidé le 03/10/2026.
+
+### Ce qui est établi — ne pas re-demander
+
+| | |
+|---|---|
+| Où on développe | **Ce dépôt**, app séparée, projet Vercel et URL à part. Même Supabase, même CLAUDE.md |
+| Matériel | **Les bornes sont à LUI**, il en a **deux en service et une de secours inutilisée** |
+| Comment on teste | **Sur la borne de secours**, sans jamais toucher à la production. Risque nul, zéro investissement |
+| La borne EasyOrder | une **app téléchargeable**, pas une page web — on ne peut pas la repointer, il faut installer autre chose |
+
+🟢 **LE CONSTAT QUI REND LE PROJET FAISABLE : la borne ne prend AUCUN paiement.**
+Sur les 1 208 commandes de `commandes_live`, **100 % sont en « cash / non payé »** — le
+client commande à la borne puis paie au comptoir. **Bancontact, PSP et certification sont
+donc HORS PÉRIMÈTRE.** Périmètre réel : catalogue → panier → options → envoi → cuisine.
+
+✅ **Zéro référence en double par jour** sur 1 209 références : les deux bornes partagent
+un seul compteur. Le contrôle de complétude quotidien reste valable et couvre les deux.
+
+### 🔴 L'argent : le gain est INCONNU, et c'est une réserve, pas un détail
+
+J'ai d'abord annoncé **121 €/mois** en désignant la ligne « Machine caisse » de
+`finances_charges`. **C'était trop affirmatif.** En Belgique cette ligne est très
+probablement la **caisse enregistreuse avec boîte noire**, obligation légale non
+supprimable. `Paynovate` (45 €) est le prestataire de paiement, qui reste de toute façon.
+
+**On ne sait donc pas ce que coûte EasyOrder** — le gérant a dit que c'est « inclus dans
+autre chose ». Tant que ce chiffre n'est pas retrouvé (facture ou extrait bancaire), le
+projet **n'a pas de justification financière prouvée**. Il garde sa justification de
+maîtrise des données. ⚠️ À mettre en face : la hausse des menus à 10,50 € vaut
+**525 €/mois pour zéro travail** et attend toujours une réponse.
+
+### Le catalogue d'options — reconstitué depuis le terrain
+
+Migration `borne_catalogue_options` (03/10/2026). **Rien n'est supposé** : chaque groupe,
+chaque choix et chaque prix a été observé dans `commandes_live_options`.
+
+| Table | Contenu |
+|---|---|
+| `borne_groupes` | 13 groupes. `portee` = `produit` (posé par article) ou `commande` (posé une fois : « sur place ou à emporter ») |
+| `borne_options` | Les choix et leur prix. `ordre` = fréquence réelle, le plus pris en premier |
+| `borne_produit_groupes` | Quel groupe pour quel produit, strictement tel qu'observé |
+
+⚠️ **La clé est le NOM du produit, pas un id** : les libellés ne concordent pas tous
+(`CORNDOG SAUCISSE/MOZZA` côté ligne contre `CORNDOG SAUCISSE/MOZA` côté option).
+À réconcilier avec `menu_produits` avant la mise en service.
+
+**Trois constats sur la borne ACTUELLE, issus de ce travail :**
+
+1. 🟡 **Sauces en double** : `MAYONNAISE` (102) et `MAYO` (79) sont la même sauce ;
+   `AIGRE DOUCE / SWEET CHILI` (108) et `AIGRE DOUCE` (33) aussi. Ça embrouille le client
+   et coupe les statistiques en deux. **Fusionnées dans le nouveau catalogue** — le gérant
+   doit confirmer.
+2. 🟡 **Le Menu Goodeal XL n'a pas le groupe `SUPPLEMENTS`** alors que le Goodeal normal
+   l'a : impossible d'ajouter les oignons frits à 0,50 €. Ressemble à un oubli.
+3. ✅ **Le Bubble Dog XL n'a pas `OPTION FRITES`** — et c'est **volontaire**, déjà
+   documenté plus haut. Les données le confirment, ne pas le « corriger ».
+
+⚠️ **`commandes_live.compte` est NULL sur toutes les lignes**, alors que ce fichier dit
+que le segment de compte y est stocké. Sans conséquence tant qu'un seul compte est actif
+(Enseignement est fermé), mais à corriger.
+
+### Question ouverte, bloquante pour la suite
+
+🔴 **Comment la cuisine voit-elle la commande aujourd'hui ?** Ticket imprimé, écran
+Direct, ou quelqu'un regarde la borne ? Posé le 03/10, **sans réponse**. Ça ne bloque pas
+l'écran de commande (identique dans tous les cas) mais ça décide de ce qui vient après.
+
 ### 🔴 L'échange avec EasyOrder est TERMINÉ — 19/09/2026
 
 Le gérant : *« pour le mail on peut plus avoir plus de données car EasyOrder est fini »*.
