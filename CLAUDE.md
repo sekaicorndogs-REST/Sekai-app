@@ -2060,6 +2060,32 @@ dit dans le fichier. Si un jour un débordement horizontal réapparaît, le corr
 l'élément fautif ou avec `overflow-x: clip` (qui ne crée pas de conteneur de défilement),
 jamais en rétablissant `hidden` sur `#root`.
 
+#### 🔴 Le bug est REVENU le 03/10/2026 — le correctif du 23/09 était incomplet
+
+Signalé par le gérant depuis l'onglet Direct. **`#root` était resté propre : la cause
+était ailleurs, deux fois.**
+
+**1. `overflow-x: hidden` avait été posé sur `html, body` — sur les DEUX.** C'est ce qui
+recrée le défaut d'un cran plus haut. Règle CSS exacte : l'`overflow` de `body` ne remonte
+au viewport **que tant que `html` est `visible`**. Dès que `html` porte lui aussi un
+overflow non-visible, celui de `body` cesse de remonter et **`body` devient une boîte de
+défilement imbriquée** — la barre `position: fixed` se fige comme avant.
+
+**Correction : le rognage vit sur `html` SEUL**, en `overflow-x: clip` (qui rogne sans
+jamais créer de conteneur de défilement), avec `hidden` déclaré juste avant comme repli
+pour iOS < 16. **`body` ne porte plus aucun `overflow`.**
+
+**2. L'écran d'accueil portait la même faute, latente** : `height: 100svh` +
+`overflowY: auto` (`App.tsx`, le `if (!restaurant)`), et il contient la barre. Passé à
+`minHeight: 100svh` — le `margin: auto` de l'enfant centre toujours quand il y a la place.
+
+🔴 **La règle générale, à appliquer partout :** un élément `position: fixed` ne doit avoir
+**aucun ancêtre** qui soit une boîte de défilement (`overflow` non-visible sur un axe, ce
+qui force l'autre à `auto`) **ni** un ancêtre portant `transform`, `filter`,
+`backdrop-filter`, `will-change` ou `contain`. Devant ce symptôme, remonter toute la
+chaîne — `html`, `body`, `#root`, puis le conteneur de la page — et pas seulement le
+dernier coupable connu.
+
 ### 🔴 L'échange avec EasyOrder est TERMINÉ — 19/09/2026
 
 Le gérant : *« pour le mail on peut plus avoir plus de données car EasyOrder est fini »*.
