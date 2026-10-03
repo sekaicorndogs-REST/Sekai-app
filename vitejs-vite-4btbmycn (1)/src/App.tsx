@@ -9332,8 +9332,15 @@ A travaillé sans être au planning — qui a été remplacé ?
   // L'écran d'accueil doit défiler quand le contenu dépasse : avec
   // justify-content:center et sans overflow, le bas (le dernier point de vente)
   // passait sous la barre d'onglets et restait inaccessible.
+  // 🔴 Le défilement est celui du DOCUMENT, pas d'une boîte imbriquée.
+  // `height: 100svh` + `overflowY: auto` faisait de cet écran un conteneur de
+  // défilement contenant la barre `position: fixed` : sur iOS elle restait
+  // collée à la position qu'elle avait au début du défilement, figée au milieu
+  // de l'écran. `minHeight` laisse la page grandir, le `margin: auto` de
+  // l'enfant centre toujours quand il y a la place. Ne pas remettre de hauteur
+  // fixe ni d'overflow ici.
   if (!restaurant) return (
-    <div style={{ ...s, height: "100svh", background: "#faebd7", overflowY: "auto" as const, WebkitOverflowScrolling: "touch" as const, display: "flex", flexDirection: "column", boxSizing: "border-box" as const }}>
+    <div style={{ ...s, minHeight: "100svh", background: "#faebd7", display: "flex", flexDirection: "column", boxSizing: "border-box" as const }}>
     <div style={{ margin: "auto", display: "flex", flexDirection: "column", alignItems: "center", padding: "2rem", paddingTop: isAdmin ? "5rem" : "2rem", paddingBottom: isAdmin ? "calc(10rem + env(safe-area-inset-bottom))" : "3rem", width: "100%", boxSizing: "border-box" as const }}>
       <picture style={{ flexShrink: 0, lineHeight: 0 }}>
         <source type="image/webp" srcSet="/logo-sekai.webp 1x, /logo-sekai@2x.webp 2x" />

@@ -18,9 +18,19 @@ html, body {
   font-family: var(--sans);
   background: #faebd7;
   overscroll-behavior-y: none;
-  /* Le rognage horizontal vit ICI, sur le défilement du document.
-     Surtout pas sur #root : voir le commentaire ci-dessous. */
+}
+
+/* 🔴 Le rognage horizontal vit sur `html` SEUL, jamais aussi sur `body`.
+   Tant que `html` est `visible`, l'overflow de `body` remonte au viewport et
+   tout va bien. Dès que `html` porte lui aussi un overflow non-visible, celui
+   de `body` cesse de remonter et `body` devient une boîte de défilement
+   imbriquée — exactement le défaut qui figeait la barre sur #root, remonté
+   d'un cran (bug revu le 03/10/2026, après le correctif incomplet du 23/09).
+   `clip` est préféré à `hidden` : il rogne sans jamais créer de conteneur de
+   défilement. `hidden` reste déclaré avant, comme repli pour iOS < 16. */
+html {
   overflow-x: hidden;
+  overflow-x: clip;
 }
 
 /* 🔴 NE JAMAIS remettre `overflow-x: hidden` (ni auto/scroll) sur #root.
