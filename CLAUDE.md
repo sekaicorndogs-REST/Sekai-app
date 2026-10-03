@@ -1609,7 +1609,8 @@ fait pour septembre.
 |---|---|---|---|
 | **jeu 01/10** | 1 175 € | 897,40 € | **277,60 €** ← record haut |
 | **ven 02/10** | 1 315 € | 1 288,80 € | **26,20 €** ← 2e plus bas de tout le suivi |
-| **01–02/10 (2 j)** | **2 490 €** | **2 186,20 €** | **303,80 €, soit 152 €/jour** |
+| **sam 03/10** | 2 176 € | 1 936,40 € | **239,60 €** |
+| **01–03/10 (3 j)** | **4 666 €** | **4 122,60 €** | **543,40 €, soit 181 €/jour** |
 
 ### 🟢 Jeudi 01/10/2026 — très bon jeudi, et un hors-bornes record
 
@@ -1648,6 +1649,53 @@ Références **001 à 111 sans trou**, 11h58 → 19h53.
 leviers jouent ensemble, au lieu du « volume en hausse, panier en baisse » de tout
 septembre. Dans l'absolu c'est aussi un très bon vendredi : **1 289 € contre 912 €** de
 moyenne annuelle, soit **+41 %**.
+
+### 🟢 Samedi 03/10/2026 — très gros samedi, et les deux leviers jouent
+
+**2 176 € annoncés · 1 936,40 € aux bornes · 136 commandes · ticket 14,24 €.**
+Références **001 à 136 sans trou**, 12h10 → 20h42.
+
+| | 03/10/2026 | Témoin : sam 04/10/2025 |
+|---|---|---|
+| CA bornes | **1 936,40 €** | 1 438,50 € |
+| Commandes | **136** | 111 |
+| Ticket | **14,24 €** | 12,96 € |
+
+**+35 % de CA, +23 % de commandes, et +1,28 € de ticket.** Comme le 02/10, **les deux
+leviers jouent ensemble** — c'est la deuxième journée d'affilée où le panier contribue,
+après un septembre entier en « volume en hausse, panier en baisse ».
+
+**Le ticket de 14,24 € est le plus élevé de tout le suivi quotidien**, très au-dessus de
+la moyenne du samedi (13,19 €). ⚠️ Une journée isolée ne prouve rien (écart-type ~310 €),
+mais deux jours de suite dans le même sens méritent d'être resuivis.
+
+⚠️ **Ce n'est PAS un record.** C'est la **6e meilleure journée** de l'historique aux
+bornes. Le record reste **2 240,20 € le samedi 18/10/2025**, devant 2 206,95 € le
+30/08/2025 et 2 018,30 € le 05/09/2026.
+
+🔴 **Conséquence à retenir pour la suite du mois : le témoin d'octobre 2025 devient
+BEAUCOUP plus dur.** Le 18/10/2025 est la meilleure journée jamais mesurée. Les gros
+écarts de +35 % à +78 % du début de mois ne tiendront pas face aux samedis de la
+mi-octobre 2025. Ne pas présenter un retour à +5 % comme un décrochage.
+
+✅ **SIXIÈME CONFIRMATION DE L'OUVERTURE AVANCÉE.** Première commande à **12h10** au lieu
+de ~13h05 : **87,00 €** sur l'heure gagnée, 8 commandes. Et toujours aucun report — le
+reste de la journée fait **1 849,40 €**, très au-dessus de la moyenne du samedi (1 414 €).
+
+**Six mesures : 116 € · 179 € · 97,50 € · 132,80 € · 61,80 € · 87,00 €**, moyenne
+**112 €**. ⚠️ La moyenne continue de baisser (131 → 117 → 112) à mesure que les mesures
+s'accumulent : **retenir le bas de la fourchette**, soit ~550 €/mois de marge sur les deux
+jours du week-end, et non les 650 € annoncés au départ.
+
+⚠️ **Hors-bornes de 239,60 €**, le deuxième plus élevé jamais mesuré après les 277,60 €
+du 01/10. Sur les trois premiers jours d'octobre le cumul donne **181 €/jour**, nettement
+au-dessus des 124 € mesurés en septembre et des 150 € du paramètre. **Trois jours ne
+suffisent pas** — voir la démonstration ci-dessous — mais si ça tient, le paramètre
+d'octobre devra monter.
+
+**Position 01–03/10 : 1 374 €/jour aux bornes, 1 555 €/jour tout compris.** ⚠️ Chiffre
+flatteur : trois jours dont un samedi, sur un mois qui en comptera cinq. Ne pas
+extrapoler.
 
 ### 💡 La démonstration par l'absurde du hors-bornes journalier
 
