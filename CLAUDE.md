@@ -1610,7 +1610,8 @@ fait pour septembre.
 | **jeu 01/10** | 1 175 € | 897,40 € | **277,60 €** ← record haut |
 | **ven 02/10** | 1 315 € | 1 288,80 € | **26,20 €** ← 2e plus bas de tout le suivi |
 | **sam 03/10** | 2 176 € | 1 936,40 € | **239,60 €** |
-| **01–03/10 (3 j)** | **4 666 €** | **4 122,60 €** | **543,40 €, soit 181 €/jour** |
+| **dim 04/10** | 975 € | 831,20 € | **143,80 €** |
+| **01–04/10 (4 j)** | **5 641 €** | **4 953,80 €** | **687,20 €, soit 172 €/jour** |
 
 ### 🟢 Jeudi 01/10/2026 — très bon jeudi, et un hors-bornes record
 
@@ -1696,6 +1697,49 @@ d'octobre devra monter.
 **Position 01–03/10 : 1 374 €/jour aux bornes, 1 555 €/jour tout compris.** ⚠️ Chiffre
 flatteur : trois jours dont un samedi, sur un mois qui en comptera cinq. Ne pas
 extrapoler.
+
+### 🟢 Dimanche 04/10/2026 — 3e meilleur dimanche de l'historique
+
+**975 € annoncés · 831,20 € aux bornes · 55 commandes · ticket 15,11 €.**
+Références **001 à 055 sans trou**, 13h31 → 19h56.
+
+**831,20 € contre 531 € de moyenne annuelle du dimanche, soit +57 %.** C'est le
+**3e meilleur dimanche** jamais mesuré, derrière 946,70 € (19/10/2025) et 857,20 €
+(31/08/2025).
+
+Le ticket de **15,11 €** est le deuxième plus élevé du suivi, juste derrière les 15,13 €
+du 27/09. Le dimanche est structurellement le jour au meilleur panier (13,42 €) : peu de
+flux, mais des familles et des groupes.
+
+⚠️ **Le témoin de 2025 est MAUVAIS, et il faut le dire.**
+
+| | 04/10/2026 | Témoin : dim 05/10/2025 |
+|---|---|---|
+| CA bornes | **831,20 €** | **357,70 €** |
+| Commandes | **55** | 28 |
+| Ticket | 15,11 € | 12,78 € |
+
+**+132 % de CA et +96 % de commandes** — un écart spectaculaire, **mais les 357,70 € du
+05/10/2025 sont très en dessous du dimanche moyen de 2025 (531 €).** C'est exactement
+l'erreur de la semaine 15-21/09 : un témoin anormalement bas gonfle l'écart.
+**Ne pas annoncer « +132 % » comme un résultat** — la bonne lecture est « +57 % contre un
+dimanche normal », ce qui reste excellent.
+
+✅ **SEPTIÈME CONFIRMATION DE L'OUVERTURE AVANCÉE.** Première commande à **13h31** au lieu
+de ~14h05 : **88,40 €** sur l'heure gagnée, 4 commandes. Et le reste de la journée fait
+**742,80 €**, très au-dessus du dimanche moyen — toujours aucun report.
+
+**Sept mesures : 116 € · 179 € · 97,50 € · 132,80 € · 61,80 € · 87,00 € · 88,40 €**,
+moyenne **109 €**. La série est maintenant longue et elle est **systématiquement
+positive** : sept observations, zéro baisse du reste de la journée. C'est de loin
+l'action la mieux établie du dossier.
+
+**Position 01–04/10 : 1 238 €/jour aux bornes, 1 410 €/jour tout compris.** ⚠️ Les quatre
+premiers jours sont jeudi-vendredi-samedi-dimanche, donc **le week-end pèse la moitié de
+l'échantillon**. Chiffre non extrapolable.
+
+**Hors-bornes cumulé sur 4 jours : 172 €/jour**, toujours bien au-dessus des 124 € de
+septembre et des 150 € du paramètre. À surveiller, pas encore à appliquer.
 
 ### 💡 La démonstration par l'absurde du hors-bornes journalier
 
