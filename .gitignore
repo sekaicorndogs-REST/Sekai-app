@@ -5,3 +5,5 @@ dist/
 
 # Exports comptables : donnees bancaires, jamais dans Git
 Justificatifs_fournisseurs_*.xlsx
+Comptabilite_2025/
+Comptabilite_2025.zip
