@@ -3857,13 +3857,37 @@ export default function App() {
 
                     <div style={{ color: "#a07848", fontSize: "0.72rem", fontWeight: "bold", marginBottom: "0.5rem", display: "flex", alignItems: "center", gap: "5px" }}><Users size={13} /> TOTAL PAR EMPLOYÉ</div>
                     {recapParEmploye().length === 0 && <div style={{ color: "#c8a878", textAlign: "center", padding: "2rem", fontSize: "0.85rem" }}>Aucune heure déclarée ce mois</div>}
-                    {recapParEmploye().map(([nom, h]) => (
+                    {recapParEmploye().map(([nom, h]) => {
+                      // Qui a remplacé cette personne ce mois-ci.
+                      // 🔴 La personne qui DÉCLARE ses heures EST le remplaçant : `remplace_nom`
+                      // porte le nom de l'absent. Et il faut lire les DEUX sources — `horaires`
+                      // (postes encodés à l'avance) et `heures_jours` (heures réellement
+                      // déclarées) — sinon on rate tous ceux qui ne sont pas au planning.
+                      const remplacants: Record<string, number> = {};
+                      horaires.filter(r => normalizeDate(r.date).startsWith(heuresMois) && r.est_remplacement && r.remplace_nom === nom)
+                        .forEach(r => { remplacants[r.employe_nom] = (remplacants[r.employe_nom] || 0) + 1; });
+                      heuresJours.filter((r: any) => r.date.startsWith(heuresMois) && r.remplace_nom === nom)
+                        .forEach((r: any) => { remplacants[r.employe_nom] = (remplacants[r.employe_nom] || 0) + 1; });
+                      const listeRemp = Object.entries(remplacants).sort((a, b) => b[1] - a[1]);
+                      return (
                       <button key={nom} onClick={() => setHeuresEmployeFilter(nom)}
-                        style={{ width: "100%", background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "12px", padding: "0.9rem 1rem", marginBottom: "0.5rem", display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer", fontFamily: "'Poppins', sans-serif" }}>
-                        <span style={{ color: "#3d1a0a", fontWeight: "600", fontSize: "0.92rem", display: "flex", alignItems: "center", gap: "7px" }}><span style={{ width: "11px", height: "11px", borderRadius: "50%", background: couleurEmploye(nom), flexShrink: 0 }} /> {nom}</span>
-                        <span style={{ color: "#e8213a", fontWeight: "bold", fontSize: "1rem", display: "flex", alignItems: "center", gap: "3px" }}>{Number(h).toFixed(1).replace(".0", "")} h <ChevronRight size={15} /></span>
+                        style={{ width: "100%", background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "12px", padding: "0.9rem 1rem", marginBottom: "0.5rem", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "0.6rem", cursor: "pointer", fontFamily: "'Poppins', sans-serif", textAlign: "left" as const }}>
+                        <span style={{ minWidth: 0, flex: 1 }}>
+                          <span style={{ color: "#3d1a0a", fontWeight: "600", fontSize: "0.92rem", display: "flex", alignItems: "center", gap: "7px" }}><span style={{ width: "11px", height: "11px", borderRadius: "50%", background: couleurEmploye(nom), flexShrink: 0 }} /> {nom}</span>
+                          {listeRemp.length > 0 && (
+                            <span style={{ display: "flex", flexWrap: "wrap" as const, alignItems: "center", gap: "4px", marginTop: "0.35rem", paddingLeft: "18px" }}>
+                              <RefreshCw size={10} color="#c98a17" />
+                              <span style={{ color: "#c98a17", fontSize: "0.66rem", fontWeight: 600 }}>remplacé par</span>
+                              {listeRemp.map(([par, n]) => (
+                                <span key={par} style={{ ...pastilleEmp(par), fontSize: "0.66rem" }}>{par}{n > 1 ? ` ×${n}` : ""}</span>
+                              ))}
+                            </span>
+                          )}
+                        </span>
+                        <span style={{ color: "#e8213a", fontWeight: "bold", fontSize: "1rem", display: "flex", alignItems: "center", gap: "3px", flexShrink: 0 }}>{Number(h).toFixed(1).replace(".0", "")} h <ChevronRight size={15} /></span>
                       </button>
-                    ))}
+                      );
+                    })}
                   </div>
                 ) : (
                   <>
