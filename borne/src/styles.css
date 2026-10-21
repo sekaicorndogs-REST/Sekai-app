@@ -1,0 +1,207 @@
+/* Borne de commande — écran tactile vertical, utilisé debout.
+   Deux règles tiennent tout le reste :
+   - rien de cliquable sous 64 px de haut (on tape avec le pouce, debout) ;
+   - rien d'essentiel hors de l'écran sans défilement (le client ne scrolle pas
+     pour trouver le bouton d'envoi : il est en pied de page, fixe). */
+
+:root {
+  --fond: #0e0e10;
+  --carte: #1b1b1f;
+  --bord: #2e2e34;
+  --texte: #f5f5f7;
+  --gris: #9b9ba3;
+  --accent: #e3382f;
+  --accent-fonce: #b22a23;
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+html {
+  /* 🔴 Le rognage horizontal vit sur `html` SEUL, en `clip` : il rogne sans
+     créer de conteneur de défilement. Même règle que l'app de gestion — un
+     overflow sur `body` ou sur `#root` fige les éléments `position: fixed`.
+     Ne jamais remettre d'overflow sur `body` ni sur `#root`. */
+  overflow-x: hidden;
+  overflow-x: clip;
+}
+
+body {
+  margin: 0;
+  background: var(--fond);
+  color: var(--texte);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 20px;
+  user-select: none;
+}
+
+h1 { font-size: 30px; margin: 0; }
+h2 { font-size: 20px; color: var(--gris); margin: 24px 0 10px; font-weight: 600; }
+
+.gris { color: var(--gris); }
+.petit { font-size: 15px; color: var(--gris); }
+
+/* ── Écrans pleins (accueil, mode, envoi, numéro) ───────────────────────── */
+.plein {
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  padding: 32px;
+  text-align: center;
+}
+
+.accueil .logo { font-size: 64px; font-weight: 800; letter-spacing: 2px; }
+.accueil .sous { font-size: 22px; color: var(--gris); letter-spacing: 6px; margin-top: -8px; }
+.build { position: fixed; bottom: 10px; font-size: 12px; color: #4a4a52; }
+
+.numero {
+  font-size: 110px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--accent);
+}
+
+.colonne { display: flex; flex-direction: column; gap: 16px; width: 100%; max-width: 440px; }
+
+/* ── Pages avec en-tête et pied ─────────────────────────────────────────── */
+.page { min-height: 100svh; padding: 0 20px 220px; }
+
+.page header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 0 10px;
+}
+
+.page footer {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 16px 20px 24px;
+  background: linear-gradient(to top, var(--fond) 70%, transparent);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+}
+
+/* ── Boutons ────────────────────────────────────────────────────────────── */
+.btn {
+  min-height: 64px;
+  padding: 0 28px;
+  border: none;
+  border-radius: 16px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 21px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.btn:active { background: var(--accent-fonce); }
+.btn:disabled { background: var(--bord); color: var(--gris); }
+.btn.gros { width: 100%; max-width: 520px; min-height: 76px; font-size: 23px; }
+.btn.rond { width: 64px; padding: 0; font-size: 30px; }
+
+.lien {
+  background: none;
+  border: none;
+  color: var(--gris);
+  font-size: 18px;
+  padding: 14px 4px;
+  cursor: pointer;
+}
+.lien.rouge { color: var(--accent); }
+
+/* ── Onglets de catégories ──────────────────────────────────────────────── */
+.onglets {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 6px 0 14px;
+  scrollbar-width: none;
+}
+.onglets::-webkit-scrollbar { display: none; }
+
+.onglet {
+  flex: 0 0 auto;
+  min-height: 56px;
+  padding: 0 22px;
+  border: 1px solid var(--bord);
+  border-radius: 999px;
+  background: var(--carte);
+  color: var(--gris);
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.onglet.actif { background: var(--texte); color: #000; border-color: var(--texte); }
+
+/* ── Grille de produits ─────────────────────────────────────────────────── */
+.grille {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+.carte {
+  min-height: 130px;
+  padding: 20px;
+  border: 1px solid var(--bord);
+  border-radius: 18px;
+  background: var(--carte);
+  color: var(--texte);
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 12px;
+  cursor: pointer;
+}
+.carte:active { border-color: var(--accent); }
+.carte .nom { font-size: 20px; font-weight: 700; line-height: 1.25; }
+.carte .prix { font-size: 22px; font-weight: 800; color: var(--accent); }
+
+/* ── Choix d'options ────────────────────────────────────────────────────── */
+.choix { display: flex; flex-wrap: wrap; gap: 10px; }
+
+.pastille {
+  min-height: 64px;
+  padding: 0 20px;
+  border: 2px solid var(--bord);
+  border-radius: 14px;
+  background: var(--carte);
+  color: var(--texte);
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.pastille.actif { border-color: var(--accent); background: #2a1715; }
+.pastille .sup { color: var(--accent); font-weight: 700; }
+
+/* ── Panier ─────────────────────────────────────────────────────────────── */
+.liste { display: flex; flex-direction: column; }
+
+.ligne {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 0;
+  border-bottom: 1px solid var(--bord);
+}
+.ligne .nom { font-size: 20px; font-weight: 700; }
+.ligne .opt { font-size: 16px; color: var(--gris); margin-top: 4px; }
+.ligne .droite { text-align: right; font-size: 20px; font-weight: 700; white-space: nowrap; }
+
+.total {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 520px;
+  font-size: 24px;
+}
+.total strong { font-size: 28px; }
+
+.qte { display: flex; align-items: center; gap: 20px; font-size: 24px; }
