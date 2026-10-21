@@ -84,6 +84,29 @@ karaage, tempura). **Une vraie séance photo est ce qui rapporterait le plus sur
 cet écran** — c'est le seul point bloqué par un actif manquant et non par du
 travail.
 
+### 📸 Le gérant envoie les photos — annoncé le 21/10/2026 pour « demain »
+
+**Le mécanisme est déjà câblé et vérifié** (commit `0c6a388`), il n'attend que
+les fichiers. Quand ils arrivent :
+
+1. Poser les fichiers dans `borne/public/photos/`, en `.jpg`, nommés
+   `panure-cereale`, `panure-panko`, `panure-nouille`, `panure-potatoe`,
+   `panure-blue`, `panure-spicy`, et `menu-goodeal`, `menu-bubbledog`,
+   `menu-goodeal-xl`, `menu-bubbledog-xl`.
+2. Ajouter leurs lignes dans `PHOTOS_OPTIONS` (panures) et `PHOTOS` (menus),
+   dans `src/App.tsx`. **Rien d'autre à toucher.**
+3. Repasser les menus de `object-fit: contain` à `cover` dans `styles.css` si
+   les photos sont cadrées large — le commentaire le dit sur place.
+
+🔴 **Les six panures, ou aucune.** `groupeIllustre()` l'impose déjà : un groupe
+à moitié illustré mettrait en avant l'option payante au seul motif qu'on en a la
+photo. Ne pas contourner la règle en stylant une pastille au cas par cas.
+
+⚠️ **Et REGARDER le résultat en captures**, pas seulement compiler : le script
+de la session du 21/10 pilote Chromium en 800×1280 et intercepte les appels
+Supabase ainsi que le RPC d'envoi, donc rien n'est écrit dans `ventes`. Deux
+bugs n'avaient été trouvés que comme ça.
+
 ## 🔴 Les règles à ne pas casser
 
 1. **Le numéro de commande vient de la base, jamais du client.** `reference`
