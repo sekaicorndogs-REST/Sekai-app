@@ -12,6 +12,39 @@ declare const __BUILD_ID__: string;
 
 const eur = (n: number) => n.toFixed(2).replace(".", ",") + " €";
 
+// Les photos sont DÉCOUPÉES DANS L'AFFICHE du magasin (`public/affiche.jpg`),
+// faute de photos produit à ce jour. Elles sont donc fidèles pour les corndogs,
+// les sides et les boissons, et seulement ÉVOCATRICES pour les menus — la photo
+// d'un menu montre l'un de ses éléments, pas le menu complet.
+// À remplacer dès qu'il y a de vraies photos : poser le fichier dans
+// `public/photos/` et ajouter sa ligne ici, rien d'autre à toucher.
+const PHOTOS: Record<string, string> = {
+  // 🔴 AUCUNE de ces photos ne montre un menu COMPLET : l'affiche n'en contient
+  // pas un seul sans son titre ni sa pastille de prix par-dessus, et un visuel
+  // qui affiche « 12,90 € » sur une carte à 10,00 € est pire que pas de photo.
+  // Les menus portent donc la photo de leur élément principal. C'est le poste
+  // où une vraie photo rapportera le plus.
+  "MENU GOODEAL": "mozza",
+  "MENU BUBBLE DOGS": "bubbletea",
+  "MENU GOODEAL XL": "karaage",
+  "MENU BUBBLE DOGS XL": "tempura",
+  "CORNDOG SAUCISSE": "saucisse",
+  "CORNDOG MOZZA": "mozza",
+  "CORNDOG SAUCISSE/MOZZA": "bubbledog",
+  "FRITES": "frites",
+  "Poulet karaage": "karaage",
+  "Tempura crevette": "tempura",
+  "BUBBLE TEA PECHE": "bubbletea",
+  "BUBBLE TEA PASTEQUE": "bubbletea",
+};
+
+const photo = (nom: string): string | null =>
+  PHOTOS[nom] ? `photos/${PHOTOS[nom]}.jpg` : null;
+
+// Les menus portent 41 % de la marge : leur carte est plus grande et leur nom
+// en rouge, pour qu'ils ne se confondent pas avec une canette.
+const estMenu = (p: Produit) => /menu/i.test(p.categorie);
+
 // Un article du panier : le produit, ses choix d'options et sa quantité.
 type Choix = { groupe: string; choix: string; prix: number };
 type Article = { produit: Produit; options: Choix[]; quantite: number };
@@ -77,13 +110,19 @@ export default function App() {
   if (ecran.nom === "accueil")
     return (
       <div className="accueil" onClick={() => cat && setEcran({ nom: "mode" })}>
+        {/* Pas de logo ajouté ici : l'affiche porte DÉJÀ la mascotte en haut,
+            et l'empiler deux fois donnait deux chats à dix centimètres d'écart.
+            La mascotte revient sur l'écran du numéro, là où elle manquait. */}
         {/* L'affiche des menus sert d'écran d'attente : c'est elle que le
             passant voit de la rue, et elle porte déjà les prix. `contain` et
             non `cover` — une affiche dont on coupe un prix ne sert à rien. */}
-        <img src="affiche.jpg" alt="Nos menus" />
+        <img className="affiche" src="affiche.jpg" alt="Nos menus" />
         <div className="appel">
           {cat ? (
-            <button className="btn gros">Commander</button>
+            <>
+              <button className="btn gros">COMMANDER ICI</button>
+              <div className="mention">Paiement au comptoir</div>
+            </>
           ) : (
             <div className="indispo">
               {erreurCat ? "Commandez au comptoir" : "Chargement…"}
@@ -184,7 +223,14 @@ export default function App() {
                   {a.produit.nom}
                 </div>
                 {a.options
-                  .filter((o) => !/^(NO SIDE|PAS DE SUPPLEMENT)$/i.test(o.choix))
+                  // Les NON-choix ne se listent pas : « pas de supplément »
+                  // n'est pas une ligne de commande. ⚠️ `NO SAUCE` en est un
+                  // vrai, lui — la cuisine doit le voir. Même filtre dans
+                  // `Cuisine.tsx` : garder les deux identiques.
+                  .filter(
+                    (o) =>
+                      !/^(NO SIDE|PAS DE SUPPLEMENT|PAS DE BOISSON\b.*)$/i.test(o.choix)
+                  )
                   .map((o, j) => (
                     <div className="opt" key={j}>
                       {o.choix}
@@ -266,29 +312,47 @@ function Carte({
   return (
     <div className="page">
       <header>
+        <img className="logo" src="logo.jpg" alt="Sekai Corndogs" />
+        <h1>NOTRE CARTE</h1>
         <button className="lien" onClick={onAnnuler}>
           Annuler
         </button>
-        <h1>Notre carte</h1>
       </header>
-      <nav className="onglets">
-        {cat.categories.map((c) => (
-          <button
-            key={c}
-            className={c === categorie ? "onglet actif" : "onglet"}
-            onClick={() => setCategorie(c)}
-          >
-            {c}
-          </button>
-        ))}
-      </nav>
-      <div className="grille">
-        {produits.map((p) => (
-          <button className="carte" key={p.nom} onClick={() => onProduit(p)}>
-            <div className="nom">{p.nom}</div>
-            <div className="prix">{eur(p.prix)}</div>
-          </button>
-        ))}
+      {/* 🔴 Les catégories sont une COLONNE VERTICALE qui tient à l'écran.
+          Ne pas revenir à des onglets qui défilent à l'horizontale : c'est le
+          défaut documenté des bornes McDonald's — une catégorie sortie de
+          l'écran cesse d'exister pour le client, d'autant plus que la barre de
+          défilement était masquée. */}
+      <div className="carte-layout">
+        <nav className="categories">
+          {cat.categories.map((c) => (
+            <button
+              key={c}
+              className={c === categorie ? "categorie actif" : "categorie"}
+              onClick={() => setCategorie(c)}
+            >
+              {c}
+            </button>
+          ))}
+        </nav>
+        <div className="produits">
+          {produits.map((p) => {
+            const img = photo(p.nom);
+            return (
+              <button
+                className={estMenu(p) ? "produit menu" : "produit"}
+                key={p.nom}
+                onClick={() => onProduit(p)}
+              >
+                <div className="photo">
+                  {img && <img src={img} alt="" />}
+                  <div className="prix">{eur(p.prix)}</div>
+                </div>
+                <div className="nom">{p.nom}</div>
+              </button>
+            );
+          })}
+        </div>
       </div>
       {nbArticles > 0 && (
         <footer>
@@ -340,23 +404,38 @@ function Config({
         <h1>{produit.nom}</h1>
       </header>
       <div className="liste">
-        {groupes.map((g) => (
-          <section key={g.id}>
-            <h2>{g.nom}</h2>
-            <div className="choix">
-              {g.options.map((o) => (
-                <button
-                  key={o.id}
-                  className={choix[g.id] === o.id ? "pastille actif" : "pastille"}
-                  onClick={() => setChoix((c) => ({ ...c, [g.id]: o.id }))}
-                >
-                  {o.nom}
-                  {o.prix > 0 && <span className="sup"> +{eur(o.prix)}</span>}
-                </button>
-              ))}
-            </div>
-          </section>
-        ))}
+        {groupes.map((g) => {
+          // Un groupe où quelque chose se paie affiche « Compris » sur ses
+          // choix gratuits : sans ça le client croit que tout coûte un
+          // supplément, et il n'ose plus toucher au groupe.
+          const groupePayant = g.options.some((o) => o.prix > 0);
+          return (
+            <section key={g.id}>
+              <h2>{g.nom}</h2>
+              <div className="choix">
+                {g.options.map((o) => {
+                  const classes = ["pastille"];
+                  if (o.prix > 0) classes.push("payante");
+                  if (choix[g.id] === o.id) classes.push("actif");
+                  return (
+                    <button
+                      key={o.id}
+                      className={classes.join(" ")}
+                      onClick={() => setChoix((c) => ({ ...c, [g.id]: o.id }))}
+                    >
+                      {o.nom}
+                      {o.prix > 0 ? (
+                        <span className="sup">+ {eur(o.prix)}</span>
+                      ) : (
+                        groupePayant && <span className="compris">Compris</span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+          );
+        })}
         {groupes.length === 0 && <p className="gris">Aucune option.</p>}
       </div>
       <footer>
@@ -443,12 +522,22 @@ function Fini({
   }, []);
 
   return (
-    <div className="plein" onClick={onFermer}>
-      <p className="gris">Votre numéro</p>
-      <div className="numero">{reference}</div>
-      <h1>{eur(total)}</h1>
-      <p className="gris">À régler au comptoir</p>
-      <button className="btn">Terminer</button>
+    <div className="fini" onClick={onFermer}>
+      {/* La mascotte sert ici : c'est le moment où le client attend. */}
+      <div className="carte-numero">
+        <img src="logo.jpg" alt="Sekai Corndogs" />
+        <div className="libelle">VOTRE NUMÉRO</div>
+        <div className="numero">{reference}</div>
+        <div className="montant">
+          <span>TOTAL</span>
+          <strong>{eur(total)}</strong>
+        </div>
+      </div>
+      <div>
+        <div className="consigne">À RÉGLER AU COMPTOIR</div>
+        <div className="sous-consigne">Gardez votre numéro, on vous appelle</div>
+      </div>
+      <button className="btn">TERMINER</button>
     </div>
   );
 }

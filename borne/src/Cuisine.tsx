@@ -116,7 +116,14 @@ export default function Cuisine() {
                     <span className="q">{l.quantite}×</span> {l.produit_nom}
                   </div>
                   {l.options
-                    .filter((o) => !/^(NO SIDE|PAS DE SUPPLEMENT)$/i.test(o.choix))
+                    // Mêmes non-choix écartés que dans le panier client
+                    // (`App.tsx`) : garder les deux filtres identiques.
+                    .filter(
+                      (o) =>
+                        !/^(NO SIDE|PAS DE SUPPLEMENT|PAS DE BOISSON\b.*)$/i.test(
+                          o.choix
+                        )
+                    )
                     .map((o, j) => (
                       <div className="opt" key={j}>
                         {o.choix}
