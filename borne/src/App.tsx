@@ -35,8 +35,28 @@ export default function App() {
   const [mode, setMode] = useState<string>("takeaway");
   const [panier, setPanier] = useState<Article[]>([]);
 
+  // Le catalogue est rechargé tant qu'il n'est pas là : une borne allumée avant
+  // le routeur du magasin doit se remettre en marche seule, sans que personne
+  // n'aille la redémarrer.
   useEffect(() => {
-    chargerCatalogue().then(setCat, (e) => setErreurCat(String(e.message || e)));
+    let vivant = true;
+    let obtenu = false;
+    const essai = () =>
+      chargerCatalogue().then(
+        (c) => {
+          if (!vivant) return;
+          obtenu = true;
+          setCat(c);
+          setErreurCat(null);
+        },
+        (e) => vivant && setErreurCat(String(e.message || e))
+      );
+    essai();
+    const t = setInterval(() => !obtenu && essai(), 15000);
+    return () => {
+      vivant = false;
+      clearInterval(t);
+    };
   }, []);
 
   const total = panier.reduce((s, a) => s + prixArticle(a), 0);
@@ -50,31 +70,42 @@ export default function App() {
     setEcran({ nom: "accueil" });
   }
 
-  if (erreurCat) {
+  // ── Accueil ───────────────────────────────────────────────────────────
+  // 🔴 L'accueil s'affiche AVANT tout contrôle de réseau. Une borne coupée du
+  // réseau continue de montrer l'affiche des menus en vitrine : elle garde sa
+  // valeur publicitaire même quand elle ne prend plus de commandes.
+  if (ecran.nom === "accueil")
+    return (
+      <div className="accueil" onClick={() => cat && setEcran({ nom: "mode" })}>
+        {/* L'affiche des menus sert d'écran d'attente : c'est elle que le
+            passant voit de la rue, et elle porte déjà les prix. `contain` et
+            non `cover` — une affiche dont on coupe un prix ne sert à rien. */}
+        <img src="affiche.jpg" alt="Nos menus" />
+        <div className="appel">
+          {cat ? (
+            <button className="btn gros">Commander</button>
+          ) : (
+            <div className="indispo">
+              {erreurCat ? "Commandez au comptoir" : "Chargement…"}
+            </div>
+          )}
+        </div>
+        <div className="build">{__BUILD_ID__}</div>
+      </div>
+    );
+
+  if (!cat) {
+    // On ne peut arriver ici qu'en ayant perdu le réseau en cours de commande.
     return (
       <div className="plein">
         <h1>Borne indisponible</h1>
         <p className="gris">Commandez au comptoir.</p>
-        <p className="petit">{erreurCat}</p>
-        <button className="btn" onClick={() => location.reload()}>
-          Réessayer
+        <button className="btn" onClick={recommencer}>
+          Retour
         </button>
       </div>
     );
   }
-
-  if (!cat) return <div className="plein"><h1>Chargement…</h1></div>;
-
-  // ── Accueil ───────────────────────────────────────────────────────────
-  if (ecran.nom === "accueil")
-    return (
-      <div className="plein accueil" onClick={() => setEcran({ nom: "mode" })}>
-        <div className="logo">SEKAÏ</div>
-        <div className="sous">CORNDOGS</div>
-        <button className="btn gros">Commander</button>
-        <div className="build">{__BUILD_ID__}</div>
-      </div>
-    );
 
   // ── Sur place ou à emporter ───────────────────────────────────────────
   if (ecran.nom === "mode")
