@@ -41,6 +41,39 @@ const PHOTOS: Record<string, string> = {
 const photo = (nom: string): string | null =>
   PHOTOS[nom] ? `photos/${PHOTOS[nom]}.jpg` : null;
 
+// Photos des CHOIX D'OPTIONS — panures, sauces, sides pris en option.
+// Même principe que `PHOTOS` : déposer le fichier dans `public/photos/` et
+// ajouter sa ligne ici, rien d'autre à toucher.
+//
+// 🔴 VIDE À DESSEIN AUJOURD'HUI. L'affiche ne montre que 2 panures sur 6
+// (la granuleuse et celle en cubes). Voir `groupeIllustre` juste en dessous :
+// tant qu'un groupe n'est pas complet, il reste en texte.
+// Le jour où les six panures arrivent, cette table devient par exemple :
+//   "CEREALE CRUNCHY": "panure-cereale", "SIMPLE PANKO": "panure-panko",
+//   "NOUILLE": "panure-nouille", "POTATOE": "panure-potatoe",
+//   "BLUE": "panure-blue", "SPICY": "panure-spicy",
+// et le groupe s'illustre seul. Mécanisme vérifié en capture le 21/10/2026.
+const PHOTOS_OPTIONS: Record<string, string> = {};
+
+const photoOption = (nom: string): string | null =>
+  PHOTOS_OPTIONS[nom] ? `photos/${PHOTOS_OPTIONS[nom]}.jpg` : null;
+
+/**
+ * Un groupe s'illustre ENTIÈREMENT ou PAS DU TOUT.
+ *
+ * 🔴 C'est une règle d'honnêteté, pas une préférence esthétique. Dans le groupe
+ * des panures, les deux seuls choix qu'on saurait illustrer aujourd'hui sont
+ * la Cereale Crunchy (gratuite) et la Potatoe (payante, 1 €). Les afficher
+ * seules mettrait en avant l'option qui rapporte au seul motif qu'on en a la
+ * photo : c'est de la fausse hiérarchie, le défaut que l'étude de mars 2026
+ * reproche aux bornes McDonald's. Les panures pèsent près de la moitié des
+ * suppléments du magasin — raison de plus pour ne pas y toucher de travers.
+ *
+ * Le jour où les six photos arrivent, le groupe s'illumine tout seul.
+ */
+const groupeIllustre = (g: Groupe) =>
+  g.options.length > 0 && g.options.every((o) => PHOTOS_OPTIONS[o.nom]);
+
 // Les menus portent 41 % de la marge : leur carte est plus grande et leur nom
 // en rouge, pour qu'ils ne se confondent pas avec une canette.
 const estMenu = (p: Produit) => /menu/i.test(p.categorie);
@@ -409,10 +442,11 @@ function Config({
           // choix gratuits : sans ça le client croit que tout coûte un
           // supplément, et il n'ose plus toucher au groupe.
           const groupePayant = g.options.some((o) => o.prix > 0);
+          const illustre = groupeIllustre(g);
           return (
             <section key={g.id}>
               <h2>{g.nom}</h2>
-              <div className="choix">
+              <div className={illustre ? "choix illustre" : "choix"}>
                 {g.options.map((o) => {
                   const classes = ["pastille"];
                   if (o.prix > 0) classes.push("payante");
@@ -423,7 +457,10 @@ function Config({
                       className={classes.join(" ")}
                       onClick={() => setChoix((c) => ({ ...c, [g.id]: o.id }))}
                     >
-                      {o.nom}
+                      {illustre && (
+                        <img className="vignette" src={photoOption(o.nom)!} alt="" />
+                      )}
+                      <span className="libelle">{o.nom}</span>
                       {o.prix > 0 ? (
                         <span className="sup">+ {eur(o.prix)}</span>
                       ) : (

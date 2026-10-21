@@ -541,6 +541,31 @@ h2 {
   color: var(--rouge-fonce);
 }
 
+/* ── Choix illustrés ────────────────────────────────────────────────────── */
+/* 🔴 `illustre` n'est posé que si TOUS les choix du groupe ont une photo —
+   voir `groupeIllustre()` dans `App.tsx`. Un groupe à moitié illustré mettrait
+   en avant les choix photographiés, et dans les panures ce serait l'option
+   payante. Ne pas contourner la règle en stylant une pastille au cas par cas. */
+.choix.illustre .pastille {
+  width: 162px;
+  padding: 12px 10px 14px;
+  gap: 4px;
+}
+.pastille .vignette {
+  width: 136px;
+  height: 136px;
+  object-fit: contain;
+  display: block;
+  border-radius: 14px;
+  background: var(--creme);
+  margin-bottom: 4px;
+}
+.choix.illustre .pastille .libelle {
+  font-size: 17px;
+  line-height: 1.12;
+  text-align: center;
+}
+
 /* ── Panier ─────────────────────────────────────────────────────────────── */
 .liste {
   display: flex;
