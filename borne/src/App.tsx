@@ -312,7 +312,7 @@ function Carte({
   return (
     <div className="page">
       <header>
-        <img className="logo" src="logo.jpg" alt="Sekai Corndogs" />
+        <img className="logo" src="logo-sekai.webp" alt="Sekai Corndogs" />
         <h1>NOTRE CARTE</h1>
         <button className="lien" onClick={onAnnuler}>
           Annuler
@@ -525,7 +525,7 @@ function Fini({
     <div className="fini" onClick={onFermer}>
       {/* La mascotte sert ici : c'est le moment où le client attend. */}
       <div className="carte-numero">
-        <img src="logo.jpg" alt="Sekai Corndogs" />
+        <img src="logo-sekai.webp" alt="Sekai Corndogs" />
         <div className="libelle">VOTRE NUMÉRO</div>
         <div className="numero">{reference}</div>
         <div className="montant">

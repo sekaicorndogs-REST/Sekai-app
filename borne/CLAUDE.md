@@ -66,6 +66,24 @@ des références**, qui est le seul filet de complétude depuis la fin de l'éch
 EasyOrder. Le test se fait donc **après la fermeture**, avec suppression
 immédiate des lignes par `source_id`, et **avec l'accord du gérant**.
 
+## Les visuels — inventaire fait le 21/10/2026, ne pas le refaire
+
+| | |
+|---|---|
+| **Logo détouré** | ✅ **Existe**, repris de l'app de gestion : `vitejs-vite-4btbmycn (1)/public/logo-sekai@2x.webp`, 630×640, **fond transparent**. Copié en `borne/public/logo-sekai.webp`. Se pose aussi bien sur le crème que sur le rouge |
+| **Affiche des menus** | ✅ `borne/public/affiche.jpg`, 1400×1979 |
+| **Photos produit** | ⚠️ `borne/public/photos/`, **8 découpes de l'affiche** — c'est tout ce qu'on a |
+| **Photos de menu** | 🔴 **AUCUNE.** L'affiche ne contient pas un seul menu sans son titre ou sa pastille de prix par-dessus |
+
+🔴 **Cherché partout, inutile de recommencer :** tout le dépôt (92 images, le reste
+étant des icônes Android et le gabarit Vite), et le **stockage Supabase — qui n'a
+aucun bucket**. `src/assets/hero.png` est l'image par défaut de Vite, pas un menu.
+
+**Les menus portent donc la photo de leur élément principal** (mozza, bubble tea,
+karaage, tempura). **Une vraie séance photo est ce qui rapporterait le plus sur
+cet écran** — c'est le seul point bloqué par un actif manquant et non par du
+travail.
+
 ## 🔴 Les règles à ne pas casser
 
 1. **Le numéro de commande vient de la base, jamais du client.** `reference`

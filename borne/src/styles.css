@@ -250,8 +250,12 @@ h2 {
   border-bottom: 3px solid var(--bord);
   margin-bottom: 14px;
 }
+/* Le logo est un PNG/WebP DÉTOURÉ, repris de l'app de gestion
+   (`public/logo-sekai@2x.webp`) : fond transparent, il se pose sur le crème
+   comme sur le rouge. Ne pas revenir à une découpe de l'affiche, qui traînait
+   un rectangle crème à bords durs derrière la mascotte. */
 .page header img.logo {
-  height: 60px;
+  height: 76px;
   width: auto;
   display: block;
 }
