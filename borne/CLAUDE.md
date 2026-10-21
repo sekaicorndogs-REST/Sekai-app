@@ -54,6 +54,18 @@ Tout est sur la branche `claude/project-status-5xiop2`.
 
 Deux écrans, un seul build : `/` = la borne, `/#cuisine` = la cuisine.
 
+🔴 **Mais aucune commande n'a JAMAIS été créée** (vérifié le 21/10 :
+`select count(*) from commandes_live where source='borne'` = **0**). Le chemin
+complet app → RPC → `commandes_live` → `ventes` n'a pas tourné une seule fois.
+Le code est relu et cohérent, **rien n'est prouvé**.
+
+⚠️ **Un test de bout en bout n'est pas gratuit** : le RPC prend son numéro dans
+le compteur du jour de `ventes`, **partagé avec EasyOrder**, et écrit dans
+`ventes`. Une commande de test pollue donc le CA du jour **et casse la continuité
+des références**, qui est le seul filet de complétude depuis la fin de l'échange
+EasyOrder. Le test se fait donc **après la fermeture**, avec suppression
+immédiate des lignes par `source_id`, et **avec l'accord du gérant**.
+
 ## 🔴 Les règles à ne pas casser
 
 1. **Le numéro de commande vient de la base, jamais du client.** `reference`
@@ -77,16 +89,27 @@ Deux écrans, un seul build : `/` = la borne, `/#cuisine` = la cuisine.
 6. **L'accueil s'affiche avant tout contrôle réseau** : une borne coupée garde
    sa valeur publicitaire en vitrine.
 
-## 🔴 Sécurité — à régler avant la mise en service
+## 🔴 Sécurité — le trou existe DÉJÀ, il ne vient pas de la borne
 
 **Toutes les tables du projet ont RLS désactivée et zéro policy**, et la clé anon
-est dans le bundle client. Sur l'app de gestion ça passe. Sur une **borne en
-libre-service**, non : qui extrait la clé de la tablette lit et écrit toute la
-base (ventes, finances, dettes).
+est dans le bundle client.
 
-À faire : des policies qui n'ouvrent que ce dont la borne a besoin — lire le
-catalogue, appeler `borne_creer_commande`, rien d'autre. Ce n'est pas bloquant
-pour tester sur la borne de secours.
+🔴 **CORRECTION DU 21/10/2026.** Ce fichier disait « sur l'app de gestion ça
+passe, sur une borne en libre-service non ». **C'est trompeur :** la **même** clé
+anon est en dur dans `vitejs-vite-4btbmycn (1)/src/App.tsx` ligne 7, donc déjà
+livrée dans le bundle de **`project-ynxry.vercel.app`, un site public sans mot de
+passe**. N'importe qui sur Internet peut déjà lire et écrire `ventes`,
+`finances_charges`, `finances_dettes`. La borne n'aggrave pas l'exposition, elle
+la rend visible. Le chantier est donc nécessaire **indépendamment du projet
+borne**.
+
+⚠️ **Et il ne se règle PAS en activant RLS table par table** : l'app de gestion
+lit tout avec cette clé anon, donc activer RLS sur `ventes` la casserait le jour
+même. Il faut d'abord décider comment la gestion s'authentifie. Rien de tout ça
+n'est bloquant pour tester sur la borne de secours.
+
+À faire côté borne, le jour où on tranche : des policies qui n'ouvrent que
+lire le catalogue et appeler `borne_creer_commande`, rien d'autre.
 
 🔴 **Les identifiants EasyOrder sont dans `integrations_comptes` (RLS activée,
 aucune policy). Ne jamais les écrire dans le dépôt.** Même règle pour le secret
@@ -97,11 +120,21 @@ du webhook.
 1. 🔴 **Comment la cuisine voit-elle la commande aujourd'hui ?** Posé le 03/10,
    **toujours sans réponse**. J'ai construit un écran cuisine en supposant un
    écran ; si c'est un ticket imprimé, c'est une imprimante qu'il faut brancher.
-2. **Le coût d'EasyOrder est inconnu** — « inclus dans autre chose ». Tant qu'il
-   n'est pas retrouvé (facture ou extrait bancaire), le projet **n'a pas de
-   justification financière prouvée**. Il garde sa justification de maîtrise des
-   données. ⚠️ À mettre en face : la hausse des menus à 10,50 € vaut **525 €/mois
-   pour zéro travail** et attend toujours une réponse du gérant.
+2. **Le coût d'EasyOrder — une piste forte est apparue le 04/10/2026.**
+   En cherchant les justificatifs 2025 pour Skytax, **`POWER ONLINE` (Liège)
+   ressort à 681,50 €/mois fixe**, 6 304 € sur 2025, soit **~8 178 €/an** : pas
+   des achats, un montant constant sans communication bancaire — une
+   domiciliation ou un leasing. **Hypothèse : le leasing des bornes et/ou
+   l'abonnement EasyOrder**, précisément le « inclus dans autre chose » du
+   gérant. Si c'est confirmé, le projet a enfin une justification financière
+   chiffrée, et bien au-delà des 121 €/mois que j'avais supposés à tort sur la
+   ligne « Machine caisse ».
+   🔴 **Ne pas conclure avant confirmation du gérant** : c'est déduit du rythme
+   des paiements, pas lu sur une facture. Aucune trace de Power Online dans la
+   boîte mail (corbeille et spam compris) → facture papier ou portail client.
+   **C'est la question à lui poser en premier.**
+   ⚠️ À mettre en face : la hausse des menus à 10,50 € vaut **525 €/mois pour
+   zéro travail** et attend toujours une réponse.
 3. **Les noms de produits ne concordent pas partout** :
    `CORNDOG SAUCISSE/MOZZA` côté ligne contre `CORNDOG SAUCISSE/MOZA` côté
    option. À réconcilier avec `menu_produits` avant la mise en service.
