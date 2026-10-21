@@ -205,3 +205,85 @@ h2 { font-size: 20px; color: var(--gris); margin: 24px 0 10px; font-weight: 600;
 .total strong { font-size: 28px; }
 
 .qte { display: flex; align-items: center; gap: 20px; font-size: 24px; }
+
+/* ── Écran cuisine ──────────────────────────────────────────────────────── */
+/* Lu de loin, debout, parfois les mains occupées : grosses références, une
+   carte par commande, et la plus vieille toujours en haut à gauche. */
+.cuisine { padding: 16px 16px 60px; }
+
+.cuisine header {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  padding: 4px 0 16px;
+}
+
+.cuisine .bandeau {
+  background: var(--accent-fonce);
+  color: #fff;
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-size: 17px;
+  margin-bottom: 14px;
+}
+
+.colonnes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 14px;
+  align-items: start;
+}
+
+.fiche {
+  border: 1px solid var(--bord);
+  border-radius: 18px;
+  background: var(--carte);
+  padding: 16px;
+}
+/* Au-delà de 10 minutes la commande passe en rouge : c'est le seul signal
+   d'alerte de l'écran, donc il doit être impossible à manquer. */
+.fiche.tard { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(227, 56, 47, 0.35); }
+
+.fiche .entete {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+.fiche .ref { font-size: 42px; font-weight: 800; line-height: 1; }
+.fiche .age { font-size: 17px; color: var(--gris); }
+.fiche.tard .age { color: var(--accent); font-weight: 700; }
+
+.fiche .meta {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--gris);
+  margin: 8px 0 14px;
+}
+.fiche .tag {
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--bord);
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+.fiche .art { padding: 10px 0; border-top: 1px solid var(--bord); }
+.fiche .art .nom { font-size: 20px; font-weight: 700; }
+.fiche .art .q { color: var(--accent); }
+.fiche .art .opt { font-size: 17px; color: var(--gris); margin-top: 3px; }
+.fiche .art .note { font-size: 17px; color: #e8c15a; margin-top: 5px; }
+
+.fiche .pied {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--bord);
+  font-size: 20px;
+}
+
+.cuisine .vide { margin-top: 40px; text-align: center; font-size: 22px; }

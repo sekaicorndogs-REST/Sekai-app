@@ -109,6 +109,118 @@ export async function chargerCatalogue(): Promise<Catalogue> {
   return { produits: prods, categories, groupesParProduit, groupeCommande };
 }
 
+// ── Écran cuisine ────────────────────────────────────────────────────────
+export type LigneCuisine = {
+  id: number;
+  produit_nom: string;
+  quantite: number;
+  commentaire: string | null;
+  options: { groupe: string; choix: string; prix: number }[];
+};
+
+export type CommandeCuisine = {
+  id: number;
+  reference: string;
+  source: string;
+  mode_livraison: string | null;
+  total: number;
+  recu_le: string;
+  lignes: LigneCuisine[];
+};
+
+/** Décalage de Bruxelles sur UTC, en minutes, à l'instant donné (+120 l'été). */
+function decalageMinutes(d: Date): number {
+  const lu = new Date(d.toLocaleString("sv-SE", { timeZone: "Europe/Brussels" }) + "Z");
+  return (lu.getTime() - d.getTime()) / 60000;
+}
+
+/**
+ * Minuit à Bruxelles, en ISO UTC — le début du jour de service.
+ *
+ * 🔴 `commandes_live.recu_le` est de l'UTC RÉEL (contrairement aux lignes
+ * importées de `ventes`, qui portent de l'heure locale avec un fuseau UTC).
+ * Comparer `recu_le` à un minuit naïf décalerait la journée de deux heures :
+ * une commande de 20h02 basculerait sur la veille.
+ */
+function debutDuJour(): string {
+  const jour = new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Brussels" });
+  const naif = new Date(`${jour}T00:00:00Z`);
+  return new Date(naif.getTime() - decalageMinutes(naif) * 60000).toISOString();
+}
+
+/**
+ * Les commandes du jour qui ne sont pas encore servies, du plus ancien au plus
+ * récent : la cuisine travaille dans l'ordre d'arrivée.
+ *
+ * ⚠️ Volontairement SANS filtre sur `source` : l'écran montre aussi bien les
+ * commandes de la borne maison que celles qui arrivent encore du webhook
+ * EasyOrder. Pendant la bascule les deux tournent en parallèle, et la cuisine
+ * ne doit pas avoir deux écrans à surveiller.
+ */
+export async function chargerCuisine(): Promise<CommandeCuisine[]> {
+  const depuis = debutDuJour();
+  const cmds = await get<any[]>(
+    "commandes_live?select=id,reference,source,mode_livraison,total,recu_le" +
+      `&recu_le=gte.${depuis}&statut=neq.servie&order=recu_le.asc`
+  );
+  if (cmds.length === 0) return [];
+
+  const ids = `(${cmds.map((c) => c.id).join(",")})`;
+  const [lignes, options] = await Promise.all([
+    get<any[]>(
+      `commandes_live_lignes?select=id,commande_id,produit_nom,quantite,commentaire&commande_id=in.${ids}&order=id.asc`
+    ),
+    get<any[]>(
+      `commandes_live_options?select=ligne_id,groupe,choix,prix&ligne_id=not.is.null&commande_id=in.${ids}`
+    ),
+  ]);
+
+  const optionsParLigne = new Map<number, LigneCuisine["options"]>();
+  for (const o of options) {
+    const l = optionsParLigne.get(o.ligne_id) ?? [];
+    l.push({ groupe: o.groupe, choix: o.choix, prix: Number(o.prix) || 0 });
+    optionsParLigne.set(o.ligne_id, l);
+  }
+
+  const lignesParCommande = new Map<number, LigneCuisine[]>();
+  for (const l of lignes) {
+    const liste = lignesParCommande.get(l.commande_id) ?? [];
+    liste.push({
+      id: l.id,
+      produit_nom: l.produit_nom,
+      quantite: Number(l.quantite) || 1,
+      commentaire: l.commentaire,
+      options: optionsParLigne.get(l.id) ?? [],
+    });
+    lignesParCommande.set(l.commande_id, liste);
+  }
+
+  return cmds.map((c) => ({
+    id: c.id,
+    reference: c.reference,
+    source: c.source,
+    mode_livraison: c.mode_livraison,
+    total: Number(c.total) || 0,
+    recu_le: c.recu_le,
+    lignes: lignesParCommande.get(c.id) ?? [],
+  }));
+}
+
+/**
+ * Marque une commande servie : elle disparaît de l'écran cuisine.
+ *
+ * ⚠️ On ne touche QUE `statut`. `ventes` n'est pas modifié — le CA du jour ne
+ * dépend pas de ce que la cuisine fait de la commande.
+ */
+export async function marquerServie(id: number): Promise<void> {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/commandes_live?id=eq.${id}`, {
+    method: "PATCH",
+    headers: HEADERS,
+    body: JSON.stringify({ statut: "servie" }),
+  });
+  if (!res.ok) throw new Error(`Mise à jour refusée (${res.status})`);
+}
+
 // ── Envoi de la commande ─────────────────────────────────────────────────
 export type LigneEnvoi = {
   produit_nom: string;
