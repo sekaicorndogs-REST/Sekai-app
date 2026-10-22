@@ -66,45 +66,42 @@ des références**, qui est le seul filet de complétude depuis la fin de l'éch
 EasyOrder. Le test se fait donc **après la fermeture**, avec suppression
 immédiate des lignes par `source_id`, et **avec l'accord du gérant**.
 
-## Les visuels — inventaire fait le 21/10/2026, ne pas le refaire
+## 📸 Les visuels — deux dossiers, un seul chemin
+
+| Dossier | Rôle |
+|---|---|
+| **`borne/photos-recues/`** | **Les originaux TELS QUE LE GÉRANT LES ENVOIE**, suffixés `-original`. On n'y touche jamais : c'est la source si un recadrage est à refaire |
+| **`borne/public/photos/`** | **Les fichiers servis à l'écran**, détourés et recadrés. C'est la SEULE place des images de l'app — rien à côté |
+
+**La chaîne, à refaire à l'identique quand de nouvelles photos arrivent :**
+
+1. Copier l'original dans `photos-recues/` sous `<nom>-original.<ext>`.
+2. Retirer les bandes noires s'il s'agit d'une capture de téléphone.
+3. **Détourer** : `ImageDraw.floodfill` depuis les BORDS seulement (implémenté
+   en C, donc rapide) — les blancs intérieurs des logos sont préservés.
+4. Pour un visuel de menu, **recadrer sous le titre** (~35 % du haut) : le nom
+   est déjà écrit sous la carte, l'y laisser le doublerait et rapetisserait le
+   plat. Puis supprimer les fragments isolés (restes du trait de pinceau).
+5. Enregistrer en **PNG transparent** dans `public/photos/`, puis ajouter la
+   ligne dans `PHOTOS` (produits) ou `PHOTOS_OPTIONS` (options) de `App.tsx`.
+   ⚠️ La valeur porte le **nom de fichier complet, extension comprise**.
+
+### État au 22/10/2026
 
 | | |
 |---|---|
-🔴 **Tout vit dans `borne/public/photos/`, et rien ailleurs.** Rangé le 22/10/2026 :
-l'affiche et le logo traînaient à la racine de `public/`. Y poser une image
-nouvelle, jamais à côté.
+| **Logo détouré** | ✅ repris de l'app de gestion, `public/photos/logo-sekai.webp`, 630×640, transparent |
+| **Affiche** | ✅ `public/photos/affiche.jpg`, 1400×1979 |
+| **Les 4 menus** | ✅ **envoyés par le gérant**, détourés sur leur plateau |
+| **Softs** | ⚠️ **5 sur 7** : Pepsi, Pepsi Max, SPA (eau), Oasis Cassis, Oasis Tropical. **Manquent Ice Tea Pêche et Ice Tea Pétillant**, plus **Oasis Fraise** pour le groupe payant |
+| **Panures** | 🔴 **AUCUNE des 6.** C'est le jeu qui rapporte le plus : les panures font près de la moitié des suppléments, et la Potatoe à 1 € est prise sur ~3 commandes sur 10 |
+| **Corndogs seuls** | ⚠️ découpes de l'affiche. Ils diffèrent par l'INTÉRIEUR, qu'aucune photo extérieure ne montre — à trancher : vue en coupe, ou visuel commun |
 
-| **Logo détouré** | ✅ **Existe**, repris de l'app de gestion : `vitejs-vite-4btbmycn (1)/public/logo-sekai@2x.webp`, 630×640, **fond transparent**. Copié en `borne/public/photos/logo-sekai.webp`. Se pose aussi bien sur le crème que sur le rouge |
-| **Affiche des menus** | ✅ `borne/public/photos/affiche.jpg`, 1400×1979 |
-| **Photos produit** | ⚠️ `borne/public/photos/`, **8 découpes de l'affiche** — c'est tout ce qu'on a |
-| **Photos de menu** | 🔴 **AUCUNE.** L'affiche ne contient pas un seul menu sans son titre ou sa pastille de prix par-dessus |
-
-🔴 **Cherché partout, inutile de recommencer :** tout le dépôt (92 images, le reste
-étant des icônes Android et le gabarit Vite), et le **stockage Supabase — qui n'a
-aucun bucket**. `src/assets/hero.png` est l'image par défaut de Vite, pas un menu.
-
-**Les menus portent donc la photo de leur élément principal** (mozza, bubble tea,
-karaage, tempura). **Une vraie séance photo est ce qui rapporterait le plus sur
-cet écran** — c'est le seul point bloqué par un actif manquant et non par du
-travail.
-
-### 📸 Le gérant envoie les photos — annoncé le 21/10/2026 pour « demain »
-
-**Le mécanisme est déjà câblé et vérifié** (commit `0c6a388`), il n'attend que
-les fichiers. Quand ils arrivent :
-
-1. Poser les fichiers dans `borne/public/photos/`, en `.jpg`, nommés
-   `panure-cereale`, `panure-panko`, `panure-nouille`, `panure-potatoe`,
-   `panure-blue`, `panure-spicy`, et `menu-goodeal`, `menu-bubbledog`,
-   `menu-goodeal-xl`, `menu-bubbledog-xl`.
-2. Ajouter leurs lignes dans `PHOTOS_OPTIONS` (panures) et `PHOTOS` (menus),
-   dans `src/App.tsx`. **Rien d'autre à toucher.**
-3. Repasser les menus de `object-fit: contain` à `cover` dans `styles.css` si
-   les photos sont cadrées large — le commentaire le dit sur place.
-
-🔴 **Les six panures, ou aucune.** `groupeIllustre()` l'impose déjà : un groupe
-à moitié illustré mettrait en avant l'option payante au seul motif qu'on en a la
+🔴 **Les six panures, ou aucune.** `groupeIllustre()` l'impose : un groupe à
+moitié illustré mettrait en avant l'option payante au seul motif qu'on en a la
 photo. Ne pas contourner la règle en stylant une pastille au cas par cas.
+Les **non-choix** (« pas de boisson ») en sont exemptés, eux ne se
+photographient pas.
 
 ⚠️ **Et REGARDER le résultat en captures**, pas seulement compiler : le script
 de la session du 21/10 pilote Chromium en 800×1280 et intercepte les appels

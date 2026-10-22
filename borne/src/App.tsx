@@ -19,15 +19,13 @@ const eur = (n: number) => n.toFixed(2).replace(".", ",") + " €";
 // À remplacer dès qu'il y a de vraies photos : poser le fichier dans
 // `public/photos/` et ajouter sa ligne ici, rien d'autre à toucher.
 const PHOTOS: Record<string, string> = {
-  // 🔴 AUCUNE de ces photos ne montre un menu COMPLET : l'affiche n'en contient
-  // pas un seul sans son titre ni sa pastille de prix par-dessus, et un visuel
-  // qui affiche « 12,90 € » sur une carte à 10,00 € est pire que pas de photo.
-  // Les menus portent donc la photo de leur élément principal. C'est le poste
-  // où une vraie photo rapportera le plus.
-  "MENU GOODEAL": "mozza.jpg",
-  "MENU BUBBLE DOGS": "bubbletea.jpg",
-  "MENU GOODEAL XL": "karaage.jpg",
-  "MENU BUBBLE DOGS XL": "tempura.jpg",
+  // ✅ Les VRAIS visuels de menu, envoyés par le gérant le 22/10/2026 : le menu
+  // complet sur son plateau, détouré sur fond transparent. Le titre « MENU GOOD
+  // DEAL » a été recadré hors de l'image — il est déjà écrit sous la carte.
+  "MENU GOODEAL": "menu-gooddeal.png",
+  "MENU BUBBLE DOGS": "menu-bubbledog.png",
+  "MENU GOODEAL XL": "menu-gooddeal-xl.png",
+  "MENU BUBBLE DOGS XL": "menu-bubbledog-xl.png",
   "CORNDOG SAUCISSE": "saucisse.jpg",
   "CORNDOG MOZZA": "mozza.jpg",
   "CORNDOG SAUCISSE/MOZZA": "bubbledog.jpg",

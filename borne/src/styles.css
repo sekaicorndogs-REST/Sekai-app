@@ -435,9 +435,12 @@ h2 {
   display: block;
 }
 /* La pastille de prix noire et ronde, directement reprise de l'affiche. */
+/* ⚠️ En BAS à droite, pas en haut : les visuels de menu portent la boisson en
+   haut à droite, et la pastille tombait pile sur le bubble tea. En bas elle ne
+   couvre que le plateau. */
 .produit .prix {
   position: absolute;
-  top: 10px;
+  bottom: 10px;
   right: 10px;
   min-width: 78px;
   height: 78px;
