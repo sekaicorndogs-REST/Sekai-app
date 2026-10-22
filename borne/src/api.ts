@@ -71,6 +71,9 @@ export type Proposition = {
   cibleNom: string;
   baseOption: string | null;
   ordre: number;
+  /** Noms de fichiers de ce que la cible AJOUTE : les frites et la canette
+   *  d'un menu, les karaage et tempura d'un XL. Vide = offre en texte seul. */
+  visuels: string[];
 };
 
 export type Catalogue = {
@@ -107,7 +110,7 @@ export async function chargerCatalogue(): Promise<Catalogue> {
     ),
     get<any[]>("borne_produit_groupes?select=produit_nom,groupe_id,ordre&order=ordre.asc"),
     get<any[]>(
-      "borne_propositions?select=produit_nom,cible_nom,base_option_nom,ordre" +
+      "borne_propositions?select=produit_nom,cible_nom,base_option_nom,ordre,visuels" +
         "&actif=is.true&order=ordre.asc"
     ),
   ]);
@@ -178,6 +181,7 @@ export async function chargerCatalogue(): Promise<Catalogue> {
       cibleNom: r.cible_nom,
       baseOption: r.base_option_nom,
       ordre: r.ordre,
+      visuels: Array.isArray(r.visuels) ? r.visuels : [],
     });
   }
 

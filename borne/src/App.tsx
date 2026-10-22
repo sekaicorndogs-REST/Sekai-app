@@ -889,6 +889,19 @@ function Proposer({
                 className={moinsCher ? "btn gros offre gagnant" : "btn gros offre"}
                 onClick={() => onOui(m)}
               >
+                {/* Ce que le menu AJOUTE, en images. Fond clair derrière
+                    chaque vignette : les visuels sont détourés et certains
+                    sont rouges — le pot de frites disparaîtrait sur l'aplat. */}
+                {m.proposition.visuels.length > 0 && (
+                  <span className="gagne">
+                    <span className="plus" aria-hidden="true">
+                      +
+                    </span>
+                    {m.proposition.visuels.map((f) => (
+                      <img key={f} src={`photos/${f}`} alt="" />
+                    ))}
+                  </span>
+                )}
                 <span className="quoi">{m.cible.nom}</span>
                 <span className={moinsCher ? "ecart gain" : "ecart"}>
                   {moinsCher

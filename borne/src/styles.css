@@ -958,3 +958,34 @@ h2 {
 .proposer .btn.refus:active {
   background: var(--bord);
 }
+
+/* Ce que la montée en gamme AJOUTE, en images — « montre un paquet de frites
+   et une boisson » (gérant, 22/10/2026). C'est la différence qui est montrée,
+   pas le plateau complet : le client a déjà vu le menu sur la carte.
+
+   🔴 Fond CLAIR derrière chaque vignette. Les visuels sont détourés sur
+   transparent et plusieurs sont rouges — le pot de frites disparaîtrait
+   purement et simplement sur l'aplat rouge de l'offre. */
+.proposer .offre .gagne {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.proposer .offre .gagne img {
+  width: 62px;
+  height: 62px;
+  object-fit: contain;
+  background: var(--creme-clair);
+  border-radius: 12px;
+  padding: 3px;
+  display: block;
+}
+.proposer .offre .gagne .plus {
+  font-family: var(--titre);
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1;
+  opacity: 0.9;
+}

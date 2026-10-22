@@ -431,6 +431,17 @@ tient déjà un menu.
 **bordeaux avec le montant en or** (8,37). L'or sur le rouge ne vaut que 2,47 —
 le montant y était illisible, constaté en capture.
 
+**L'offre montre CE QU'ELLE AJOUTE** (`borne_propositions.visuels`) : un paquet
+de frites et une canette pour le Good Deal, un bubble tea pour le Bubble Dogs,
+les karaage et tempura pour les XL. Demande du gérant — « rends ça plus
+attirant ».
+🔴 Ce sont les visuels de la DIFFÉRENCE, pas le plateau entier du menu : le
+client a déjà vu le menu sur la carte, ce qu'il n'a pas encore vu c'est ce
+qu'il gagne.
+⚠️ **Fond clair obligatoire derrière chaque vignette** : les visuels sont
+détourés sur transparent et plusieurs sont rouges — le pot de frites
+disparaîtrait purement et simplement sur l'aplat rouge de l'offre.
+
 ### Les descriptions de produit
 
 `borne_produits.description` porte la phrase affichée sous le nom. **Elle ne
