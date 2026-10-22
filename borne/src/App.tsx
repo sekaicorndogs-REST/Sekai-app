@@ -12,12 +12,18 @@ declare const __BUILD_ID__: string;
 
 const eur = (n: number) => n.toFixed(2).replace(".", ",") + " €";
 
-// Les photos sont DÉCOUPÉES DANS L'AFFICHE du magasin (`public/photos/affiche.jpg`),
-// faute de photos produit à ce jour. Elles sont donc fidèles pour les corndogs,
-// les sides et les boissons, et seulement ÉVOCATRICES pour les menus — la photo
-// d'un menu montre l'un de ses éléments, pas le menu complet.
-// À remplacer dès qu'il y a de vraies photos : poser le fichier dans
-// `public/photos/` et ajouter sa ligne ici, rien d'autre à toucher.
+// ✅ Depuis le 22/10/2026, PLUS AUCUNE photo produit n'est découpée dans
+// l'affiche : le gérant a fourni de vrais visuels pour les douze. Les découpes
+// portaient du texte, une main, des cadrages de travers, et surtout le même
+// visuel pour deux produits différents — elles sont supprimées du dépôt.
+// `affiche.jpg` ne sert plus qu'à l'écran d'accueil.
+//
+// Pour ajouter une photo : poser le fichier dans `public/photos/` et ajouter sa
+// ligne ici, rien d'autre à toucher. ⚠️ La valeur porte le nom de fichier
+// COMPLET, extension comprise — les formats sont mélangés (.png, .webp).
+//
+// 🔴 Il manque les QUATRE SIGNATURES (Saitama, Ace, Sekai, Suisse) : elles
+// s'affichent en carte sans image. C'est le dernier trou de la carte.
 const PHOTOS: Record<string, string> = {
   // ✅ Les VRAIS visuels de menu, envoyés par le gérant le 22/10/2026 : le menu
   // complet sur son plateau, détouré sur fond transparent. Le titre « MENU GOOD
@@ -26,14 +32,26 @@ const PHOTOS: Record<string, string> = {
   "MENU BUBBLE DOGS": "menu-bubbledog.png",
   "MENU GOODEAL XL": "menu-gooddeal-xl.png",
   "MENU BUBBLE DOGS XL": "menu-bubbledog-xl.png",
-  "CORNDOG SAUCISSE": "saucisse.jpg",
-  "CORNDOG MOZZA": "mozza.jpg",
-  "CORNDOG SAUCISSE/MOZZA": "bubbledog.jpg",
+  // ✅ Les trois bases sur bâtonnet, envoyées par le gérant le 22/10/2026.
+  // Elles remplacent des découpes de l'affiche qui portaient du texte, une
+  // main, et ne distinguaient PAS les trois produits — c'était le manque le
+  // plus ancien du projet : les corndogs sont identiques vus de l'extérieur,
+  // ils ne diffèrent que par l'intérieur.
+  //
+  // ⚠️ Ce sont les bases NUES, avant panure. C'est cohérent avec le parcours
+  // de commande (on choisit la garniture, puis la panure à l'écran suivant),
+  // mais ce n'est pas le produit fini. À confirmer avec le gérant.
+  "CORNDOG SAUCISSE": "base-saucisse.webp",
+  "CORNDOG MOZZA": "base-mozza.webp",
+  "CORNDOG SAUCISSE/MOZZA": "base-saucisse-mozza.webp",
   "FRITES": "side-frites.png",
   "Poulet karaage": "side-karaage.png",
   "Tempura crevette": "side-tempura.png",
-  "BUBBLE TEA PECHE": "bubbletea.jpg",
-  "BUBBLE TEA PASTEQUE": "bubbletea.jpg",
+  // Les gobelets photoréalistes, les mêmes que les sirops du menu. Ils
+  // remplacent une découpe d'affiche unique, partagée par les deux parfums et
+  // donc incapable de les distinguer.
+  "BUBBLE TEA PECHE": "bubble-peche.png",
+  "BUBBLE TEA PASTEQUE": "bubble-pasteque.png",
 };
 
 // ⚠️ La valeur porte le NOM DE FICHIER COMPLET, extension comprise : les
@@ -106,6 +124,17 @@ const PHOTOS_OPTIONS: Record<string, string> = {
   // Le seul choix payant du groupe SUPPLEMENTS, donc le groupe entier
   // dependait de cette image. Visuel fourni par le gérant le 22/10/2026.
   "OIGNONS FRITS": "supplement-oignons-frits.webp",
+  // Les bases des menus, groupe CHOIX DE LA BASE.
+  // 🔴 Ce groupe écrit « MOZA » avec un seul Z, la carte « MOZZA » avec deux.
+  // Les deux orthographes sont donc câblées : c'est l'anomalie n° 3 des
+  // questions ouvertes de `borne/CLAUDE.md`, qui attend d'être tranchée en
+  // base. Tant qu'elle ne l'est pas, retirer une de ces lignes éteint le
+  // groupe entier.
+  "CORNDOG SAUCISSE": "base-saucisse.webp",
+  "CORNDOG SAUCISSE/MOZA": "base-saucisse-mozza.webp",
+  "CORNDOG MOZA": "base-mozza.webp",
+  "CORNDOG SAUCISSE/MOZZA": "base-saucisse-mozza.webp",
+  "CORNDOG MOZZA": "base-mozza.webp",
   "SAMOURAI": "sauce-samourai.webp",
   "SEKAI": "sauce-sekai.webp",
   "SPICY MAYO": "sauce-spicy-mayo.webp",

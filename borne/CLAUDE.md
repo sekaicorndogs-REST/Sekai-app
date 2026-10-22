@@ -97,7 +97,9 @@ immédiate des lignes par `source_id`, et **avec l'accord du gérant**.
 | **Panures** | ✅ **les 6**, visuels professionnels sur fond blanc fournis par le gérant le 22/10/2026, détourés. ⚠️ **La rouge et la bleue arrivaient sur UNE SEULE image** : coupée en deux. Les groupes `CHOIX DE LA PANURE` et `SUPPLEMENT PANURE` sont donc illustrés |
 | **Sides** | ✅ frites, karaage, tempura, détourés. Servent **à deux endroits** : les produits de la carte ET le groupe `SIDE` des options. ⚠️ Le groupe `SIDE 2` des menus XL nomme les mêmes produits « … 3pcs » : deux libellés, une seule photo |
 | **Sauces** | ✅ **les 9**, donc `CHOIX DE LA SAUCE` est illustré. Le gérant a photographié **le SAMOURAÏ** dans son ramequin, vu de dessus sur fond blanc ; les huit autres sont **ce même pot recoloré**. En `.webp`, ~24 Ko pièce au lieu de ~330 Ko en PNG |
-| **Corndogs seuls** | ⚠️ découpes de l'affiche. Ils diffèrent par l'INTÉRIEUR, qu'aucune photo extérieure ne montre — à trancher : vue en coupe, ou visuel commun |
+| **Corndogs seuls** | ✅ **les 3 bases sur bâtonnet**, envoyées par le gérant le 22/10/2026. Elles remplacent des découpes d'affiche qui portaient du texte, une main, et ne distinguaient PAS les trois produits. Servent **à deux endroits** : la carte ET le groupe `CHOIX DE LA BASE` des menus. ⚠️ Ce sont les bases **NUES, avant panure** — cohérent avec le parcours (garniture puis panure) mais ce n'est pas le produit fini, à confirmer |
+| **Bubble teas** | ✅ les gobelets photoréalistes, les mêmes que les sirops du menu. Ils remplacent **une** découpe d'affiche partagée par les deux parfums, donc incapable de les distinguer |
+| **Signatures** | 🔴 **manquantes** : Saitama, Ace, Sekai, Suisse s'affichent en carte sans image. **C'est le dernier trou** |
 | **Oignons frits** | ✅ visuel du gérant (22/10/2026), pot transparent et morceaux qui tombent. Seul choix payant de `SUPPLEMENTS` : **le groupe est donc illustré**. ⚠️ Format vertical (440×648), donc la vignette est plus étroite que les sides voisins — **ne pas la recadrer**, le nuage de morceaux occupe toute la largeur et toute coupe trancherait en plein milieu d'un morceau |
 
 ### 🎨 Décliner une couleur depuis une seule photo — la méthode du 22/10/2026
@@ -152,6 +154,16 @@ valider le reste au comptoir.
 🔴 **Le Samouraï reste la PHOTO BRUTE**, jamais sa version recolorée : c'est la
 seule des neuf dont on a le vrai cliché, et elle sert de témoin aux huit autres.
 Le script la restaure après la boucle — ne pas supprimer cette ligne.
+
+✅ **Au 22/10/2026 les TREIZE groupes d'options sont illustrés**, et douze des
+seize produits. Il ne manque que les **quatre signatures**.
+
+⚠️ **Plus aucune photo produit n'est découpée dans l'affiche.** Les huit
+découpes (`saucisse.jpg`, `mozza.jpg`, `bubbledog.jpg`, `bubbletea.jpg`,
+`frites.jpg`, `karaage.jpg`, `tempura.jpg`, `soft.jpg`) sont **supprimées du
+dépôt** : elles portaient du texte, une main, des cadrages de travers, et
+donnaient le même visuel à deux produits différents. `affiche.jpg` ne sert plus
+qu'à l'écran d'accueil.
 
 🔴 **Les six panures, ou aucune.** `groupeIllustre()` l'impose : un groupe à
 moitié illustré mettrait en avant l'option payante au seul motif qu'on en a la
