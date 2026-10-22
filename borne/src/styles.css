@@ -450,132 +450,128 @@ h2 {
 
 .categorie {
   min-height: 88px;
-  padding: 10px 12px;
+  padding: 10px 8px 12px;
   border: 3px solid var(--bord);
-  border-radius: 18px;
+  border-radius: 22px;
   background: var(--creme-clair);
   color: var(--bordeaux);
   font-family: var(--titre);
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 600;
   line-height: 1.05;
   letter-spacing: 0.3px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
   cursor: pointer;
+}
+/* La vignette de catégorie, reprise de la borne EasyOrder. Fond crème pour
+   qu'un visuel détouré ne flotte pas dans le vide. */
+.categorie .vign {
+  width: 100%;
+  height: 86px;
+  object-fit: contain;
+  border-radius: 14px;
+  background: var(--creme);
+  display: block;
 }
 .categorie.actif {
   background: var(--rouge);
   border-color: var(--rouge);
   color: var(--sur-rouge);
 }
+/* ⚠️ Sur la catégorie active, la vignette garde un fond CLAIR : posée sur le
+   rouge, un visuel détouré rouge-orangé (les corndogs) disparaissait. */
+.categorie.actif .vign {
+  background: var(--creme-clair);
+}
 
+/* 🔴 TROIS colonnes, comme sur la borne EasyOrder (gérant, 22/10/2026).
+   À 800 px de large moins la colonne de catégories, ça laisse ~180 px par
+   produit : c'est étroit, donc le nom et la description sont en petit corps et
+   la photo porte la reconnaissance. Ne pas descendre sous 170 px, en dessous
+   les noms longs cassent en quatre lignes. */
 .produits {
   flex: 1;
   min-width: 0;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
 }
 
-/* Une carte produit se vend à l'image. Sans photo elle retombe sur un bandeau
-   crème : c'est volontairement neutre, pour qu'un produit non photographié se
-   voie et qu'on pense à le shooter. */
+/* La fiche produit suit la borne EasyOrder : image, nom, prix, composition,
+   le tout CENTRÉ, sans pastille de prix posée sur la photo.
+   ⚠️ Elle garde un fond et une bordure, là où EasyOrder pose les produits à nu
+   sur du blanc : c'est une cible tactile, elle doit se voir comme telle. */
 .produit {
   border: 3px solid var(--bord);
-  border-radius: 22px;
+  border-radius: 20px;
   background: var(--creme-clair);
   color: var(--bordeaux);
-  padding: 0;
+  padding: 0 0 14px;
   overflow: hidden;
-  text-align: left;
+  text-align: center;
   display: flex;
   flex-direction: column;
+  align-items: center;
   cursor: pointer;
 }
 .produit:active {
   border-color: var(--rouge);
 }
 .produit .photo {
-  position: relative;
   width: 100%;
-  height: 176px;
+  height: 150px;
   background: var(--creme);
   overflow: hidden;
+  margin-bottom: 10px;
 }
 /* 🔴 `contain`, surtout pas `cover`. Les visuels sont DÉTOURÉS sur fond
-   transparent et souvent très verticaux (un corndog sur bâtonnet fait 440x760).
-   En `cover`, une carte large les agrandit jusqu'à n'en montrer qu'un morceau —
-   constaté en capture, deux fois à l'époque des découpes d'affiche.
-   En `contain` sur fond crème, le produit se voit en entier. */
+   transparent et souvent très verticaux (un corndog sur bâtonnet fait
+   440x760). En `cover`, la carte les agrandit jusqu'à n'en montrer qu'un
+   morceau — constaté en capture, deux fois à l'époque des découpes d'affiche. */
 .produit .photo img {
   width: 100%;
   height: 100%;
   object-fit: contain;
   display: block;
 }
-/* La pastille de prix ronde. Elle était NOIRE quand la charte venait de
-   l'affiche ; elle est désormais en --bordeaux, la couleur foncée officielle.
-   Le couple bordeaux / crème-clair vaut 12,76, et bordeaux / or 8,37 pour les
-   suppléments payants : les deux passent largement. */
-/* ⚠️ En BAS à droite, pas en haut : les visuels de menu portent la boisson en
-   haut à droite, et la pastille tombait pile sur le bubble tea. En bas elle ne
-   couvre que le plateau. */
-.produit .prix {
-  position: absolute;
-  bottom: 10px;
-  right: 10px;
-  min-width: 78px;
-  height: 78px;
-  padding: 0 10px;
-  border-radius: 999px;
-  background: var(--bordeaux);
-  color: var(--creme-clair);
-  font-family: var(--titre);
-  font-size: 25px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
 .produit .nom {
-  padding: 14px 16px 18px;
+  padding: 0 8px;
   font-family: var(--titre);
-  font-size: 25px;
-  line-height: 1.04;
-  letter-spacing: -0.3px;
+  font-size: 19px;
+  font-weight: 600;
+  line-height: 1.08;
 }
-/* La composition du produit, quand `borne_produits.description` en porte une.
-   En --doux (4,85 sur crème-clair) et en texte courant, pas en typo de titre :
+/* Le prix sous le nom, en rouge. Il ne vaut que 3,77 sur le crème-clair, donc
+   il tient par sa taille et sa graisse : ne pas le descendre sous 20 px. */
+.produit .prix {
+  margin-top: 5px;
+  font-family: var(--titre);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--rouge);
+}
+/* La composition, quand `borne_produits.description` en porte une.
+   En --doux (5,29 sur crème-clair) et en texte courant, pas en typo de titre :
    c'est à lire, pas à voir de loin. */
 .produit .detail {
-  display: block;
-  margin-top: 8px;
+  margin-top: 6px;
+  padding: 0 10px;
   font-family: var(--texte);
-  font-size: 16px;
+  font-size: 13px;
   font-weight: 600;
   line-height: 1.25;
-  letter-spacing: 0;
   color: var(--doux);
 }
 
-/* Les menus portent 41 % de la marge : leur carte est plus grande.
-   🔴 Ils n'ont PAS de libellé sous la photo — leur nom est écrit DANS le
-   visuel (« MENU GOOD DEAL » en gros au-dessus du plateau). Demande du gérant,
-   22/10/2026 : le nom ne doit apparaître qu'une fois.
-   La carte est donc photo + prix, rien d'autre, et `.produit.menu .nom`
-   n'existe plus — c'est `App.tsx` qui ne rend pas l'élément. */
+/* Les menus portent 41 % de la marge : leur photo est plus haute.
+   🔴 Ils n'ont PAS de nom sous la photo — il est écrit DANS le visuel
+   (« MENU GOOD DEAL » en gros au-dessus du plateau). Demande du gérant,
+   22/10/2026 : le nom ne doit apparaître qu'une fois. */
 .produit.menu .photo {
-  /* 330 px : les visuels font 760x970, donc dans une carte de ~255 px de large
-     le plateau tient pile. Plus bas, il serait rogné en haut ou en bas ;
-     plus haut, deux bandes de crème apparaîtraient. */
-  height: 330px;
-}
-/* ⚠️ Pastille PLUS PETITE que sur les autres cartes, pas plus grande — c'est
-   l'inverse de la première version. Le visuel porte déjà son titre en gros :
-   une pastille de 96 px venait lui disputer la place et écrasait le plateau.
-   Demande du gérant le 22/10/2026. */
-.produit.menu .prix {
-  min-width: 66px;
-  height: 66px;
-  font-size: 21px;
+  height: 210px;
 }
 
 /* ── Choix d'options ────────────────────────────────────────────────────── */

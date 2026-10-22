@@ -170,6 +170,29 @@ const PHOTOS_OPTIONS: Record<string, string> = {
   "SRIRACHA": "sauce-sriracha.webp",
 };
 
+/**
+ * La vignette d'une catégorie dans la colonne de gauche.
+ *
+ * Reprise de la borne EasyOrder, que le gérant a demandé de suivre le
+ * 22/10/2026 : chaque catégorie y porte une image au-dessus de son nom. Une
+ * image se reconnaît plus vite qu'un mot, et la colonne est ce que le client
+ * regarde en premier.
+ *
+ * ⚠️ La clé est le nom AFFICHÉ de la catégorie, donc celui d'après
+ * `groupeCarte()` — « Menus », pas « Menus XL ». Une catégorie sans vignette
+ * retombe sur son libellé seul, sans rien casser.
+ */
+const PHOTOS_CATEGORIES: Record<string, string> = {
+  Menus: "menu-gooddeal.webp",
+  Corndogs: "base-saucisse-mozza.webp",
+  Signatures: "signature-sekai.webp",
+  Sides: "side-frites.png",
+  Boissons: "bubble-peche.png",
+};
+
+const photoCategorie = (nom: string): string | null =>
+  PHOTOS_CATEGORIES[nom] ? `photos/${PHOTOS_CATEGORIES[nom]}` : null;
+
 const photoOption = (nom: string): string | null =>
   PHOTOS_OPTIONS[nom] ? `photos/${PHOTOS_OPTIONS[nom]}` : null;
 
@@ -516,15 +539,19 @@ function Carte({
           défilement était masquée. */}
       <div className="carte-layout">
         <nav className="categories">
-          {onglets.map((c) => (
-            <button
-              key={c}
-              className={c === categorie ? "categorie actif" : "categorie"}
-              onClick={() => setCategorie(c)}
-            >
-              {c}
-            </button>
-          ))}
+          {onglets.map((c) => {
+            const vign = photoCategorie(c);
+            return (
+              <button
+                key={c}
+                className={c === categorie ? "categorie actif" : "categorie"}
+                onClick={() => setCategorie(c)}
+              >
+                {vign && <img className="vign" src={vign} alt="" />}
+                <span className="libelle">{c}</span>
+              </button>
+            );
+          })}
         </nav>
         <div className="produits">
           {produits.map((p) => {
@@ -536,10 +563,7 @@ function Carte({
                 aria-label={`${p.nom}, ${eur(p.prix)}`}
                 onClick={() => onProduit(p)}
               >
-                <div className="photo">
-                  {img && <img src={img} alt="" />}
-                  <div className="prix">{eur(p.prix)}</div>
-                </div>
+                <div className="photo">{img && <img src={img} alt="" />}</div>
                 {/* 🔴 Le nom des MENUS est écrit DANS leur visuel (« MENU GOOD
                     DEAL » en gros sur la photo), donc il n'est pas répété
                     dessous : demande du gérant, 22/10/2026. Il reste dans le
@@ -547,16 +571,13 @@ function Carte({
                     pour qui ne voit pas l'image.
                     ⚠️ Si un jour un visuel de menu arrive SANS son titre, la
                     carte devient muette : remettre le libellé. */}
-                {estMenu(p) ? null : (
-                  <div className="nom">
-                    {p.nom}
-                    {/* La description ne s'affiche que si elle existe. Les
-                        signatures en ont besoin — leur nom ne dit rien de ce
-                        qu'elles contiennent — là où « CORNDOG MOZZA » se
-                        suffit. Textes relevés sur la borne EasyOrder. */}
-                    {p.description && <span className="detail">{p.description}</span>}
-                  </div>
-                )}
+                {!estMenu(p) && <div className="nom">{p.nom}</div>}
+                <div className="prix">{eur(p.prix)}</div>
+                {/* La description ne s'affiche que si elle existe. Les
+                    signatures en ont besoin — leur nom ne dit rien de ce
+                    qu'elles contiennent — là où « CORNDOG MOZZA » se suffit.
+                    Textes relevés sur la borne EasyOrder. */}
+                {p.description && <div className="detail">{p.description}</div>}
               </button>
             );
           })}

@@ -228,6 +228,32 @@ Le script la restaure après la boucle — ne pas supprimer cette ligne.
 ✅ **Au 22/10/2026 TOUT est illustré** : les treize groupes d'options et les
 seize produits. Plus aucun trou côté visuels.
 
+### 🖥️ La mise en page de la carte — calquée sur la borne EasyOrder
+
+Demandée par le gérant le 22/10/2026, sur photo de sa borne actuelle :
+
+| | |
+|---|---|
+| **Colonne de catégories** | chacune porte une **vignette** au-dessus de son nom (`PHOTOS_CATEGORIES` dans `App.tsx`). Une image se reconnaît plus vite qu'un mot, et la colonne est ce que le client regarde en premier |
+| **Trois colonnes** de produits | ~180 px par fiche. **Ne pas descendre sous 170** : en dessous, les noms longs cassent en quatre lignes |
+| **Fiche produit** | image, nom, prix, composition — **centrés**, et **plus de pastille de prix posée sur la photo** |
+
+⚠️ **La clé de `PHOTOS_CATEGORIES` est le nom AFFICHÉ**, donc celui d'après
+`groupeCarte()` : « Menus », pas « Menus XL ». Sans vignette, la catégorie
+retombe sur son libellé seul, sans rien casser.
+
+⚠️ **La vignette de la catégorie active garde un fond CLAIR.** Posée directement
+sur le rouge, un visuel détouré rouge-orangé — les corndogs — disparaissait.
+
+🔴 **Deux choses de la borne EasyOrder n'ont PAS été reprises, exprès :**
+1. Ses produits sont posés **à nu sur du blanc**, sans carte. La nôtre garde un
+   fond et une bordure : c'est une cible tactile, elle doit se voir comme telle.
+2. Ses vignettes ont un **fond orange dégradé**, qui est son thème à elle. Le
+   nôtre reste le crème de la charte.
+
+🔴 **Et la colonne de catégories reste VERTICALE et entière à l'écran** — voir
+la règle plus bas, c'est le défaut documenté des bornes McDonald's.
+
 ### Les descriptions de produit
 
 `borne_produits.description` porte la phrase affichée sous le nom. **Elle ne
