@@ -78,6 +78,22 @@ const groupeIllustre = (g: Groupe) =>
 // en rouge, pour qu'ils ne se confondent pas avec une canette.
 const estMenu = (p: Produit) => /menu/i.test(p.categorie);
 
+/**
+ * Regroupement d'AFFICHAGE de la carte : les quatre menus tiennent sur un seul
+ * écran, au lieu d'être coupés entre « Menus » et « Menus XL ».
+ *
+ * Le client voit ainsi le normal et le XL côte à côte, avec leurs deux
+ * pastilles de prix — c'est la comparaison qui fait le passage en XL, et les XL
+ * pèsent déjà un quart des menus vendus.
+ *
+ * 🔴 CE REGROUPEMENT NE TOUCHE PAS `produit.categorie`. La catégorie part telle
+ * quelle dans la ligne de commande (`commandes_live_lignes.categorie_nom`) :
+ * c'est elle qui permet de suivre la part des XL dans les analyses. Ne jamais
+ * « simplifier » en renommant la catégorie en base.
+ */
+const GROUPES_CARTE: Record<string, string> = { "Menus XL": "Menus" };
+const groupeCarte = (categorie: string) => GROUPES_CARTE[categorie] ?? categorie;
+
 // Un article du panier : le produit, ses choix d'options et sa quantité.
 type Choix = { groupe: string; choix: string; prix: number };
 type Article = { produit: Produit; options: Choix[]; quantite: number };
@@ -336,9 +352,20 @@ function Carte({
   onPanier: () => void;
   onAnnuler: () => void;
 }) {
-  const [categorie, setCategorie] = useState(cat.categories[0] ?? "");
+  // Les onglets sont les catégories REGROUPÉES (voir `groupeCarte`), dans
+  // l'ordre des produits : « Menus XL » se fond dans « Menus ».
+  const onglets = useMemo(() => {
+    const vus: string[] = [];
+    for (const c of cat.categories) {
+      const g = groupeCarte(c);
+      if (!vus.includes(g)) vus.push(g);
+    }
+    return vus;
+  }, [cat]);
+
+  const [categorie, setCategorie] = useState(onglets[0] ?? "");
   const produits = useMemo(
-    () => cat.produits.filter((p) => p.categorie === categorie),
+    () => cat.produits.filter((p) => groupeCarte(p.categorie) === categorie),
     [cat, categorie]
   );
 
@@ -358,7 +385,7 @@ function Carte({
           défilement était masquée. */}
       <div className="carte-layout">
         <nav className="categories">
-          {cat.categories.map((c) => (
+          {onglets.map((c) => (
             <button
               key={c}
               className={c === categorie ? "categorie actif" : "categorie"}
