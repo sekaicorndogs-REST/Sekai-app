@@ -103,6 +103,9 @@ const PHOTOS_OPTIONS: Record<string, string> = {
   // 🟡 Les teintes sont approchées, pas mesurées : à faire valider au comptoir.
   // Le gérant a seulement tranché que la Sekai est « une spicy mayo un peu plus
   // foncée », ce qui est respecté ici.
+  // Le seul choix payant du groupe SUPPLEMENTS, donc le groupe entier
+  // dependait de cette image. Visuel fourni par le gérant le 22/10/2026.
+  "OIGNONS FRITS": "supplement-oignons-frits.webp",
   "SAMOURAI": "sauce-samourai.webp",
   "SEKAI": "sauce-sekai.webp",
   "SPICY MAYO": "sauce-spicy-mayo.webp",

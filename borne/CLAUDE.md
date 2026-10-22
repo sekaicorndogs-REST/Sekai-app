@@ -98,7 +98,7 @@ immédiate des lignes par `source_id`, et **avec l'accord du gérant**.
 | **Sides** | ✅ frites, karaage, tempura, détourés. Servent **à deux endroits** : les produits de la carte ET le groupe `SIDE` des options. ⚠️ Le groupe `SIDE 2` des menus XL nomme les mêmes produits « … 3pcs » : deux libellés, une seule photo |
 | **Sauces** | ✅ **les 9**, donc `CHOIX DE LA SAUCE` est illustré. Le gérant a photographié **le SAMOURAÏ** dans son ramequin, vu de dessus sur fond blanc ; les huit autres sont **ce même pot recoloré**. En `.webp`, ~24 Ko pièce au lieu de ~330 Ko en PNG |
 | **Corndogs seuls** | ⚠️ découpes de l'affiche. Ils diffèrent par l'INTÉRIEUR, qu'aucune photo extérieure ne montre — à trancher : vue en coupe, ou visuel commun |
-| **Oignons frits** | ⚠️ manquants. Seul choix payant de `SUPPLEMENTS`, donc le groupe reste non illustré |
+| **Oignons frits** | ✅ visuel du gérant (22/10/2026), pot transparent et morceaux qui tombent. Seul choix payant de `SUPPLEMENTS` : **le groupe est donc illustré**. ⚠️ Format vertical (440×648), donc la vignette est plus étroite que les sides voisins — **ne pas la recadrer**, le nuage de morceaux occupe toute la largeur et toute coupe trancherait en plein milieu d'un morceau |
 
 ### 🎨 Décliner une couleur depuis une seule photo — la méthode du 22/10/2026
 
