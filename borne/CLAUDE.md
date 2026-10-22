@@ -535,11 +535,15 @@ bloque la connexion. C'est donc au gérant de le faire, une fois.
 1. **Add New → Project**, choisir le dépôt `sekai-app`.
 2. 🔴 **Root Directory = `borne`.** C'est LE réglage à ne pas manquer : sans
    lui, Vercel construit l'app de gestion et ne trouve rien.
-3. ⚠️ **Settings → Git → Production Branch = `claude/borne-5xiop2`.**
-   `borne/` **n'existe pas sur `main`** : un déploiement depuis `main`
-   échouerait. L'autre voie est de fusionner `borne/` dans `main`, ce qui ne
-   casse rien (le projet `project-ynxry` a son propre Root Directory) — mais
-   c'est une décision du gérant, pas la mienne.
+3. ✅ **Rien à changer côté branche** : `borne/` est sur `main` depuis le
+   22/10/2026, à la demande du gérant. La branche de production reste `main`.
+   ⚠️ **Seul `borne/` a été apporté**, volontairement. La branche de travail
+   portait aussi des commits plus anciens, hérités d'avant la séparation par
+   session — une modification de l'app de **gestion** (les remplaçants dans le
+   récap du mois), des ajouts `.gitignore` pour la compta, et le `CLAUDE.md`
+   racine. **Ces travaux ne sont toujours pas déployés** : les pousser en
+   production reviendrait à déployer l'app de gestion à l'insu du gérant.
+   À lui de décider, c'est signalé.
 4. Déployer. Rien d'autre à régler : Vite est détecté tout seul, et aucune
    variable d'environnement n'est nécessaire — `api.ts` porte les valeurs
    Supabase par défaut.
