@@ -387,6 +387,50 @@ forcément ce qui est VENDU.** Devant un produit qui détonne, demander au géra
 avant d'en tirer une règle. C'est la même famille d'erreur que les noms de
 produits réécrits rétroactivement par EasyOrder dans ses exports.
 
+### 🆙 La montée en gamme (22/10/2026)
+
+Demandée par le gérant : proposer le menu après un corndog seul, et le XL après
+un menu. Table `borne_propositions`, logique dans `src/montee.ts`.
+
+🔴 **LA DIFFÉRENCE EST CALCULÉE, JAMAIS ANNONCÉE EN DUR**, et c'est le cœur du
+sujet. Un corndog à 6,50 € sur lequel le client a pris un tempura (4,90 €) et
+un Pepsi (2,00 €) coûte **13,40 €** — le Menu Good Deal, qui comprend les deux,
+coûte **10,00 €**. Il **économise 3,40 €**, et l'écran le lui dit. Écrire
+« +3,50 € » dans ce cas serait faux ; le laisser payer sans rien dire serait
+pire. Mesuré en capture dans les deux sens : +3,50 € sur un corndog nu,
+−3,40 € sur un corndog chargé.
+
+**Ce n'est pas un « mauvais défaut ».** La borne ne coche rien à la place du
+client, le refus est un bouton de **même taille** et au même endroit que les
+offres, et rien n'est présélectionné. On propose, on ne pousse pas — c'est la
+limite posée depuis l'étude de mars 2026 sur les bornes McDonald's.
+
+⚠️ **La montée RÉOUVRE la configuration de la cible**, elle n'ajoute pas
+directement au panier : un menu demande un choix de soft que le corndog n'avait
+pas, et le choisir à la place du client serait exactement le défaut qu'on
+s'interdit. Les choix compatibles sont reportés **par identifiant de groupe**.
+
+⚠️ **Pas de proposition sur une montée** (`depart` posé) : sans ce garde-fou,
+passer en menu rouvrirait aussitôt une proposition de XL et le client
+enchaînerait les écrans. Vérifié en capture.
+
+⚠️ **`base_option_nom` existe à cause d'une anomalie de la carte** : le produit
+s'appelle « CORNDOG MOZZA » (deux Z) et l'option du groupe CHOIX DE LA BASE
+« CORNDOG MOZA » (un seul). Impossible de les rapprocher par le nom. Le jour où
+l'anomalie est corrigée (question ouverte n° 3), la colonne peut disparaître.
+
+🔴 **Les signatures n'ont volontairement PAS de proposition** : le groupe CHOIX
+DE LA BASE ne contient que les trois corndogs. Un Saitama ne peut pas devenir
+un menu, et le proposer ferait une impasse.
+
+⚠️ **Deux titres, pas un** : « Vous voulez le menu ? » devant un corndog,
+« Passer en XL ? » devant un menu. Le premier n'a aucun sens quand le client
+tient déjà un menu.
+
+⚠️ **Contraste** : quand la cible revient moins cher, l'offre passe en
+**bordeaux avec le montant en or** (8,37). L'or sur le rouge ne vaut que 2,47 —
+le montant y était illisible, constaté en capture.
+
 ### Les descriptions de produit
 
 `borne_produits.description` porte la phrase affichée sous le nom. **Elle ne

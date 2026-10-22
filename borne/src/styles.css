@@ -869,3 +869,92 @@ h2 {
   text-align: center;
   font-size: 22px;
 }
+
+/* ── La montée en gamme ─────────────────────────────────────────────────── */
+/* « Vous voulez le menu ? », posé par-dessus la configuration au moment
+   d'ajouter au panier.
+
+   🔴 LE REFUS EST UN VRAI BOUTON, de la même taille que les offres. Le rendre
+   plus petit, plus pâle ou en simple lien serait précisément le « mauvais
+   défaut » que ce dossier s'interdit depuis l'étude de mars 2026 sur les
+   bornes McDonald's. On propose, on ne pousse pas. */
+.proposer {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  background: rgba(101, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.proposer .boite {
+  width: 100%;
+  max-width: 620px;
+  background: var(--creme-clair);
+  border-radius: 28px;
+  padding: 26px 22px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-height: 88svh;
+  /* ⚠️ `auto` et non `scroll` : sur un contenu court, une barre permanente
+     ferait croire qu'il reste quelque chose à lire plus bas. */
+  overflow-y: auto;
+}
+.proposer h2 {
+  margin: 0;
+  text-align: center;
+  font-size: 30px;
+  color: var(--bordeaux);
+}
+.proposer .offres {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.proposer .btn.offre {
+  min-height: 92px;
+  height: auto;
+  padding: 14px 20px;
+  flex-direction: column;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  line-height: 1.1;
+}
+.proposer .offre .quoi {
+  font-size: 23px;
+}
+.proposer .offre .ecart {
+  font-family: var(--texte);
+  font-size: 21px;
+  font-weight: 700;
+}
+/* Quand la cible revient MOINS cher — un corndog avec side et soft coûte plus
+   que le menu qui les comprend. On l'écrit, on ne le cache pas.
+   🔴 L'offre passe alors en BORDEAUX avec le montant en OR : c'est le couple
+   validé de la charte (8,37). L'or sur le rouge ne vaut que 2,47 et le
+   montant y était illisible — constaté en capture. */
+.proposer .btn.offre.gagnant {
+  background: var(--bordeaux);
+}
+.proposer .offre .ecart.gain {
+  color: var(--or);
+}
+.proposer .offre .quoi-dedans {
+  font-family: var(--texte);
+  font-size: 15px;
+  font-weight: 600;
+  opacity: 0.92;
+  margin-top: 4px;
+}
+.proposer .btn.refus {
+  background: var(--creme);
+  color: var(--bordeaux);
+  border: 3px solid var(--bord);
+}
+.proposer .btn.refus:active {
+  background: var(--bord);
+}

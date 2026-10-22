@@ -59,6 +59,10 @@ type Cle =
   | "nonEnregistree"
   | "rienEnvoye"
   | "compris"
+  | "proposerTitre"
+  | "proposerTitreXL"
+  | "sansMerci"
+  | "economise"
   | "retirer"
   | "toutAnnuler"
   | "changerLangue";
@@ -98,6 +102,10 @@ const TEXTES: Record<Langue, Record<Cle, string>> = {
     nonEnregistree: "Commande non enregistrée",
     rienEnvoye: "Rien n'a été envoyé. Commandez au comptoir.",
     compris: "Compris",
+    proposerTitre: "Vous voulez le menu ?",
+    proposerTitreXL: "Passer en XL ?",
+    sansMerci: "Non merci",
+    economise: "vous économisez",
     retirer: "Retirer",
     toutAnnuler: "Tout annuler",
     changerLangue: "Langue",
@@ -132,6 +140,10 @@ const TEXTES: Record<Langue, Record<Cle, string>> = {
     nonEnregistree: "Order not registered",
     rienEnvoye: "Nothing was sent. Please order at the counter.",
     compris: "Got it",
+    proposerTitre: "Make it a menu?",
+    proposerTitreXL: "Upgrade to XL?",
+    sansMerci: "No thanks",
+    economise: "you save",
     retirer: "Remove",
     toutAnnuler: "Cancel all",
     changerLangue: "Language",
@@ -166,6 +178,10 @@ const TEXTES: Record<Langue, Record<Cle, string>> = {
     nonEnregistree: "Bestelling niet geregistreerd",
     rienEnvoye: "Er is niets verzonden. Bestel aan de toonbank.",
     compris: "Begrepen",
+    proposerTitre: "Er een menu van maken?",
+    proposerTitreXL: "Naar XL?",
+    sansMerci: "Nee bedankt",
+    economise: "u bespaart",
     retirer: "Verwijderen",
     toutAnnuler: "Alles annuleren",
     changerLangue: "Taal",
@@ -200,6 +216,10 @@ const TEXTES: Record<Langue, Record<Cle, string>> = {
     nonEnregistree: "Pedido no registrado",
     rienEnvoye: "No se ha enviado nada. Pida en el mostrador.",
     compris: "Entendido",
+    proposerTitre: "¿Lo convertimos en menú?",
+    proposerTitreXL: "¿Pasar a XL?",
+    sansMerci: "No, gracias",
+    economise: "ahorra",
     retirer: "Quitar",
     toutAnnuler: "Cancelar todo",
     changerLangue: "Idioma",

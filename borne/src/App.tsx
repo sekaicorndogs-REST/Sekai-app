@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { LANGUES, NOM_LANGUE, champ, traducteur, type Langue, type T } from "./i18n";
+import { monteesPossibles, type Montee } from "./montee";
 import {
   chargerCatalogue,
   envoyerCommande,
@@ -291,7 +292,10 @@ type Ecran =
   | { nom: "accueil" }
   | { nom: "mode" }
   | { nom: "carte" }
-  | { nom: "config"; produit: Produit }
+  // `depart` : les choix repris quand le client accepte une montée en gamme.
+  // Sa présence dit aussi à `Config` qu'on EST déjà sur une montée, et qu'il
+  // ne faut donc pas en reproposer une — sinon le client enchaîne les écrans.
+  | { nom: "config"; produit: Produit; depart?: Record<number, number> }
   | { nom: "panier" }
   | { nom: "envoi" }
   | { nom: "fini"; reference: string };
@@ -460,15 +464,25 @@ export default function App() {
   if (ecran.nom === "config")
     return (
       <Config
+        key={ecran.produit.nom + (ecran.depart ? ":montee" : "")}
+        cat={cat}
         produit={ecran.produit}
         groupes={cat.groupesParProduit[ecran.produit.nom] ?? []}
         langue={langue}
         t={t}
+        depart={ecran.depart}
         onRetour={() => setEcran({ nom: "carte" })}
         onAjouter={(a) => {
           setPanier((p) => [...p, a]);
           setEcran({ nom: "carte" });
         }}
+        // 🔴 La montée REOUVRE la configuration de la cible, elle n'ajoute pas
+        // directement au panier : un menu demande un choix de soft que le
+        // corndog n'avait pas, et le choisir à la place du client serait
+        // exactement le défaut qu'on s'interdit.
+        onMonter={(m) =>
+          setEcran({ nom: "config", produit: m.cible, depart: m.reportes })
+        }
       />
     );
 
@@ -675,19 +689,26 @@ function Carte({
 
 // ── Les options, un groupe après l'autre ────────────────────────────────
 function Config({
+  cat,
   produit,
   groupes,
   langue,
   t,
+  depart,
   onRetour,
   onAjouter,
+  onMonter,
 }: {
+  cat: Catalogue;
   produit: Produit;
   groupes: Groupe[];
   langue: Langue;
   t: T;
+  /** Choix repris d'une configuration précédente, lors d'une montée en gamme. */
+  depart?: Record<number, number>;
   onRetour: () => void;
   onAjouter: (a: Article) => void;
+  onMonter: (m: Montee) => void;
 }) {
   // Chaque groupe est un choix unique. L'option présélectionnée est la
   // PREMIÈRE, et `borne_options.ordre` porte la fréquence réelle observée :
@@ -696,8 +717,13 @@ function Config({
   const [choix, setChoix] = useState<Record<number, number>>(() => {
     const d: Record<number, number> = {};
     for (const g of groupes) if (g.options[0]) d[g.id] = g.options[0].id;
+    // Une montée en gamme arrive avec les choix déjà repris : ils écrasent les
+    // défauts, mais seulement pour les groupes que la cible porte vraiment.
+    if (depart) for (const g of groupes) if (depart[g.id]) d[g.id] = depart[g.id];
     return d;
   });
+  // L'écran de proposition, ouvert au moment d'ajouter. `null` = pas ouvert.
+  const [montees, setMontees] = useState<Montee[] | null>(null);
   const [quantite, setQuantite] = useState(1);
 
   const retenus: Choix[] = groupes.flatMap((g) => {
@@ -786,11 +812,102 @@ function Config({
         </div>
         <button
           className="btn gros"
-          onClick={() => onAjouter({ produit, options: retenus, quantite })}
+          onClick={() => {
+            // 🔴 La proposition n'apparaît QUE si une montée existe vraiment,
+            // et jamais sur une montée elle-même (`depart` est posé) : sans
+            // ça, passer en menu rouvrirait aussitôt une proposition de XL et
+            // le client serait pris en boucle.
+            const m = depart ? [] : monteesPossibles(cat, produit, retenus, choix);
+            if (m.length > 0) setMontees(m);
+            else onAjouter({ produit, options: retenus, quantite });
+          }}
         >
           {t("ajouter")} · {eur(prix)}
         </button>
       </footer>
+
+      {montees && (
+        <Proposer
+          montees={montees}
+          // ⚠️ Deux titres, pas un : « Vous voulez le menu ? » devant un
+          // corndog, « Passer en XL ? » devant un menu. Le premier n'a aucun
+          // sens quand le client tient déjà un menu dans les mains.
+          deMenu={estMenu(produit)}
+          langue={langue}
+          t={t}
+          onNon={() => {
+            setMontees(null);
+            onAjouter({ produit, options: retenus, quantite });
+          }}
+          onOui={(m) => {
+            setMontees(null);
+            onMonter(m);
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+/**
+ * « Vous voulez le menu ? » — l'écran de montée en gamme.
+ *
+ * 🔴 TROIS RÈGLES D'HONNÊTETÉ, qui sont la raison d'être de la mise en forme :
+ * 1. Le REFUS est un vrai bouton, de la même taille et au même endroit que
+ *    les autres. Il n'est ni plus petit, ni plus pâle, ni relégué en lien.
+ * 2. Le prix affiché est la DIFFÉRENCE RÉELLE, calculée sur la configuration
+ *    du client. Elle peut être négative : un corndog avec side et soft coûte
+ *    plus cher que le menu qui les comprend, et on le dit.
+ * 3. Rien n'est présélectionné. Fermer sans choisir n'est pas possible : il
+ *    faut appuyer, dans un sens ou dans l'autre.
+ */
+function Proposer({
+  montees,
+  deMenu,
+  langue,
+  t,
+  onNon,
+  onOui,
+}: {
+  montees: Montee[];
+  deMenu: boolean;
+  langue: Langue;
+  t: T;
+  onNon: () => void;
+  onOui: (m: Montee) => void;
+}) {
+  return (
+    <div className="proposer">
+      <div className="boite">
+        <h2>{t(deMenu ? "proposerTitreXL" : "proposerTitre")}</h2>
+        <div className="offres">
+          {montees.map((m) => {
+            const moinsCher = m.difference < 0;
+            return (
+              <button
+                key={m.cible.nom}
+                className={moinsCher ? "btn gros offre gagnant" : "btn gros offre"}
+                onClick={() => onOui(m)}
+              >
+                <span className="quoi">{m.cible.nom}</span>
+                <span className={moinsCher ? "ecart gain" : "ecart"}>
+                  {moinsCher
+                    ? `${t("economise")} ${eur(-m.difference)}`
+                    : `+ ${eur(m.difference)}`}
+                </span>
+                {champ(m.cible, "description", langue) && (
+                  <span className="quoi-dedans">
+                    {champ(m.cible, "description", langue)}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+        <button className="btn gros refus" onClick={onNon}>
+          {t("sansMerci")}
+        </button>
+      </div>
     </div>
   );
 }

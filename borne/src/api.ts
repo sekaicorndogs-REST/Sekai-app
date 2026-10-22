@@ -58,11 +58,28 @@ export type Groupe = {
   options: Option[];
 };
 
+/**
+ * Une montée en gamme proposée après la configuration d'un produit.
+ *
+ * ⚠️ `baseOption` donne le nom de l'option à poser dans CHOIX DE LA BASE quand
+ * la cible est un menu : les libellés ne concordent pas entre le produit
+ * (« CORNDOG MOZZA ») et l'option (« CORNDOG MOZA »), on ne peut donc pas les
+ * rapprocher par le nom.
+ */
+export type Proposition = {
+  produitNom: string;
+  cibleNom: string;
+  baseOption: string | null;
+  ordre: number;
+};
+
 export type Catalogue = {
   produits: Produit[];
   categories: string[];
   groupesParProduit: Record<string, Groupe[]>;
   groupeCommande: Groupe | null;
+  /** Les montées en gamme, rangées par produit d'origine. */
+  propositions: Record<string, Proposition[]>;
 };
 
 /**
@@ -74,7 +91,7 @@ export type Catalogue = {
  * `borne_produit_groupes` se retrouve simplement sans options.
  */
 export async function chargerCatalogue(): Promise<Catalogue> {
-  const [produits, groupes, options, liens] = await Promise.all([
+  const [produits, groupes, options, liens, propos] = await Promise.all([
     get<any[]>(
       "borne_produits?select=nom,categorie,prix,ordre,description,description_en,description_nl,description_es" +
         "&actif=is.true&order=ordre.asc"
@@ -89,6 +106,10 @@ export async function chargerCatalogue(): Promise<Catalogue> {
         "&actif=is.true&order=ordre.asc"
     ),
     get<any[]>("borne_produit_groupes?select=produit_nom,groupe_id,ordre&order=ordre.asc"),
+    get<any[]>(
+      "borne_propositions?select=produit_nom,cible_nom,base_option_nom,ordre" +
+        "&actif=is.true&order=ordre.asc"
+    ),
   ]);
 
   const optionsParGroupe = new Map<number, Option[]>();
@@ -145,7 +166,28 @@ export async function chargerCatalogue(): Promise<Catalogue> {
   const groupeCommande =
     [...groupeParId.values()].find((g) => g.portee === "commande") ?? null;
 
-  return { produits: prods, categories, groupesParProduit, groupeCommande };
+  // ⚠️ Une proposition dont la cible n'est pas (ou plus) à la carte est
+  // ÉCARTÉE ici. Sans ce filtre, désactiver un menu en base laisserait la
+  // borne proposer un produit qu'elle ne sait pas configurer.
+  const connus = new Set(prods.map((p) => p.nom));
+  const propositions: Record<string, Proposition[]> = {};
+  for (const r of propos) {
+    if (!connus.has(r.cible_nom) || !connus.has(r.produit_nom)) continue;
+    (propositions[r.produit_nom] ??= []).push({
+      produitNom: r.produit_nom,
+      cibleNom: r.cible_nom,
+      baseOption: r.base_option_nom,
+      ordre: r.ordre,
+    });
+  }
+
+  return {
+    produits: prods,
+    categories,
+    groupesParProduit,
+    groupeCommande,
+    propositions,
+  };
 }
 
 // ── Écran cuisine ────────────────────────────────────────────────────────
