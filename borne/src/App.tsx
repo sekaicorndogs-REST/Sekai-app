@@ -80,6 +80,13 @@ const PHOTOS_OPTIONS: Record<string, string> = {
   "Tempura crevette": "side-tempura.png",
   "Poulet karaage 3pcs": "side-karaage.png",
   "Tempura crevette 3pcs": "side-tempura.png",
+  // Les perles du bubble tea. Le gérant a fourni le dessin en blanc et en
+  // orange et demandé une troisième couleur, le rouge.
+  // ⚠️ L'ASSOCIATION COULEUR → PARFUM EST UNE SUPPOSITION : litchi blanc,
+  // mangue orange, passion rouge. À faire confirmer par le gérant.
+  "LITCHI": "perle-litchi.png",
+  "MANGUE": "perle-mangue.png",
+  "PASSION": "perle-passion.png",
 };
 
 const photoOption = (nom: string): string | null =>
