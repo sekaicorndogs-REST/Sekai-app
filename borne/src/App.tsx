@@ -267,7 +267,21 @@ const GROUPES_CARTE: Record<string, string> = { "Menus XL": "Menus" };
 const groupeCarte = (categorie: string) => GROUPES_CARTE[categorie] ?? categorie;
 
 // Un article du panier : le produit, ses choix d'options et sa quantité.
-type Choix = { groupe: string; choix: string; prix: number };
+/**
+ * Un choix retenu par le client.
+ *
+ * 🔴 `groupe` et `choix` sont TOUJOURS EN FRANÇAIS : ce sont eux qui partent en
+ * base et qui ressortent sur le ticket de cuisine. Un client espagnol ne doit
+ * pas faire sortir un ticket en espagnol — la cuisine lit une seule langue.
+ *
+ * `libelles` ne sert qu'à l'AFFICHAGE du panier, et n'est jamais envoyé.
+ */
+type Choix = {
+  groupe: string;
+  choix: string;
+  prix: number;
+  libelles?: { en: string | null; nl: string | null; es: string | null };
+};
 type Article = { produit: Produit; options: Choix[]; quantite: number };
 
 const prixArticle = (a: Article) =>
@@ -487,7 +501,10 @@ export default function App() {
                   )
                   .map((o, j) => (
                     <div className="opt" key={j}>
-                      {o.choix}
+                      {/* Le panier montre la traduction, la base garde le
+                          français : `o.choix` part en cuisine, `o.libelles`
+                          reste à l'écran. */}
+                      {(langue !== "fr" && o.libelles?.[langue]) || o.choix}
                       {o.prix > 0 ? ` +${eur(o.prix)}` : ""}
                     </div>
                   ))}
@@ -685,7 +702,16 @@ function Config({
 
   const retenus: Choix[] = groupes.flatMap((g) => {
     const o = g.options.find((x) => x.id === choix[g.id]);
-    return o ? [{ groupe: g.nom, choix: o.nom, prix: o.prix }] : [];
+    return o
+      ? [
+          {
+            groupe: g.nom,
+            choix: o.nom,
+            prix: o.prix,
+            libelles: { en: o.nom_en, nl: o.nom_nl, es: o.nom_es },
+          },
+        ]
+      : [];
   });
   const prix = (produit.prix + retenus.reduce((s, o) => s + o.prix, 0)) * quantite;
 
@@ -793,7 +819,13 @@ function Envoi({
       // à part : la fonction Postgres recalcule le total elle-même, option
       // facturée par unité. Ne pas lui envoyer un prix déjà additionné.
       prix: a.produit.prix,
-      options: a.options,
+      // ⚠️ On ne renvoie que les trois champs attendus : `libelles` est de
+      // l'affichage, il n'a rien à faire en base.
+      options: a.options.map((o) => ({
+        groupe: o.groupe,
+        choix: o.choix,
+        prix: o.prix,
+      })),
     }));
     envoyerCommande(mode, lignes).then(onFini, (e) => setErreur(String(e.message || e)));
   }, []);
