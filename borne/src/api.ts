@@ -28,6 +28,9 @@ export type Produit = {
   categorie: string;
   prix: number;
   ordre: number;
+  /** Phrase affichée sous le nom. `null` sur la plupart des produits — voir
+   *  le commentaire de `borne_produits.description`. */
+  description: string | null;
 };
 
 export type Option = {
@@ -61,7 +64,9 @@ export type Catalogue = {
  */
 export async function chargerCatalogue(): Promise<Catalogue> {
   const [produits, groupes, options, liens] = await Promise.all([
-    get<any[]>("borne_produits?select=nom,categorie,prix,ordre&actif=is.true&order=ordre.asc"),
+    get<any[]>(
+      "borne_produits?select=nom,categorie,prix,ordre,description&actif=is.true&order=ordre.asc"
+    ),
     get<any[]>("borne_groupes?select=id,nom,portee"),
     // 🔴 `actif=is.true` : un choix retiré de la carte se désactive en base et
     // disparaît de la borne sans toucher au code. Sans ce filtre, la colonne
@@ -100,6 +105,7 @@ export async function chargerCatalogue(): Promise<Catalogue> {
     categorie: p.categorie,
     prix: Number(p.prix),
     ordre: p.ordre,
+    description: p.description || null,
   }));
 
   // L'ordre des catégories suit l'ordre des produits : les menus d'abord,

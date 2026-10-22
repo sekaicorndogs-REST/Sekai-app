@@ -542,6 +542,19 @@ h2 {
   line-height: 1.04;
   letter-spacing: -0.3px;
 }
+/* La composition du produit, quand `borne_produits.description` en porte une.
+   En --doux (4,85 sur crème-clair) et en texte courant, pas en typo de titre :
+   c'est à lire, pas à voir de loin. */
+.produit .detail {
+  display: block;
+  margin-top: 8px;
+  font-family: var(--texte);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: 0;
+  color: var(--doux);
+}
 
 /* Les menus portent 41 % de la marge : leur carte est plus grande.
    🔴 Ils n'ont PAS de libellé sous la photo — leur nom est écrit DANS le

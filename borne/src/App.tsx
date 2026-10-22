@@ -547,7 +547,16 @@ function Carte({
                     pour qui ne voit pas l'image.
                     ⚠️ Si un jour un visuel de menu arrive SANS son titre, la
                     carte devient muette : remettre le libellé. */}
-                {estMenu(p) ? null : <div className="nom">{p.nom}</div>}
+                {estMenu(p) ? null : (
+                  <div className="nom">
+                    {p.nom}
+                    {/* La description ne s'affiche que si elle existe. Les
+                        signatures en ont besoin — leur nom ne dit rien de ce
+                        qu'elles contiennent — là où « CORNDOG MOZZA » se
+                        suffit. Textes relevés sur la borne EasyOrder. */}
+                    {p.description && <span className="detail">{p.description}</span>}
+                  </div>
+                )}
               </button>
             );
           })}

@@ -39,7 +39,7 @@ Tout est sur la branche `claude/project-status-5xiop2`.
 | `borne_groupes` | 13 groupes d'options. `portee` = `produit` ou `commande` |
 | `borne_options` | Les choix et leur prix. `ordre` = **fréquence réelle observée**, le plus pris en premier |
 | `borne_produit_groupes` | Quel groupe pour quel produit, **clé = le NOM du produit** |
-| `borne_produits` | 16 produits avec leur prix et leur catégorie |
+| `borne_produits` | 16 produits avec leur prix, leur catégorie et leur `description` |
 | `borne_creer_commande(p jsonb)` | **Le cœur.** Écrit l'en-tête, les lignes, les options et le miroir `ventes` dans UNE transaction, et attribue le numéro sous `pg_advisory_xact_lock` |
 
 **Dans `borne/`** :
@@ -227,6 +227,24 @@ Le script la restaure après la boucle — ne pas supprimer cette ligne.
 
 ✅ **Au 22/10/2026 TOUT est illustré** : les treize groupes d'options et les
 seize produits. Plus aucun trou côté visuels.
+
+### Les descriptions de produit
+
+`borne_produits.description` porte la phrase affichée sous le nom. **Elle ne
+s'affiche que si elle existe** : les quatre signatures en ont une, parce que
+leur nom ne dit rien de ce qu'elles contiennent, là où « CORNDOG MOZZA » se
+suffit. Textes relevés sur la borne EasyOrder le 22/10/2026.
+
+🔴 **Les noms commerciaux des panures ne sont PAS les noms internes.** La borne
+dit au client « panure **Cheetos** épicée » (Ace) et « panure **Takis** épicée »
+(Sekai), là où `menu_recettes` écrit *Spicy (Doritos)* et *Bleu*, et où le
+catalogue borne écrit `SPICY` et `BLUE`. Ne pas « harmoniser » : ce sont deux
+vocabulaires, l'un pour le client, l'autre pour la cuisine et les coûts.
+💡 C'est aussi ce qui explique le corndog **bleu** de Sekai : les Takis Blue
+Heat sont bleus.
+
+⚠️ **Et Suisse contient des oignons frits d'office**, pas en supplément — à ne
+pas confondre avec l'option payante à 0,50 € du groupe `SUPPLEMENTS`.
 
 💡 **La méthode qui a servi aux signatures est réutilisable** : quand une photo
 doit être attribuée à un produit et que le doute est possible, **chercher la
