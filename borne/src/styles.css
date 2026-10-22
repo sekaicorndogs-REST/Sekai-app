@@ -3,31 +3,84 @@
    - rien de cliquable sous 64 px de haut (on tape avec le pouce, debout) ;
    - rien d'essentiel hors de l'écran sans défilement (le client ne scrolle pas
      pour trouver le bouton d'envoi : il est en pied de page, fixe) ;
-   - la charte est celle de l'AFFICHE du magasin, pas une charte inventée :
-     crème, rouge, pastilles de prix noires et rondes, typo d'affichage grasse.
-     Devant un doute sur une couleur ou un style, regarder `public/photos/affiche.jpg`. */
+   - 🔴 la charte est la CHARTE OFFICIELLE Sekai Corndogs (Moupress), archivée
+     dans `photos-recues/charte-branding-guideline.pdf`. Elle remplace depuis le
+     22/10/2026 les couleurs relevées à l'œil sur l'affiche. Devant un doute sur
+     une couleur, une police ou le motif de fond, ouvrir ce PDF — pas l'affiche. */
 
-:root {
-  /* Repris de l'affiche. Ne pas « moderniser » en gris ou en noir : l'écran et
-     la vitrine doivent se répondre, c'est la même marque à deux mètres d'écart. */
-  --creme: #f4eada;
-  --creme-clair: #fff8ec;
-  --rouge: #d41f13;
-  --rouge-fonce: #a8160c;
-  --noir: #1a1613;
-  --brun: #6b5540;
-  --bord: #d9c9ae;
-  --or: #f6c66a;
-
-  --titre: Anton, "Arial Narrow", Impact, system-ui, sans-serif;
-  --texte: Barlow, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+/* ── Les polices, auto-hébergées ────────────────────────────────────────────
+   🔴 AUTO-HÉBERGÉES, pas chargées depuis Google Fonts. Une borne qui perd le
+   wifi du magasin doit garder son texte : avec un `<link>` distant elle serait
+   retombée sur la police système au pire moment, en plein service.
+   Les deux fichiers sont des polices VARIABLES : un seul woff2 par famille
+   couvre toutes les graisses, 53 Ko pour les deux.
+   Licence SIL OFL pour les deux, donc utilisables commercialement. */
+@font-face {
+  font-family: "Fredoka";
+  src: url("/fonts/fredoka.woff2") format("woff2");
+  font-weight: 300 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Comfortaa";
+  src: url("/fonts/comfortaa.woff2") format("woff2");
+  font-weight: 300 700;
+  font-display: swap;
 }
 
-/* 🔴 CONTRASTE — vérifié, ne pas intervertir :
-   rouge sur crème = 4,38, donc SOUS le seuil de 4,5 : le rouge ne sert qu'aux
-   grands titres et aux prix, jamais au texte courant, qui est en --noir (15,3).
-   Sur fond rouge, le texte est en --creme-clair (4,94), pas en blanc cassé
-   plus foncé ni en --creme (4,38, insuffisant). */
+:root {
+  /* 🔴 LES QUATRE COULEURS DE LA CHARTE, à l'hexadécimal près. Ne pas les
+     « ajuster » : l'écran, la vitrine, les polos et les boîtes doivent être la
+     même marque. */
+  --rouge: #ff0000;
+  --or: #ffc069;
+  --bordeaux: #650000;
+  --creme: #ffebdb;
+
+  /* Dérivés, parce que la charte ne donne que quatre couleurs et qu'une
+     interface en demande plus. Chacun reste dans la famille de la charte. */
+  --creme-clair: #fff7f0; /* les cartes, pour qu'elles ressortent du fond */
+  --doux: #8f5a50; /* texte secondaire : 4,85 sur crème, voir plus bas */
+  --bord: #efc7ad; /* bordures */
+  /* 🔴 Le texte posé sur un APLAT ROUGE est blanc, jamais crème : 4,00 contre
+     3,46. Et il doit rester grand et gras — voir le bloc CONTRASTE ci-dessous. */
+  --sur-rouge: #ffffff;
+
+  /* 🔴 KEEPSMILE, la police de titre de la charte, N'EST PAS ICI, et c'est
+     volontaire : elle n'est pas libre pour un usage commercial (Almarkhatype,
+     licence à acheter), et une borne en restaurant en est un. Fredoka la
+     remplace — même famille de formes, capitales arrondies et grasses — sous
+     licence SIL OFL.
+     Le jour où le gérant achète la licence Keepsmile : poser le woff2 dans
+     `public/fonts/`, ajouter son `@font-face` et changer CETTE SEULE LIGNE.
+     Comfortaa, elle, est bien celle de la charte. */
+  /* ⚠️ Les titres se posent en 600, pas en 400. Anton n'avait qu'une graisse,
+     donc tout le fichier portait `font-weight: 400` ; Fredoka est VARIABLE et
+     400 y est maigre — les titres sortaient fins et sans présence. */
+  --titre: Fredoka, "Comfortaa", system-ui, sans-serif;
+  --texte: Comfortaa, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+/* 🔴 CONTRASTE — tout recalculé sur la charte le 22/10/2026, ne pas intervertir.
+
+   Sur crème :
+     --bordeaux  11,69  ✅ c'est la couleur de TOUT le texte courant
+     --doux       4,85  ✅ texte secondaire
+     --rouge      3,46  ❌ SOUS 4,5 : réservé aux grands titres et aux prix
+     --or         1,40  ❌ invisible, jamais sur crème — uniquement sur bordeaux
+
+   Sur rouge :
+     blanc        4,00  ⚠️ sous 4,5 → tout texte sur aplat rouge doit être
+                       GRAND et GRAS (≥ 19 px / 700), sinon il n'est pas lisible
+     --creme      3,46  ❌ moins bon que le blanc, ne pas l'utiliser pour du texte
+
+   Sur bordeaux :
+     blanc       13,52  ✅
+     --or         8,37  ✅ c'est le couple des pastilles de prix payantes
+
+   ⚠️ Le motif de fond fait bouger ces chiffres de peu : sur les aplats rouges il
+   éclaircit localement à #ff1f1f, ce qui fait tomber le blanc de 4,00 à 3,84.
+   La règle « grand et gras sur rouge » couvre déjà ce cas. */
 
 * {
   box-sizing: border-box;
@@ -43,20 +96,43 @@ html {
   overflow-x: clip;
 }
 
+/* ── Le motif de fond ───────────────────────────────────────────────────────
+   Les quinze formes de la section PATTERNS de la charte, recomposées en une
+   tuile qui se RÉPÈTE SANS COUTURE : une forme coupée au bord revient de
+   l'autre côté. Deux versions du même dessin — rouge très pâle pour le crème,
+   blanc pour les aplats rouges.
+
+   🔴 Il est VOLONTAIREMENT très discret (9 % et 12 % d'opacité). C'est un fond
+   de borne de commande, pas un emballage : le client doit lire des prix et des
+   noms de produits dessus. Monter l'opacité le rendrait joli en capture et
+   illisible en service.
+
+   ⚠️ Chemins absolus (`/photos/…`) : ce fichier est servi depuis `/assets/`,
+   donc un chemin relatif chercherait `/assets/photos/…` et ne trouverait rien. */
 body {
   margin: 0;
-  background: var(--creme);
-  color: var(--noir);
+  background-color: var(--creme);
+  background-image: url("/photos/motif-rouge.webp");
+  background-size: 460px;
+  color: var(--bordeaux);
   font-family: var(--texte);
   font-size: 20px;
   font-weight: 600;
   user-select: none;
 }
 
+/* Les aplats rouges portent le même motif, en blanc. */
+.accueil .appel,
+.page footer,
+.fini {
+  background-image: url("/photos/motif-blanc.webp");
+  background-size: 420px;
+}
+
 h1 {
   font-family: var(--titre);
   font-size: 38px;
-  font-weight: 400;
+  font-weight: 700;
   letter-spacing: -0.5px;
   margin: 0;
 }
@@ -64,18 +140,18 @@ h1 {
 h2 {
   font-family: var(--titre);
   font-size: 24px;
-  font-weight: 400;
+  font-weight: 600;
   letter-spacing: 0.5px;
-  color: var(--noir);
+  color: var(--bordeaux);
   margin: 26px 0 12px;
 }
 
 .gris {
-  color: var(--brun);
+  color: var(--doux);
 }
 .petit {
   font-size: 15px;
-  color: var(--brun);
+  color: var(--doux);
 }
 
 /* ── Écrans pleins (mode, envoi, numéro) ────────────────────────────────── */
@@ -99,7 +175,8 @@ h2 {
   height: 100svh;
   display: flex;
   flex-direction: column;
-  background: var(--creme);
+  /* Pas de `background` ici : le motif du `body` doit se voir dans les bandes
+     laissées par l'affiche, qui est en `contain`. */
 }
 .accueil .affiche {
   flex: 1;
@@ -109,7 +186,7 @@ h2 {
 }
 .accueil .appel {
   padding: 20px 22px calc(22px + env(safe-area-inset-bottom));
-  background: var(--rouge);
+  background-color: var(--rouge);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -117,26 +194,26 @@ h2 {
 }
 .accueil .appel .btn {
   background: var(--creme-clair);
-  color: var(--rouge-fonce);
+  color: var(--bordeaux);
 }
 .accueil .appel .btn:active {
-  background: #efe2ce;
+  background: #ffe0cc;
 }
 .accueil .mention {
-  color: var(--creme-clair);
-  font-size: 17px;
+  color: var(--sur-rouge);
+  font-size: 20px;
   font-weight: 700;
 }
 .accueil .indispo {
   min-height: 76px;
   display: flex;
   align-items: center;
-  color: var(--creme-clair);
+  color: var(--sur-rouge);
   font-size: 21px;
   font-weight: 700;
 }
 .accueil .build {
-  color: #c9b79a;
+  color: #e2b79c;
 }
 
 .build {
@@ -144,14 +221,14 @@ h2 {
   bottom: 8px;
   right: 10px;
   font-size: 11px;
-  color: #b9a88c;
+  color: #e2b79c;
 }
 
 /* ── Le numéro de commande ──────────────────────────────────────────────── */
 /* La mascotte sert ici : c'est le moment où le client attend. */
 .fini {
   min-height: 100svh;
-  background: var(--rouge);
+  background-color: var(--rouge);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -180,12 +257,12 @@ h2 {
   font-size: 19px;
   font-weight: 700;
   letter-spacing: 3px;
-  color: var(--brun);
+  color: var(--doux);
 }
 .numero {
   font-family: var(--titre);
   font-size: 180px;
-  font-weight: 400;
+  font-weight: 700;
   line-height: 0.86;
   letter-spacing: -4px;
   color: var(--rouge);
@@ -195,7 +272,7 @@ h2 {
   display: flex;
   align-items: center;
   gap: 14px;
-  background: var(--noir);
+  background: var(--bordeaux);
   border-radius: 999px;
   padding: 12px 28px;
 }
@@ -208,24 +285,24 @@ h2 {
 .fini .montant strong {
   font-family: var(--titre);
   font-size: 34px;
-  font-weight: 400;
+  font-weight: 600;
   color: var(--creme-clair);
 }
 .fini .consigne {
   font-family: var(--titre);
   font-size: 40px;
-  color: var(--creme-clair);
+  color: var(--sur-rouge);
   line-height: 1.05;
 }
 .fini .sous-consigne {
-  font-size: 20px;
-  font-weight: 600;
-  color: #fbd9d5;
+  font-size: 21px;
+  font-weight: 700;
+  color: var(--sur-rouge);
 }
 .fini .btn {
   background: var(--rouge);
-  color: var(--creme-clair);
-  border: 3px solid var(--creme-clair);
+  color: var(--sur-rouge);
+  border: 3px solid var(--sur-rouge);
 }
 
 .colonne {
@@ -270,7 +347,7 @@ h2 {
   right: 0;
   bottom: 0;
   padding: 16px 18px calc(20px + env(safe-area-inset-bottom));
-  background: var(--rouge);
+  background-color: var(--rouge);
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -278,20 +355,23 @@ h2 {
 }
 .page footer .btn {
   background: var(--creme-clair);
-  color: var(--rouge-fonce);
+  color: var(--bordeaux);
 }
 .page footer .btn:active {
-  background: #efe2ce;
+  background: #ffe0cc;
 }
 .page footer .btn:disabled {
-  background: var(--rouge-fonce);
-  color: #e9b5b0;
+  background: var(--bordeaux);
+  color: var(--or);
 }
 .page footer .lien {
-  color: var(--creme-clair);
+  color: var(--sur-rouge);
 }
+/* 19 px et non 15 : sur un aplat rouge le blanc ne vaut que 4,00, donc le texte
+   doit passer la barre du « grand texte » pour rester lisible. */
 .page footer .petit {
-  color: #fbd9d5;
+  color: var(--sur-rouge);
+  font-size: 19px;
   font-weight: 700;
 }
 
@@ -302,19 +382,19 @@ h2 {
   border: none;
   border-radius: 18px;
   background: var(--rouge);
-  color: var(--creme-clair);
+  color: var(--sur-rouge);
   font-family: var(--titre);
   font-size: 24px;
-  font-weight: 400;
+  font-weight: 600;
   letter-spacing: 0.5px;
   cursor: pointer;
 }
 .btn:active {
-  background: var(--rouge-fonce);
+  background: var(--bordeaux);
 }
 .btn:disabled {
   background: var(--bord);
-  color: var(--brun);
+  color: var(--doux);
 }
 .btn.gros {
   width: 100%;
@@ -328,14 +408,14 @@ h2 {
   font-family: var(--texte);
   font-size: 30px;
   font-weight: 800;
-  background: #efe2ce;
-  color: var(--noir);
+  background: #ffe0cc;
+  color: var(--bordeaux);
 }
 
 .lien {
   background: none;
   border: none;
-  color: var(--brun);
+  color: var(--doux);
   font-family: var(--texte);
   font-size: 18px;
   font-weight: 700;
@@ -374,10 +454,10 @@ h2 {
   border: 3px solid var(--bord);
   border-radius: 18px;
   background: var(--creme-clair);
-  color: var(--noir);
+  color: var(--bordeaux);
   font-family: var(--titre);
   font-size: 22px;
-  font-weight: 400;
+  font-weight: 600;
   line-height: 1.05;
   letter-spacing: 0.3px;
   cursor: pointer;
@@ -385,7 +465,7 @@ h2 {
 .categorie.actif {
   background: var(--rouge);
   border-color: var(--rouge);
-  color: var(--creme-clair);
+  color: var(--sur-rouge);
 }
 
 .produits {
@@ -403,7 +483,7 @@ h2 {
   border: 3px solid var(--bord);
   border-radius: 22px;
   background: var(--creme-clair);
-  color: var(--noir);
+  color: var(--bordeaux);
   padding: 0;
   overflow: hidden;
   text-align: left;
@@ -421,20 +501,21 @@ h2 {
   background: var(--creme);
   overflow: hidden;
 }
-/* 🔴 `contain`, surtout pas `cover`. Les photos sont découpées dans l'affiche :
-   ce sont des portraits serrés sur un seul produit. En `cover`, une carte large
-   les agrandit jusqu'à ne plus montrer qu'une macro de fromage fondu — constaté
-   en capture, deux fois. En `contain` sur fond crème, le produit se voit en
-   entier et se lit comme un détourage, ce que l'affiche fait déjà.
-   Le jour où il y aura de vraies photos cadrées large, `cover` redeviendra le
-   bon choix. */
+/* 🔴 `contain`, surtout pas `cover`. Les visuels sont DÉTOURÉS sur fond
+   transparent et souvent très verticaux (un corndog sur bâtonnet fait 440x760).
+   En `cover`, une carte large les agrandit jusqu'à n'en montrer qu'un morceau —
+   constaté en capture, deux fois à l'époque des découpes d'affiche.
+   En `contain` sur fond crème, le produit se voit en entier. */
 .produit .photo img {
   width: 100%;
   height: 100%;
   object-fit: contain;
   display: block;
 }
-/* La pastille de prix noire et ronde, directement reprise de l'affiche. */
+/* La pastille de prix ronde. Elle était NOIRE quand la charte venait de
+   l'affiche ; elle est désormais en --bordeaux, la couleur foncée officielle.
+   Le couple bordeaux / crème-clair vaut 12,76, et bordeaux / or 8,37 pour les
+   suppléments payants : les deux passent largement. */
 /* ⚠️ En BAS à droite, pas en haut : les visuels de menu portent la boisson en
    haut à droite, et la pastille tombait pile sur le bubble tea. En bas elle ne
    couvre que le plateau. */
@@ -446,7 +527,7 @@ h2 {
   height: 78px;
   padding: 0 10px;
   border-radius: 999px;
-  background: var(--noir);
+  background: var(--bordeaux);
   color: var(--creme-clair);
   font-family: var(--titre);
   font-size: 25px;
@@ -464,9 +545,9 @@ h2 {
 
 /* Les menus portent 41 % de la marge : photo plus haute, nom plus gros et en
    rouge, pour qu'ils ne se confondent pas avec une canette.
-   ⚠️ Ils ont d'abord pris la largeur entière de la grille : avec des photos en
-   portrait découpées dans l'affiche, ça donnait deux bandes crème presque
-   vides. À reconsidérer le jour où il y aura de vraies photos cadrées large. */
+   ⚠️ Le nom en --rouge sur --creme-clair ne vaut que 3,77, donc il ne tient QUE
+   parce qu'il fait 34 px : ne pas réduire cette taille sans repasser le nom en
+   --bordeaux. */
 .produit.menu .photo {
   height: 252px;
 }
@@ -494,7 +575,7 @@ h2 {
   border: 3px solid var(--bord);
   border-radius: 16px;
   background: var(--creme-clair);
-  color: var(--noir);
+  color: var(--bordeaux);
   font-family: var(--texte);
   font-size: 18px;
   font-weight: 800;
@@ -508,7 +589,7 @@ h2 {
 .pastille.actif {
   border-width: 4px;
   border-color: var(--rouge);
-  background: #fbe7e3;
+  background: #ffe3dd;
 }
 
 /* 🔴 Une option PAYANTE se voit — elle n'est jamais cochée d'office.
@@ -517,8 +598,8 @@ h2 {
    défaut », le motif que l'étude de mars 2026 reproche aux bornes McDonald's.
    `App.tsx` retient toujours le premier choix du groupe, qui est à 0 €. */
 .pastille.payante {
-  border-color: var(--noir);
-  background: var(--noir);
+  border-color: var(--bordeaux);
+  background: var(--bordeaux);
   color: var(--creme-clair);
 }
 .pastille.payante.actif {
@@ -533,15 +614,15 @@ h2 {
   color: var(--or);
 }
 .pastille.actif .sup {
-  color: var(--rouge-fonce);
+  color: var(--bordeaux);
 }
 .pastille .compris {
   font-size: 15px;
   font-weight: 700;
-  color: var(--brun);
+  color: var(--doux);
 }
 .pastille.actif .compris {
-  color: var(--rouge-fonce);
+  color: var(--bordeaux);
 }
 
 /* ── Choix illustrés ────────────────────────────────────────────────────── */
@@ -596,7 +677,7 @@ h2 {
 .ligne .opt {
   font-size: 16px;
   font-weight: 600;
-  color: var(--brun);
+  color: var(--doux);
   margin-top: 4px;
 }
 .ligne .droite {
@@ -612,7 +693,7 @@ h2 {
   align-items: baseline;
   width: 100%;
   max-width: 560px;
-  color: var(--creme-clair);
+  color: var(--sur-rouge);
   font-size: 19px;
   font-weight: 700;
   letter-spacing: 1px;
@@ -620,7 +701,7 @@ h2 {
 .total strong {
   font-family: var(--titre);
   font-size: 34px;
-  font-weight: 400;
+  font-weight: 600;
 }
 
 .qte {
@@ -634,7 +715,7 @@ h2 {
 .qte strong {
   font-family: var(--titre);
   font-size: 30px;
-  font-weight: 400;
+  font-weight: 600;
   min-width: 34px;
   text-align: center;
 }
@@ -654,7 +735,7 @@ h2 {
 }
 
 .cuisine .bandeau {
-  background: var(--rouge-fonce);
+  background: var(--bordeaux);
   color: var(--creme-clair);
   padding: 12px 16px;
   border-radius: 12px;
@@ -679,7 +760,7 @@ h2 {
    d'alerte de l'écran, donc il doit être impossible à manquer. */
 .fiche.tard {
   border-color: var(--rouge);
-  box-shadow: 0 0 0 3px rgba(212, 31, 19, 0.3);
+  box-shadow: 0 0 0 3px rgba(255, 0, 0, 0.35);
 }
 
 .fiche .entete {
@@ -695,7 +776,7 @@ h2 {
 .fiche .age {
   font-size: 17px;
   font-weight: 700;
-  color: var(--brun);
+  color: var(--doux);
 }
 .fiche.tard .age {
   color: var(--rouge);
@@ -705,7 +786,7 @@ h2 {
   font-size: 15px;
   font-weight: 800;
   letter-spacing: 1px;
-  color: var(--brun);
+  color: var(--doux);
   margin: 8px 0 14px;
 }
 .fiche .tag {
@@ -713,7 +794,7 @@ h2 {
   padding: 2px 8px;
   border-radius: 999px;
   background: var(--bord);
-  color: var(--noir);
+  color: var(--bordeaux);
   letter-spacing: 0;
 }
 
@@ -731,13 +812,13 @@ h2 {
 .fiche .art .opt {
   font-size: 17px;
   font-weight: 600;
-  color: var(--brun);
+  color: var(--doux);
   margin-top: 3px;
 }
 .fiche .art .note {
   font-size: 17px;
   font-weight: 700;
-  color: var(--rouge-fonce);
+  color: var(--bordeaux);
   margin-top: 5px;
 }
 

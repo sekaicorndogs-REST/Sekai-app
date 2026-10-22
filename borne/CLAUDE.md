@@ -66,6 +66,76 @@ des références**, qui est le seul filet de complétude depuis la fin de l'éch
 EasyOrder. Le test se fait donc **après la fermeture**, avec suppression
 immédiate des lignes par `source_id`, et **avec l'accord du gérant**.
 
+## 🎨 LA CHARTE — officielle depuis le 22/10/2026
+
+Le gérant a fourni la **charte Moupress**, archivée dans
+`photos-recues/charte-branding-guideline.pdf`. **Elle remplace les couleurs
+relevées à l'œil sur l'affiche.** Devant un doute sur une couleur, une police
+ou le fond, ouvrir ce PDF — plus l'affiche.
+
+| | |
+|---|---|
+| `#ff0000` | le rouge |
+| `#ffc069` | l'or |
+| `#650000` | le bordeaux |
+| `#ffebdb` | le crème |
+
+**Polices : Keepsmile** (titres) et **Comfortaa** (texte).
+
+### 🔴 Keepsmile n'est PAS dans le dépôt, et c'est volontaire
+
+**Elle n'est pas libre pour un usage commercial** (Almarkhatype, licence à
+acheter), et une borne de commande en restaurant en est un. **Fredoka** la
+remplace — même famille de formes, capitales arrondies et grasses — sous
+licence SIL OFL. Comfortaa, elle, est bien celle de la charte (SIL OFL aussi).
+
+Le jour où le gérant achète la licence : poser le woff2 dans `public/fonts/`,
+ajouter son `@font-face` et changer **la seule ligne `--titre`** de
+`styles.css`.
+
+⚠️ **Les polices sont AUTO-HÉBERGÉES**, plus chargées depuis Google Fonts : une
+borne qui perd le wifi du magasin doit garder son texte. Ce sont des polices
+**variables**, donc un seul woff2 par famille couvre toutes les graisses —
+53 Ko pour les deux.
+⚠️ **Et les titres se posent en 600, pas en 400.** Anton n'avait qu'une graisse,
+donc tout le fichier portait `font-weight: 400` ; sur une variable, 400 est
+maigre et les titres sortaient sans présence.
+
+### Le motif de fond
+
+Les quinze formes de la section PATTERNS de la charte, recomposées en une tuile
+qui **se répète sans couture** (chaque forme est collée aux neuf translations de
+la tuile, donc ce qui sort à droite revient à gauche). Deux fichiers :
+`photos/motif-rouge.webp` pour le fond crème, `photos/motif-blanc.webp` pour les
+aplats rouges. 15 Ko chacun, WebP sans perte.
+
+🔴 **Il est volontairement très discret** (9 % et 12 % d'opacité). C'est un fond
+de borne, pas un emballage : le client lit des prix dessus. Le monter le rendrait
+joli en capture et illisible en service.
+
+⚠️ Les chemins sont **absolus** (`/photos/…`) : le CSS est servi depuis
+`/assets/`, donc un chemin relatif chercherait `/assets/photos/…`.
+⚠️ Et le raccourci `background:` **efface** un `background-image` posé plus haut :
+les aplats rouges utilisent `background-color:`. C'est le piège qui a fait
+disparaître le motif du premier coup.
+
+### 🔴 Contraste — recalculé sur la charte, ne pas intervertir
+
+Sur crème : **bordeaux 11,69** ✅ (tout le texte courant) · doux 4,85 ✅ ·
+**rouge 3,46** ❌ (grands titres et prix seulement) · **or 1,40** ❌ (invisible,
+jamais sur crème — uniquement sur bordeaux).
+
+Sur rouge : **blanc 4,00** ⚠️ sous 4,5, donc **tout texte sur aplat rouge doit
+être grand et gras (≥ 19 px / 700)** ; crème 3,46 ❌, ne jamais l'utiliser pour
+du texte.
+
+Sur bordeaux : blanc 13,52 ✅ · **or 8,37** ✅ — c'est le couple des pastilles de
+prix payantes.
+
+⚠️ Le motif éclaircit localement les aplats rouges à `#ff1f1f`, ce qui fait
+tomber le blanc de 4,00 à 3,84. La règle « grand et gras sur rouge » couvre déjà
+ce cas.
+
 ## 📸 Les visuels — deux dossiers, un seul chemin
 
 | Dossier | Rôle |
