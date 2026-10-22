@@ -1,0 +1,4 @@
+# Le projet Android n'a rien à faire dans un déploiement web : il pèse lourd et
+# il ne sert qu'à construire l'APK, sur une machine avec Android Studio.
+android/
+photos-recues/

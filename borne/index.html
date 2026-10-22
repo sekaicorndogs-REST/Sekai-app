@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <title>Sekai Corndogs</title>
+    <!-- 🔴 Les polices sont AUTO-HÉBERGÉES (`public/fonts/`), plus chargées
+         depuis Google Fonts : une borne qui perd le wifi du magasin doit garder
+         son texte, et un `<link>` distant l'aurait fait retomber sur la police
+         système en plein service. Les `@font-face` sont dans `src/styles.css`.
+         Comfortaa vient de la charte ; Fredoka remplace Keepsmile, qui n'est pas
+         libre pour un usage commercial — voir le commentaire dans styles.css. -->
+    <link
+      rel="preload"
+      href="/fonts/fredoka.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      href="/fonts/comfortaa.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
