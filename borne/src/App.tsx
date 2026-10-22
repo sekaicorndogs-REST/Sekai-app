@@ -24,39 +24,59 @@ const PHOTOS: Record<string, string> = {
   // qui affiche « 12,90 € » sur une carte à 10,00 € est pire que pas de photo.
   // Les menus portent donc la photo de leur élément principal. C'est le poste
   // où une vraie photo rapportera le plus.
-  "MENU GOODEAL": "mozza",
-  "MENU BUBBLE DOGS": "bubbletea",
-  "MENU GOODEAL XL": "karaage",
-  "MENU BUBBLE DOGS XL": "tempura",
-  "CORNDOG SAUCISSE": "saucisse",
-  "CORNDOG MOZZA": "mozza",
-  "CORNDOG SAUCISSE/MOZZA": "bubbledog",
-  "FRITES": "frites",
-  "Poulet karaage": "karaage",
-  "Tempura crevette": "tempura",
-  "BUBBLE TEA PECHE": "bubbletea",
-  "BUBBLE TEA PASTEQUE": "bubbletea",
+  "MENU GOODEAL": "mozza.jpg",
+  "MENU BUBBLE DOGS": "bubbletea.jpg",
+  "MENU GOODEAL XL": "karaage.jpg",
+  "MENU BUBBLE DOGS XL": "tempura.jpg",
+  "CORNDOG SAUCISSE": "saucisse.jpg",
+  "CORNDOG MOZZA": "mozza.jpg",
+  "CORNDOG SAUCISSE/MOZZA": "bubbledog.jpg",
+  "FRITES": "frites.jpg",
+  "Poulet karaage": "karaage.jpg",
+  "Tempura crevette": "tempura.jpg",
+  "BUBBLE TEA PECHE": "bubbletea.jpg",
+  "BUBBLE TEA PASTEQUE": "bubbletea.jpg",
 };
 
+// ⚠️ La valeur porte le NOM DE FICHIER COMPLET, extension comprise : les
+// photos n'arrivent pas toutes au même format (le gérant envoie du .jpg, du
+// .png détouré, du .webp).
 const photo = (nom: string): string | null =>
-  PHOTOS[nom] ? `photos/${PHOTOS[nom]}.jpg` : null;
+  PHOTOS[nom] ? `photos/${PHOTOS[nom]}` : null;
 
 // Photos des CHOIX D'OPTIONS — panures, sauces, sides pris en option.
 // Même principe que `PHOTOS` : déposer le fichier dans `public/photos/` et
 // ajouter sa ligne ici, rien d'autre à toucher.
 //
-// 🔴 VIDE À DESSEIN AUJOURD'HUI. L'affiche ne montre que 2 panures sur 6
-// (la granuleuse et celle en cubes). Voir `groupeIllustre` juste en dessous :
-// tant qu'un groupe n'est pas complet, il reste en texte.
-// Le jour où les six panures arrivent, cette table devient par exemple :
-//   "CEREALE CRUNCHY": "panure-cereale", "SIMPLE PANKO": "panure-panko",
-//   "NOUILLE": "panure-nouille", "POTATOE": "panure-potatoe",
-//   "BLUE": "panure-blue", "SPICY": "panure-spicy",
-// et le groupe s'illustre seul. Mécanisme vérifié en capture le 21/10/2026.
-const PHOTOS_OPTIONS: Record<string, string> = {};
+// Les softs sont détourés sur fond transparent, d'où le `.png` : ils se posent
+// sur le crème sans rectangle blanc derrière.
+//
+// 🔴 Les PANURES n'y sont pas encore. Voir `groupeIllustre` juste en dessous :
+// tant qu'un groupe n'est pas complet, il reste entièrement en texte.
+// Le jour où les six panures arrivent, ajouter ici
+//   "CEREALE CRUNCHY", "SIMPLE PANKO", "NOUILLE", "POTATOE", "BLUE", "SPICY"
+// et le groupe s'illustre seul.
+const PHOTOS_OPTIONS: Record<string, string> = {
+  "PEPSI": "soft-pepsi.png",
+  "PEPSI MAX": "soft-pepsi-max.png",
+  "EAU": "soft-eau.png",
+  "OASIS CASSIS": "soft-oasis-cassis.png",
+  "OASIS TROPICAL": "soft-oasis-tropical.png",
+};
 
 const photoOption = (nom: string): string | null =>
-  PHOTOS_OPTIONS[nom] ? `photos/${PHOTOS_OPTIONS[nom]}.jpg` : null;
+  PHOTOS_OPTIONS[nom] ? `photos/${PHOTOS_OPTIONS[nom]}` : null;
+
+/**
+ * Un NON-CHOIX ne se photographie pas : « pas de supplément » n'est pas un
+ * produit. Il est donc exempté de la règle du groupe complet ci-dessous, et
+ * s'affiche en pastille de texte au milieu des vignettes.
+ *
+ * ⚠️ À ne pas confondre avec le filtre du panier et de la cuisine, qui garde
+ * `NO SAUCE` parce que la cuisine doit le lire. Ici il ne s'agit que de photos.
+ */
+const estNonChoix = (nom: string) =>
+  /^(NO SIDE|NO SAUCE|PAS DE SUPPLEMENT|PAS DE BOISSON\b.*)$/i.test(nom);
 
 /**
  * Un groupe s'illustre ENTIÈREMENT ou PAS DU TOUT.
@@ -71,8 +91,13 @@ const photoOption = (nom: string): string | null =>
  *
  * Le jour où les six photos arrivent, le groupe s'illumine tout seul.
  */
-const groupeIllustre = (g: Groupe) =>
-  g.options.length > 0 && g.options.every((o) => PHOTOS_OPTIONS[o.nom]);
+const groupeIllustre = (g: Groupe) => {
+  const aPhotographier = g.options.filter((o) => !estNonChoix(o.nom));
+  return (
+    aPhotographier.length > 0 &&
+    aPhotographier.every((o) => PHOTOS_OPTIONS[o.nom])
+  );
+};
 
 // Les menus portent 41 % de la marge : leur carte est plus grande et leur nom
 // en rouge, pour qu'ils ne se confondent pas avec une canette.
@@ -484,9 +509,14 @@ function Config({
                       className={classes.join(" ")}
                       onClick={() => setChoix((c) => ({ ...c, [g.id]: o.id }))}
                     >
-                      {illustre && (
-                        <img className="vignette" src={photoOption(o.nom)!} alt="" />
-                      )}
+                      {illustre &&
+                        (photoOption(o.nom) ? (
+                          <img className="vignette" src={photoOption(o.nom)!} alt="" />
+                        ) : (
+                          // Un non-choix garde la hauteur de ses voisins, sinon
+                          // la rangée se décale et il passe pour un bouton à part.
+                          <span className="vignette vide" aria-hidden="true" />
+                        ))}
                       <span className="libelle">{o.nom}</span>
                       {o.prix > 0 ? (
                         <span className="sup">+ {eur(o.prix)}</span>

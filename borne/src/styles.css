@@ -560,6 +560,12 @@ h2 {
   background: var(--creme);
   margin-bottom: 4px;
 }
+/* Un non-choix (« pas de boisson ») n'a pas de photo mais garde la place de
+   celle de ses voisins : sans ça sa pastille est plus courte et il ressemble à
+   un bouton d'une autre nature. */
+.pastille .vignette.vide {
+  background: transparent;
+}
 .choix.illustre .pastille .libelle {
   font-size: 17px;
   line-height: 1.12;
