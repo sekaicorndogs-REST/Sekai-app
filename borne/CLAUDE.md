@@ -207,7 +207,15 @@ du webhook.
 ## Conventions
 
 - **Répondre en français.** Messages courts.
-- Branche de développement : `claude/project-status-5xiop2`.
+- 🔴 **Branche de développement : `claude/borne-5xiop2`** (depuis le 22/10/2026).
+  Chaque session a désormais la sienne — avant, les cinq partageaient
+  `claude/project-status-5xiop2`, qui appartient maintenant à la **session
+  principale**. **Ne jamais y pousser depuis ici**, ni sur la branche d'une
+  autre session.
+- ⚠️ **Le `CLAUDE.md` DE LA RACINE appartient à la session principale.** Depuis
+  cette session on n'écrit que dans `borne/CLAUDE.md`. S'il faut inscrire
+  quelque chose de durable à la racine, le signaler au gérant — sinon deux
+  versions du fichier divergent et la mémoire du projet se coupe en deux.
 - Les modifications de données passent par `apply_migration`, idempotentes.
 - Avant toute suppression en base, vérifier les dépendances (FK **et**
   références par texte dans `ventes_produits`, `top_produits`,
