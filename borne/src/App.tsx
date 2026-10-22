@@ -65,6 +65,14 @@ const PHOTOS_OPTIONS: Record<string, string> = {
   // Citron / Citron Vert pétillant. Ce n'est donc PAS un doublon d'Ice Tea
   // Pêche — confirmé par le gérant le 22/10/2026. Ne pas fusionner les deux.
   "ICE TEA PET": "soft-ice-tea-pet.png",
+  // Les six panures, envoyées par le gérant le 22/10/2026. ⚠️ La rouge et la
+  // bleue arrivaient sur UNE SEULE image : elle a été coupée en deux.
+  "CEREALE CRUNCHY": "panure-cereale.png",
+  "SIMPLE PANKO": "panure-panko.png",
+  "NOUILLE": "panure-nouille.png",
+  "POTATOE": "panure-potatoe.png",
+  "BLUE": "panure-blue.png",
+  "SPICY": "panure-spicy.png",
 };
 
 const photoOption = (nom: string): string | null =>
