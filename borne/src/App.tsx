@@ -87,6 +87,12 @@ const PHOTOS_OPTIONS: Record<string, string> = {
   "LITCHI": "perle-litchi.png",
   "MANGUE": "perle-mangue.png",
   "PASSION": "perle-passion.png",
+  // Le sirop du menu Bubble Dogs. Gobelet DESSINÉ (il n'existe aucune photo
+  // des trois parfums) : couvercle bombé, paille, perles au fond et le logo
+  // collé dessus, décliné dans la couleur du parfum.
+  "MANGUE / MANGO": "bubble-mangue.png",
+  "PECHE": "bubble-peche.png",
+  "PASTHEQUE / WATERMELON": "bubble-pasteque.png",
 };
 
 const photoOption = (nom: string): string | null =>
