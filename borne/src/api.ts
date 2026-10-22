@@ -63,7 +63,11 @@ export async function chargerCatalogue(): Promise<Catalogue> {
   const [produits, groupes, options, liens] = await Promise.all([
     get<any[]>("borne_produits?select=nom,categorie,prix,ordre&actif=is.true&order=ordre.asc"),
     get<any[]>("borne_groupes?select=id,nom,portee"),
-    get<any[]>("borne_options?select=id,groupe_id,nom,prix,ordre&order=ordre.asc"),
+    // 🔴 `actif=is.true` : un choix retiré de la carte se désactive en base et
+    // disparaît de la borne sans toucher au code. Sans ce filtre, la colonne
+    // `actif` ne servait à rien — Oasis Fraise est restée affichée après avoir
+    // été retirée de la carte (22/10/2026).
+    get<any[]>("borne_options?select=id,groupe_id,nom,prix,ordre&actif=is.true&order=ordre.asc"),
     get<any[]>("borne_produit_groupes?select=produit_nom,groupe_id,ordre&order=ordre.asc"),
   ]);
 
