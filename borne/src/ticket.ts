@@ -97,3 +97,89 @@ export function ticketTexte(
 
   return out.join("\n");
 }
+
+// ── ESC/POS ───────────────────────────────────────────────────────────────
+//
+// Le texte ci-dessus sert à l'aperçu et aux tests ; une imprimante thermique,
+// elle, attend des octets ESC/POS. Cette partie est commune à TOUTES les
+// manières de l'atteindre — c'est pour ça qu'elle est écrite maintenant, alors
+// que le transport n'est pas encore tranché.
+
+const ESC = 0x1b;
+const GS = 0x1d;
+
+/**
+ * 🔴 Les accents ne passent PAS tout seuls sur une imprimante thermique : elle
+ * n'est pas en UTF-8 mais sur une table de caractères à sélectionner.
+ *
+ * Indice relevé sur le ticket EasyOrder #029 : il imprime « Imprime par
+ * EasyOrder », sans accent. Soit ils ont retiré les accents, soit leur table
+ * ne les porte pas. On sélectionne donc CP858 (qui couvre le français) ET on
+ * garde ce repli : si le gérant voit des caractères bizarres sur le premier
+ * vrai ticket, passer `sansAccents` à `true` règle le problème sans toucher au
+ * reste.
+ */
+export function sansAccents(s: string): string {
+  return s.normalize("NFD").replace(/[̀-ͯ]/g, "");
+}
+
+/** CP858 : latin occidental + le symbole €. Suffisant pour le français. */
+const CP858: Record<string, number> = {
+  "é": 0x82, "è": 0x8a, "ê": 0x88, "ë": 0x89,
+  "à": 0x85, "â": 0x83, "ä": 0x84,
+  "î": 0x8c, "ï": 0x8b, "ô": 0x93, "ö": 0x94,
+  "ù": 0x97, "û": 0x96, "ü": 0x81, "ç": 0x87,
+  "É": 0x90, "È": 0xd4, "À": 0xb7, "Ç": 0x80,
+  "€": 0xd5, "°": 0xf8,
+};
+
+function octets(s: string): number[] {
+  const out: number[] = [];
+  for (const c of s) {
+    const cp = CP858[c];
+    if (cp !== undefined) out.push(cp);
+    else {
+      const n = c.charCodeAt(0);
+      // Au-delà de la table : un point d'interrogation plutôt qu'un octet
+      // hasardeux, qui ferait imprimer n'importe quoi.
+      out.push(n < 0x80 ? n : 0x3f);
+    }
+  }
+  return out;
+}
+
+/**
+ * Le ticket en octets ESC/POS, prêt à envoyer à l'imprimante.
+ *
+ * ⚠️ Mise en forme volontairement minimale : init, table de caractères,
+ * centrage, gras et double taille pour le numéro, puis la coupe. Une
+ * imprimante inconnue refuse plus facilement une commande exotique qu'une
+ * commande de base, et le ticket EasyOrder n'en fait pas plus.
+ */
+export function ticketEscPos(
+  reference: string,
+  lignes: LigneTicket[],
+  date: Date,
+  opts: { sansAccents?: boolean } = {}
+): Uint8Array {
+  const texte = ticketTexte(reference, lignes, date);
+  const [entete, ...reste] = texte.split("\n");
+  const corps = opts.sansAccents ? sansAccents(reste.join("\n")) : reste.join("\n");
+  const titre = opts.sansAccents ? sansAccents(entete.trim()) : entete.trim();
+
+  const b: number[] = [];
+  b.push(ESC, 0x40); //          ESC @  — réinitialise
+  b.push(ESC, 0x74, 19); //      ESC t  — table CP858
+  b.push(ESC, 0x61, 1); //       ESC a  — centré
+  b.push(GS, 0x21, 0x11); //     GS !   — double largeur et hauteur
+  b.push(ESC, 0x45, 1); //       ESC E  — gras
+  b.push(...octets(titre), 0x0a);
+  b.push(ESC, 0x45, 0); //       fin du gras
+  b.push(GS, 0x21, 0x00); //     retour à la taille normale
+  b.push(ESC, 0x61, 0); //       aligné à gauche : le corps est DÉJÀ centré à
+  //                             la main par `centrer()`, le recentrer le
+  //                             décalerait une seconde fois.
+  b.push(...octets(corps), 0x0a, 0x0a, 0x0a, 0x0a);
+  b.push(GS, 0x56, 0x42, 0x00); // GS V B — coupe le papier
+  return new Uint8Array(b);
+}

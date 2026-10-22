@@ -235,9 +235,39 @@ et reproduit tel quel : la cuisine lit ces tickets depuis des mois, changer leur
 mise en page lui coûterait plus que ça ne lui rapporterait. 32 colonnes, soit du
 papier 58 mm.
 
-⚠️ **Le générateur est écrit et vérifié contre le vrai ticket, mais il n'est
-BRANCHÉ À RIEN** : il attend de savoir quelle imprimante et comment elle est
-reliée.
+`ticketTexte()` donne le texte (aperçu, tests) ; **`ticketEscPos()` donne les
+octets** que l'imprimante attend vraiment — init, table de caractères, gras et
+double taille pour le numéro, coupe du papier. Vérifié : 320 octets pour un
+ticket d'une ligne, entête `1b 40 1b 74 13…`, fin `1d 56 42 00`.
+
+🔴 **L'imprimante est en RÉSEAU** (gérant, 22/10/2026). Elle a donc une IP sur
+le réseau du magasin, et c'est là que se trouve le vrai obstacle :
+
+**Une page web servie en HTTPS ne peut PAS atteindre une imprimante locale.**
+Deux raisons, l'une et l'autre bloquantes :
+1. **Pas de socket TCP en JavaScript de navigateur.** Le port 9100 (RAW /
+   JetDirect), qui est la voie normale d'une imprimante réseau, est hors
+   d'atteinte d'une page web.
+2. **Mixed content.** Même si l'imprimante parlait HTTP (c'est le cas des Epson
+   avec ePOS-Print), une page servie en `https://` sur Vercel ne peut pas
+   appeler `http://192.168.x.x` : le navigateur refuse.
+
+➡️ **La voie à prendre est donc l'app native Capacitor**, qui était déjà la
+cible du projet : elle ouvre la socket TCP vers l'IP locale sans contrainte de
+mixed content. Le port 9100 en RAW convient à la quasi-totalité des imprimantes
+thermiques réseau.
+
+⚠️ **Ce qui manque pour écrire l'envoi : la MARQUE et le MODÈLE.** C'est ce qui
+décide entre 9100 RAW et une API maison (Epson ePOS, Star WebPRNT), et c'est ce
+qui dit si la table de caractères CP858 est la bonne. Ne pas écrire l'envoi à
+l'aveugle : une imprimante qui reçoit une commande qu'elle ne comprend pas peut
+cracher des mètres de papier.
+
+⚠️ **Les accents** : le ticket actuel n'en contient aucun (noms en capitales,
+mentions sans accent — c'est aussi le cas du ticket EasyOrder, qui imprime
+« Imprime »). `ticketEscPos()` sélectionne CP858 et garde une option
+`sansAccents` : si le premier vrai ticket sort avec des caractères bizarres,
+c'est le premier levier à tirer.
 
 🔴 **LES NON-CHOIX SONT IMPRIMÉS**, contrairement au panier et à l'écran
 cuisine qui masquent « PAS DE SUPPLEMENT ». C'est délibéré : sur le ticket, une
