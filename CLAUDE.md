@@ -1777,6 +1777,39 @@ famille reste non couvert.
 Note : les libellés de ces tables parlent encore du « Menu Étudiant », renommé depuis
 en Menu Good Deal.
 
+## 🗂️ Le travail est réparti en sessions dédiées (21/10/2026)
+
+La session principale garde **le relevé quotidien du CA, les analyses de ventes et
+ce fichier**. Le reste vit dans des sessions séparées, chacune avec son contexte
+complet au démarrage :
+
+🔴 **Chaque session a SA branche** (22/10/2026). Elles partageaient d'abord
+`claude/project-status-5xiop2` ; dès que deux sessions ont touché le dépôt le
+même jour, chacune a reçu la sienne. **Ne jamais pousser sur la branche d'une
+autre session.**
+
+| Session | Branche | Ce qu'elle porte |
+|---|---|---|
+| **Session principale** | `claude/project-status-5xiop2` | Le relevé quotidien du CA, les analyses, ce fichier |
+| **Borne de commande Sekaï** | `claude/borne-5xiop2` | L'app borne + l'écran cuisine. Contexte dans **`borne/CLAUDE.md`** |
+| **Comptabilité, justificatifs, bail et voiture** | `claude/compta-5xiop2` | Les deux Excel de justificatifs, Skytax, le compte courant Monab, le bail, la Xpeng chez Axus |
+| **Congélation et nouveau local** | `claude/congelation-5xiop2` | Projet **personnel**, financé hors exploitation — ne pas le documenter ici ni dans `journal` |
+| **Étiquettes DLC et app Android** | `claude/etiquettes-5xiop2` | L'imprimante d'étiquettes et l'app native |
+| **Horaires et masse salariale** | `claude/horaires-5xiop2` | Le planning à 4 jours/semaine, le scénario à 2 gérants + étudiants |
+
+⚠️ **Ce fichier appartient à la session principale.** Une session dédiée qui a
+besoin d'y inscrire quelque chose de durable le signale au gérant plutôt que de
+l'écrire depuis sa branche — sinon deux versions de `CLAUDE.md` divergent et la
+mémoire du projet se coupe en deux.
+
+⚠️ **Les fichiers produits restent dans la session qui les a créés** (Excel,
+PDF de factures, dossiers). Ils ne se transfèrent pas : s'il faut les
+retravailler, le gérant doit les redéposer.
+
+Veilles automatiques en cours, qui n'écrivent que quand elles trouvent quelque
+chose : **locaux à Tanger** (lundis et jeudis) et **Chaussée d'Ixelles**
+(quotidienne).
+
 ## Conventions de travail
 
 - Répondre en français.
