@@ -50,7 +50,7 @@ Tout est sur la branche `claude/project-status-5xiop2`.
 | `src/App.tsx` | La borne client : accueil → mode → carte → options → panier → numéro |
 | `src/Cuisine.tsx` | L'écran cuisine |
 | `src/styles.css` | Écran tactile, rien de cliquable sous 64 px |
-| `public/affiche.jpg` | L'affiche des menus, en accueil. Un seul fichier à remplacer pour la changer |
+| `public/photos/` | **Toutes les images du projet, sans exception** : l'affiche, le logo, les photos produit. Rien ne traîne à côté |
 
 Deux écrans, un seul build : `/` = la borne, `/#cuisine` = la cuisine.
 
@@ -70,8 +70,12 @@ immédiate des lignes par `source_id`, et **avec l'accord du gérant**.
 
 | | |
 |---|---|
-| **Logo détouré** | ✅ **Existe**, repris de l'app de gestion : `vitejs-vite-4btbmycn (1)/public/logo-sekai@2x.webp`, 630×640, **fond transparent**. Copié en `borne/public/logo-sekai.webp`. Se pose aussi bien sur le crème que sur le rouge |
-| **Affiche des menus** | ✅ `borne/public/affiche.jpg`, 1400×1979 |
+🔴 **Tout vit dans `borne/public/photos/`, et rien ailleurs.** Rangé le 22/10/2026 :
+l'affiche et le logo traînaient à la racine de `public/`. Y poser une image
+nouvelle, jamais à côté.
+
+| **Logo détouré** | ✅ **Existe**, repris de l'app de gestion : `vitejs-vite-4btbmycn (1)/public/logo-sekai@2x.webp`, 630×640, **fond transparent**. Copié en `borne/public/photos/logo-sekai.webp`. Se pose aussi bien sur le crème que sur le rouge |
+| **Affiche des menus** | ✅ `borne/public/photos/affiche.jpg`, 1400×1979 |
 | **Photos produit** | ⚠️ `borne/public/photos/`, **8 découpes de l'affiche** — c'est tout ce qu'on a |
 | **Photos de menu** | 🔴 **AUCUNE.** L'affiche ne contient pas un seul menu sans son titre ou sa pastille de prix par-dessus |
 

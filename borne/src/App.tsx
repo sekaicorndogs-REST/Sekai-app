@@ -12,7 +12,7 @@ declare const __BUILD_ID__: string;
 
 const eur = (n: number) => n.toFixed(2).replace(".", ",") + " €";
 
-// Les photos sont DÉCOUPÉES DANS L'AFFICHE du magasin (`public/affiche.jpg`),
+// Les photos sont DÉCOUPÉES DANS L'AFFICHE du magasin (`public/photos/affiche.jpg`),
 // faute de photos produit à ce jour. Elles sont donc fidèles pour les corndogs,
 // les sides et les boissons, et seulement ÉVOCATRICES pour les menus — la photo
 // d'un menu montre l'un de ses éléments, pas le menu complet.
@@ -165,7 +165,7 @@ export default function App() {
         {/* L'affiche des menus sert d'écran d'attente : c'est elle que le
             passant voit de la rue, et elle porte déjà les prix. `contain` et
             non `cover` — une affiche dont on coupe un prix ne sert à rien. */}
-        <img className="affiche" src="affiche.jpg" alt="Nos menus" />
+        <img className="affiche" src="photos/affiche.jpg" alt="Nos menus" />
         <div className="appel">
           {cat ? (
             <>
@@ -372,7 +372,7 @@ function Carte({
   return (
     <div className="page">
       <header>
-        <img className="logo" src="logo-sekai.webp" alt="Sekai Corndogs" />
+        <img className="logo" src="photos/logo-sekai.webp" alt="Sekai Corndogs" />
         <h1>NOTRE CARTE</h1>
         <button className="lien" onClick={onAnnuler}>
           Annuler
@@ -589,7 +589,7 @@ function Fini({
     <div className="fini" onClick={onFermer}>
       {/* La mascotte sert ici : c'est le moment où le client attend. */}
       <div className="carte-numero">
-        <img src="logo-sekai.webp" alt="Sekai Corndogs" />
+        <img src="photos/logo-sekai.webp" alt="Sekai Corndogs" />
         <div className="libelle">VOTRE NUMÉRO</div>
         <div className="numero">{reference}</div>
         <div className="montant">
