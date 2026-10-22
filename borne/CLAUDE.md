@@ -113,8 +113,15 @@ Le script est dans le scratchpad (`sauces/recolore.py`), la recette ici :
 1. Travailler en **HSV**, pas en RGB : `H ← teinte cible`, `S` et `V` recalés
    sur la médiane du cœur. La texture vit dans `V`, elle survit intacte.
 2. Garder une part de l'écart de teinte (`eclats`) pour que les éclats d'herbe
-   et de piment restent visibles. À 0 pour le ketchup et la mayo, qui sont
-   lisses — avec, en plus, un filtre médian pour effacer le grain du Samouraï.
+   et de piment restent visibles. À 0 pour le ketchup, le BBQ, la mayo et la
+   sriracha, qui sont **lisses** (gérant, 22/10/2026 : *« rends-les lisses par
+   exemple ketchup mayo bbq »*, et *« andalouse c'est parfait »* — l'andalouse,
+   les deux mayos et le Samouraï gardent donc leurs éclats).
+   🔴 **Un `MedianFilter(9)` ne suffit PAS** : les éclats d'herbe font 15 à
+   20 px sur cette photo, ils passent au travers et le ketchup reste grumeleux.
+   Réduire l'image d'un facteur 3 avant le médian — rayon bien plus large, et
+   assez rapide. Le médian efface le grain mais **garde les grands plis et les
+   reflets** : une sauce parfaitement plate serait fausse.
 3. 🔴 **Le masque ne s'arrête PAS au bord de la sauce.** De r=0,80 à r=0,92 la
    paroi du ramequin renvoie un **reflet** de la sauce. Masque coupé trop tôt,
    ce reflet reste orange et chaque sauce porte un liseré Samouraï.
@@ -125,8 +132,26 @@ Le script est dans le scratchpad (`sauces/recolore.py`), la recette ici :
    9 PNG faisaient 3 Mo, les 9 WebP font 210 Ko. `PHOTOS_OPTIONS` portant
    l'extension complète, aucun code ne change.
 
+6. 🔴 **Une sauce TRANSLUCIDE se reconstruit, elle ne se recolore pas.**
+   L'aigre douce (*« c'est un peu transparent »*) est le seul cas à part des
+   neuf. Baisser l'opacité la rendrait délavée sur le fond crème, pas
+   transparente ; et la recolorer ne suffit pas, parce que les plis crémeux du
+   Samouraï disent « sauce épaisse » quelle que soit la couleur. Il faut les
+   quatre : surface presque plane (le `V` passé au flou gaussien, 45 %
+   d'amplitude), **absorption** (le creux plus saturé et plus rouge, la crête
+   plus claire — c'est ce gradient qui dit « on voit à travers »), reflets
+   spéculaires réinjectés et désaturés, flocons de piment repris sur la photo
+   d'origine *après* le lissage.
+   ⚠️ Ça reste une imitation : **une photo de la vraie aigre douce ferait mieux
+   que tout ce bloc.** C'est la seule des neuf dont on fabrique la matière.
+
 ⚠️ **Les teintes sont approchées, pas mesurées.** Le gérant n'a tranché que la
-Sekai (« une spicy mayo un peu plus foncée »). À lui faire valider au comptoir.
+Sekai (« une spicy mayo un peu plus foncée ») et validé l'andalouse. À lui faire
+valider le reste au comptoir.
+
+🔴 **Le Samouraï reste la PHOTO BRUTE**, jamais sa version recolorée : c'est la
+seule des neuf dont on a le vrai cliché, et elle sert de témoin aux huit autres.
+Le script la restaure après la boucle — ne pas supprimer cette ligne.
 
 🔴 **Les six panures, ou aucune.** `groupeIllustre()` l'impose : un groupe à
 moitié illustré mettrait en avant l'option payante au seul motif qu'on en a la
