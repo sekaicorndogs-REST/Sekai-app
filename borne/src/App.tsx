@@ -29,9 +29,9 @@ const PHOTOS: Record<string, string> = {
   "CORNDOG SAUCISSE": "saucisse.jpg",
   "CORNDOG MOZZA": "mozza.jpg",
   "CORNDOG SAUCISSE/MOZZA": "bubbledog.jpg",
-  "FRITES": "frites.jpg",
-  "Poulet karaage": "karaage.jpg",
-  "Tempura crevette": "tempura.jpg",
+  "FRITES": "side-frites.png",
+  "Poulet karaage": "side-karaage.png",
+  "Tempura crevette": "side-tempura.png",
   "BUBBLE TEA PECHE": "bubbletea.jpg",
   "BUBBLE TEA PASTEQUE": "bubbletea.jpg",
 };
@@ -73,6 +73,13 @@ const PHOTOS_OPTIONS: Record<string, string> = {
   "POTATOE": "panure-potatoe.png",
   "BLUE": "panure-blue.png",
   "SPICY": "panure-spicy.png",
+  // Les sides, pris en option. ⚠️ Le groupe `SIDE 2` des menus XL nomme les
+  // mêmes produits « … 3pcs » : deux libellés, une seule photo.
+  "FRITES": "side-frites.png",
+  "Poulet karaage": "side-karaage.png",
+  "Tempura crevette": "side-tempura.png",
+  "Poulet karaage 3pcs": "side-karaage.png",
+  "Tempura crevette 3pcs": "side-tempura.png",
 };
 
 const photoOption = (nom: string): string | null =>

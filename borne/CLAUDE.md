@@ -95,6 +95,7 @@ immédiate des lignes par `source_id`, et **avec l'accord du gérant**.
 | **Les 4 menus** | ✅ **envoyés par le gérant**, détourés sur leur plateau |
 | **Softs** | ✅ **les 7** : Pepsi, Pepsi Max, SPA (eau), Oasis Cassis, Oasis Tropical, Ice Tea Pêche, Ice Tea Pétillant. Le groupe **`CHOIX DU SOFT` d'un menu est donc illustré**. ⚠️ `CHOIX DU SOFT SUPP` attend encore **Oasis Fraise** |
 | **Panures** | ✅ **les 6**, visuels professionnels sur fond blanc fournis par le gérant le 22/10/2026, détourés. ⚠️ **La rouge et la bleue arrivaient sur UNE SEULE image** : coupée en deux. Les groupes `CHOIX DE LA PANURE` et `SUPPLEMENT PANURE` sont donc illustrés |
+| **Sides** | ✅ frites, karaage, tempura, détourés. Servent **à deux endroits** : les produits de la carte ET le groupe `SIDE` des options. ⚠️ Le groupe `SIDE 2` des menus XL nomme les mêmes produits « … 3pcs » : deux libellés, une seule photo |
 | **Corndogs seuls** | ⚠️ découpes de l'affiche. Ils diffèrent par l'INTÉRIEUR, qu'aucune photo extérieure ne montre — à trancher : vue en coupe, ou visuel commun |
 
 🔴 **Les six panures, ou aucune.** `groupeIllustre()` l'impose : un groupe à
