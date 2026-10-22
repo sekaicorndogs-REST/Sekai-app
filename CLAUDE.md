@@ -1777,6 +1777,28 @@ famille reste non couvert.
 Note : les libellés de ces tables parlent encore du « Menu Étudiant », renommé depuis
 en Menu Good Deal.
 
+## 🗂️ Le travail est réparti en sessions dédiées (21/10/2026)
+
+La session principale garde **le relevé quotidien du CA, les analyses de ventes et
+ce fichier**. Le reste vit dans des sessions séparées, chacune avec son contexte
+complet au démarrage :
+
+| Session | Ce qu'elle porte |
+|---|---|
+| **Borne de commande Sekaï** | L'app borne + l'écran cuisine. Contexte versionné dans **`borne/CLAUDE.md`** |
+| **Comptabilité, justificatifs, bail et voiture** | Les deux Excel de justificatifs, Skytax, le compte courant Monab, le bail, la Xpeng chez Axus |
+| **Congélation et nouveau local** | Projet **personnel**, financé hors exploitation — ne pas le documenter ici ni dans `journal` |
+| **Étiquettes DLC et app Android** | L'imprimante d'étiquettes et l'app native |
+| **Horaires et masse salariale** | Le planning à 4 jours/semaine, le scénario à 2 gérants + étudiants |
+
+⚠️ **Les fichiers produits restent dans la session qui les a créés** (Excel,
+PDF de factures, dossiers). Ils ne se transfèrent pas : s'il faut les
+retravailler, le gérant doit les redéposer.
+
+Veilles automatiques en cours, qui n'écrivent que quand elles trouvent quelque
+chose : **locaux à Tanger** (lundis et jeudis) et **Chaussée d'Ixelles**
+(quotidienne).
+
 ## Conventions de travail
 
 - Répondre en français.
