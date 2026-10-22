@@ -96,7 +96,37 @@ immédiate des lignes par `source_id`, et **avec l'accord du gérant**.
 | **Softs** | ✅ **les 7** : Pepsi, Pepsi Max, SPA (eau), Oasis Cassis, Oasis Tropical, Ice Tea Pêche, Ice Tea Pétillant. Le groupe **`CHOIX DU SOFT` d'un menu est donc illustré**. ⚠️ `CHOIX DU SOFT SUPP` attend encore **Oasis Fraise** |
 | **Panures** | ✅ **les 6**, visuels professionnels sur fond blanc fournis par le gérant le 22/10/2026, détourés. ⚠️ **La rouge et la bleue arrivaient sur UNE SEULE image** : coupée en deux. Les groupes `CHOIX DE LA PANURE` et `SUPPLEMENT PANURE` sont donc illustrés |
 | **Sides** | ✅ frites, karaage, tempura, détourés. Servent **à deux endroits** : les produits de la carte ET le groupe `SIDE` des options. ⚠️ Le groupe `SIDE 2` des menus XL nomme les mêmes produits « … 3pcs » : deux libellés, une seule photo |
+| **Sauces** | ✅ **les 9**, donc `CHOIX DE LA SAUCE` est illustré. Le gérant a photographié **le SAMOURAÏ** dans son ramequin, vu de dessus sur fond blanc ; les huit autres sont **ce même pot recoloré**. En `.webp`, ~24 Ko pièce au lieu de ~330 Ko en PNG |
 | **Corndogs seuls** | ⚠️ découpes de l'affiche. Ils diffèrent par l'INTÉRIEUR, qu'aucune photo extérieure ne montre — à trancher : vue en coupe, ou visuel commun |
+| **Oignons frits** | ⚠️ manquants. Seul choix payant de `SUPPLEMENTS`, donc le groupe reste non illustré |
+
+### 🎨 Décliner une couleur depuis une seule photo — la méthode du 22/10/2026
+
+Faite pour les sauces, réutilisable pour tout groupe où les choix ne diffèrent
+que par la teinte. **Une photo réelle suffit pour tout le groupe** : on garde sa
+texture, ses reflets et son cadrage, on ne change que la couleur. Les pastilles
+se ressemblent, et **c'est le but** — même pot, même lumière, donc le client
+compare des couleurs et rien d'autre.
+
+Le script est dans le scratchpad (`sauces/recolore.py`), la recette ici :
+
+1. Travailler en **HSV**, pas en RGB : `H ← teinte cible`, `S` et `V` recalés
+   sur la médiane du cœur. La texture vit dans `V`, elle survit intacte.
+2. Garder une part de l'écart de teinte (`eclats`) pour que les éclats d'herbe
+   et de piment restent visibles. À 0 pour le ketchup et la mayo, qui sont
+   lisses — avec, en plus, un filtre médian pour effacer le grain du Samouraï.
+3. 🔴 **Le masque ne s'arrête PAS au bord de la sauce.** De r=0,80 à r=0,92 la
+   paroi du ramequin renvoie un **reflet** de la sauce. Masque coupé trop tôt,
+   ce reflet reste orange et chaque sauce porte un liseré Samouraï.
+4. 🔴 **Au cœur, ignorer la saturation.** Les reflets brillants y sont peu
+   saturés : un masque conditionné à `S` les laisse jaunes, en fin liseré doré
+   sur le ketchup et le BBQ. Poids = 1 sous r=0,78, quoi qu'il arrive.
+5. **Exporter en WebP** (q=86) dès qu'un groupe compte plus de trois visuels :
+   9 PNG faisaient 3 Mo, les 9 WebP font 210 Ko. `PHOTOS_OPTIONS` portant
+   l'extension complète, aucun code ne change.
+
+⚠️ **Les teintes sont approchées, pas mesurées.** Le gérant n'a tranché que la
+Sekai (« une spicy mayo un peu plus foncée »). À lui faire valider au comptoir.
 
 🔴 **Les six panures, ou aucune.** `groupeIllustre()` l'impose : un groupe à
 moitié illustré mettrait en avant l'option payante au seul motif qu'on en a la

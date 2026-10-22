@@ -94,6 +94,24 @@ const PHOTOS_OPTIONS: Record<string, string> = {
   "MANGUE / MANGO": "bubble-mangue.png",
   "PECHE": "bubble-peche.png",
   "PASTHEQUE / WATERMELON": "bubble-pasteque.png",
+  // Les neuf sauces. Le gérant a photographié le SAMOURAÏ dans son ramequin ;
+  // les huit autres sont ce même pot recoloré, la texture et la lumière venant
+  // de sa photo. C'est voulu qu'elles se ressemblent : même pot, même cadrage,
+  // donc le client compare des couleurs et rien d'autre.
+  // ⚠️ SEKAI est aussi le nom d'une signature à 7,50 € — aucun conflit, les
+  // produits sont dans `PHOTOS`, pas ici.
+  // 🟡 Les teintes sont approchées, pas mesurées : à faire valider au comptoir.
+  // Le gérant a seulement tranché que la Sekai est « une spicy mayo un peu plus
+  // foncée », ce qui est respecté ici.
+  "SAMOURAI": "sauce-samourai.webp",
+  "SEKAI": "sauce-sekai.webp",
+  "SPICY MAYO": "sauce-spicy-mayo.webp",
+  "ANDALOUSE": "sauce-andalouse.webp",
+  "KETCHUP": "sauce-ketchup.webp",
+  "BBQ": "sauce-bbq.webp",
+  "AIGRE DOUCE / SWEET CHILI": "sauce-aigre-douce.webp",
+  "MAYONNAISE": "sauce-mayonnaise.webp",
+  "SRIRACHA": "sauce-sriracha.webp",
 };
 
 const photoOption = (nom: string): string | null =>
