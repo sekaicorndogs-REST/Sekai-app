@@ -93,7 +93,7 @@ immédiate des lignes par `source_id`, et **avec l'accord du gérant**.
 | **Logo détouré** | ✅ repris de l'app de gestion, `public/photos/logo-sekai.webp`, 630×640, transparent |
 | **Affiche** | ✅ `public/photos/affiche.jpg`, 1400×1979 |
 | **Les 4 menus** | ✅ **envoyés par le gérant**, détourés sur leur plateau |
-| **Softs** | ⚠️ **5 sur 7** : Pepsi, Pepsi Max, SPA (eau), Oasis Cassis, Oasis Tropical. **Manquent Ice Tea Pêche et Ice Tea Pétillant**, plus **Oasis Fraise** pour le groupe payant |
+| **Softs** | ✅ **les 7** : Pepsi, Pepsi Max, SPA (eau), Oasis Cassis, Oasis Tropical, Ice Tea Pêche, Ice Tea Pétillant. Le groupe **`CHOIX DU SOFT` d'un menu est donc illustré**. ⚠️ `CHOIX DU SOFT SUPP` attend encore **Oasis Fraise** |
 | **Panures** | 🔴 **AUCUNE des 6.** C'est le jeu qui rapporte le plus : les panures font près de la moitié des suppléments, et la Potatoe à 1 € est prise sur ~3 commandes sur 10 |
 | **Corndogs seuls** | ⚠️ découpes de l'affiche. Ils diffèrent par l'INTÉRIEUR, qu'aucune photo extérieure ne montre — à trancher : vue en coupe, ou visuel commun |
 

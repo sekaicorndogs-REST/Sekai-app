@@ -60,6 +60,11 @@ const PHOTOS_OPTIONS: Record<string, string> = {
   "EAU": "soft-eau.png",
   "OASIS CASSIS": "soft-oasis-cassis.png",
   "OASIS TROPICAL": "soft-oasis-tropical.png",
+  "ICE TEA PECHE": "soft-ice-tea-peche.png",
+  // ⚠️ « ICE TEA PET » veut dire PÉTILLANT, pas bouteille PET : c'est le Lipton
+  // Citron / Citron Vert pétillant. Ce n'est donc PAS un doublon d'Ice Tea
+  // Pêche — confirmé par le gérant le 22/10/2026. Ne pas fusionner les deux.
+  "ICE TEA PET": "soft-ice-tea-pet.png",
 };
 
 const photoOption = (nom: string): string | null =>
