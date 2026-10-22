@@ -192,6 +192,24 @@ h2 {
   align-items: center;
   gap: 10px;
 }
+/* 🔴 Les quatre langues, en DEUX COLONNES. En une seule, le bandeau mangeait
+   le tiers bas de l'affiche, qui est ce que le passant voit de la rue.
+   Chacun garde 72 px de haut : c'est le premier geste du client, debout,
+   souvent avec un sac dans l'autre main. */
+.accueil .langues {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  width: 100%;
+  max-width: 560px;
+}
+.accueil .btn.langue {
+  min-height: 72px;
+  width: 100%;
+  font-size: 24px;
+  padding: 0 10px;
+}
+
 .accueil .appel .btn {
   background: var(--creme-clair);
   color: var(--bordeaux);

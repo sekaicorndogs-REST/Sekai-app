@@ -31,6 +31,9 @@ export type Produit = {
   /** Phrase affichée sous le nom. `null` sur la plupart des produits — voir
    *  le commentaire de `borne_produits.description`. */
   description: string | null;
+  description_en: string | null;
+  description_nl: string | null;
+  description_es: string | null;
 };
 
 export type Option = {
@@ -38,12 +41,20 @@ export type Option = {
   nom: string;
   prix: number;
   ordre: number;
+  /** Traductions, remplies UNIQUEMENT pour les non-choix (« Pas de
+   *  supplément »). Un vrai choix garde son nom commercial partout. */
+  nom_en: string | null;
+  nom_nl: string | null;
+  nom_es: string | null;
 };
 
 export type Groupe = {
   id: number;
   nom: string;
   portee: "produit" | "commande";
+  nom_en: string | null;
+  nom_nl: string | null;
+  nom_es: string | null;
   options: Option[];
 };
 
@@ -65,21 +76,33 @@ export type Catalogue = {
 export async function chargerCatalogue(): Promise<Catalogue> {
   const [produits, groupes, options, liens] = await Promise.all([
     get<any[]>(
-      "borne_produits?select=nom,categorie,prix,ordre,description&actif=is.true&order=ordre.asc"
+      "borne_produits?select=nom,categorie,prix,ordre,description,description_en,description_nl,description_es" +
+        "&actif=is.true&order=ordre.asc"
     ),
-    get<any[]>("borne_groupes?select=id,nom,portee"),
+    get<any[]>("borne_groupes?select=id,nom,portee,nom_en,nom_nl,nom_es"),
     // 🔴 `actif=is.true` : un choix retiré de la carte se désactive en base et
     // disparaît de la borne sans toucher au code. Sans ce filtre, la colonne
     // `actif` ne servait à rien — Oasis Fraise est restée affichée après avoir
     // été retirée de la carte (22/10/2026).
-    get<any[]>("borne_options?select=id,groupe_id,nom,prix,ordre&actif=is.true&order=ordre.asc"),
+    get<any[]>(
+      "borne_options?select=id,groupe_id,nom,prix,ordre,nom_en,nom_nl,nom_es" +
+        "&actif=is.true&order=ordre.asc"
+    ),
     get<any[]>("borne_produit_groupes?select=produit_nom,groupe_id,ordre&order=ordre.asc"),
   ]);
 
   const optionsParGroupe = new Map<number, Option[]>();
   for (const o of options) {
     const liste = optionsParGroupe.get(o.groupe_id) ?? [];
-    liste.push({ id: o.id, nom: o.nom, prix: Number(o.prix) || 0, ordre: o.ordre });
+    liste.push({
+      id: o.id,
+      nom: o.nom,
+      prix: Number(o.prix) || 0,
+      ordre: o.ordre,
+      nom_en: o.nom_en,
+      nom_nl: o.nom_nl,
+      nom_es: o.nom_es,
+    });
     optionsParGroupe.set(o.groupe_id, liste);
   }
 
@@ -89,6 +112,9 @@ export async function chargerCatalogue(): Promise<Catalogue> {
       id: g.id,
       nom: g.nom,
       portee: g.portee,
+      nom_en: g.nom_en,
+      nom_nl: g.nom_nl,
+      nom_es: g.nom_es,
       options: optionsParGroupe.get(g.id) ?? [],
     });
   }
@@ -106,6 +132,9 @@ export async function chargerCatalogue(): Promise<Catalogue> {
     prix: Number(p.prix),
     ordre: p.ordre,
     description: p.description || null,
+    description_en: p.description_en || null,
+    description_nl: p.description_nl || null,
+    description_es: p.description_es || null,
   }));
 
   // L'ordre des catégories suit l'ordre des produits : les menus d'abord,

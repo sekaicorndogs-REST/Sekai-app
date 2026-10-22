@@ -228,6 +228,49 @@ Le script la restaure après la boucle — ne pas supprimer cette ligne.
 ✅ **Au 22/10/2026 TOUT est illustré** : les treize groupes d'options et les
 vingt-trois produits, softs compris. Plus aucun trou côté visuels.
 
+### 🌍 Les quatre langues (22/10/2026)
+
+**Français · English · Nederlands · Español**, reprises de la borne EasyOrder.
+Elles **remplacent le bouton « COMMANDER ICI »** sur l'accueil : choisir sa
+langue EST l'entrée dans la commande, un second écran pour redire « commander »
+serait un tap de plus pour rien. Chaque bouton porte le nom de sa langue **dans
+cette langue** — « Nederlands » se reconnaît sans savoir le français.
+
+🔴 **Un bouton de langue doit tenir sa promesse.** Afficher « English » puis
+servir un écran en français est pire que ne pas proposer le choix : le client
+croit s'être trompé. Donc **tout** est traduit.
+
+| Où | Comment |
+|---|---|
+| Textes de l'app | `src/i18n.ts`, un dictionnaire par langue |
+| Noms de groupes d'options | `borne_groupes.nom_en` / `nom_nl` / `nom_es` |
+| Non-choix (« Pas de supplément ») | `borne_options.nom_en` / `nom_nl` / `nom_es` |
+| Compositions de produits | `borne_produits.description_en` / `_nl` / `_es` |
+
+🔴 **CE QUI N'EST PAS TRADUIT, ET NE DOIT PAS L'ÊTRE** (consigne du gérant :
+*« traduis tout sauf les titres »*) : les **noms de produits** (« SAITAMA »,
+« MENU GOODEAL »), les **noms d'options** (« POTATOE », « BLUE », « KETCHUP »)
+et les **catégories** (« Sides », « Bubble Tea »). Ce sont des noms
+commerciaux — et le client doit lire le même mot que celui que la cuisine
+verra sur son écran.
+
+⚠️ `champ(objet, "nom", langue)` **retombe silencieusement sur le français**
+quand la colonne traduite est vide. C'est voulu : une description ajoutée sans
+ses traductions s'affiche en français au lieu de disparaître. C'est aussi ce
+qui fait qu'un seul appel couvre les non-choix (traduits) et les vrais noms
+d'options (non traduits).
+
+⚠️ `inclus` et `compris` sont **deux clés**, pas une. En français les deux se
+disent « Compris » — l'option comprise dans le prix, et le bouton « j'ai
+compris » de l'écran d'erreur. Dans les trois autres langues ce sont deux mots
+différents : les fusionner produirait un contresens.
+
+🔴 **La langue retombe sur le français à chaque retour à l'accueil.** Le client
+suivant ne doit pas hériter de l'espagnol du précédent.
+
+⚠️ Les traductions sont les miennes, pas celles d'un traducteur. Elles sont
+simples et courtes, mais **à faire relire** — surtout le néerlandais.
+
 ### 🖥️ La mise en page de la carte — calquée sur la borne EasyOrder
 
 Demandée par le gérant le 22/10/2026, sur photo de sa borne actuelle :

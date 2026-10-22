@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { LANGUES, NOM_LANGUE, champ, traducteur, type Langue, type T } from "./i18n";
 import {
   chargerCatalogue,
   envoyerCommande,
@@ -286,6 +287,10 @@ export default function App() {
   const [erreurCat, setErreurCat] = useState<string | null>(null);
   const [ecran, setEcran] = useState<Ecran>({ nom: "accueil" });
   const [mode, setMode] = useState<string>("takeaway");
+  // 🔴 La langue est choisie à l'accueil et remise à « fr » à chaque retour à
+  // zéro : le client suivant ne doit pas hériter de l'espagnol du précédent.
+  const [langue, setLangue] = useState<Langue>("fr");
+  const t = traducteur(langue);
   const [panier, setPanier] = useState<Article[]>([]);
 
   // Le catalogue est rechargé tant qu'il n'est pas là : une borne allumée avant
@@ -320,6 +325,7 @@ export default function App() {
   // sur le panier du précédent.
   function recommencer() {
     setPanier([]);
+    setLangue("fr");
     setEcran({ nom: "accueil" });
   }
 
@@ -329,7 +335,7 @@ export default function App() {
   // valeur publicitaire même quand elle ne prend plus de commandes.
   if (ecran.nom === "accueil")
     return (
-      <div className="accueil" onClick={() => cat && setEcran({ nom: "mode" })}>
+      <div className="accueil">
         {/* Pas de logo ajouté ici : l'affiche porte DÉJÀ la mascotte en haut,
             et l'empiler deux fois donnait deux chats à dix centimètres d'écart.
             La mascotte revient sur l'écran du numéro, là où elle manquait. */}
@@ -340,7 +346,31 @@ export default function App() {
         <div className="appel">
           {cat ? (
             <>
-              <button className="btn gros">COMMANDER ICI</button>
+              {/* 🔴 Les quatre langues REMPLACENT le bouton « Commander ici »
+                  (gérant, 22/10/2026, sur photo de sa borne). Choisir sa langue
+                  EST l'entrée dans la commande : un deuxième écran pour dire
+                  « commander » après l'avoir déjà dit serait un tap de plus
+                  pour rien.
+                  Chaque bouton porte le nom de sa langue DANS cette langue :
+                  « Nederlands » se reconnaît sans savoir le français. */}
+              <div className="langues">
+                {LANGUES.map((l) => (
+                  <button
+                    key={l}
+                    className="btn langue"
+                    lang={l}
+                    onClick={() => {
+                      setLangue(l);
+                      setEcran({ nom: "mode" });
+                    }}
+                  >
+                    {NOM_LANGUE[l]}
+                  </button>
+                ))}
+              </div>
+              {/* En français seul : avant le choix, on ne sait pas encore quelle
+                  langue parle le client, et la mention revient traduite sur
+                  l'écran du numéro. */}
               <div className="mention">Paiement au comptoir</div>
             </>
           ) : (
@@ -357,10 +387,10 @@ export default function App() {
     // On ne peut arriver ici qu'en ayant perdu le réseau en cours de commande.
     return (
       <div className="plein">
-        <h1>Borne indisponible</h1>
-        <p className="gris">Commandez au comptoir.</p>
+        <h1>{t("borneIndispo")}</h1>
+        <p className="gris">{t("commandezComptoir")}</p>
         <button className="btn" onClick={recommencer}>
-          Retour
+          {t("retour")}
         </button>
       </div>
     );
@@ -370,7 +400,7 @@ export default function App() {
   if (ecran.nom === "mode")
     return (
       <div className="plein">
-        <h1>{cat.groupeCommande?.nom ?? "Sur place ou à emporter ?"}</h1>
+        <h1>{champ(cat.groupeCommande, "nom", langue) || t("modeTitre")}</h1>
         <div className="colonne">
           <button
             className="btn gros"
@@ -379,7 +409,7 @@ export default function App() {
               setEcran({ nom: "carte" });
             }}
           >
-            Sur place
+            {t("surPlace")}
           </button>
           <button
             className="btn gros"
@@ -388,11 +418,11 @@ export default function App() {
               setEcran({ nom: "carte" });
             }}
           >
-            À emporter
+            {t("aEmporter")}
           </button>
         </div>
         <button className="lien" onClick={recommencer}>
-          Annuler
+          {t("annuler")}
         </button>
       </div>
     );
@@ -402,6 +432,8 @@ export default function App() {
     return (
       <Carte
         cat={cat}
+        langue={langue}
+        t={t}
         onProduit={(p) => setEcran({ nom: "config", produit: p })}
         nbArticles={nbArticles}
         total={total}
@@ -416,6 +448,8 @@ export default function App() {
       <Config
         produit={ecran.produit}
         groupes={cat.groupesParProduit[ecran.produit.nom] ?? []}
+        langue={langue}
+        t={t}
         onRetour={() => setEcran({ nom: "carte" })}
         onAjouter={(a) => {
           setPanier((p) => [...p, a]);
@@ -430,9 +464,9 @@ export default function App() {
       <div className="page">
         <header>
           <button className="lien" onClick={() => setEcran({ nom: "carte" })}>
-            ‹ Ajouter
+            ‹ {t("ajouter")}
           </button>
-          <h1>Votre commande</h1>
+          <h1>{t("votreCommande")}</h1>
         </header>
         <div className="liste">
           {panier.map((a, i) => (
@@ -464,30 +498,30 @@ export default function App() {
                   className="lien rouge"
                   onClick={() => setPanier((p) => p.filter((_, k) => k !== i))}
                 >
-                  Retirer
+                  {t("retirer")}
                 </button>
               </div>
             </div>
           ))}
-          {panier.length === 0 && <p className="gris">Votre panier est vide.</p>}
+          {panier.length === 0 && <p className="gris">{t("panierVide")}</p>}
         </div>
         <footer>
           <div className="total">
-            <span>Total</span>
+            <span>{t("total")}</span>
             <strong>{eur(total)}</strong>
           </div>
           {/* 🔴 Aucun paiement sur la borne : 100 % des commandes EasyOrder
               sont en « cash / non payé », le client règle au comptoir. */}
-          <p className="petit">Paiement au comptoir</p>
+          <p className="petit">{t("paiementComptoir")}</p>
           <button
             className="btn gros"
             disabled={panier.length === 0}
             onClick={() => setEcran({ nom: "envoi" })}
           >
-            Envoyer la commande
+            {t("envoyer")}
           </button>
           <button className="lien" onClick={recommencer}>
-            Tout annuler
+            {t("toutAnnuler")}
           </button>
         </footer>
       </div>
@@ -499,17 +533,22 @@ export default function App() {
       <Envoi
         mode={mode}
         panier={panier}
+        t={t}
         onFini={(ref) => setEcran({ nom: "fini", reference: ref })}
         onEchec={() => setEcran({ nom: "panier" })}
       />
     );
 
-  return <Fini reference={ecran.reference} total={total} onFermer={recommencer} />;
+  return (
+    <Fini reference={ecran.reference} total={total} t={t} onFermer={recommencer} />
+  );
 }
 
 // ── La carte, par catégorie ─────────────────────────────────────────────
 function Carte({
   cat,
+  langue,
+  t,
   onProduit,
   nbArticles,
   total,
@@ -517,6 +556,8 @@ function Carte({
   onAnnuler,
 }: {
   cat: Catalogue;
+  langue: Langue;
+  t: T;
   onProduit: (p: Produit) => void;
   nbArticles: number;
   total: number;
@@ -544,9 +585,9 @@ function Carte({
     <div className="page">
       <header>
         <img className="logo" src="photos/logo-sekai.webp" alt="Sekai Corndogs" />
-        <h1>NOTRE CARTE</h1>
+        <h1>{t("notreCarte")}</h1>
         <button className="lien" onClick={onAnnuler}>
-          Annuler
+          {t("annuler")}
         </button>
       </header>
       {/* 🔴 Les catégories sont une COLONNE VERTICALE qui tient à l'écran.
@@ -594,7 +635,9 @@ function Carte({
                     signatures en ont besoin — leur nom ne dit rien de ce
                     qu'elles contiennent — là où « CORNDOG MOZZA » se suffit.
                     Textes relevés sur la borne EasyOrder. */}
-                {p.description && <div className="detail">{p.description}</div>}
+                {champ(p, "description", langue) && (
+                  <div className="detail">{champ(p, "description", langue)}</div>
+                )}
               </button>
             );
           })}
@@ -603,7 +646,8 @@ function Carte({
       {nbArticles > 0 && (
         <footer>
           <button className="btn gros" onClick={onPanier}>
-            Voir ma commande · {nbArticles} article{nbArticles > 1 ? "s" : ""} ·{" "}
+            {t("voirCommande")} · {nbArticles}{" "}
+            {nbArticles > 1 ? t("articles") : t("article")} ·{" "}
             {eur(total)}
           </button>
         </footer>
@@ -616,11 +660,15 @@ function Carte({
 function Config({
   produit,
   groupes,
+  langue,
+  t,
   onRetour,
   onAjouter,
 }: {
   produit: Produit;
   groupes: Groupe[];
+  langue: Langue;
+  t: T;
   onRetour: () => void;
   onAjouter: (a: Article) => void;
 }) {
@@ -645,7 +693,7 @@ function Config({
     <div className="page">
       <header>
         <button className="lien" onClick={onRetour}>
-          ‹ Retour
+          ‹ {t("retour")}
         </button>
         <h1>{produit.nom}</h1>
       </header>
@@ -658,7 +706,7 @@ function Config({
           const illustre = groupeIllustre(g);
           return (
             <section key={g.id}>
-              <h2>{g.nom}</h2>
+              <h2>{champ(g, "nom", langue)}</h2>
               <div className={illustre ? "choix illustre" : "choix"}>
                 {g.options.map((o) => {
                   const classes = ["pastille"];
@@ -678,11 +726,18 @@ function Config({
                           // la rangée se décale et il passe pour un bouton à part.
                           <span className="vignette vide" aria-hidden="true" />
                         ))}
-                      <span className="libelle">{o.nom}</span>
+                      {/* ⚠️ `champ()` retombe sur le français quand il n'y a
+                          pas de traduction : les non-choix sont traduits en
+                          base, les vrais noms d'options ne le sont pas et
+                          passent donc tels quels. Un seul appel couvre les
+                          deux cas. */}
+                      <span className="libelle">{champ(o, "nom", langue)}</span>
                       {o.prix > 0 ? (
                         <span className="sup">+ {eur(o.prix)}</span>
                       ) : (
-                        groupePayant && <span className="compris">Compris</span>
+                        groupePayant && (
+                          <span className="compris">{t("inclus")}</span>
+                        )
                       )}
                     </button>
                   );
@@ -691,7 +746,7 @@ function Config({
             </section>
           );
         })}
-        {groupes.length === 0 && <p className="gris">Aucune option.</p>}
+        {groupes.length === 0 && <p className="gris">{t("aucuneOption")}</p>}
       </div>
       <footer>
         <div className="qte">
@@ -707,7 +762,7 @@ function Config({
           className="btn gros"
           onClick={() => onAjouter({ produit, options: retenus, quantite })}
         >
-          Ajouter · {eur(prix)}
+          {t("ajouter")} · {eur(prix)}
         </button>
       </footer>
     </div>
@@ -717,11 +772,13 @@ function Config({
 function Envoi({
   mode,
   panier,
+  t,
   onFini,
   onEchec,
 }: {
   mode: string;
   panier: Article[];
+  t: T;
   onFini: (ref: string) => void;
   onEchec: () => void;
 }) {
@@ -744,18 +801,18 @@ function Envoi({
   if (erreur)
     return (
       <div className="plein">
-        <h1>Commande non enregistrée</h1>
-        <p className="gris">Rien n'a été envoyé. Commandez au comptoir.</p>
+        <h1>{t("nonEnregistree")}</h1>
+        <p className="gris">{t("rienEnvoye")}</p>
         <p className="petit">{erreur}</p>
         <button className="btn" onClick={onEchec}>
-          Retour
+          {t("retour")}
         </button>
       </div>
     );
 
   return (
     <div className="plein">
-      <h1>Envoi…</h1>
+      <h1>{t("envoiEnCours")}</h1>
     </div>
   );
 }
@@ -763,10 +820,12 @@ function Envoi({
 function Fini({
   reference,
   total,
+  t,
   onFermer,
 }: {
   reference: string;
   total: number;
+  t: T;
   onFermer: () => void;
 }) {
   // La borne se remet seule à l'accueil : personne n'appuie sur « Fermer »
@@ -781,18 +840,18 @@ function Fini({
       {/* La mascotte sert ici : c'est le moment où le client attend. */}
       <div className="carte-numero">
         <img src="photos/logo-sekai.webp" alt="Sekai Corndogs" />
-        <div className="libelle">VOTRE NUMÉRO</div>
+        <div className="libelle">{t("votreNumero")}</div>
         <div className="numero">{reference}</div>
         <div className="montant">
-          <span>TOTAL</span>
+          <span>{t("totalMaj")}</span>
           <strong>{eur(total)}</strong>
         </div>
       </div>
       <div>
-        <div className="consigne">À RÉGLER AU COMPTOIR</div>
-        <div className="sous-consigne">Gardez votre numéro, on vous appelle</div>
+        <div className="consigne">{t("reglerComptoir")}</div>
+        <div className="sous-consigne">{t("gardezNumero")}</div>
       </div>
-      <button className="btn">TERMINER</button>
+      <button className="btn">{t("terminer")}</button>
     </div>
   );
 }
