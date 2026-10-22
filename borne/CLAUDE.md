@@ -523,7 +523,35 @@ du webhook.
    catalogue borne. Volontaire ou oubli ?
 9. Les **16 prix de `borne_produits`** n'ont pas été confirmés par le gérant.
 
-## 🚀 Déployer pour tester — à faire par le gérant (22/10/2026)
+## 🟢 EN LIGNE depuis le 22/10/2026
+
+**https://sekai-app-seven.vercel.app** — projet Vercel `sekai-app`
+(`prj_qQjT2Mryj8z9AXI1xBlz6ZLPvytF`), Root Directory `borne`, branche `main`.
+L'écran cuisine est sur **`/#cuisine`**.
+
+⚠️ **NE PAS CONFONDRE** : `project-ynxry` reste l'app de GESTION. Le projet
+Vercel de la borne s'appelle `sekai-app`, ce qui prête à confusion avec le nom
+du dépôt.
+
+### 🔴 La protection Vercel doit être coupée avant la mise en service
+
+Le projet est créé avec **Vercel Authentication activée**
+(`ssoProtection.enabled`, `all_except_custom_domains`). Conséquence : l'URL
+`.vercel.app` demande une connexion Vercel.
+
+**Ça marche pour le gérant**, qui est connecté dans son navigateur. **Ça ne
+marchera PAS sur la borne du magasin**, qui tombera sur un écran de login
+Vercel au lieu de la carte.
+
+➡️ **Settings → Deployment Protection → Vercel Authentication → Disabled.**
+Ou brancher un vrai domaine : la protection épargne les domaines personnalisés.
+
+⚠️ Je ne peux pas le vérifier moi-même : le proxy sortant de l'environnement
+Claude refuse `*.vercel.app` (403 au tunnel CONNECT). Le constat vient de la
+configuration lue par l'API, pas d'un test. **À confirmer depuis une fenêtre
+de navigation privée.**
+
+## 🚀 Comment le projet a été créé (22/10/2026)
 
 🔴 **Je ne peux pas créer le projet Vercel moi-même.** La connexion Vercel de
 mes outils n'a pas accès à l'équipe (`403 forbidden` sur
