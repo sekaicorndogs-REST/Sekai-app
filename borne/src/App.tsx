@@ -76,6 +76,19 @@ const PHOTOS: Record<string, string> = {
   // donc incapable de les distinguer.
   "BUBBLE TEA PECHE": "bubble-peche.png",
   "BUBBLE TEA PASTEQUE": "bubble-pasteque.png",
+  // Les softs vendus SEULS, catégorie à part depuis le 22/10/2026 (demande du
+  // gérant, comme sur la borne EasyOrder). Mêmes visuels que le groupe
+  // `CHOIX DU SOFT` des menus — c'est la même canette.
+  // 🔴 COCA n'a PAS de photo : il est vendu seul mais n'existe pas dans les
+  // options de menu, où c'est PEPSI MAX qui figure. Sa carte s'affiche donc
+  // sans image, ce qui est voulu — on voit tout de suite ce qu'il reste à
+  // photographier.
+  "EAU": "soft-eau.png",
+  "PEPSI": "soft-pepsi.png",
+  "OASIS CASSIS": "soft-oasis-cassis.png",
+  "OASIS TROPICAL": "soft-oasis-tropical.png",
+  "ICE TEA PECHE": "soft-ice-tea-peche.png",
+  "ICE TEA PET": "soft-ice-tea-pet.png",
 };
 
 // ⚠️ La valeur porte le NOM DE FICHIER COMPLET, extension comprise : les
@@ -187,7 +200,8 @@ const PHOTOS_CATEGORIES: Record<string, string> = {
   Corndogs: "base-saucisse-mozza.webp",
   Signatures: "signature-sekai.webp",
   Sides: "side-frites.png",
-  Boissons: "bubble-peche.png",
+  "Bubble Tea": "bubble-peche.png",
+  Softs: "soft-pepsi.png",
 };
 
 const photoCategorie = (nom: string): string | null =>

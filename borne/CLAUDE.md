@@ -225,8 +225,9 @@ valider le reste au comptoir.
 seule des neuf dont on a le vrai cliché, et elle sert de témoin aux huit autres.
 Le script la restaure après la boucle — ne pas supprimer cette ligne.
 
-✅ **Au 22/10/2026 TOUT est illustré** : les treize groupes d'options et les
-seize produits. Plus aucun trou côté visuels.
+✅ **Au 22/10/2026 tout est illustré sauf UN** : les treize groupes d'options
+et vingt-deux des vingt-trois produits. **Seul `COCA` n'a pas de photo**, ajouté
+à la carte le 22/10 avec les softs.
 
 ### 🖥️ La mise en page de la carte — calquée sur la borne EasyOrder
 
@@ -253,6 +254,25 @@ sur le rouge, un visuel détouré rouge-orangé — les corndogs — disparaissa
 
 🔴 **Et la colonne de catégories reste VERTICALE et entière à l'écran** — voir
 la règle plus bas, c'est le défaut documenté des bornes McDonald's.
+
+### Softs et Bubble Tea, deux catégories (22/10/2026)
+
+Demande du gérant, comme sur la borne EasyOrder. Les sept softs sont désormais
+**vendus seuls** dans `borne_produits`, catégorie `Softs`, à **2,00 €**.
+
+🔴 **Rien n'est supposé** : la liste et le prix viennent de
+`commandes_live_lignes`, donc des vraies ventes — catégorie `SOFTS` à 2,00 €,
+`BUBBLE TEA` à 5,00 €.
+
+⚠️ **Les softs de la CARTE ne sont pas ceux des OPTIONS de menu.**
+`COCA` est vendu seul (encore le 21/10/2026) mais n'existe pas dans
+`CHOIX DU SOFT`, où c'est `PEPSI MAX` qui figure — et Pepsi Max, à l'inverse,
+n'est jamais vendu seul. Les deux listes ne se recouvrent pas, et c'est l'état
+réel de la carte : **ne pas « harmoniser » l'une sur l'autre.**
+
+🔴 **COCA n'a pas de photo** : sa carte s'affiche sans image. C'est volontaire —
+une carte sans visuel se voit tout de suite, et on sait ce qu'il reste à
+photographier. **C'est le seul produit sans visuel.**
 
 ### Les descriptions de produit
 
