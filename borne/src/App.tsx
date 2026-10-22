@@ -26,12 +26,21 @@ const eur = (n: number) => n.toFixed(2).replace(".", ",") + " €";
 // s'affichent en carte sans image. C'est le dernier trou de la carte.
 const PHOTOS: Record<string, string> = {
   // ✅ Les VRAIS visuels de menu, envoyés par le gérant le 22/10/2026 : le menu
-  // complet sur son plateau, détouré sur fond transparent. Le titre « MENU GOOD
-  // DEAL » a été recadré hors de l'image — il est déjà écrit sous la carte.
-  "MENU GOODEAL": "menu-gooddeal.png",
-  "MENU BUBBLE DOGS": "menu-bubbledog.png",
-  "MENU GOODEAL XL": "menu-gooddeal-xl.png",
-  "MENU BUBBLE DOGS XL": "menu-bubbledog-xl.png",
+  // complet sur son plateau, détouré sur fond transparent.
+  //
+  // 🔴 Ils gardent leur TITRE (« MENU GOOD DEAL » en gros au-dessus du
+  // plateau). La première version le recadrait, parce que le nom était écrit
+  // sous la carte ; le gérant a demandé l'inverse le 22/10/2026 — le titre
+  // reste sur l'image et le libellé sous la carte disparaît. Le nom
+  // n'apparaît qu'une fois, dans les deux cas.
+  //
+  // ⚠️ Le mot « MENU » est en lettres BLANCHES sur fond blanc, tenues par un
+  // simple contour : au détourage, un remplissage trop gourmand passe au
+  // travers et les mange. Seuil serré, et vérifier en capture.
+  "MENU GOODEAL": "menu-gooddeal.webp",
+  "MENU BUBBLE DOGS": "menu-bubbledog.webp",
+  "MENU GOODEAL XL": "menu-gooddeal-xl.webp",
+  "MENU BUBBLE DOGS XL": "menu-bubbledog-xl.webp",
   // ✅ Les trois bases sur bâtonnet, envoyées par le gérant le 22/10/2026.
   // Elles remplacent des découpes de l'affiche qui portaient du texte, une
   // main, et ne distinguaient PAS les trois produits — c'était le manque le
@@ -509,13 +518,21 @@ function Carte({
               <button
                 className={estMenu(p) ? "produit menu" : "produit"}
                 key={p.nom}
+                aria-label={`${p.nom}, ${eur(p.prix)}`}
                 onClick={() => onProduit(p)}
               >
                 <div className="photo">
                   {img && <img src={img} alt="" />}
                   <div className="prix">{eur(p.prix)}</div>
                 </div>
-                <div className="nom">{p.nom}</div>
+                {/* 🔴 Le nom des MENUS est écrit DANS leur visuel (« MENU GOOD
+                    DEAL » en gros sur la photo), donc il n'est pas répété
+                    dessous : demande du gérant, 22/10/2026. Il reste dans le
+                    `aria-label` du bouton, sinon la carte n'aurait aucun nom
+                    pour qui ne voit pas l'image.
+                    ⚠️ Si un jour un visuel de menu arrive SANS son titre, la
+                    carte devient muette : remettre le libellé. */}
+                {estMenu(p) ? null : <div className="nom">{p.nom}</div>}
               </button>
             );
           })}

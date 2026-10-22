@@ -543,23 +543,26 @@ h2 {
   letter-spacing: -0.3px;
 }
 
-/* Les menus portent 41 % de la marge : photo plus haute, nom plus gros et en
-   rouge, pour qu'ils ne se confondent pas avec une canette.
-   ⚠️ Le nom en --rouge sur --creme-clair ne vaut que 3,77, donc il ne tient QUE
-   parce qu'il fait 34 px : ne pas réduire cette taille sans repasser le nom en
-   --bordeaux. */
+/* Les menus portent 41 % de la marge : leur carte est plus grande.
+   🔴 Ils n'ont PAS de libellé sous la photo — leur nom est écrit DANS le
+   visuel (« MENU GOOD DEAL » en gros au-dessus du plateau). Demande du gérant,
+   22/10/2026 : le nom ne doit apparaître qu'une fois.
+   La carte est donc photo + prix, rien d'autre, et `.produit.menu .nom`
+   n'existe plus — c'est `App.tsx` qui ne rend pas l'élément. */
 .produit.menu .photo {
-  height: 252px;
+  /* 330 px : les visuels font 760x970, donc dans une carte de ~255 px de large
+     le plateau tient pile. Plus bas, il serait rogné en haut ou en bas ;
+     plus haut, deux bandes de crème apparaîtraient. */
+  height: 330px;
 }
+/* ⚠️ Pastille PLUS PETITE que sur les autres cartes, pas plus grande — c'est
+   l'inverse de la première version. Le visuel porte déjà son titre en gros :
+   une pastille de 96 px venait lui disputer la place et écrasait le plateau.
+   Demande du gérant le 22/10/2026. */
 .produit.menu .prix {
-  min-width: 96px;
-  height: 96px;
-  font-size: 30px;
-}
-.produit.menu .nom {
-  color: var(--rouge);
-  font-size: 34px;
-  padding: 16px 20px 20px;
+  min-width: 66px;
+  height: 66px;
+  font-size: 21px;
 }
 
 /* ── Choix d'options ────────────────────────────────────────────────────── */

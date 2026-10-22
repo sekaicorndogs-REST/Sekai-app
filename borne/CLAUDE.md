@@ -149,7 +149,7 @@ ce cas.
 2. Retirer les bandes noires s'il s'agit d'une capture de téléphone.
 3. **Détourer** : `ImageDraw.floodfill` depuis les BORDS seulement (implémenté
    en C, donc rapide) — les blancs intérieurs des logos sont préservés.
-4. Pour un visuel de menu, **recadrer sous le titre** (~35 % du haut) : le nom
+4. Pour un visuel de menu, **GARDER le titre** : il tient lieu de nom sur la carte, qui n'affiche plus de libellé dessous. ⚠️ Le mot « MENU » est en lettres **blanches sur fond blanc**, tenues par un simple contour — un remplissage trop gourmand passe au travers et les mange. Seuil serré, puis vérifier en capture. Supprimer ensuite les fragments isolés (restes du trait de pinceau).
    est déjà écrit sous la carte, l'y laisser le doublerait et rapetisserait le
    plat. Puis supprimer les fragments isolés (restes du trait de pinceau).
 5. Enregistrer en **PNG transparent** dans `public/photos/`, puis ajouter la
@@ -162,7 +162,7 @@ ce cas.
 |---|---|
 | **Logo détouré** | ✅ repris de l'app de gestion, `public/photos/logo-sekai.webp`, 630×640, transparent |
 | **Affiche** | ✅ `public/photos/affiche.jpg`, 1400×1979 |
-| **Les 4 menus** | ✅ **envoyés par le gérant**, détourés sur leur plateau |
+| **Les 4 menus** | ✅ **envoyés par le gérant**, détourés sur leur plateau, **avec leur titre**. 🔴 Leur carte n'a **pas de libellé sous la photo** : le nom est écrit dans le visuel, il ne doit apparaître qu'une fois (gérant, 22/10/2026). La pastille de prix y est **plus petite** que sur les autres cartes, pour ne pas disputer la place au titre. Le nom reste dans l'`aria-label` du bouton — **si un visuel arrive un jour sans son titre, la carte devient muette : remettre le libellé** |
 | **Softs** | ✅ **les 7** : Pepsi, Pepsi Max, SPA (eau), Oasis Cassis, Oasis Tropical, Ice Tea Pêche, Ice Tea Pétillant. Le groupe **`CHOIX DU SOFT` d'un menu est donc illustré**. ⚠️ `CHOIX DU SOFT SUPP` attend encore **Oasis Fraise** |
 | **Panures** | ✅ **les 6**, visuels professionnels sur fond blanc fournis par le gérant le 22/10/2026, détourés. ⚠️ **La rouge et la bleue arrivaient sur UNE SEULE image** : coupée en deux. Les groupes `CHOIX DE LA PANURE` et `SUPPLEMENT PANURE` sont donc illustrés |
 | **Sides** | ✅ frites, karaage, tempura, détourés. Servent **à deux endroits** : les produits de la carte ET le groupe `SIDE` des options. ⚠️ Le groupe `SIDE 2` des menus XL nomme les mêmes produits « … 3pcs » : deux libellés, une seule photo |
