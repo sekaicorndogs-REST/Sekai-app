@@ -79,11 +79,14 @@ const PHOTOS: Record<string, string> = {
   // Les softs vendus SEULS, catégorie à part depuis le 22/10/2026 (demande du
   // gérant, comme sur la borne EasyOrder). Mêmes visuels que le groupe
   // `CHOIX DU SOFT` des menus — c'est la même canette.
-  // 🔴 COCA n'a PAS de photo : il est vendu seul mais n'existe pas dans les
-  // options de menu, où c'est PEPSI MAX qui figure. Sa carte s'affiche donc
-  // sans image, ce qui est voulu — on voit tout de suite ce qu'il reste à
-  // photographier.
+  //
+  // ⚠️ La liste vient de `commandes_live_lignes`, donc des vraies ventes, SAUF
+  // le Pepsi Max : les lignes y portent « COCA », mais le gérant a tranché
+  // qu'il n'y a pas de Coca et que c'est du Pepsi Max qui est servi — le
+  // bouton de la borne EasyOrder garde un libellé périmé. Un libellé de vente
+  // dit ce qu'affiche la borne, pas forcément ce qui est vendu.
   "EAU": "soft-eau.png",
+  "PEPSI MAX": "soft-pepsi-max.png",
   "PEPSI": "soft-pepsi.png",
   "OASIS CASSIS": "soft-oasis-cassis.png",
   "OASIS TROPICAL": "soft-oasis-tropical.png",
