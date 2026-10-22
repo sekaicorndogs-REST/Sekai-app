@@ -1,5 +1,33 @@
 # Borne de commande maison — contexte du projet
 
+## ⏳ À REPORTER AU JOURNAL PUIS SUPPRIMER D'ICI
+
+Le connecteur Supabase est tombé pendant la session du 22/10/2026 : cette note
+n'a pas pu être écrite en base. **L'insérer dans `journal` puis effacer cette
+section**, c'est tout ce qu'il reste à faire.
+
+```
+date   : 2026-10-22
+type   : note
+sujet  : Borne — toutes les images rangées dans public/photos
+contenu: Demande du gérant : « mettre toutes les photos en dehors du dossier
+  image et les mettre là-bas ». L'affiche et le logo traînaient à la racine de
+  borne/public/, à côté du dossier photos/. Les deux y sont rentrés (commit
+  e9810bd), chemins suivis dans App.tsx, styles.css et CLAUDE.md. La règle est
+  écrite dans CLAUDE.md : toute image du projet va dans public/photos/, rien à
+  côté.
+  💡 GARDE-FOU AJOUTÉ AU SCRIPT DE CAPTURES : il surveille désormais les
+  réponses HTTP en échec. Une image au mauvais chemin ne casse pas le build,
+  elle ne s'affiche simplement pas — ça serait parti en production sans bruit.
+  🔴 RIEN TOUCHÉ DANS L'APP DE GESTION, volontairement : ses images sont les
+  icônes PWA et Capacitor, référencées par vite.config.ts, index.html et le
+  manifeste, et /logo-sekai.png est en dur dans App.tsx. Les déplacer casserait
+  l'app que l'équipe utilise tous les jours, et les icônes PWA doivent rester à
+  la racine pour qu'Android les trouve. Le gérant a été prévenu que c'est
+  faisable sur demande, mais que ça impose un redéploiement et une
+  revérification de l'installation sur les téléphones.
+```
+
 Ce fichier porte **le projet borne uniquement**. Le contexte métier complet (CA,
 finances, horaires, stock, EasyOrder) est dans le `CLAUDE.md` à la racine du
 dépôt : le lire aussi, il contient les règles qui ne doivent jamais être
