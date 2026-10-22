@@ -523,10 +523,50 @@ du webhook.
    catalogue borne. Volontaire ou oubli ?
 9. Les **16 prix de `borne_produits`** n'ont pas été confirmés par le gérant.
 
+## 🚀 Déployer pour tester — à faire par le gérant (22/10/2026)
+
+🔴 **Je ne peux pas créer le projet Vercel moi-même.** La connexion Vercel de
+mes outils n'a pas accès à l'équipe (`403 forbidden` sur
+`sekaicorndogs-6747s-projects`), et le CLI n'est pas connecté — le proxy sortant
+bloque la connexion. C'est donc au gérant de le faire, une fois.
+
+**Les quatre étapes, sur vercel.com :**
+
+1. **Add New → Project**, choisir le dépôt `sekai-app`.
+2. 🔴 **Root Directory = `borne`.** C'est LE réglage à ne pas manquer : sans
+   lui, Vercel construit l'app de gestion et ne trouve rien.
+3. ⚠️ **Settings → Git → Production Branch = `claude/borne-5xiop2`.**
+   `borne/` **n'existe pas sur `main`** : un déploiement depuis `main`
+   échouerait. L'autre voie est de fusionner `borne/` dans `main`, ce qui ne
+   casse rien (le projet `project-ynxry` a son propre Root Directory) — mais
+   c'est une décision du gérant, pas la mienne.
+4. Déployer. Rien d'autre à régler : Vite est détecté tout seul, et aucune
+   variable d'environnement n'est nécessaire — `api.ts` porte les valeurs
+   Supabase par défaut.
+
+⚠️ **Ne pas confondre avec `project-ynxry`**, qui est l'app de gestion. La
+borne est un projet et une URL à part.
+
+`.vercelignore` écarte `android/` (7,5 Mo) et `photos-recues/` (14 Mo) : ni
+l'un ni l'autre ne sert au web.
+
+### L'application Android
+
+⚠️ **L'APK ne peut pas être construit ici** : pas de SDK Android dans
+l'environnement. Il faut Android Studio sur une machine, puis
+`npm run build && npx cap sync android`, et ouvrir `borne/android/`.
+
+⚠️ **Et le Play Store n'est probablement PAS le bon canal.** Pour trois
+tablettes que le gérant possède, l'APK installé directement suffit : pas de
+compte développeur (25 $), pas de fiche à écrire, pas de revue Google, pas de
+délai, et surtout **pas de mise à jour automatique qui tombe en plein
+service**. Si une distribution gérée devient nécessaire, la **diffusion
+interne** de la Play Console s'y prête mieux qu'une publication publique.
+À trancher avec le gérant.
+
 ## Ce qui reste à faire
 
-- Déployer sur un **projet Vercel à part**, puis installer sur la borne de
-  secours (Capacitor, ou un shell natif qui charge l'URL distante).
+- Installer sur la borne de secours.
 - Les policies RLS (voir Sécurité).
 - Trancher les questions ouvertes ci-dessus avec le gérant.
 
