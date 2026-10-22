@@ -169,7 +169,7 @@ ce cas.
 | **Sauces** | ✅ **les 9**, donc `CHOIX DE LA SAUCE` est illustré. Le gérant a photographié **le SAMOURAÏ** dans son ramequin, vu de dessus sur fond blanc ; les huit autres sont **ce même pot recoloré**. En `.webp`, ~24 Ko pièce au lieu de ~330 Ko en PNG |
 | **Corndogs seuls** | ✅ **les 3 bases sur bâtonnet**, envoyées par le gérant le 22/10/2026. Elles remplacent des découpes d'affiche qui portaient du texte, une main, et ne distinguaient PAS les trois produits. Servent **à deux endroits** : la carte ET le groupe `CHOIX DE LA BASE` des menus. ⚠️ Ce sont les bases **NUES, avant panure** — cohérent avec le parcours (garniture puis panure) mais ce n'est pas le produit fini, à confirmer |
 | **Bubble teas** | ✅ les gobelets photoréalistes, les mêmes que les sirops du menu. Ils remplacent **une** découpe d'affiche partagée par les deux parfums, donc incapable de les distinguer |
-| **Signatures** | 🔴 **manquantes** : Saitama, Ace, Sekai, Suisse s'affichent en carte sans image. **C'est le dernier trou** |
+| **Signatures** | ✅ **les 4**, envoyées sur UNE seule image le 22/10/2026 et découpées par composantes connexes. 🔴 **L'association photo → signature n'est pas une supposition** : elle vient de `menu_recettes`, qui donne la panure de chacune (Saitama panko simple · Ace spicy Doritos · Sekai bleu · Suisse patate), puis chaque panure a été recoupée avec sa propre photo du groupe `CHOIX DE LA PANURE` — les quatre concordent. ⚠️ À faire confirmer au comptoir quand même |
 | **Oignons frits** | ✅ visuel du gérant (22/10/2026), pot transparent et morceaux qui tombent. Seul choix payant de `SUPPLEMENTS` : **le groupe est donc illustré**. ⚠️ Format vertical (440×648), donc la vignette est plus étroite que les sides voisins — **ne pas la recadrer**, le nuage de morceaux occupe toute la largeur et toute coupe trancherait en plein milieu d'un morceau |
 
 ### 🎨 Décliner une couleur depuis une seule photo — la méthode du 22/10/2026
@@ -225,8 +225,16 @@ valider le reste au comptoir.
 seule des neuf dont on a le vrai cliché, et elle sert de témoin aux huit autres.
 Le script la restaure après la boucle — ne pas supprimer cette ligne.
 
-✅ **Au 22/10/2026 les TREIZE groupes d'options sont illustrés**, et douze des
-seize produits. Il ne manque que les **quatre signatures**.
+✅ **Au 22/10/2026 TOUT est illustré** : les treize groupes d'options et les
+seize produits. Plus aucun trou côté visuels.
+
+💡 **La méthode qui a servi aux signatures est réutilisable** : quand une photo
+doit être attribuée à un produit et que le doute est possible, **chercher la
+réponse en base plutôt que deviner**. `menu_recettes` donne la panure et la
+garniture de chaque produit, et les photos de panures déjà en place servent de
+témoin visuel. Deux sources indépendantes qui concordent valent mieux qu'une
+intuition — une photo attribuée au mauvais produit fait commander autre chose
+que ce qui est montré.
 
 ⚠️ **Plus aucune photo produit n'est découpée dans l'affiche.** Les huit
 découpes (`saucisse.jpg`, `mozza.jpg`, `bubbledog.jpg`, `bubbletea.jpg`,

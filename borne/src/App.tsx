@@ -22,8 +22,9 @@ const eur = (n: number) => n.toFixed(2).replace(".", ",") + " €";
 // ligne ici, rien d'autre à toucher. ⚠️ La valeur porte le nom de fichier
 // COMPLET, extension comprise — les formats sont mélangés (.png, .webp).
 //
-// 🔴 Il manque les QUATRE SIGNATURES (Saitama, Ace, Sekai, Suisse) : elles
-// s'affichent en carte sans image. C'est le dernier trou de la carte.
+// ✅ Depuis le 22/10/2026 les SEIZE produits ont leur visuel. Une carte sans
+// photo retombe sur un bandeau crème : c'est volontairement neutre, pour qu'un
+// produit non photographié se voie tout de suite.
 const PHOTOS: Record<string, string> = {
   // ✅ Les VRAIS visuels de menu, envoyés par le gérant le 22/10/2026 : le menu
   // complet sur son plateau, détouré sur fond transparent.
@@ -53,6 +54,20 @@ const PHOTOS: Record<string, string> = {
   "CORNDOG SAUCISSE": "base-saucisse.webp",
   "CORNDOG MOZZA": "base-mozza.webp",
   "CORNDOG SAUCISSE/MOZZA": "base-saucisse-mozza.webp",
+  // Les quatre signatures, envoyées sur UNE seule image le 22/10/2026 et
+  // découpées par composantes connexes.
+  //
+  // 🔴 L'association photo → signature n'est PAS une supposition : elle vient
+  // de `menu_recettes`, qui donne la panure de chacune — Saitama au panko
+  // simple, Ace au spicy (Doritos), Sekai au bleu, Suisse à la patate. Chaque
+  // panure a ensuite été recoupée avec sa propre photo du groupe
+  // `CHOIX DE LA PANURE`, et les quatre concordent.
+  // ⚠️ À faire confirmer quand même au comptoir : une photo attribuée au
+  // mauvais produit fait commander autre chose que ce qui est montré.
+  "SAITAMA": "signature-saitama.webp",
+  "ACE": "signature-ace.webp",
+  "SEKAI": "signature-sekai.webp",
+  "SUISSE": "signature-suisse.webp",
   "FRITES": "side-frites.png",
   "Poulet karaage": "side-karaage.png",
   "Tempura crevette": "side-tempura.png",
