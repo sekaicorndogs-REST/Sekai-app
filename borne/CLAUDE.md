@@ -228,6 +228,31 @@ Le script la restaure après la boucle — ne pas supprimer cette ligne.
 ✅ **Au 22/10/2026 TOUT est illustré** : les treize groupes d'options et les
 vingt-trois produits, softs compris. Plus aucun trou côté visuels.
 
+### 🧾 Le ticket de cuisine — `src/ticket.ts`
+
+Format relevé **au caractère près** sur le ticket EasyOrder #029 du 22/10/2026,
+et reproduit tel quel : la cuisine lit ces tickets depuis des mois, changer leur
+mise en page lui coûterait plus que ça ne lui rapporterait. 32 colonnes, soit du
+papier 58 mm.
+
+⚠️ **Le générateur est écrit et vérifié contre le vrai ticket, mais il n'est
+BRANCHÉ À RIEN** : il attend de savoir quelle imprimante et comment elle est
+reliée.
+
+🔴 **LES NON-CHOIX SONT IMPRIMÉS**, contrairement au panier et à l'écran
+cuisine qui masquent « PAS DE SUPPLEMENT ». C'est délibéré : sur le ticket, une
+ligne absente peut vouloir dire « on a oublié de demander », une ligne « PAS DE
+SUPPLEMENT » veut dire « la question a été posée, la réponse est non ». Ne pas
+« nettoyer » le ticket sans l'avoir demandé au gérant.
+
+🔴 **L'heure du ticket est celle de BRUXELLES**, pas l'UTC du serveur : c'est
+l'heure que la cuisine compare à sa pendule.
+
+⚠️ La mention « Ceci n'est pas un ticket TVA » est **conservée**. Le gérant l'a
+posé le 18/09/2026 : la borne n'entre pas dans la comptabilité, seules les
+factures partent au comptable. Le ticket ne doit jamais passer pour un
+justificatif.
+
 ### 🌍 Les quatre langues (22/10/2026)
 
 **Français · English · Nederlands · Español**, reprises de la borne EasyOrder.
@@ -247,12 +272,22 @@ croit s'être trompé. Donc **tout** est traduit.
 | Non-choix (« Pas de supplément ») | `borne_options.nom_en` / `nom_nl` / `nom_es` |
 | Compositions de produits | `borne_produits.description_en` / `_nl` / `_es` |
 
-🔴 **CE QUI N'EST PAS TRADUIT, ET NE DOIT PAS L'ÊTRE** (consigne du gérant :
-*« traduis tout sauf les titres »*) : les **noms de produits** (« SAITAMA »,
-« MENU GOODEAL »), les **noms d'options** (« POTATOE », « BLUE », « KETCHUP »)
-et les **catégories** (« Sides », « Bubble Tea »). Ce sont des noms
-commerciaux — et le client doit lire le même mot que celui que la cuisine
-verra sur son écran.
+**Les noms d'options SONT traduits** depuis le 22/10/2026 — panures, bases,
+sauces, sides, perles, sirops, « eau » (gérant : *« pour les chapelures, les
+bases, les sauces, tu peux tout traduire »*).
+
+🔴 **CE QUI N'EST PAS TRADUIT, ET NE DOIT PAS L'ÊTRE** : les **noms de
+produits** (« SAITAMA », « MENU GOODEAL »), les **catégories** (« Sides »,
+« Bubble Tea »), et les **noms propres et marques** parmi les options —
+`SEKAI` (le nom de la maison), `ANDALOUSE` et `SAMOURAI` (des sauces belges
+qui n'ont pas d'autre nom), `KETCHUP`, `BBQ`, `SRIRACHA`, et les marques de
+softs. Les traduire inventerait des mots que personne ne reconnaît.
+
+🔴 **ET LA CUISINE LIT TOUJOURS LE FRANÇAIS.** `Choix.groupe` et `Choix.choix`
+portent le nom français, c'est lui qui part en base et ressort sur le ticket ;
+`Choix.libelles` ne sert qu'à l'affichage du panier et **n'est jamais envoyé**
+(`Envoi` ne remonte que `groupe`, `choix`, `prix`). Sans cette séparation, un
+client espagnol ferait sortir un ticket de cuisine en espagnol.
 
 ⚠️ `champ(objet, "nom", langue)` **retombe silencieusement sur le français**
 quand la colonne traduite est vide. C'est voulu : une description ajoutée sans
@@ -417,9 +452,15 @@ du webhook.
 
 ## Questions ouvertes
 
-1. 🔴 **Comment la cuisine voit-elle la commande aujourd'hui ?** Posé le 03/10,
-   **toujours sans réponse**. J'ai construit un écran cuisine en supposant un
-   écran ; si c'est un ticket imprimé, c'est une imprimante qu'il faut brancher.
+1. ✅ **RÉPONDU LE 22/10/2026 : la cuisine travaille sur un TICKET IMPRIMÉ.**
+   Le gérant a envoyé la photo du ticket #029. C'était la question bloquante
+   depuis le 03/10, et la réponse change la hiérarchie : **l'écran
+   `Cuisine.tsx` n'est pas le premier, le ticket l'est.** L'écran garde son
+   utilité (vue d'ensemble, rattrapage d'un ticket perdu ou d'une panne de
+   papier), mais le service tient au papier.
+   **Ce qui reste à savoir** : quelle imprimante, et comment elle est reliée —
+   USB sur la borne, réseau, ou pilotée par EasyOrder. Tant qu'on l'ignore,
+   l'impression ne peut pas être branchée.
 2. **Le coût d'EasyOrder — une piste forte est apparue le 04/10/2026.**
    En cherchant les justificatifs 2025 pour Skytax, **`POWER ONLINE` (Liège)
    ressort à 681,50 €/mois fixe**, 6 304 € sur 2025, soit **~8 178 €/an** : pas
