@@ -376,6 +376,67 @@ chaque côté dans une carte large. Les **signatures**, photographiées en
 diagonale, remplissent beaucoup mieux. Si l'occasion se présente, refaire les
 trois bases en diagonale.
 
+### 🧩 Les écrans d'options — repris le 23/10/2026
+
+Le gérant a demandé « et pour les ajouts pour les menus ? » juste après la
+refonte des cartes. Quatre défauts trouvés, tous sur l'écran d'options.
+
+1. 🔴 **`MENU GOODEAL XL` n'avait pas le groupe `SUPPLEMENTS`** — c'était la
+   question ouverte n° 6. **Ajouté** (migration
+   `borne_goodeal_xl_supplements_et_non_choix_fr`, `ordre` = 5). C'était le
+   **seul des quatre menus** à ne pas l'avoir : le Good Deal normal et les
+   **deux** Bubble Dogs le portent. Donc un oubli de la borne EasyOrder,
+   recopié tel quel. Conséquence concrète : on ne pouvait pas mettre d'oignons
+   frits à 0,50 € sur le menu le plus cher. ⚠️ **À faire confirmer au gérant**
+   — ça ouvre un supplément payant là où il n'y en avait pas ; une ligne
+   `delete` suffit à revenir en arrière.
+
+2. 🔴 **Un groupe à un seul choix est MASQUÉ.** `OPTION FRITES` d'un Good Deal
+   ne contient que `FRITES` à 0 € : le client voyait une case cochée qu'il ne
+   pouvait pas décocher, ce qui fait douter du reste de l'écran.
+   ⚠️ **Masqué à l'affichage seulement** : le choix reste dans l'état et dans
+   `retenus`, donc il part en base et **s'imprime toujours sur le ticket**. Le
+   jour où un « sans frites » est ajouté, le groupe réapparaît tout seul.
+
+3. **Deux non-choix étaient en ANGLAIS dans la colonne française** : `NO SAUCE`
+   et `NO SIDE`, affichés tels quels dans une borne en français. Renommés
+   `PAS DE SAUCE` et `PAS DE SIDE`. ⚠️ `borne_options.nom` est aussi ce que la
+   **cuisine** lit sur le ticket — les nouveaux libellés y sont plus clairs et
+   alignés sur `PAS DE SUPPLEMENT`, déjà en place.
+
+4. **Un non-choix porte maintenant un signe, pas du vide.** Sa case gardait la
+   hauteur de ses voisines mais restait nue : 136 px de creux au milieu de
+   vignettes photographiées, ça se lit « image manquante », pas « aucun ». Un
+   cercle barré discret (`--doux`, 45 % d'opacité) le dit exprès. Discret parce
+   que c'est un refus : il ne doit pas peser autant qu'une offre.
+
+🔴 **ET LA RÈGLE QUI SORT DE TOUT ÇA : ne jamais recopier un libellé de la base
+en dur dans le code.** `estNonChoix()` listait `NO SAUCE` et `NO SIDE` nom par
+nom. Le renommage du point 3 l'a donc cassée dans la même session : « PAS DE
+SAUCE » n'était plus reconnu comme non-choix, il entrait dans les options à
+photographier, et **les dix sauces ont perdu leurs vignettes d'un coup**.
+C'est un **motif** désormais (`^(PAS DE|SANS|AUCUN|NO)\b`), pas une liste.
+⚠️ Le `\b` après `NO` est indispensable : sans lui la panure **NOUILLE**
+passerait pour un non-choix.
+💡 Et ça n'a été vu **que** parce que la capture a été relue après coup. Le
+build passait, les types passaient, l'écran était faux.
+
+### ⚠️ L'ordre des groupes se retrie DANS le code
+
+`borne_produit_groupes.ordre` décide de ce qu'on demande au client en premier :
+la base, la panure, la sauce, et la boisson **en dernier**. `api.ts` demande
+déjà `order=ordre.asc` à l'API, mais **retrie quand même en local**.
+
+Ce n'est pas de la ceinture-bretelles gratuite : le jeu de test des captures
+n'était pas trié, et l'écran affichait **`CHOIX DU SOFT` avant `CHOIX DE LA
+BASE`** — on demandait la boisson avant le corndog. La production était juste,
+les captures mentaient. Trois lignes de tri rendent l'écran indépendant de
+l'ordre de sa source.
+
+🔴 **Et le jeu de test `catalogue.json` doit refléter ce que l'API renvoie.**
+Un jeu de test plus permissif que la réalité fait croire à des bugs qui
+n'existent pas — et masque ceux qui existent.
+
 ### 🖥️ La mise en page de la carte — calquée sur la borne EasyOrder
 
 Demandée par le gérant le 22/10/2026, sur photo de sa borne actuelle :
@@ -610,8 +671,10 @@ du webhook.
 5. **Sauces en double** : `MAYONNAISE` (102) et `MAYO` (79) sont la même sauce ;
    `AIGRE DOUCE / SWEET CHILI` (108) et `AIGRE DOUCE` (33) aussi. **Fusionnées
    dans le nouveau catalogue — le gérant doit confirmer.**
-6. **Menu Goodeal XL n'a pas le groupe `SUPPLEMENTS`** alors que le Goodeal
-   normal l'a. Ressemble à un oubli.
+6. ✅ **RÉGLÉ LE 23/10/2026 : `SUPPLEMENTS` ajouté au Menu Goodeal XL.**
+   C'était bien un oubli — les trois autres menus l'avaient. ⚠️ **Reste à
+   faire confirmer au gérant**, puisque ça ouvre un supplément payant de
+   0,50 € là où il n'y en avait pas. Voir « Les écrans d'options ».
 7. ✅ **Bubble Dog XL n'a pas `OPTION FRITES` — c'est VOLONTAIRE**, le bubble tea
    porte la valeur perçue. Ne pas « corriger ».
 8. **Gyoza x4 (4,30 €)** existe dans `menu_produits` mais est **absent** du

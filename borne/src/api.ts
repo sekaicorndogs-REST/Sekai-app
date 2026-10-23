@@ -143,8 +143,15 @@ export async function chargerCatalogue(): Promise<Catalogue> {
     });
   }
 
+  // 🔴 L'ordre des groupes est celui de `borne_produit_groupes.ordre`, et il
+  // est RETRIÉ ICI même si la requête le demande déjà. L'ordre décide de ce
+  // qu'on demande au client en premier : la base, puis la panure, puis la
+  // sauce, et la boisson à la fin. Se reposer sur l'ordre de la réponse
+  // laisse l'écran à la merci de la source — un jeu de test non trié affichait
+  // « CHOIX DU SOFT » avant « CHOIX DE LA BASE », donc la boisson avant le
+  // corndog. Le tri local coûte trois lignes et rend l'écran indépendant.
   const groupesParProduit: Record<string, Groupe[]> = {};
-  for (const l of liens) {
+  for (const l of [...liens].sort((a, b) => (a.ordre ?? 0) - (b.ordre ?? 0))) {
     const g = groupeParId.get(l.groupe_id);
     if (!g || g.portee !== "produit") continue;
     (groupesParProduit[l.produit_nom] ??= []).push(g);

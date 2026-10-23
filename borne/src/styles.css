@@ -701,9 +701,30 @@ h2 {
 }
 /* Un non-choix (« pas de boisson ») n'a pas de photo mais garde la place de
    celle de ses voisins : sans ça sa pastille est plus courte et il ressemble à
-   un bouton d'une autre nature. */
+   un bouton d'une autre nature.
+   🔴 ET IL PORTE UN SIGNE, pas du vide. Laissée nue, la case faisait un
+   rectangle creux de 136 px au milieu de vignettes photographiées : à l'écran
+   ça se lit « image manquante », pas « aucun ». Le cercle barré dit la même
+   chose que la photo absente, mais il le dit exprès. Discret (couleur --doux,
+   trait fin) : c'est un refus, il ne doit pas peser autant qu'une offre. */
 .pastille .vignette.vide {
   background: transparent;
+  position: relative;
+}
+.pastille .vignette.vide::after {
+  content: "";
+  position: absolute;
+  inset: 32%;
+  border-radius: 50%;
+  border: 3px solid var(--doux);
+  opacity: 0.45;
+  background: linear-gradient(
+    to bottom right,
+    transparent calc(50% - 1.5px),
+    var(--doux) calc(50% - 1.5px),
+    var(--doux) calc(50% + 1.5px),
+    transparent calc(50% + 1.5px)
+  );
 }
 .choix.illustre .pastille .libelle {
   font-size: 17px;

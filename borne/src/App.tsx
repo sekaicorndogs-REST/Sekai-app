@@ -223,8 +223,21 @@ const photoOption = (nom: string): string | null =>
  * ⚠️ À ne pas confondre avec le filtre du panier et de la cuisine, qui garde
  * `NO SAUCE` parce que la cuisine doit le lire. Ici il ne s'agit que de photos.
  */
+/**
+ * Un non-choix : « pas de sauce », « pas de supplément ». Il n'a pas de photo
+ * et ne doit pas empêcher son groupe de s'illustrer — voir `groupeIllustre`.
+ *
+ * 🔴 LA RÈGLE EST UN MOTIF, PAS UNE LISTE DE LIBELLÉS. Elle l'a été, et un
+ * simple renommage en base l'a cassée : « NO SAUCE » devenu « PAS DE SAUCE »
+ * n'était plus reconnu, il entrait dans les options à photographier, et les
+ * dix sauces perdaient d'un coup leurs vignettes. Un libellé de la base ne
+ * doit jamais être recopié en dur ici.
+ *
+ * ⚠️ `\b` après `NO` est indispensable : sans lui la panure « NOUILLE »
+ * passerait pour un non-choix.
+ */
 const estNonChoix = (nom: string) =>
-  /^(NO SIDE|NO SAUCE|PAS DE SUPPLEMENT|PAS DE BOISSON\b.*)$/i.test(nom);
+  /^(PAS DE|SANS|AUCUN|NO)\b/i.test(nom.trim());
 
 /**
  * Un groupe s'illustre ENTIÈREMENT ou PAS DU TOUT.
@@ -750,7 +763,18 @@ function Config({
         <h1>{produit.nom}</h1>
       </header>
       <div className="liste">
-        {groupes.map((g) => {
+        {/* 🔴 UN GROUPE À UN SEUL CHOIX NE POSE PAS DE QUESTION : il est
+            masqué. « OPTION FRITES » d'un Menu Good Deal ne contient que
+            « FRITES » à 0 € — le client ne peut rien décider, il ne voit
+            qu'une case déjà cochée qu'il ne peut pas décocher, et ça lui fait
+            douter du reste de l'écran.
+            ⚠️ MASQUÉ À L'AFFICHAGE SEULEMENT. Le choix reste dans `choix` et
+            dans `retenus`, donc il part en base et s'imprime sur le ticket :
+            la cuisine continue de lire « OPTION FRITES · FRITES ». Le jour où
+            un « sans frites » est ajouté au groupe, il réapparaît tout seul. */}
+        {groupes
+          .filter((g) => g.options.length > 1)
+          .map((g) => {
           // Un groupe où quelque chose se paie affiche « Compris » sur ses
           // choix gratuits : sans ça le client croit que tout coûte un
           // supplément, et il n'ose plus toucher au groupe.
