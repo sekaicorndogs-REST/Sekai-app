@@ -336,6 +336,46 @@ suivant ne doit pas hériter de l'espagnol du précédent.
 ⚠️ Les traductions sont les miennes, pas celles d'un traducteur. Elles sont
 simples et courtes, mais **à faire relire** — surtout le néerlandais.
 
+### 🎯 « Ça ne fait pas très pro » — la refonte du 23/10/2026
+
+Reproche du gérant, et il avait raison. Documenté pour ne pas refaire les
+mêmes erreurs : trois causes, toutes visuelles, aucune fonctionnelle.
+
+| Ce qui clochait | Ce que font les bornes de chaîne |
+|---|---|
+| Photo de **90 px** dans une carte de 190 | de **grandes images** : sur une borne, c'est la photo qui vend |
+| Motif de fond **derrière les produits** | un **aplat neutre** : un fond chargé fait reculer les photos |
+| Cartes de **hauteurs inégales**, sans ombre | une **grille régulière**, des cartes détachées du fond |
+
+**Ce qui a changé :**
+
+1. 🔴 **Deux colonnes, plus trois.** La borne EasyOrder en a trois et c'était
+   ce qui avait été repris ; mais sur 800 px, moins la colonne de catégories,
+   trois colonnes laissent 190 px par produit. Deux colonnes doublent la photo.
+   **Ne pas revenir à trois sans visuels cadrés serré.**
+2. 🔴 **Le motif de fond quitte les écrans de commande.** Il reste sur
+   l'accueil (écran d'attente, vu de la rue) et sur l'écran du numéro, qui ne
+   portent aucune photo de produit.
+3. **Photo 232 px** (300 pour les menus), **nom 24 px**, **prix 27 px**.
+4. **Ombre douce** sur les cartes. Sans elle, la carte et la page étant deux
+   crèmes voisins, tout paraissait plat — le défaut qui faisait le plus
+   « maquette ».
+5. **Grille régulière** (`align-items: stretch`) et **description limitée à
+   trois lignes**. Au-delà, un produit bavard repoussait ses voisins hors de
+   l'écran.
+
+**Repères retenus de la documentation** (sources en majorité éditeurs, à
+prendre comme pratique courante, pas comme étude) : corps de texte 20–24 px,
+titres 48 pt et plus, cibles tactiles d'environ 20 mm sur borne — plus que les
+44 px du web —, 5 à 7 catégories, éléments interactifs plutôt dans le tiers
+médian, et l'action principale qui ressort nettement des secondaires.
+
+⚠️ **Ce qui reste perfectible, et qui ne se règle pas en CSS** : les trois
+visuels de **bases** sont des bâtonnets verticaux, qui laissent du vide de
+chaque côté dans une carte large. Les **signatures**, photographiées en
+diagonale, remplissent beaucoup mieux. Si l'occasion se présente, refaire les
+trois bases en diagonale.
+
 ### 🖥️ La mise en page de la carte — calquée sur la borne EasyOrder
 
 Demandée par le gérant le 22/10/2026, sur photo de sa borne actuelle :

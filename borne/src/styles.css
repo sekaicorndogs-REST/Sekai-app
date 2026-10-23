@@ -111,9 +111,14 @@ html {
    donc un chemin relatif chercherait `/assets/photos/…` et ne trouverait rien. */
 body {
   margin: 0;
+  /* 🔴 FOND UNI sur les écrans de commande. Le motif y a été retiré le
+     23/10/2026 : le gérant trouvait la borne « pas très pro », et c'était la
+     première raison. Un fond chargé derrière des photos de produits les fait
+     reculer et donne un air de maquette — toutes les bornes de chaîne posent
+     leurs produits sur un aplat neutre.
+     Le motif reste là où il sert : l'accueil (écran d'attente, vu de la rue)
+     et l'écran du numéro, qui ne portent aucune photo de produit. */
   background-color: var(--creme);
-  background-image: url("/photos/motif-rouge.webp");
-  background-size: 460px;
   color: var(--bordeaux);
   font-family: var(--texte);
   font-size: 20px;
@@ -175,6 +180,8 @@ h2 {
   height: 100svh;
   display: flex;
   flex-direction: column;
+  background-image: url("/photos/motif-rouge.webp");
+  background-size: 460px;
   /* Pas de `background` ici : le motif du `body` doit se voir dans les bandes
      laissées par l'affiche, qui est en `contain`. */
 }
@@ -505,45 +512,56 @@ h2 {
   background: var(--creme-clair);
 }
 
-/* 🔴 TROIS colonnes, comme sur la borne EasyOrder (gérant, 22/10/2026).
-   À 800 px de large moins la colonne de catégories, ça laisse ~180 px par
-   produit : c'est étroit, donc le nom et la description sont en petit corps et
-   la photo porte la reconnaissance. Ne pas descendre sous 170 px, en dessous
-   les noms longs cassent en quatre lignes. */
+/* 🔴 DEUX colonnes, pas trois — changé le 23/10/2026.
+   La borne EasyOrder en a trois, et c'est ce qui avait été repris ; mais sur
+   800 px, en retirant la colonne de catégories, trois colonnes laissent
+   190 px par produit et donc une photo de corndog de 90 px de large. Le
+   gérant a trouvé le résultat « pas très pro », et c'est la deuxième raison :
+   sur une borne, C'EST LA PHOTO QUI VEND. Deux colonnes la doublent.
+   Si l'on revient à trois un jour, il faudra des visuels cadrés serré. */
 .produits {
   flex: 1;
   min-width: 0;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  /* Les cartes d'une même rangée prennent la hauteur de la plus haute : une
+     grille régulière est le premier signe qu'une interface est finie. Sans ça,
+     un produit à longue description dépassait ses voisins. */
+  align-items: stretch;
 }
 
-/* La fiche produit suit la borne EasyOrder : image, nom, prix, composition,
-   le tout CENTRÉ, sans pastille de prix posée sur la photo.
+/* La fiche produit : image, nom, prix, composition, centrés.
    ⚠️ Elle garde un fond et une bordure, là où EasyOrder pose les produits à nu
    sur du blanc : c'est une cible tactile, elle doit se voir comme telle. */
 .produit {
-  border: 3px solid var(--bord);
-  border-radius: 20px;
+  height: 100%;
+  border: 2px solid var(--bord);
+  border-radius: 22px;
   background: var(--creme-clair);
   color: var(--bordeaux);
-  padding: 0 0 14px;
+  padding: 0 0 16px;
   overflow: hidden;
   text-align: center;
   display: flex;
   flex-direction: column;
   align-items: center;
   cursor: pointer;
+  /* Une ombre douce DÉTACHE la carte du fond. Sans elle, la carte et la page
+     étant deux crèmes voisins, tout paraissait plat — le défaut qui faisait
+     le plus « maquette ». */
+  box-shadow: 0 3px 10px rgba(101, 0, 0, 0.07);
 }
 .produit:active {
   border-color: var(--rouge);
+  box-shadow: 0 1px 4px rgba(101, 0, 0, 0.12);
 }
 .produit .photo {
   width: 100%;
-  height: 150px;
+  height: 232px;
   background: var(--creme);
   overflow: hidden;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 /* 🔴 `contain`, surtout pas `cover`. Les visuels sont DÉTOURÉS sur fond
    transparent et souvent très verticaux (un corndog sur bâtonnet fait
@@ -556,32 +574,39 @@ h2 {
   display: block;
 }
 .produit .nom {
-  padding: 0 8px;
+  padding: 0 12px;
   font-family: var(--titre);
-  font-size: 19px;
+  font-size: 24px;
   font-weight: 600;
   line-height: 1.08;
 }
 /* Le prix sous le nom, en rouge. Il ne vaut que 3,77 sur le crème-clair, donc
    il tient par sa taille et sa graisse : ne pas le descendre sous 20 px. */
 .produit .prix {
-  margin-top: 5px;
+  margin-top: 7px;
   font-family: var(--titre);
-  font-size: 22px;
+  font-size: 27px;
   font-weight: 700;
   color: var(--rouge);
 }
 /* La composition, quand `borne_produits.description` en porte une.
    En --doux (5,29 sur crème-clair) et en texte courant, pas en typo de titre :
-   c'est à lire, pas à voir de loin. */
+   c'est à lire, pas à voir de loin.
+   ⚠️ TROIS LIGNES AU MAXIMUM. Au-delà, la description devenait un pavé qui
+   repoussait le produit suivant hors de l'écran et déséquilibrait la grille.
+   Le client a le détail complet sur l'écran de configuration. */
 .produit .detail {
-  margin-top: 6px;
-  padding: 0 10px;
+  margin-top: 8px;
+  padding: 0 14px;
   font-family: var(--texte);
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 600;
-  line-height: 1.25;
+  line-height: 1.3;
   color: var(--doux);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 /* Les menus portent 41 % de la marge : leur photo est plus haute.
@@ -589,7 +614,7 @@ h2 {
    (« MENU GOOD DEAL » en gros au-dessus du plateau). Demande du gérant,
    22/10/2026 : le nom ne doit apparaître qu'une fois. */
 .produit.menu .photo {
-  height: 210px;
+  height: 300px;
 }
 
 /* ── Choix d'options ────────────────────────────────────────────────────── */
