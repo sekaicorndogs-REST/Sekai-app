@@ -937,7 +937,10 @@ h2 {
 .proposer .boite {
   width: 100%;
   max-width: 620px;
-  background: var(--creme-clair);
+  /* La boîte prend le crème FONCÉ et les offres le crème clair : sans cet
+     écart, une carte d'offre posée sur une boîte de la même couleur ne se
+     détache de rien et l'ensemble paraît plat. */
+  background: var(--creme);
   border-radius: 28px;
   padding: 26px 22px 22px;
   display: flex;
@@ -957,92 +960,138 @@ h2 {
 .proposer .offres {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
 }
+
+/* 🔴 L'OFFRE EST UNE CARTE, PAS UN APLAT ROUGE.
+   Elle l'a été : deux gros rectangles rouge vif, des vignettes de 62 px posées
+   dessus comme des autocollants, et quatre lignes de texte empilées au centre.
+   Le gérant : « ce visuel est trop moche et ne fait pas du tout
+   professionnel ». Il avait raison, et la cause tient en une phrase : un aplat
+   rouge plein écran, c'est un flyer de promotion, pas une borne.
+   Les cartes produit de la carte, elles, lui plaisent. L'offre reprend donc
+   exactement leur grammaire — fond crème clair, bordure, ombre, grande photo —
+   et le ROUGE est réservé à la pastille de prix. Une seule tache de couleur,
+   là où se prend la décision.
+   ⚠️ Ne pas « remettre du rouge pour que ça ressorte » : ce qui fait ressortir
+   une offre, c'est la photo et l'ombre, pas la surface colorée. */
 .proposer .btn.offre {
   min-height: 92px;
   height: auto;
-  padding: 14px 20px;
+  padding: 0 0 16px;
   flex-direction: column;
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 2px;
-  line-height: 1.1;
+  justify-content: flex-start;
+  gap: 0;
+  line-height: 1.12;
+  background-color: var(--creme-clair);
+  color: var(--bordeaux);
+  border: 2px solid var(--bord);
+  border-radius: 22px;
+  box-shadow: 0 3px 12px rgba(101, 0, 0, 0.09);
+  overflow: hidden;
+}
+.proposer .btn.offre:active {
+  background-color: var(--creme);
 }
 .proposer .offre .quoi {
-  font-size: 23px;
+  font-size: 26px;
+  margin-top: 12px;
 }
+/* La pastille de prix : la seule tache rouge de l'écran, et elle est posée là
+   où le client décide.
+   🔴 24 px / 800 en blanc sur rouge — le blanc n'y vaut que 4,00, la charte ne
+   l'autorise qu'« grand et gras ». Ne jamais descendre cette taille. */
 .proposer .offre .ecart {
   font-family: var(--texte);
-  font-size: 21px;
-  font-weight: 700;
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--sur-rouge);
+  background: var(--rouge);
+  border-radius: 999px;
+  padding: 7px 22px;
+  margin-top: 10px;
 }
 /* Quand la cible revient MOINS cher — un corndog avec side et soft coûte plus
    que le menu qui les comprend. On l'écrit, on ne le cache pas.
-   🔴 L'offre passe alors en BORDEAUX avec le montant en OR : c'est le couple
-   validé de la charte (8,37). L'or sur le rouge ne vaut que 2,47 et le
+   🔴 La pastille passe alors en BORDEAUX avec le montant en OR : c'est le
+   couple validé de la charte (8,37). L'or sur le rouge ne vaut que 2,47 et le
    montant y était illisible — constaté en capture. */
-.proposer .btn.offre.gagnant {
-  background: var(--bordeaux);
-}
 .proposer .offre .ecart.gain {
+  background: var(--bordeaux);
   color: var(--or);
 }
-/* La valeur à la carte de ce que le menu ajoute, sous le « + 3,50 € ».
-   🔴 19 px / 700 ET PAS MOINS : c'est du texte sur aplat rouge, où le blanc ne
-   vaut que 4,00 — sous le seuil de 4,5. La charte l'autorise à cette seule
-   condition, « grand et gras ». Ne pas le rapetisser pour alléger le bouton,
-   et ne pas lui mettre d'opacité : les deux reviendraient au même défaut. */
+/* La valeur à la carte de ce que le menu ajoute, sous la pastille.
+   Elle est maintenant sur CRÈME, donc --doux (4,85) convient et la règle
+   « grand et gras » ne s'applique plus : c'est une précision, pas un prix. */
 .proposer .offre .valeur {
   font-family: var(--texte);
-  font-size: 19px;
+  font-size: 17px;
   font-weight: 700;
-  margin-top: 2px;
+  color: var(--doux);
+  margin-top: 8px;
 }
 .proposer .offre .quoi-dedans {
   font-family: var(--texte);
   font-size: 15px;
   font-weight: 600;
-  opacity: 0.92;
+  color: var(--doux);
   margin-top: 4px;
+  padding: 0 16px;
 }
+/* 🔴 Le refus garde la MÊME LARGEUR et la même hauteur minimale que les offres.
+   Il n'a ni photo ni pastille parce qu'il n'a rien à montrer, pas pour qu'on le
+   voie moins : le rendre plus petit ou plus pâle serait le « mauvais défaut »
+   que ce dossier s'interdit depuis l'étude de mars 2026. */
 .proposer .btn.refus {
-  background: var(--creme);
+  background-color: var(--creme-clair);
   color: var(--bordeaux);
-  border: 3px solid var(--bord);
+  border: 2px solid var(--bord);
 }
 .proposer .btn.refus:active {
-  background: var(--bord);
+  background-color: var(--bord);
 }
 
 /* Ce que la montée en gamme AJOUTE, en images — « montre un paquet de frites
    et une boisson » (gérant, 22/10/2026). C'est la différence qui est montrée,
    pas le plateau complet : le client a déjà vu le menu sur la carte.
 
-   🔴 Fond CLAIR derrière chaque vignette. Les visuels sont détourés sur
-   transparent et plusieurs sont rouges — le pot de frites disparaîtrait
-   purement et simplement sur l'aplat rouge de l'offre. */
+   🔴 Les vignettes sont GRANDES et occupent un bandeau en haut de la carte.
+   À 62 px posées sur du rouge, elles passaient pour des autocollants ; c'est
+   la première cause du « pas professionnel » du 23/10. Sur une borne, c'est la
+   photo qui vend — la même règle que pour les cartes produit. */
 .proposer .offre .gagne {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  margin-bottom: 6px;
+  gap: 10px;
+  width: 100%;
+  padding: 14px 16px;
+  background: var(--creme);
+  border-bottom: 2px solid var(--bord);
 }
 .proposer .offre .gagne img {
-  width: 62px;
-  height: 62px;
+  width: 118px;
+  height: 118px;
   object-fit: contain;
-  background: var(--creme-clair);
-  border-radius: 12px;
-  padding: 3px;
   display: block;
 }
+/* Le séparateur entre deux visuels. « + » quand le client reçoit les deux,
+   « ou » quand il n'en choisit qu'un — voir `visuels_liant` en base.
+   Le mot est plus petit que le signe : « ou » en 30 px pèserait plus que les
+   photos qu'il sépare. */
 .proposer .offre .gagne .plus {
   font-family: var(--titre);
-  font-size: 26px;
+  font-size: 30px;
   font-weight: 700;
   line-height: 1;
-  opacity: 0.9;
+  color: var(--doux);
 }
+.proposer .offre .gagne .plus.mot {
+  font-family: var(--texte);
+  font-size: 19px;
+  font-weight: 700;
+  text-transform: lowercase;
+}
+

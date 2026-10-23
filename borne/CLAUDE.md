@@ -539,9 +539,48 @@ attirant ».
 🔴 Ce sont les visuels de la DIFFÉRENCE, pas le plateau entier du menu : le
 client a déjà vu le menu sur la carte, ce qu'il n'a pas encore vu c'est ce
 qu'il gagne.
+
+#### 🔴 L'offre est une CARTE, plus un aplat rouge — 23/10/2026
+
+*« Ce visuel est trop moche et ne fait pas du tout professionnel »* (gérant).
+Il avait raison, et la cause tient en une phrase : **un aplat rouge plein
+écran, c'est un flyer de promotion, pas une borne.**
+
+| Avant | Maintenant |
+|---|---|
+| Deux gros rectangles **rouge vif** | des **cartes crème**, bordure et ombre — la grammaire des cartes produit, que le gérant venait de valider |
+| Vignettes de **62 px** posées dessus comme des autocollants | un **bandeau photo de 118 px** en haut de la carte |
+| Quatre lignes de texte empilées au centre | nom en bordeaux, **pastille de prix**, valeur et composition en `--doux` |
+| Tout en rouge | **le rouge pour la seule pastille de prix**, là où se prend la décision |
+
+⚠️ **Ne pas « remettre du rouge pour que ça ressorte ».** Ce qui fait ressortir
+une offre, c'est la photo et l'ombre, pas la surface colorée.
+⚠️ Le cas « moins cher » ne repeint plus toute la carte en bordeaux : seule la
+pastille passe en bordeaux + or. Repeindre la carte entière la ferait hurler
+plus fort que l'offre normale pour la même information.
+⚠️ Le `+` se met **entre** les visuels, jamais devant le premier : devant, il
+déportait la rangée vers la droite, et avec un seul visuel il pendait dans le
+vide.
+
+#### 🔴 « + » ou « ou » — `borne_propositions.visuels_liant`
+
+Le Good Deal ajoute des frites **et** un soft : le client reçoit les deux.
+Le passage en XL ajoute le groupe `SIDE 2`, qui est un **choix unique** entre
+karaage et tempura : il n'en reçoit **qu'un**.
+
+L'écran affichait « karaage **+** tempura » et promettait donc le double de ce
+que le client aura. **Les deux photos étaient justes, c'est le signe entre elles
+qui mentait** — et ça ne se voyait ni au build, ni aux types, ni au test
+fonctionnel. Une colonne le dit maintenant explicitement, et le mot « ou » est
+traduit dans les quatre langues.
+
+⚠️ **Ne pas déduire le liant du nombre de groupes ajoutés** : ce serait juste
+aujourd'hui et faux au premier menu qui ajoute deux groupes dont un à choix.
+
 ⚠️ **Fond clair obligatoire derrière chaque vignette** : les visuels sont
-détourés sur transparent et plusieurs sont rouges — le pot de frites
-disparaîtrait purement et simplement sur l'aplat rouge de l'offre.
+détourés sur transparent et plusieurs sont rouges. C'était vital quand le fond
+était rouge — le pot de frites disparaissait. La carte étant maintenant crème,
+la condition est remplie par construction ; ne pas la rendre rouge à nouveau.
 
 ### 🎯 Faire prendre un menu — les cinq actions, et où elles en sont
 

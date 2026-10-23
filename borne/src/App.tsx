@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { Fragment, useEffect, useMemo, useState } from "react";
 import { LANGUES, NOM_LANGUE, champ, traducteur, type Langue, type T } from "./i18n";
 import { monteesPossibles, type Montee } from "./montee";
 import {
@@ -910,19 +910,42 @@ function Proposer({
             return (
               <button
                 key={m.cible.nom}
-                className={moinsCher ? "btn gros offre gagnant" : "btn gros offre"}
+                /* ⚠️ Le cas « moins cher » ne change plus le fond de la carte,
+                   seulement la pastille de prix (`.ecart.gain`, bordeaux + or).
+                   Depuis que l'offre est une carte crème et non un aplat rouge,
+                   repeindre toute la carte en bordeaux la ferait hurler plus
+                   fort que l'offre normale pour la même information. */
+                className="btn gros offre"
                 onClick={() => onOui(m)}
               >
                 {/* Ce que le menu AJOUTE, en images. Fond clair derrière
                     chaque vignette : les visuels sont détourés et certains
                     sont rouges — le pot de frites disparaîtrait sur l'aplat. */}
+                {/* ⚠️ Le « + » se met ENTRE les visuels, jamais devant le
+                    premier. Devant, il déportait toute la rangée vers la
+                    droite — les images n'étaient plus centrées dans la carte,
+                    et avec un seul visuel (le bubble tea) le signe pendait
+                    dans le vide. Entre deux, il dit « frites ET boisson »,
+                    ce qui est la même information, bien posée. */}
                 {m.proposition.visuels.length > 0 && (
                   <span className="gagne">
-                    <span className="plus" aria-hidden="true">
-                      +
-                    </span>
-                    {m.proposition.visuels.map((f) => (
-                      <img key={f} src={`photos/${f}`} alt="" />
+                    {m.proposition.visuels.map((f, i) => (
+                      <Fragment key={f}>
+                        {i > 0 && (
+                          <span
+                            className={
+                              m.proposition.visuelsLiant === "ou"
+                                ? "plus mot"
+                                : "plus"
+                            }
+                          >
+                            {m.proposition.visuelsLiant === "ou"
+                              ? t("ou")
+                              : "+"}
+                          </span>
+                        )}
+                        <img src={`photos/${f}`} alt="" />
+                      </Fragment>
                     ))}
                   </span>
                 )}

@@ -85,6 +85,16 @@ export type Proposition = {
    * articles, pour ne jamais annoncer plus que ce qu'il aura.
    */
   valeurAjout: number | null;
+  /**
+   * Ce qui relie les visuels. `"et"` quand le client reçoit tout ce qui est
+   * montré (frites ET soft d'un menu), `"ou"` quand il n'en choisit qu'un
+   * (karaage OU tempura d'un XL).
+   *
+   * 🔴 Sans ça l'écran promettait les deux sides d'un XL alors que le client
+   * n'en a qu'un. Les deux photos étaient justes : c'est le signe entre elles
+   * qui mentait, et ça ne se voyait pas au test.
+   */
+  visuelsLiant: "et" | "ou";
 };
 
 export type Catalogue = {
@@ -121,7 +131,7 @@ export async function chargerCatalogue(): Promise<Catalogue> {
     ),
     get<any[]>("borne_produit_groupes?select=produit_nom,groupe_id,ordre&order=ordre.asc"),
     get<any[]>(
-      "borne_propositions?select=produit_nom,cible_nom,base_option_nom,ordre,visuels,valeur_ajout" +
+      "borne_propositions?select=produit_nom,cible_nom,base_option_nom,ordre,visuels,valeur_ajout,visuels_liant" +
         "&actif=is.true&order=ordre.asc"
     ),
   ]);
@@ -201,6 +211,7 @@ export async function chargerCatalogue(): Promise<Catalogue> {
       ordre: r.ordre,
       visuels: Array.isArray(r.visuels) ? r.visuels : [],
       valeurAjout: r.valeur_ajout == null ? null : Number(r.valeur_ajout),
+      visuelsLiant: r.visuels_liant === "ou" ? "ou" : "et",
     });
   }
 
