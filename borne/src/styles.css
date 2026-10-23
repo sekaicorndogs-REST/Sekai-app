@@ -989,6 +989,17 @@ h2 {
 .proposer .offre .ecart.gain {
   color: var(--or);
 }
+/* La valeur à la carte de ce que le menu ajoute, sous le « + 3,50 € ».
+   🔴 19 px / 700 ET PAS MOINS : c'est du texte sur aplat rouge, où le blanc ne
+   vaut que 4,00 — sous le seuil de 4,5. La charte l'autorise à cette seule
+   condition, « grand et gras ». Ne pas le rapetisser pour alléger le bouton,
+   et ne pas lui mettre d'opacité : les deux reviendraient au même défaut. */
+.proposer .offre .valeur {
+  font-family: var(--texte);
+  font-size: 19px;
+  font-weight: 700;
+  margin-top: 2px;
+}
 .proposer .offre .quoi-dedans {
   font-family: var(--texte);
   font-size: 15px;

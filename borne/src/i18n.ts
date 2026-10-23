@@ -63,6 +63,7 @@ type Cle =
   | "proposerTitreXL"
   | "sansMerci"
   | "economise"
+  | "valeurCarte"
   | "retirer"
   | "toutAnnuler"
   | "changerLangue";
@@ -106,6 +107,7 @@ const TEXTES: Record<Langue, Record<Cle, string>> = {
     proposerTitreXL: "Passer en XL ?",
     sansMerci: "Non merci",
     economise: "vous économisez",
+    valeurCarte: "vaut % à la carte",
     retirer: "Retirer",
     toutAnnuler: "Tout annuler",
     changerLangue: "Langue",
@@ -144,6 +146,7 @@ const TEXTES: Record<Langue, Record<Cle, string>> = {
     proposerTitreXL: "Upgrade to XL?",
     sansMerci: "No thanks",
     economise: "you save",
+    valeurCarte: "worth % bought separately",
     retirer: "Remove",
     toutAnnuler: "Cancel all",
     changerLangue: "Language",
@@ -182,6 +185,7 @@ const TEXTES: Record<Langue, Record<Cle, string>> = {
     proposerTitreXL: "Naar XL?",
     sansMerci: "Nee bedankt",
     economise: "u bespaart",
+    valeurCarte: "los % waard",
     retirer: "Verwijderen",
     toutAnnuler: "Alles annuleren",
     changerLangue: "Taal",
@@ -220,6 +224,7 @@ const TEXTES: Record<Langue, Record<Cle, string>> = {
     proposerTitreXL: "¿Pasar a XL?",
     sansMerci: "No, gracias",
     economise: "ahorra",
+    valeurCarte: "vale % por separado",
     retirer: "Quitar",
     toutAnnuler: "Cancelar todo",
     changerLangue: "Idioma",

@@ -932,6 +932,21 @@ function Proposer({
                     ? `${t("economise")} ${eur(-m.difference)}`
                     : `+ ${eur(m.difference)}`}
                 </span>
+                {/* 🔴 CE QU'IL REÇOIT, pas seulement ce qu'il paie. Un client
+                    qui lit « + 3,50 € » ne voit qu'une dépense ; les frites et
+                    la boisson qu'il reçoit valent 5,50 € en carte.
+                    ⚠️ Et ce n'est volontairement PAS présenté comme une
+                    économie : 45 % des commandes « un corndog seul »
+                    n'ajoutent rien, donc ces clients ne renoncent à aucun
+                    achat. On affiche un prix de carte, vérifiable au
+                    comptoir, et le client soustrait s'il le veut.
+                    Inutile quand la cible revient déjà moins cher : le gain y
+                    est dit en toutes lettres juste au-dessus. */}
+                {!moinsCher && m.proposition.valeurAjout != null && (
+                  <span className="valeur">
+                    {t("valeurCarte").replace("%", eur(m.proposition.valeurAjout))}
+                  </span>
+                )}
                 {champ(m.cible, "description", langue) && (
                   <span className="quoi-dedans">
                     {champ(m.cible, "description", langue)}

@@ -543,6 +543,66 @@ qu'il gagne.
 détourés sur transparent et plusieurs sont rouges — le pot de frites
 disparaîtrait purement et simplement sur l'aplat rouge de l'offre.
 
+### 🎯 Faire prendre un menu — les cinq actions, et où elles en sont
+
+`actions_conversion` porte cinq actions chiffrées, écrites avant le projet
+borne. **Les consulter avant toute idée neuve** : quatre sur cinq sont faites,
+et trois ne l'ont été QUE parce que la borne est maison.
+
+| # | Action | Gain estimé | État |
+|---|---|---|---|
+| 1 | Renommer le Menu Étudiant | 300–600 € | ✅ 21/07/2026, hors borne |
+| 2 | **Proposer le menu après le choix du corndog** | **450–900 €** | ✅ 22/10/2026 — `montee.ts` |
+| 3 | **Montrer ce qu'il reçoit, pas ce qu'il paie** | 150–400 € | ✅ 23/10/2026 |
+| 4 | Les menus en premier sur la borne | 200–500 € | ✅ ils ouvrent la carte |
+| 5 | Seconde proposition au panier | 100–300 € | ❌ volontairement pas faite |
+
+🔴 **L'action 2 était IMPOSSIBLE sur EasyOrder** — leur manuel ne documente
+aucune suggestion après sélection, et le canal de questions est fermé depuis le
+19/09. C'est à ce jour **la seule chose que la borne maison apporte qui se
+chiffre**, et elle vaut plus que tout le reste du tableau.
+
+**L'action 5 n'est pas faite exprès** : sa propre fiche dit « à n'activer que si
+le point 2 n'est pas possible ». Le point 2 l'est. Reposer la question au panier
+après un « non merci » serait insister, pas proposer — exactement le défaut que
+le dossier s'interdit depuis l'étude de mars 2026.
+
+#### 🔴 L'action 3 n'est PAS « affichez une économie »
+
+Sa fiche dit « économisez 1,50 € ». **On ne l'a pas écrit comme ça, et il ne
+faut pas y revenir.**
+
+Ce qui s'affiche sous le « + 3,50 € » est **la valeur à la carte de ce que le
+menu ajoute** : « vaut 5,50 € à la carte » (frites 3,50 + soft 2,00, lus dans
+`borne_produits`, colonne `borne_propositions.valeur_ajout`). Un fait
+vérifiable au comptoir, que le client soustrait s'il le veut.
+
+Parce que **45 % des commandes « un corndog seul » n'ajoutent rien du tout**, et
+seules ~8 % contiennent quelque chose de la taille d'un side (mesure du
+19/09/2026). Dire « vous économisez » à ces clients-là serait faux : ils ne
+renoncent à aucun achat, ils dépensent 3,50 € de plus. Le mot « économie » n'est
+employé que quand le client a **réellement** mis un side et un soft payants dans
+sa commande — là l'écran bascule tout seul sur « vous économisez 3,40 € », et
+c'est calculé sur sa commande à lui.
+
+⚠️ Le chiffre de **1,50 €** de la fiche est faux : il vient de frites + soft à
+11,50 €. Les prix réels donnent 12,00 €, donc 2,00 €. Ne pas le réutiliser.
+⚠️ Et `valeur_ajout` retient toujours le montant le **plus bas** quand le client
+a le choix (SIDE 2 : karaage 4,60 et non tempura 4,90) — ne jamais annoncer plus
+que ce qu'il aura.
+
+#### ⚠️ Le plafond n'est pas le taux de prise, c'est le PRIX du menu
+
+Faire prendre plus de menus ne rapporte que ce que vaut un menu. Le dossier
+racine est net là-dessus : la conversion de septembre a gagné **+18,2 menus pour
+100 commandes** et le ticket a quand même **baissé de 0,82 €**, parce que le
+menu à 10 € joue une remise de volume sur les paniers de groupe.
+
+**Passer les deux menus non-XL à 10,50 € vaut ~525 €/mois, pour zéro travail**,
+et attend une réponse du gérant depuis le 19/09/2026. C'est plus que les actions
+3, 4 et 5 réunies. À ressortir chaque fois que le sujet « faire prendre un menu »
+revient.
+
 ### Les descriptions de produit
 
 `borne_produits.description` porte la phrase affichée sous le nom. **Elle ne

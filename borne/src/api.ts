@@ -74,6 +74,17 @@ export type Proposition = {
   /** Noms de fichiers de ce que la cible AJOUTE : les frites et la canette
    *  d'un menu, les karaage et tempura d'un XL. Vide = offre en texte seul. */
   visuels: string[];
+  /**
+   * Valeur à la carte de ce que la cible ajoute, en euros, ou `null`.
+   *
+   * 🔴 C'est un FAIT vérifiable au comptoir, pas une « économie » : le client
+   * qui prend un menu ne renonce pas forcément à un achat qu'il aurait fait —
+   * 45 % des commandes « un corndog seul » n'ajoutent rien du tout. On lui
+   * montre ce qu'il reçoit et son prix affiché en carte, il soustrait s'il
+   * veut. Toujours le montant le plus BAS quand il a le choix entre plusieurs
+   * articles, pour ne jamais annoncer plus que ce qu'il aura.
+   */
+  valeurAjout: number | null;
 };
 
 export type Catalogue = {
@@ -110,7 +121,7 @@ export async function chargerCatalogue(): Promise<Catalogue> {
     ),
     get<any[]>("borne_produit_groupes?select=produit_nom,groupe_id,ordre&order=ordre.asc"),
     get<any[]>(
-      "borne_propositions?select=produit_nom,cible_nom,base_option_nom,ordre,visuels" +
+      "borne_propositions?select=produit_nom,cible_nom,base_option_nom,ordre,visuels,valeur_ajout" +
         "&actif=is.true&order=ordre.asc"
     ),
   ]);
@@ -189,6 +200,7 @@ export async function chargerCatalogue(): Promise<Catalogue> {
       baseOption: r.base_option_nom,
       ordre: r.ordre,
       visuels: Array.isArray(r.visuels) ? r.visuels : [],
+      valeurAjout: r.valeur_ajout == null ? null : Number(r.valeur_ajout),
     });
   }
 
