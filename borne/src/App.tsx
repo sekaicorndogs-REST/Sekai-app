@@ -232,10 +232,16 @@ const photoOption = (nom: string): string | null =>
  */
 /**
  * Les quatre mascottes, posées sur les écrans qui ne portent aucune
- * information à lire : l'accueil, le choix du mode, le panier vide, l'attente
- * de l'envoi et l'écran du numéro.
+ * information à lire : le choix du mode, le panier vide, l'attente de l'envoi
+ * et l'écran du numéro.
  *
- * 🔴 ELLES NE VONT PAS SUR LA CARTE NI SUR LES OPTIONS. C'est là que le client
+ * 🔴 PAS SUR L'ACCUEIL. La bande des quatre y a été posée puis RETIRÉE le
+ * 25/10/2026, à la demande du gérant. L'accueil porte déjà l'affiche des menus
+ * et le logo en haut de celle-ci : y ajouter quatre personnages faisait un
+ * troisième étage de marque sur un écran qui doit d'abord montrer des prix à
+ * un passant. Ne pas la remettre.
+ *
+ * 🔴 ELLES NE VONT PAS NON PLUS SUR LA CARTE NI SUR LES OPTIONS. C'est là que le client
  * lit des prix et compare des produits ; un personnage y prendrait la place de
  * la photo qui vend. Même règle que le motif de fond, retiré de ces écrans le
  * 23/10 pour la même raison.
@@ -379,13 +385,6 @@ export default function App() {
             passant voit de la rue, et elle porte déjà les prix. `contain` et
             non `cover` — une affiche dont on coupe un prix ne sert à rien. */}
         <img className="affiche" src="photos/affiche.jpg" alt="Nos menus" />
-        {/* La bande des quatre mascottes : l'accueil est un écran d'attente vu
-            de la rue, c'est là que la marque a le droit de parler fort. */}
-        <div className="mascottes" aria-hidden="true">
-          {MASCOTTES.map((f) => (
-            <img key={f} src={`photos/${f}`} alt="" />
-          ))}
-        </div>
         <div className="appel">
           {cat ? (
             <>

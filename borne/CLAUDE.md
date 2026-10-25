@@ -250,11 +250,17 @@ licence commerciale — mais là, la réponse du gérant est inverse.
 
 | Avec mascotte | Sans, et c'est délibéré |
 |---|---|
-| Accueil (bande des quatre) | La carte |
-| Sur place ou à emporter | Les écrans d'options |
-| Panier vide | L'offre de montée en gamme |
-| Attente de l'envoi | |
-| Écran du numéro (à la place du logo) | |
+| Sur place ou à emporter | **L'accueil** |
+| Panier vide | La carte |
+| Attente de l'envoi | Les écrans d'options |
+| Écran du numéro (à la place du logo) | L'offre de montée en gamme |
+
+🔴 **PAS SUR L'ACCUEIL.** La bande des quatre y a été posée le 25/10, puis
+**retirée le jour même à la demande du gérant** (« dans la page d'accueil
+enlève les ajouts des logos »). L'écran porte déjà l'affiche des menus, avec le
+logo en haut de celle-ci : quatre personnages en plus faisaient un troisième
+étage de marque sur le seul écran qui doit d'abord montrer des prix à un
+passant. **Ne pas la remettre.**
 
 Ce sont exactement **les écrans qui ne portent aucune information à lire**.
 C'est le même raisonnement que le motif de fond, retiré des écrans de commande

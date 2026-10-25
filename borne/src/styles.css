@@ -200,23 +200,6 @@ h2 {
    💡 Les bornes de chaîne font pareil : l'écran d'attente porte la marque, les
    écrans de commande portent la clarté. */
 
-/* La bande des quatre sur l'accueil. `flex: 0 0 auto` : elle ne doit jamais
-   prendre la place de l'affiche, qui est ce que le passant lit de la rue. */
-.accueil .mascottes {
-  flex: 0 0 auto;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  gap: 4px;
-  padding: 0 10px 6px;
-}
-.accueil .mascottes img {
-  width: 24%;
-  max-height: 168px;
-  object-fit: contain;
-  display: block;
-}
-
 /* La mascotte seule, sur les écrans d'attente et de transition. */
 .mascotte {
   width: auto;
