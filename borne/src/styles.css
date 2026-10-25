@@ -191,6 +191,53 @@ h2 {
   min-height: 0;
   object-fit: contain;
 }
+/* ── Les mascottes ───────────────────────────────────────────────────────── */
+/* 🔴 ELLES NE VONT QUE SUR LES ÉCRANS SANS INFORMATION À LIRE : accueil, choix
+   du mode, panier vide, attente, écran du numéro. Pas sur la carte, pas sur les
+   options — c'est là que le client lit des prix, et un personnage y prendrait
+   la place de la photo qui vend. Même raisonnement que le motif de fond, retiré
+   de ces écrans le 23/10.
+   💡 Les bornes de chaîne font pareil : l'écran d'attente porte la marque, les
+   écrans de commande portent la clarté. */
+
+/* La bande des quatre sur l'accueil. `flex: 0 0 auto` : elle ne doit jamais
+   prendre la place de l'affiche, qui est ce que le passant lit de la rue. */
+.accueil .mascottes {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 4px;
+  padding: 0 10px 6px;
+}
+.accueil .mascottes img {
+  width: 24%;
+  max-height: 168px;
+  object-fit: contain;
+  display: block;
+}
+
+/* La mascotte seule, sur les écrans d'attente et de transition. */
+.mascotte {
+  width: auto;
+  height: 210px;
+  object-fit: contain;
+  display: block;
+  margin: 0 auto;
+}
+/* Le panier vide : la mascotte occupe le vide au lieu de le laisser nu —
+   c'est exactement le défaut qu'on vient de corriger sur les non-choix. */
+.panier-vide {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 26px 0;
+}
+.panier-vide .mascotte {
+  height: 190px;
+}
+
 .accueil .appel {
   padding: 20px 22px calc(22px + env(safe-area-inset-bottom));
   background-color: var(--rouge);
@@ -277,6 +324,12 @@ h2 {
   height: 150px;
   width: auto;
   display: block;
+}
+/* La mascotte y remplace le logo : elle est plus large que haute, donc elle a
+   besoin d'un peu plus de hauteur pour peser autant. */
+.fini .carte-numero img.mascotte {
+  height: 190px;
+  margin-bottom: -6px;
 }
 .fini .libelle {
   font-size: 19px;

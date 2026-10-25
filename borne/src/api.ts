@@ -97,6 +97,37 @@ export type Proposition = {
   visuelsLiant: "et" | "ou";
 };
 
+/**
+ * Un NON-CHOIX : « pas de sauce », « pas de supplément », « pas de boisson ».
+ * Le client a répondu à la question, et sa réponse est « rien ».
+ *
+ * 🔴 C'EST UN MOTIF, PAS UNE LISTE DE LIBELLÉS, et c'est une leçon payée deux
+ * fois. Le 23/10 la liste citait `NO SAUCE` et `NO SIDE` ; le renommage de ces
+ * deux options en base a cassé le même jour l'illustration des dix sauces,
+ * puis — sans que ça se voie — le filtre du panier et de la cuisine.
+ * Un libellé de la base ne doit JAMAIS être recopié en dur dans le code.
+ *
+ * ⚠️ `\b` après `NO` est indispensable : sans lui la panure « NOUILLE »
+ * passerait pour un non-choix.
+ */
+export const estNonChoix = (nom: string) =>
+  /^(PAS DE|SANS|AUCUN|NO)\b/i.test(nom.trim());
+
+/**
+ * Les non-choix que le PANIER et la CUISINE n'affichent pas.
+ *
+ * 🔴 « PAS DE SAUCE » FAIT EXCEPTION : c'est une consigne de préparation, la
+ * cuisine doit la lire. « Pas de supplément » n'en est pas une, c'est du bruit.
+ * Le ticket papier, lui, imprime TOUT, non-choix compris — voir `ticket.ts` :
+ * sur papier une ligne absente peut vouloir dire « on a oublié de demander ».
+ *
+ * ⚠️ À terme ça mériterait une colonne `borne_options.masquer_au_service`,
+ * comme `visuels_liant` : la règle serait écrite là où vivent les options
+ * plutôt que devinée sur leur nom.
+ */
+export const masqueAuService = (nom: string) =>
+  estNonChoix(nom) && !/sauce/i.test(nom);
+
 export type Catalogue = {
   produits: Produit[];
   categories: string[];

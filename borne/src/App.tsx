@@ -4,6 +4,8 @@ import { monteesPossibles, type Montee } from "./montee";
 import {
   chargerCatalogue,
   envoyerCommande,
+  estNonChoix,
+  masqueAuService,
   type Catalogue,
   type Groupe,
   type Produit,
@@ -216,30 +218,6 @@ const photoOption = (nom: string): string | null =>
   PHOTOS_OPTIONS[nom] ? `photos/${PHOTOS_OPTIONS[nom]}` : null;
 
 /**
- * Un NON-CHOIX ne se photographie pas : « pas de supplément » n'est pas un
- * produit. Il est donc exempté de la règle du groupe complet ci-dessous, et
- * s'affiche en pastille de texte au milieu des vignettes.
- *
- * ⚠️ À ne pas confondre avec le filtre du panier et de la cuisine, qui garde
- * `NO SAUCE` parce que la cuisine doit le lire. Ici il ne s'agit que de photos.
- */
-/**
- * Un non-choix : « pas de sauce », « pas de supplément ». Il n'a pas de photo
- * et ne doit pas empêcher son groupe de s'illustrer — voir `groupeIllustre`.
- *
- * 🔴 LA RÈGLE EST UN MOTIF, PAS UNE LISTE DE LIBELLÉS. Elle l'a été, et un
- * simple renommage en base l'a cassée : « NO SAUCE » devenu « PAS DE SAUCE »
- * n'était plus reconnu, il entrait dans les options à photographier, et les
- * dix sauces perdaient d'un coup leurs vignettes. Un libellé de la base ne
- * doit jamais être recopié en dur ici.
- *
- * ⚠️ `\b` après `NO` est indispensable : sans lui la panure « NOUILLE »
- * passerait pour un non-choix.
- */
-const estNonChoix = (nom: string) =>
-  /^(PAS DE|SANS|AUCUN|NO)\b/i.test(nom.trim());
-
-/**
  * Un groupe s'illustre ENTIÈREMENT ou PAS DU TOUT.
  *
  * 🔴 C'est une règle d'honnêteté, pas une préférence esthétique. Dans le groupe
@@ -252,6 +230,33 @@ const estNonChoix = (nom: string) =>
  *
  * Le jour où les six photos arrivent, le groupe s'illumine tout seul.
  */
+/**
+ * Les quatre mascottes, posées sur les écrans qui ne portent aucune
+ * information à lire : l'accueil, le choix du mode, le panier vide, l'attente
+ * de l'envoi et l'écran du numéro.
+ *
+ * 🔴 ELLES NE VONT PAS SUR LA CARTE NI SUR LES OPTIONS. C'est là que le client
+ * lit des prix et compare des produits ; un personnage y prendrait la place de
+ * la photo qui vend. Même règle que le motif de fond, retiré de ces écrans le
+ * 23/10 pour la même raison.
+ *
+ * ⚠️ Les noms de fichiers sont DESCRIPTIFS, pas produits — « bandeau »,
+ * « bleu », « takoyaki », « chapeau ». Les nommer d'après les signatures
+ * (Saitama, Sekai, Ace, Suisse) aurait affirmé une correspondance que l'image
+ * ne prouve pas, et une image attribuée au mauvais produit fait commander
+ * autre chose que ce qui est montré.
+ */
+const MASCOTTES = [
+  "mascotte-bandeau.webp",
+  "mascotte-bleu.webp",
+  "mascotte-takoyaki.webp",
+  "mascotte-chapeau.webp",
+] as const;
+
+/** Une mascotte stable pour un écran donné : le même écran montre toujours la
+ *  même, sinon elle changerait à chaque rendu sous les yeux du client. */
+const mascotte = (i: number) => `photos/${MASCOTTES[i % MASCOTTES.length]}`;
+
 const groupeIllustre = (g: Groupe) => {
   const aPhotographier = g.options.filter((o) => !estNonChoix(o.nom));
   return (
@@ -374,6 +379,13 @@ export default function App() {
             passant voit de la rue, et elle porte déjà les prix. `contain` et
             non `cover` — une affiche dont on coupe un prix ne sert à rien. */}
         <img className="affiche" src="photos/affiche.jpg" alt="Nos menus" />
+        {/* La bande des quatre mascottes : l'accueil est un écran d'attente vu
+            de la rue, c'est là que la marque a le droit de parler fort. */}
+        <div className="mascottes" aria-hidden="true">
+          {MASCOTTES.map((f) => (
+            <img key={f} src={`photos/${f}`} alt="" />
+          ))}
+        </div>
         <div className="appel">
           {cat ? (
             <>
@@ -431,6 +443,7 @@ export default function App() {
   if (ecran.nom === "mode")
     return (
       <div className="plein">
+        <img className="mascotte" src={mascotte(0)} alt="" aria-hidden="true" />
         <h1>{champ(cat.groupeCommande, "nom", langue) || t("modeTitre")}</h1>
         <div className="colonne">
           <button
@@ -518,14 +531,12 @@ export default function App() {
                   {a.produit.nom}
                 </div>
                 {a.options
-                  // Les NON-choix ne se listent pas : « pas de supplément »
-                  // n'est pas une ligne de commande. ⚠️ `NO SAUCE` en est un
-                  // vrai, lui — la cuisine doit le voir. Même filtre dans
-                  // `Cuisine.tsx` : garder les deux identiques.
-                  .filter(
-                    (o) =>
-                      !/^(NO SIDE|PAS DE SUPPLEMENT|PAS DE BOISSON\b.*)$/i.test(o.choix)
-                  )
+                  // « Pas de supplément » n'est pas une ligne de commande.
+                  // ⚠️ « Pas de SAUCE » si : c'est une consigne de
+                  // préparation. Le partage avec `Cuisine.tsx` passe par
+                  // `masqueAuService`, pour que les deux écrans ne puissent
+                  // plus diverger.
+                  .filter((o) => !masqueAuService(o.choix))
                   .map((o, j) => (
                     <div className="opt" key={j}>
                       {/* Le panier montre la traduction, la base garde le
@@ -547,7 +558,12 @@ export default function App() {
               </div>
             </div>
           ))}
-          {panier.length === 0 && <p className="gris">{t("panierVide")}</p>}
+          {panier.length === 0 && (
+            <div className="panier-vide">
+              <img className="mascotte" src={mascotte(2)} alt="" aria-hidden="true" />
+              <p className="gris">{t("panierVide")}</p>
+            </div>
+          )}
         </div>
         <footer>
           <div className="total">
@@ -1036,6 +1052,7 @@ function Envoi({
 
   return (
     <div className="plein">
+      <img className="mascotte" src={mascotte(1)} alt="" aria-hidden="true" />
       <h1>{t("envoiEnCours")}</h1>
     </div>
   );
@@ -1063,7 +1080,9 @@ function Fini({
     <div className="fini" onClick={onFermer}>
       {/* La mascotte sert ici : c'est le moment où le client attend. */}
       <div className="carte-numero">
-        <img src="photos/logo-sekai.webp" alt="Sekai Corndogs" />
+        {/* La mascotte prend ici la place du logo : c'est le moment où le
+            client attend, et elle y fait plus que le logo, déjà vu partout. */}
+        <img className="mascotte" src={mascotte(3)} alt="Sekai Corndogs" />
         <div className="libelle">{t("votreNumero")}</div>
         <div className="numero">{reference}</div>
         <div className="montant">

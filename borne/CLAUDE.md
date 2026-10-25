@@ -228,6 +228,77 @@ Le script la restaure après la boucle — ne pas supprimer cette ligne.
 ✅ **Au 22/10/2026 TOUT est illustré** : les treize groupes d'options et les
 vingt-trois produits, softs compris. Plus aucun trou côté visuels.
 
+### 🦊 Les mascottes manga (25/10/2026)
+
+Quatre mascottes shiba en style manga, **fournies par le gérant** sur une seule
+image, découpées par composantes connexes comme les signatures du 22/10.
+`public/photos/mascotte-{bandeau,bleu,takoyaki,chapeau}.webp`, ~210 Ko pièce.
+
+🔴 **DROITS — ce qui a été dit, et par qui.** J'ai signalé au gérant que les
+costumes portés par ces mascottes sont ceux de personnages de Shueisha / Toei
+(bandeau de Konoha, gi au kanji 亀, chapeau de paille), que l'usage est
+commercial au sens le plus net — affiché au public, dans le magasin, sur
+l'outil qui prend les commandes — et que l'exception de parodie ne couvre pas
+la décoration d'un commerce. **Le gérant a répondu qu'il détient toutes les
+autorisations** (25/10/2026) et a demandé de les intégrer. C'est sa décision et
+elle est tracée ici. Si les autorisations venaient à manquer, le retrait est
+immédiat : quatre fichiers et la constante `MASCOTTES` dans `App.tsx`.
+⚠️ Même famille de question que la police **Keepsmile**, écartée faute de
+licence commerciale — mais là, la réponse du gérant est inverse.
+
+🔴 **OÙ ELLES VONT, ET OÙ ELLES NE VONT PAS.**
+
+| Avec mascotte | Sans, et c'est délibéré |
+|---|---|
+| Accueil (bande des quatre) | La carte |
+| Sur place ou à emporter | Les écrans d'options |
+| Panier vide | L'offre de montée en gamme |
+| Attente de l'envoi | |
+| Écran du numéro (à la place du logo) | |
+
+Ce sont exactement **les écrans qui ne portent aucune information à lire**.
+C'est le même raisonnement que le motif de fond, retiré des écrans de commande
+le 23/10 : là où le client compare des prix et des produits, un personnage
+prend la place de la photo qui vend. Les bornes de chaîne font pareil —
+l'écran d'attente porte la marque, les écrans de commande portent la clarté.
+
+⚠️ **Les noms de fichiers sont DESCRIPTIFS, pas produits.** « bandeau »,
+« bleu », « takoyaki », « chapeau ». Les nommer d'après les signatures
+(Saitama, Sekai, Ace, Suisse) aurait affirmé une correspondance que l'image ne
+prouve pas — et une image attribuée au mauvais produit fait commander autre
+chose que ce qui est montré. Le visuel bleu *ressemble* à la panure Takis de
+Sekai et le visuel « patate » à celle de Suisse, mais ça reste une ressemblance.
+
+### 🔴 La liste en dur avait un DEUXIÈME exemplaire — corrigé le 25/10/2026
+
+Le 23/10, la règle écrite ici était : « ne jamais recopier un libellé de la base
+en dur dans le code ». Elle a été appliquée à `estNonChoix()`… et **la même
+liste existait en deux autres endroits**, dans le filtre du panier (`App.tsx`)
+et dans celui de l'écran cuisine (`Cuisine.tsx`).
+
+Conséquence silencieuse du renommage `NO SIDE` → `PAS DE SIDE` : la ligne
+**« pas de side » s'est mise à apparaître** dans le panier et sur l'écran
+cuisine, où elle était volontairement masquée. Rien ne l'a signalé — ni le
+build, ni les types, ni le test : c'est une ligne en plus, pas une erreur.
+
+Les deux prédicats vivent maintenant dans **`api.ts`** et sont partagés :
+
+| | |
+|---|---|
+| `estNonChoix(nom)` | tout ce qui n'est pas un produit — sert à décider si un groupe peut s'illustrer |
+| `masqueAuService(nom)` | ce que le panier et la cuisine n'affichent pas |
+
+🔴 **`masqueAuService` fait EXCEPTION pour la sauce** : « pas de sauce » est une
+**consigne de préparation**, la cuisine doit la lire ; « pas de supplément » n'en
+est pas une. L'exception est écrite comme un motif (`!/sauce/i`), donc elle
+survit à un renommage — c'était tout le problème.
+⚠️ Le **ticket papier**, lui, imprime tout, non-choix compris : voir
+`ticket.ts`, une ligne absente sur papier peut vouloir dire « on a oublié de
+demander ».
+💡 À terme ça mérite une colonne `borne_options.masquer_au_service`, comme
+`visuels_liant` : la règle serait écrite là où vivent les options plutôt que
+devinée sur leur nom.
+
 ### 🧾 Le ticket de cuisine — `src/ticket.ts`
 
 Format relevé **au caractère près** sur le ticket EasyOrder #029 du 22/10/2026,
