@@ -675,6 +675,20 @@ async function deleteDette(id) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/finances_dettes?id=eq.${id}`, { method: "DELETE", headers: HEADERS });
   if (!res.ok) throw new Error("Delete dette failed");
 }
+/**
+ * Rappels de paiement récurrents qui ne sont ni une dette ni une charge de
+ * Rue Neuve — par exemple l'Engie de Cherry Food.
+ *
+ * 🔴 Table séparée VOLONTAIREMENT. Les mettre dans `finances_charges`
+ * gonflerait le total des charges et donc le seuil de rentabilité, qui ne
+ * portent que sur Rue Neuve. Ils n'existent que pour le calendrier.
+ */
+async function fetchRappels() {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/echeances_rappels?select=*&actif=is.true&order=jour_echeance.asc`, { headers: HEADERS });
+  if (!res.ok) return [];
+  return res.json();
+}
+
 // ── ÉCHÉANCES DE DETTES → CALENDRIER ──────────────────────
 // Les plans de paiement tombent à date fixe (le 8, le 10, le 20) et c'est le
 // 10 qui porte les trois quarts de l'effort mensuel. Un oubli sur un plan
@@ -747,6 +761,13 @@ function icsDettes(liste: any[]): string {
   // Le format impose des fins de ligne CRLF — iOS est strict là-dessus.
   return lignes.join("\r\n");
 }
+
+/** Un rappel récurrent, ramené à la forme qu'attend `icsDettes`. */
+const rappelEnEcheance = (r: any) => ({
+  id: `rappel-${r.id}`, nom: r.nom, mensualite: r.montant,
+  jour_echeance: r.jour_echeance, date_fin: r.date_fin,
+  societe: r.societe, creancier: r.creancier, montant_restant: null,
+});
 
 /** Déclenche le téléchargement, ce qui ouvre l'app Calendrier sur iPhone. */
 function telechargerIcs(liste: any[], nom: string) {
@@ -1365,6 +1386,7 @@ export default function App() {
   const [cotisMois, setCotisMois] = useState(getCurrentMois());
   // Finances
   const [dettes, setDettes] = useState<any[]>([]);
+  const [rappels, setRappels] = useState<any[]>([]);
   const [charges, setCharges] = useState<any[]>([]);
   const [financesView, setFinancesView] = useState<"sorties"|"resume"|"taches"|"event"|"carte"|"maroc">("resume");
   // Projet Maroc (privé — Abdel & Mohammed uniquement)
@@ -2090,8 +2112,8 @@ export default function App() {
   async function loadFinances() {
     setFinancesLoading(true);
     try {
-      const [d, c] = await Promise.all([fetchDettes(), fetchCharges()]);
-      setDettes(d); setCharges(c);
+      const [d, c, r] = await Promise.all([fetchDettes(), fetchCharges(), fetchRappels()]);
+      setDettes(d); setCharges(c); setRappels(r);
     } catch { flash("❌ Erreur chargement finances"); }
     finally { setFinancesLoading(false); }
   }
@@ -5336,8 +5358,8 @@ A travaillé sans être au planning — qui a été remplacé ?
                       {/* Un seul fichier pour tous les plans : chacun l'ouvre une fois
                           sur son iPhone et les rappels sont posés jusqu'à la dernière
                           échéance, sans rien à ressaisir. */}
-                      {actives.some(d => d.jour_echeance && d.mensualite) && (
-                        <button onClick={() => telechargerIcs(actives, "echeances-sekai.ics")}
+                      {(actives.some(d => d.jour_echeance && d.mensualite) || rappels.length > 0) && (
+                        <button onClick={() => telechargerIcs([...actives, ...rappels.map(rappelEnEcheance)], "echeances-sekai.ics")}
                           style={{ width: "100%", background: "#3d1a0a", color: "#fff8f0", border: "none", borderRadius: "12px", padding: "0.75rem", fontSize: "0.85rem", fontWeight: "bold", cursor: "pointer", fontFamily: "'Poppins', sans-serif", marginBottom: "0.7rem", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "7px" }}>
                           <CalendarDays size={16} /> Mettre toutes les échéances dans mon calendrier
                         </button>
@@ -5418,6 +5440,40 @@ A travaillé sans être au planning — qui a été remplacé ?
                           </div>
                         );
                       })}
+                      {/* Rappels récurrents : ni dettes, ni charges de Rue Neuve.
+                          Ils ne comptent dans AUCUN total de cet écran — ils sont là
+                          uniquement pour ne pas être oubliés. */}
+                      {rappels.length > 0 && (
+                        <div style={{ marginTop: "1rem" }}>
+                          <div style={{ color: "#a07848", fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase" as const, marginBottom: "0.45rem" }}>
+                            Rappels de paiement · hors dettes
+                          </div>
+                          {rappels.map((r: any) => (
+                            <div key={r.id} style={{ background: "#fff8f0", border: "1.5px dashed #f0d8b8", borderRadius: "12px", padding: "0.8rem 1rem", marginBottom: "0.5rem", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "0.6rem" }}>
+                              <div style={{ minWidth: 0 }}>
+                                <div style={{ color: "#3d1a0a", fontSize: "0.9rem", fontWeight: "bold" }}>{r.nom}</div>
+                                <div style={{ color: "#a07848", fontSize: "0.7rem", marginTop: "0.2rem" }}>
+                                  Le {r.jour_echeance} du mois · prochaine le{" "}
+                                  {prochaineEcheance(parseInt(r.jour_echeance, 10)).toLocaleDateString("fr-BE", { day: "numeric", month: "short" })}
+                                  {r.societe && ` · ${r.societe}`}
+                                </div>
+                              </div>
+                              <div style={{ textAlign: "right", whiteSpace: "nowrap" }}>
+                                <div style={{ color: "#3d1a0a", fontSize: "0.95rem", fontWeight: "bold" }}>
+                                  {parseFloat(r.montant).toLocaleString("fr-BE", { minimumFractionDigits: 2 })} €
+                                </div>
+                                <button onClick={() => telechargerIcs([rappelEnEcheance(r)], `${r.nom.replace(/[^\w]+/g, "-").toLowerCase()}.ics`)}
+                                  style={{ background: "none", color: "#a07848", border: "none", padding: "0.2rem 0", fontSize: "0.72rem", cursor: "pointer", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", display: "inline-flex", alignItems: "center", gap: "4px" }}>
+                                  <CalendarDays size={12} /> Calendrier
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                          <div style={{ color: "#c8a878", fontSize: "0.62rem" }}>
+                            Comptés dans aucun total de cet écran — ni dette, ni charge de Rue Neuve.
+                          </div>
+                        </div>
+                      )}
                       {reglees.length > 0 && (
                         <div style={{ background: "#f5fff8", border: "1.5px solid #4caf5033", borderRadius: "10px", padding: "0.7rem 1rem", marginTop: "0.5rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                           <div style={{ color: "#4caf50", fontSize: "0.85rem", fontWeight: "bold" }}>{reglees.length} dette{reglees.length > 1 ? "s" : ""} réglée{reglees.length > 1 ? "s" : ""}</div>
