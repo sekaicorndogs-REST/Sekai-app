@@ -780,9 +780,34 @@ const chargeEnEcheance = (c: any) => ({
   societe: c.societe, creancier: c.creancier, montant_restant: null,
 });
 
-/** Déclenche le téléchargement, ce qui ouvre l'app Calendrier sur iPhone. */
-function telechargerIcs(liste: any[], nom: string) {
-  const blob = new Blob([icsDettes(liste)], { type: "text/calendar;charset=utf-8" });
+/**
+ * Envoie les échéances vers le calendrier du téléphone.
+ *
+ * 🔴 Sur iPhone, un lien `download` vers un blob NE PROPOSE PAS Calendrier :
+ * Safari enregistre le fichier dans Fichiers et le gérant doit aller le
+ * rouvrir à la main — c'est ce qui est arrivé sur un des téléphones.
+ * On passe donc d'abord par le partage natif, qui affiche « Ajouter tous les
+ * événements » directement dans la feuille de partage. Le téléchargement ne
+ * reste que comme repli pour les navigateurs de bureau.
+ * Ne pas « simplifier » en revenant au seul lien de téléchargement.
+ */
+async function telechargerIcs(liste: any[], nom: string) {
+  const texte = icsDettes(liste);
+  const blob = new Blob([texte], { type: "text/calendar;charset=utf-8" });
+
+  try {
+    const fichier = new File([blob], nom, { type: "text/calendar" });
+    const nav: any = navigator;
+    if (nav.canShare?.({ files: [fichier] })) {
+      await nav.share({ files: [fichier] });
+      return;
+    }
+  } catch (e: any) {
+    // L'utilisateur a fermé la feuille de partage : ne pas enchaîner sur un
+    // téléchargement qu'il n'a pas demandé.
+    if (e?.name === "AbortError") return;
+  }
+
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url; a.download = nom;
