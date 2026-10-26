@@ -791,28 +791,43 @@ const chargeEnEcheance = (c: any) => ({
  * reste que comme repli pour les navigateurs de bureau.
  * Ne pas « simplifier » en revenant au seul lien de téléchargement.
  */
-async function telechargerIcs(liste: any[], nom: string) {
+async function telechargerIcs(liste: any[], nom: string): Promise<string> {
   const texte = icsDettes(liste);
   const blob = new Blob([texte], { type: "text/calendar;charset=utf-8" });
+  const iOS = /iP(hone|ad|od)/.test(navigator.userAgent)
+    || (navigator.platform === "MacIntel" && (navigator as any).maxTouchPoints > 1);
 
+  // 1. Partage natif : la feuille iOS propose « Ajouter tous les événements ».
   try {
     const fichier = new File([blob], nom, { type: "text/calendar" });
     const nav: any = navigator;
     if (nav.canShare?.({ files: [fichier] })) {
       await nav.share({ files: [fichier] });
-      return;
+      return "✅ Partagé — choisis Calendrier";
     }
   } catch (e: any) {
-    // L'utilisateur a fermé la feuille de partage : ne pas enchaîner sur un
-    // téléchargement qu'il n'a pas demandé.
-    if (e?.name === "AbortError") return;
+    if (e?.name === "AbortError") return "Annulé";
   }
 
+  // 2. iOS sans partage de fichiers : une adresse `data:` ouvre l'aperçu
+  //    Calendrier directement, là où un lien `download` ne fait qu'enregistrer
+  //    le fichier dans Fichiers.
+  if (iOS) {
+    try {
+      window.location.href = "data:text/calendar;charset=utf-8," + encodeURIComponent(texte);
+      return "📅 Ouverture du calendrier…";
+    } catch { /* on tombe sur le téléchargement */ }
+  }
+
+  // 3. Repli : téléchargement classique (ordinateur, ou iOS récalcitrant).
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url; a.download = nom;
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 5000);
+  return iOS
+    ? "⚠️ Fichier enregistré — ouvre-le depuis Fichiers"
+    : "✅ Fichier .ics téléchargé";
 }
 
 async function fetchCharges() {
@@ -5405,7 +5420,7 @@ A travaillé sans être au planning — qui a été remplacé ?
                         <button onClick={() => telechargerIcs(
                           [...actives, ...rappels.map(rappelEnEcheance),
                            ...charges.filter((c: any) => c.jour_echeance).map(chargeEnEcheance)],
-                          "echeances-sekai.ics")}
+                          "echeances-sekai.ics").then(flash)}
                           style={{ width: "100%", background: "#3d1a0a", color: "#fff8f0", border: "none", borderRadius: "12px", padding: "0.75rem", fontSize: "0.85rem", fontWeight: "bold", cursor: "pointer", fontFamily: "'Poppins', sans-serif", marginBottom: "0.7rem", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "7px" }}>
                           <CalendarDays size={16} /> Mettre toutes les échéances dans mon calendrier
                         </button>
@@ -5473,7 +5488,7 @@ A travaillé sans être au planning — qui a été remplacé ?
                                 <Check size={14} /> Réglé
                               </button>
                               {d.jour_echeance && d.mensualite && (
-                                <button onClick={() => telechargerIcs([d], `${d.nom.replace(/[^\w]+/g, "-").toLowerCase()}.ics`)}
+                                <button onClick={() => telechargerIcs([d], `${d.nom.replace(/[^\w]+/g, "-").toLowerCase()}.ics`).then(flash)}
                                   style={{ background: "#faebd7", color: "#a07848", border: "1.5px solid #f0d8b8", borderRadius: "8px", padding: "0.35rem 0.7rem", fontSize: "0.75rem", cursor: "pointer", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", display: "inline-flex", alignItems: "center", gap: "4px" }}>
                                   <CalendarDays size={13} /> Calendrier
                                 </button>
@@ -5508,7 +5523,7 @@ A travaillé sans être au planning — qui a été remplacé ?
                                 <div style={{ color: "#3d1a0a", fontSize: "0.95rem", fontWeight: "bold" }}>
                                   {parseFloat(r.montant).toLocaleString("fr-BE", { minimumFractionDigits: 2 })} €
                                 </div>
-                                <button onClick={() => telechargerIcs([rappelEnEcheance(r)], `${r.nom.replace(/[^\w]+/g, "-").toLowerCase()}.ics`)}
+                                <button onClick={() => telechargerIcs([rappelEnEcheance(r)], `${r.nom.replace(/[^\w]+/g, "-").toLowerCase()}.ics`).then(flash)}
                                   style={{ background: "none", color: "#a07848", border: "none", padding: "0.2rem 0", fontSize: "0.72rem", cursor: "pointer", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", display: "inline-flex", alignItems: "center", gap: "4px" }}>
                                   <CalendarDays size={12} /> Calendrier
                                 </button>
