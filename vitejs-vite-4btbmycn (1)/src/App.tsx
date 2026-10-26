@@ -689,6 +689,80 @@ async function fetchRappels() {
   return res.json();
 }
 
+// ── QR CODE DE VIREMENT SEPA ──────────────────────────────
+// Le QR « EPC » est le standard européen que lisent Belfius, KBC, ING, BNP…
+// On le scanne depuis l'app bancaire et le virement s'ouvre déjà rempli.
+//
+// 🔴 L'app ne déclenche AUCUN paiement et ne stocke AUCUN accès bancaire :
+// elle ne fait qu'afficher les coordonnées du bénéficiaire sous forme de
+// QR. C'est la banque qui garde la main, et c'est tout l'intérêt — initier
+// un virement serait une activité reglementee, et la base n'est pas assez
+// protegee pour y mettre quoi que ce soit de sensible.
+
+/**
+ * Charge utile d'un QR de virement SEPA.
+ *
+ * ⚠️ L'ordre et le nombre de lignes sont imposés par la norme : la banque
+ * lit la 7e ligne comme l'IBAN, la 8e comme le montant. Ne pas en retirer
+ * une « parce qu'elle est vide ».
+ *
+ * ⚠️ La communication structurée belge (+++123/4567/89012+++) n'est PAS une
+ * référence ISO 11649 : elle va dans le champ libre (ligne 11), pas dans le
+ * champ référence (ligne 10), sinon les banques belges la refusent.
+ */
+function qrVirement(o: { nom: string; iban: string; montant: number; communication?: string | null }) {
+  const iban = (o.iban || "").replace(/\s+/g, "").toUpperCase();
+  if (!iban) return null;
+  return [
+    "BCD", "002", "1", "SCT", "",
+    (o.nom || "").slice(0, 70),
+    iban,
+    `EUR${o.montant.toFixed(2)}`,
+    "", "",
+    (o.communication || "").slice(0, 140),
+  ].join("\n");
+}
+
+/** Affiche le QR et le rappel des coordonnées, pour qui préfère les recopier. */
+function QrVirement({ cible }: { cible: { nom: string; iban: string; montant: number; communication?: string | null } }) {
+  const [svg, setSvg] = useState<string | null>(null);
+  const charge = qrVirement(cible);
+
+  useEffect(() => {
+    if (!charge) return;
+    let vivant = true;
+    // Chargé à la demande : le générateur ne pèse sur le démarrage de personne.
+    import("qrcode").then(q =>
+      q.toString(charge, { type: "svg", margin: 1, errorCorrectionLevel: "M", width: 240 })
+        .then((s: string) => { if (vivant) setSvg(s); })
+        .catch(() => {})
+    );
+    return () => { vivant = false; };
+  }, [charge]);
+
+  if (!charge) return null;
+  const ibanLisible = cible.iban.replace(/\s+/g, "").replace(/(.{4})/g, "$1 ").trim();
+
+  return (
+    <div style={{ background: "#fff", border: "1.5px solid #f0d8b8", borderRadius: "12px", padding: "0.9rem", marginTop: "0.6rem", textAlign: "center" as const }}>
+      {svg
+        ? <div style={{ width: "200px", margin: "0 auto" }} dangerouslySetInnerHTML={{ __html: svg }} />
+        : <div style={{ color: "#a07848", fontSize: "0.8rem", padding: "2rem 0" }}>Génération du QR…</div>}
+      <div style={{ color: "#3d1a0a", fontSize: "0.82rem", fontWeight: 700, marginTop: "0.5rem" }}>
+        {cible.montant.toLocaleString("fr-BE", { minimumFractionDigits: 2 })} € · {cible.nom}
+      </div>
+      <div style={{ color: "#a07848", fontSize: "0.72rem", marginTop: "0.25rem", wordBreak: "break-all" as const }}>
+        {ibanLisible}
+        {cible.communication && <><br />{cible.communication}</>}
+      </div>
+      <div style={{ color: "#c8a878", fontSize: "0.62rem", marginTop: "0.4rem", lineHeight: 1.45 }}>
+        Scanne ce code depuis ton app bancaire : le virement s'ouvre déjà rempli.
+        Rien n'est payé depuis cette app.
+      </div>
+    </div>
+  );
+}
+
 // ── ÉCHÉANCES DE DETTES → CALENDRIER ──────────────────────
 // Les plans de paiement tombent à date fixe (le 8, le 10, le 20) et c'est le
 // 10 qui porte les trois quarts de l'effort mensuel. Un oubli sur un plan
@@ -1438,6 +1512,8 @@ export default function App() {
   // Finances
   const [dettes, setDettes] = useState<any[]>([]);
   const [rappels, setRappels] = useState<any[]>([]);
+  // Quel QR de virement est ouvert : un seul à la fois, sinon l'écran déborde.
+  const [qrOuvert, setQrOuvert] = useState<string | null>(null);
   const [charges, setCharges] = useState<any[]>([]);
   const [financesView, setFinancesView] = useState<"sorties"|"resume"|"taches"|"event"|"carte"|"maroc">("resume");
   // Projet Maroc (privé — Abdel & Mohammed uniquement)
@@ -5487,6 +5563,12 @@ A travaillé sans être au planning — qui a été remplacé ?
                                 style={{ background: "#4caf50", color: "#fff", border: "none", borderRadius: "8px", padding: "0.35rem 0.7rem", fontSize: "0.75rem", cursor: "pointer", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", display: "inline-flex", alignItems: "center", gap: "4px" }}>
                                 <Check size={14} /> Réglé
                               </button>
+                              {d.iban && d.mensualite && (
+                                <button onClick={() => setQrOuvert(qrOuvert === `d${d.id}` ? null : `d${d.id}`)}
+                                  style={{ background: qrOuvert === `d${d.id}` ? "#3d1a0a" : "#faebd7", color: qrOuvert === `d${d.id}` ? "#fff8f0" : "#a07848", border: "1.5px solid #f0d8b8", borderRadius: "8px", padding: "0.35rem 0.7rem", fontSize: "0.75rem", cursor: "pointer", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", display: "inline-flex", alignItems: "center", gap: "4px" }}>
+                                  <Banknote size={13} /> Payer
+                                </button>
+                              )}
                               {d.jour_echeance && d.mensualite && (
                                 <button onClick={() => telechargerIcs([d], `${d.nom.replace(/[^\w]+/g, "-").toLowerCase()}.ics`).then(flash)}
                                   style={{ background: "#faebd7", color: "#a07848", border: "1.5px solid #f0d8b8", borderRadius: "8px", padding: "0.35rem 0.7rem", fontSize: "0.75rem", cursor: "pointer", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", display: "inline-flex", alignItems: "center", gap: "4px" }}>
@@ -5498,6 +5580,9 @@ A travaillé sans être au planning — qui a été remplacé ?
                                 <Trash2 size={13} />
                               </button>
                             </div>
+                            {qrOuvert === `d${d.id}` && d.iban && (
+                              <QrVirement cible={{ nom: d.creancier || d.nom, iban: d.iban, montant: parseFloat(d.mensualite) || 0, communication: d.communication }} />
+                            )}
                           </div>
                         );
                       })}
