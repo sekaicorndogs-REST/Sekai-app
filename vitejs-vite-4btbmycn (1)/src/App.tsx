@@ -769,6 +769,17 @@ const rappelEnEcheance = (r: any) => ({
   societe: r.societe, creancier: r.creancier, montant_restant: null,
 });
 
+/**
+ * Une charge fixe qui tombe à date fixe — le leasing de la caisse, par
+ * exemple. Celles qui n'ont pas de jour renseigné sont ignorées : un rappel
+ * sans date ne sert à rien.
+ */
+const chargeEnEcheance = (c: any) => ({
+  id: `charge-${c.id}`, nom: c.nom, mensualite: c.montant,
+  jour_echeance: c.jour_echeance, date_fin: null,
+  societe: c.societe, creancier: c.creancier, montant_restant: null,
+});
+
 /** Déclenche le téléchargement, ce qui ouvre l'app Calendrier sur iPhone. */
 function telechargerIcs(liste: any[], nom: string) {
   const blob = new Blob([icsDettes(liste)], { type: "text/calendar;charset=utf-8" });
@@ -5298,7 +5309,13 @@ A travaillé sans être au planning — qui a été remplacé ?
               <div key={c.id} style={{ background: "#fff8f0", border: "1.5px solid #f0d8b8", borderRadius: "12px", padding: "0.8rem 1rem", marginBottom: "0.5rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <div>
                   <div style={{ color: "#3d1a0a", fontSize: "0.9rem", fontWeight: "600" }}>{c.nom}</div>
-                  <div style={{ color: "#a07848", fontSize: "0.7rem" }}>{c.categorie}</div>
+                  <div style={{ color: "#a07848", fontSize: "0.7rem" }}>
+                    {c.categorie}
+                    {c.jour_echeance && (
+                      <> · <strong style={{ color: "#3d1a0a" }}>le {c.jour_echeance} du mois</strong></>
+                    )}
+                    {c.creancier && ` · ${c.creancier}`}
+                  </div>
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
                   <div style={{ color: "#e8213a", fontSize: "0.95rem", fontWeight: "bold" }}>{parseFloat(c.montant).toLocaleString("fr-BE", { minimumFractionDigits: 2 })} €</div>
@@ -5358,8 +5375,12 @@ A travaillé sans être au planning — qui a été remplacé ?
                       {/* Un seul fichier pour tous les plans : chacun l'ouvre une fois
                           sur son iPhone et les rappels sont posés jusqu'à la dernière
                           échéance, sans rien à ressaisir. */}
-                      {(actives.some(d => d.jour_echeance && d.mensualite) || rappels.length > 0) && (
-                        <button onClick={() => telechargerIcs([...actives, ...rappels.map(rappelEnEcheance)], "echeances-sekai.ics")}
+                      {(actives.some(d => d.jour_echeance && d.mensualite) || rappels.length > 0
+                        || charges.some((c: any) => c.jour_echeance)) && (
+                        <button onClick={() => telechargerIcs(
+                          [...actives, ...rappels.map(rappelEnEcheance),
+                           ...charges.filter((c: any) => c.jour_echeance).map(chargeEnEcheance)],
+                          "echeances-sekai.ics")}
                           style={{ width: "100%", background: "#3d1a0a", color: "#fff8f0", border: "none", borderRadius: "12px", padding: "0.75rem", fontSize: "0.85rem", fontWeight: "bold", cursor: "pointer", fontFamily: "'Poppins', sans-serif", marginBottom: "0.7rem", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "7px" }}>
                           <CalendarDays size={16} /> Mettre toutes les échéances dans mon calendrier
                         </button>
