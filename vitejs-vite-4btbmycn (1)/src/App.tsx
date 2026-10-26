@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from "react";
-import { Package, Calendar, CreditCard, Users, UserCircle, ArrowLeft, RefreshCw, AlertTriangle, AlertCircle, CheckCircle, Pencil, Save, Eye, EyeOff, Check, Lock, User, ArrowRight, Trash2, Plus, ChevronRight, Settings, LogOut, Shield, Star, ListChecks, FileText, Wallet, Target, Lightbulb, Banknote, Receipt, PartyPopper, Utensils, Heart, TrendingUp, Coins, PiggyBank, HandCoins, Percent, Moon, Clock, Box, Home, X, BarChart3, Wrench, Radio } from "lucide-react";
+import { Package, Calendar, CreditCard, Users, UserCircle, ArrowLeft, RefreshCw, AlertTriangle, AlertCircle, CheckCircle, Pencil, Save, Eye, EyeOff, Check, Lock, User, ArrowRight, Trash2, Plus, ChevronRight, Settings, LogOut, Shield, Star, ListChecks, FileText, Wallet, Target, Lightbulb, Banknote, Receipt, PartyPopper, Utensils, Heart, TrendingUp, Coins, PiggyBank, HandCoins, Percent, Moon, Clock, Box, Home, X, BarChart3, Wrench, Radio, CalendarDays } from "lucide-react";
 import { computeIndicateurs, masseColor as calcMasseColor, masseLabel as calcMasseLabel } from "./finances";
 import { RealtimeClient } from "@supabase/realtime-js";
 
@@ -675,6 +675,89 @@ async function deleteDette(id) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/finances_dettes?id=eq.${id}`, { method: "DELETE", headers: HEADERS });
   if (!res.ok) throw new Error("Delete dette failed");
 }
+// ── ÉCHÉANCES DE DETTES → CALENDRIER ──────────────────────
+// Les plans de paiement tombent à date fixe (le 8, le 10, le 20) et c'est le
+// 10 qui porte les trois quarts de l'effort mensuel. Un oubli sur un plan
+// d'huissier ne se rattrape pas, donc l'app doit pouvoir poser le rappel
+// directement dans le calendrier du téléphone.
+
+/** Prochaine occurrence du jour `j` du mois, à partir d'aujourd'hui inclus. */
+function prochaineEcheance(j: number): Date {
+  const t = new Date();
+  const d = new Date(t.getFullYear(), t.getMonth(), j);
+  if (d < new Date(t.getFullYear(), t.getMonth(), t.getDate())) d.setMonth(d.getMonth() + 1);
+  return d;
+}
+
+const ymd = (d: Date) =>
+  `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}${String(d.getDate()).padStart(2, "0")}`;
+
+/** Échappe les caractères que le format iCalendar réserve. */
+const icsTexte = (s: string) => String(s).replace(/([,;\\])/g, "\\$1").replace(/\n/g, "\\n");
+
+/**
+ * Un fichier .ics contenant une série mensuelle par dette : journée entière le
+ * jour de l'échéance, répétée jusqu'à la dernière, avec un rappel la veille.
+ *
+ * ⚠️ `UNTIL` doit être du même type que `DTSTART` : les deux sont des DATE
+ * sans heure, sinon iOS refuse la règle de répétition en silence.
+ */
+function icsDettes(liste: any[]): string {
+  const lignes = [
+    "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Sekai Corndogs//Dettes//FR",
+    "CALSCALE:GREGORIAN", "METHOD:PUBLISH",
+  ];
+  const estampille = new Date().toISOString().replace(/[-:]/g, "").slice(0, 15) + "Z";
+
+  for (const d of liste) {
+    const jour = parseInt(d.jour_echeance, 10);
+    const montant = parseFloat(d.mensualite);
+    if (!jour || !montant) continue;
+
+    const debut = prochaineEcheance(jour);
+    const fin = new Date(debut); fin.setDate(fin.getDate() + 1);
+    const rrule = ["RRULE:FREQ=MONTHLY", `BYMONTHDAY=${jour}`]
+      .concat(d.date_fin ? [`UNTIL=${d.date_fin.replace(/-/g, "")}`] : []).join(";");
+
+    const details = [
+      `Mensualite : ${montant.toFixed(2)} EUR`,
+      d.creancier ? `A verser a : ${d.creancier}` : null,
+      d.societe ? `Paye par : ${d.societe}` : null,
+      d.montant_restant ? `Solde restant au moment du rappel : ${parseFloat(d.montant_restant).toFixed(2)} EUR` : null,
+      d.date_fin ? `Derniere echeance prevue : ${d.date_fin}` : null,
+    ].filter(Boolean).join("\n");
+
+    lignes.push(
+      "BEGIN:VEVENT",
+      `UID:dette-${d.id}-${ymd(debut)}@sekaicorndogs`,
+      `DTSTAMP:${estampille}`,
+      `DTSTART;VALUE=DATE:${ymd(debut)}`,
+      `DTEND;VALUE=DATE:${ymd(fin)}`,
+      rrule,
+      `SUMMARY:${icsTexte(`${d.nom} — ${montant.toFixed(0)} €`)}`,
+      `DESCRIPTION:${icsTexte(details)}`,
+      // Rappel la veille à 9h : à 9h le jour même, le virement part souvent trop tard.
+      "BEGIN:VALARM", "ACTION:DISPLAY", "TRIGGER:-PT15H",
+      `DESCRIPTION:${icsTexte(`${d.nom} : ${montant.toFixed(0)} € demain`)}`, "END:VALARM",
+      "END:VEVENT",
+    );
+  }
+
+  lignes.push("END:VCALENDAR");
+  // Le format impose des fins de ligne CRLF — iOS est strict là-dessus.
+  return lignes.join("\r\n");
+}
+
+/** Déclenche le téléchargement, ce qui ouvre l'app Calendrier sur iPhone. */
+function telechargerIcs(liste: any[], nom: string) {
+  const blob = new Blob([icsDettes(liste)], { type: "text/calendar;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = nom;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 5000);
+}
+
 async function fetchCharges() {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/finances_charges?select=*&order=categorie.asc`, { headers: HEADERS });
   if (!res.ok) throw new Error("Fetch charges failed");
@@ -5250,6 +5333,15 @@ A travaillé sans être au planning — qui a été remplacé ?
                           </div>
                         </div>
                       )}
+                      {/* Un seul fichier pour tous les plans : chacun l'ouvre une fois
+                          sur son iPhone et les rappels sont posés jusqu'à la dernière
+                          échéance, sans rien à ressaisir. */}
+                      {actives.some(d => d.jour_echeance && d.mensualite) && (
+                        <button onClick={() => telechargerIcs(actives, "echeances-sekai.ics")}
+                          style={{ width: "100%", background: "#3d1a0a", color: "#fff8f0", border: "none", borderRadius: "12px", padding: "0.75rem", fontSize: "0.85rem", fontWeight: "bold", cursor: "pointer", fontFamily: "'Poppins', sans-serif", marginBottom: "0.7rem", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "7px" }}>
+                          <CalendarDays size={16} /> Mettre toutes les échéances dans mon calendrier
+                        </button>
+                      )}
                       {actives.length === 0 && <div style={{ color: "#4caf50", textAlign: "center", padding: "2rem", fontSize: "0.9rem", fontWeight: "bold" }}>Aucune dette en cours !</div>}
                       {actives.map(d => {
                         const montant = parseFloat(d.montant_initial) || 0;
@@ -5264,6 +5356,32 @@ A travaillé sans être au planning — qui a été remplacé ?
                                   {d.categorie} {d.avec_plan && d.mensualite && <span style={{ color: "#4caf50" }}>· Plan {parseFloat(d.mensualite).toFixed(0)}€/mois</span>}
                                   {!d.avec_plan && <span style={{ color: "#e8213a" }}> · Pas de plan</span>}
                                 </div>
+                                {/* Les dates du plan : le jour du prélèvement est ce qui
+                                    pilote la trésorerie, la date de fin est ce qui dit
+                                    quand l'effort mensuel retombe. */}
+                                {(d.jour_echeance || d.date_fin || d.creancier) && (
+                                  <div style={{ color: "#a07848", fontSize: "0.7rem", marginTop: "0.25rem", lineHeight: 1.5 }}>
+                                    {d.jour_echeance && (
+                                      <div>
+                                        <strong style={{ color: "#3d1a0a" }}>Le {d.jour_echeance} du mois</strong>
+                                        {" · prochaine le "}
+                                        {prochaineEcheance(parseInt(d.jour_echeance, 10)).toLocaleDateString("fr-BE", { day: "numeric", month: "short" })}
+                                      </div>
+                                    )}
+                                    {d.date_fin && (
+                                      <div>
+                                        Dernière échéance le{" "}
+                                        <strong style={{ color: "#3d1a0a" }}>
+                                          {new Date(d.date_fin).toLocaleDateString("fr-BE", { day: "numeric", month: "long", year: "numeric" })}
+                                        </strong>
+                                        {d.mensualite && parseFloat(d.mensualite) > 0 &&
+                                          ` · ${Math.ceil(restant / parseFloat(d.mensualite))} échéance${Math.ceil(restant / parseFloat(d.mensualite)) > 1 ? "s" : ""} restante${Math.ceil(restant / parseFloat(d.mensualite)) > 1 ? "s" : ""}`}
+                                      </div>
+                                    )}
+                                    {d.creancier && <div style={{ color: "#c8a878" }}>→ {d.creancier}</div>}
+                                    {d.societe && <div style={{ color: "#c8a878" }}>Payé par {d.societe}</div>}
+                                  </div>
+                                )}
                               </div>
                               <div style={{ textAlign: "right" }}>
                                 <div style={{ color: "#e8213a", fontSize: "1rem", fontWeight: "bold" }}>{restant.toLocaleString("fr-BE", { minimumFractionDigits: 2 })} €</div>
@@ -5286,6 +5404,12 @@ A travaillé sans être au planning — qui a été remplacé ?
                                 style={{ background: "#4caf50", color: "#fff", border: "none", borderRadius: "8px", padding: "0.35rem 0.7rem", fontSize: "0.75rem", cursor: "pointer", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", display: "inline-flex", alignItems: "center", gap: "4px" }}>
                                 <Check size={14} /> Réglé
                               </button>
+                              {d.jour_echeance && d.mensualite && (
+                                <button onClick={() => telechargerIcs([d], `${d.nom.replace(/[^\w]+/g, "-").toLowerCase()}.ics`)}
+                                  style={{ background: "#faebd7", color: "#a07848", border: "1.5px solid #f0d8b8", borderRadius: "8px", padding: "0.35rem 0.7rem", fontSize: "0.75rem", cursor: "pointer", fontFamily: "'Poppins', sans-serif", fontWeight: "bold", display: "inline-flex", alignItems: "center", gap: "4px" }}>
+                                  <CalendarDays size={13} /> Calendrier
+                                </button>
+                              )}
                               <button onClick={() => handleDeleteDette(d.id, d)}
                                 style={{ background: "#fff5f5", color: "#e57373", border: "none", borderRadius: "8px", padding: "0.35rem 0.5rem", fontSize: "0.75rem", cursor: "pointer" }}>
                                 <Trash2 size={13} />
