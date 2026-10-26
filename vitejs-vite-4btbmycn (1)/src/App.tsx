@@ -2480,6 +2480,12 @@ export default function App() {
   const [directCmdJour, setDirectCmdJour] = useState(0);
   const [directMenusJour, setDirectMenusJour] = useState(0);
   const [directTicketJour, setDirectTicketJour] = useState<number | null>(null);
+  // « Reçues » du jour, compté sur TOUTE la journée et non sur les 60 commandes
+  // affichées. Au-delà de 60 commandes — soit tous les jours — la liste ne porte
+  // plus la journée entière, et les deux totaux divergeaient alors qu'ils sont là
+  // pour se contrôler l'un l'autre (un écart doit signifier que le miroir est cassé).
+  const [directRecuCaJour, setDirectRecuCaJour] = useState(0);
+  const [directRecuCmdJour, setDirectRecuCmdJour] = useState(0);
   const [directPlatsJour, setDirectPlatsJour] = useState(0);
   const [directLoading, setDirectLoading] = useState(false);
   const [directMaj, setDirectMaj] = useState<Date | null>(null);
@@ -2521,6 +2527,8 @@ export default function App() {
         { headers: HEADERS },
       );
       const cj = rt.ok ? await rt.json() : [];
+      setDirectRecuCaJour(cj.reduce((t: number, c: any) => t + (parseFloat(c.total) || 0), 0));
+      setDirectRecuCmdJour(cj.length);
       const plats = cj.filter((c: any) => avecPlat.has(c.id));
       setDirectPlatsJour(plats.length);
       setDirectTicketJour(plats.length
@@ -8731,8 +8739,8 @@ A travaillé sans être au planning — qui a été remplacé ?
     const jourDe = (c: any) => new Date(c.cree_le || c.recu_le)
       .toLocaleDateString("fr-CA", { timeZone: "Europe/Brussels" });
     const aujourdhui = new Date().toLocaleDateString("fr-CA", { timeZone: "Europe/Brussels" });
-    const cmdsDuJour = directCmds.filter(c => jourDe(c) === aujourdhui);
-    const totalListe = cmdsDuJour.reduce((t, c) => t + (parseFloat(c.total) || 0), 0);
+    // Ne sert plus qu'au séparateur de date dans la liste : les totaux du jour sont
+    // calculés sur la journée entière, pas sur les 60 commandes affichées.
 
     return (
       <div style={{ ...s, minHeight: "100dvh", background: "#faebd7", paddingBottom: "14rem" }}>
@@ -8817,8 +8825,8 @@ A travaillé sans être au planning — qui a été remplacé ?
           <div style={{ display: "flex", gap: "0.7rem" }}>
             <div style={{ flex: 1, textAlign: "center" }}>
               <div style={{ fontSize: "0.68rem", color: "#a07848", textTransform: "uppercase", letterSpacing: "0.02em" }}>Aujourd'hui · reçues</div>
-              <div style={{ fontSize: "1.15rem", fontWeight: "bold" }}>{eur(totalListe)}</div>
-              <div style={{ fontSize: "0.65rem", color: "#a07848" }}>{cmdsDuJour.length} commande{cmdsDuJour.length > 1 ? "s" : ""}</div>
+              <div style={{ fontSize: "1.15rem", fontWeight: "bold" }}>{eur(directRecuCaJour)}</div>
+              <div style={{ fontSize: "0.65rem", color: "#a07848" }}>{directRecuCmdJour} commande{directRecuCmdJour > 1 ? "s" : ""}</div>
             </div>
             <div style={{ width: "1px", background: "#f0d8b8" }} />
             <div style={{ flex: 1, textAlign: "center" }}>
