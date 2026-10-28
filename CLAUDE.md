@@ -77,9 +77,14 @@ Il contient le contexte métier durable. **À mettre à jour dès qu'une donnée
   `saisonnalite`, et les douze valeurs concordent avec `ventes` à l'euro près.
   Elles portent sur les seuls jours d'ouverture (mars est sur 30 jours, le 15/03/2026
   étant le dernier et unique jour sans vente de l'historique).
-- **Seuil de rentabilité : 895 €/jour** = (25 071 € de charges + 1 793 € de dettes) / 30.
-  Recalculé depuis `finances_charges` et `finances_dettes` le 12/08/2026. L'ancienne
-  valeur de 922 € datait d'un état antérieur des charges.
+- **Seuil de rentabilité : 863 €/jour** = (24 067 € de charges + 1 814 € de dettes) / 30.
+  🔴 **Recalculé le 28/10/2026 depuis la base. Ce qui était faux :** ce fichier portait
+  **895 €/jour** et **25 071 € de charges**, alors que `finances_charges` totalise
+  **24 066,70 €**. Les mensualités de dettes sont passées de 1 793 à **1 814 €** (Engie
+  corrigé de 293 à 315 €). L'écran Finances affichait déjà 863 € : c'était lui qui avait
+  raison. Avant 895 €, la valeur était de 922 €.
+  ⚠️ **Toujours vérifier ce chiffre en base avant de s'en servir** — il a été faux deux
+  fois de suite dans ce fichier.
 
 ### CA moyen par jour de semaine (année complète, aux bornes)
 
