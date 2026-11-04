@@ -168,9 +168,42 @@ toutes deux à coût nul :
 
 ### Structure, équipe et positionnement
 
-- **Trois gérants** : Abdel, Moha, Nabil. Ils se partagent la ligne « Salaire gérant »
-  de 5 900 €/mois, soit ~1 967 € chacun. **C'est le nœud du dossier** : une unité qui
-  fait 375 k€ fait vivre correctement un exploitant, pas trois.
+- 🔴 **DEUX gérants depuis le 04/11/2026 : Abdel et Moha. Nabil ne fait plus partie de
+  Sekai** (annoncé par le gérant). Ce qui était écrit avant — « trois gérants, 5 900 €/mois,
+  ~1 967 € chacun » — **n'est plus vrai**.
+  La ligne « Salaire gérant » est passée de **5 800 € à 3 800 €/mois**, soit ~1 900 €
+  chacun. Le seuil de rentabilité tombe donc de 863 à **796 €/jour** (hors étudiants).
+  ⚠️ Cette ligne a oscillé entre 3 800 et 5 800 € dans la base en deux semaines :
+  **la vérifier avant de s'en servir**.
+
+### Le cycle à deux gérants sur 2 semaines (04/11/2026)
+
+Les deux semaines ont **la même couverture** : lun 1 · mar 2 · mer 1 · jeu 1 ·
+**ven 0** · sam 1 · dim 2.
+
+| | Lun | Mar | Mer | Jeu | Ven | Sam | Dim |
+|---|---|---|---|---|---|---|---|
+| S1 Abdel | ● | ● | — | — | — | ● | ● |
+| S1 Moha | — | ● | ● | ● | — | — | ● |
+| S2 Abdel | — | ● | ● | ● | — | — | ● |
+| S2 Moha | ● | ● | — | — | — | ● | ● |
+
+🔴 **Le vendredi est tenu UNIQUEMENT par des étudiants, sans aucun gérant** — décision
+du gérant le 04/11/2026, confirmée explicitement. C'est le 2e meilleur jour de la
+semaine (925 €/jour). Ne pas le présenter comme un oubli : c'est un choix.
+
+**Besoin étudiants** pour tenir « 2 personnes tous les jours, 3 le samedi » :
+lun 1 · mer 1 · jeu 1 · **ven 2** · **sam 2** = **7 shifts/semaine**, soit 63 h/semaine
+et ~273 h/mois, ~3 500 €/mois à 12,80 €/h.
+
+⚠️ **L'opération coûte plus cher qu'elle ne rapporte tant que l'employé existant n'est
+pas compté** : 2 000 € économisés sur les gérants contre ~3 500 € d'étudiants.
+**Question ouverte, posée trois fois, sans réponse : combien de shifts couvre la ligne
+« Employés » (3 390 €/mois), et lesquels ?** C'est ce chiffre qui décide si le montage
+est gagnant.
+
+⚠️ **Quota étudiant 650 h/an** : 3 276 h/an à couvrir impose **5 à 6 étudiants
+différents**. Au-delà du quota les cotisations passent au taux plein.
 - **Un employé** au restaurant en plus des gérants. Renforts ponctuels pour les events
   (d'où le nombre élevé de comptes dans `users`).
 - **Horaires** : lun–ven 12h–20h · sam 13h–21h · dim 14h–20h = **54 h/semaine**.
