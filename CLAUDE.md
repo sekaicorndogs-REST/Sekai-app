@@ -161,10 +161,31 @@ toutes deux à coût nul :
   Après les 1 793 € de dettes : **~4 600 €/mois**.
   ⚠️ Avant impôt — `finances_charges` ne porte aucune ligne d'impôt (voir plus bas).
 - Forte saisonnalité : creux en mars (832 €/j), pic en juillet (1 278 €/j)
-- Masse salariale **28,9 % du CA** (9 100 € : gérants 5 900 + employé 2 300 + ménage 900),
-  plafond fixé à 35 %. ⚠️ La cotisation sociale (900 €/mois) n'est **pas** comptée dedans
-  par `finances.ts`, qui ne retient que les catégories `salaire` et `personnel`. Coût du
-  travail réel : **10 000 €, soit 31,8 %**.
+- 🔴 **Masse salariale refondue le 04/11/2026** (départ de Nabil, fin de l'employé).
+  Ce qui était écrit avant — « 28,9 % du CA, 9 100 €, gérants 5 900 + employé 2 300 » —
+  **n'est plus vrai**. État actuel :
+
+  | Ligne | Montant |
+  |---|---|
+  | Salaire gérant *(2 gérants)* | **3 800 €** |
+  | **Étudiants** *(7 shifts/sem · 273 h × 12,80 €)* | **3 494,40 €** |
+  | Femme de ménage | 900 € |
+  | Cotisation sociale | **600 €** |
+
+  Masse salariale **8 194 €**, coût du travail **8 794 €, soit 23,6 % du CA** — très en
+  dessous du plafond de 35 %. **Il n'y a plus d'employé salarié : les étudiants le
+  remplacent entièrement.**
+  ⚠️ `finances.ts` ne compte que `salaire` et `personnel`, donc la cotisation sociale
+  reste hors de la masse salariale affichée.
+
+  🔴 **La ligne « Cotisation sociale » de 600 € ne porte QUE les cotisations COURANTES.**
+  Les arriérés sont ailleurs, dans `finances_dettes` : Abdel chez **Acerta** (500 €/mois,
+  en recouvrement chez l'huissier Kantoor Brackeva) et Moha chez **Xerius** (374 €/mois).
+  Confirmé par le gérant le 04/11/2026. **Ne jamais fusionner ces trois lignes** : ce
+  serait compter les mêmes cotisations deux fois.
+
+- **Charges totales 23 871 €**, seuil de rentabilité **856 €/jour** au 04/11/2026
+  (voir plus haut). ⚠️ Chiffres qui bougent souvent : les revérifier en base.
 
 ### Structure, équipe et positionnement
 
