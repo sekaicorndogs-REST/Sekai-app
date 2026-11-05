@@ -77,9 +77,14 @@ Il contient le contexte métier durable. **À mettre à jour dès qu'une donnée
   `saisonnalite`, et les douze valeurs concordent avec `ventes` à l'euro près.
   Elles portent sur les seuls jours d'ouverture (mars est sur 30 jours, le 15/03/2026
   étant le dernier et unique jour sans vente de l'historique).
-- **Seuil de rentabilité : 895 €/jour** = (25 071 € de charges + 1 793 € de dettes) / 30.
-  Recalculé depuis `finances_charges` et `finances_dettes` le 12/08/2026. L'ancienne
-  valeur de 922 € datait d'un état antérieur des charges.
+- **Seuil de rentabilité : 863 €/jour** = (24 067 € de charges + 1 814 € de dettes) / 30.
+  🔴 **Recalculé le 28/10/2026 depuis la base. Ce qui était faux :** ce fichier portait
+  **895 €/jour** et **25 071 € de charges**, alors que `finances_charges` totalise
+  **24 066,70 €**. Les mensualités de dettes sont passées de 1 793 à **1 814 €** (Engie
+  corrigé de 293 à 315 €). L'écran Finances affichait déjà 863 € : c'était lui qui avait
+  raison. Avant 895 €, la valeur était de 922 €.
+  ⚠️ **Toujours vérifier ce chiffre en base avant de s'en servir** — il a été faux deux
+  fois de suite dans ce fichier.
 
 ### CA moyen par jour de semaine (année complète, aux bornes)
 
@@ -156,16 +161,70 @@ toutes deux à coût nul :
   Après les 1 793 € de dettes : **~4 600 €/mois**.
   ⚠️ Avant impôt — `finances_charges` ne porte aucune ligne d'impôt (voir plus bas).
 - Forte saisonnalité : creux en mars (832 €/j), pic en juillet (1 278 €/j)
-- Masse salariale **28,9 % du CA** (9 100 € : gérants 5 900 + employé 2 300 + ménage 900),
-  plafond fixé à 35 %. ⚠️ La cotisation sociale (900 €/mois) n'est **pas** comptée dedans
-  par `finances.ts`, qui ne retient que les catégories `salaire` et `personnel`. Coût du
-  travail réel : **10 000 €, soit 31,8 %**.
+- 🔴 **Masse salariale refondue le 04/11/2026** (départ de Nabil, fin de l'employé).
+  Ce qui était écrit avant — « 28,9 % du CA, 9 100 €, gérants 5 900 + employé 2 300 » —
+  **n'est plus vrai**. État actuel :
+
+  | Ligne | Montant |
+  |---|---|
+  | Salaire gérant *(2 gérants)* | **3 800 €** |
+  | **Étudiants** *(7 shifts/sem · 273 h × 12,80 €)* | **3 494,40 €** |
+  | Femme de ménage | 900 € |
+  | Cotisation sociale | **600 €** |
+
+  Masse salariale **8 194 €**, coût du travail **8 794 €, soit 23,6 % du CA** — très en
+  dessous du plafond de 35 %. **Il n'y a plus d'employé salarié : les étudiants le
+  remplacent entièrement.**
+  ⚠️ `finances.ts` ne compte que `salaire` et `personnel`, donc la cotisation sociale
+  reste hors de la masse salariale affichée.
+
+  🔴 **La ligne « Cotisation sociale » de 600 € ne porte QUE les cotisations COURANTES.**
+  Les arriérés sont ailleurs, dans `finances_dettes` : Abdel chez **Acerta** (500 €/mois,
+  en recouvrement chez l'huissier Kantoor Brackeva) et Moha chez **Xerius** (374 €/mois).
+  Confirmé par le gérant le 04/11/2026. **Ne jamais fusionner ces trois lignes** : ce
+  serait compter les mêmes cotisations deux fois.
+
+- **Charges totales 23 871 €**, seuil de rentabilité **856 €/jour** au 04/11/2026
+  (voir plus haut). ⚠️ Chiffres qui bougent souvent : les revérifier en base.
 
 ### Structure, équipe et positionnement
 
-- **Trois gérants** : Abdel, Moha, Nabil. Ils se partagent la ligne « Salaire gérant »
-  de 5 900 €/mois, soit ~1 967 € chacun. **C'est le nœud du dossier** : une unité qui
-  fait 375 k€ fait vivre correctement un exploitant, pas trois.
+- 🔴 **DEUX gérants depuis le 04/11/2026 : Abdel et Moha. Nabil ne fait plus partie de
+  Sekai** (annoncé par le gérant). Ce qui était écrit avant — « trois gérants, 5 900 €/mois,
+  ~1 967 € chacun » — **n'est plus vrai**.
+  La ligne « Salaire gérant » est passée de **5 800 € à 3 800 €/mois**, soit ~1 900 €
+  chacun. Le seuil de rentabilité tombe donc de 863 à **796 €/jour** (hors étudiants).
+  ⚠️ Cette ligne a oscillé entre 3 800 et 5 800 € dans la base en deux semaines :
+  **la vérifier avant de s'en servir**.
+
+### Le cycle à deux gérants sur 2 semaines (04/11/2026)
+
+Les deux semaines ont **la même couverture** : lun 1 · mar 2 · mer 1 · jeu 1 ·
+**ven 0** · sam 1 · dim 2.
+
+| | Lun | Mar | Mer | Jeu | Ven | Sam | Dim |
+|---|---|---|---|---|---|---|---|
+| S1 Abdel | ● | ● | — | — | — | ● | ● |
+| S1 Moha | — | ● | ● | ● | — | — | ● |
+| S2 Abdel | — | ● | ● | ● | — | — | ● |
+| S2 Moha | ● | ● | — | — | — | ● | ● |
+
+🔴 **Le vendredi est tenu UNIQUEMENT par des étudiants, sans aucun gérant** — décision
+du gérant le 04/11/2026, confirmée explicitement. C'est le 2e meilleur jour de la
+semaine (925 €/jour). Ne pas le présenter comme un oubli : c'est un choix.
+
+**Besoin étudiants** pour tenir « 2 personnes tous les jours, 3 le samedi » :
+lun 1 · mer 1 · jeu 1 · **ven 2** · **sam 2** = **7 shifts/semaine**, soit 63 h/semaine
+et ~273 h/mois, ~3 500 €/mois à 12,80 €/h.
+
+⚠️ **L'opération coûte plus cher qu'elle ne rapporte tant que l'employé existant n'est
+pas compté** : 2 000 € économisés sur les gérants contre ~3 500 € d'étudiants.
+**Question ouverte, posée trois fois, sans réponse : combien de shifts couvre la ligne
+« Employés » (3 390 €/mois), et lesquels ?** C'est ce chiffre qui décide si le montage
+est gagnant.
+
+⚠️ **Quota étudiant 650 h/an** : 3 276 h/an à couvrir impose **5 à 6 étudiants
+différents**. Au-delà du quota les cotisations passent au taux plein.
 - **Un employé** au restaurant en plus des gérants. Renforts ponctuels pour les events
   (d'où le nombre élevé de comptes dans `users`).
 - **Horaires** : lun–ven 12h–20h · sam 13h–21h · dim 14h–20h = **54 h/semaine**.

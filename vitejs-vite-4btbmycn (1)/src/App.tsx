@@ -2555,26 +2555,30 @@ export default function App() {
   }
 
   // ── CYCLE PLANNING ─────────────────────────────────────────
-  // Cycle start: Monday April 20, 2026 = Semaine 2, Jour 1 (index 1 in 0-based)
-  // CYCLE_START_WEEK_INDEX = 1 (semaine 2 = index 1)
-  const CYCLE_START_DATE = "2026-04-20";
-  const CYCLE_START_WEEK_INDEX = 1; // semaine 2 = index 1
+  // 🔴 Refait le 04/11/2026 : Nabil ne fait plus partie de Sekai. Il reste DEUX
+  // gérants, Abdel et Mohammed (« Moha »), sur un cycle de DEUX semaines au lieu
+  // de trois, quatre jours chacun.
+  //
+  // ⚠️ La semaine du lundi 02/11/2026 est prise comme Semaine 1. Si le gérant dit
+  // que c'était la Semaine 2, il suffit de passer CYCLE_START_WEEK_INDEX à 1.
+  const CYCLE_START_DATE = "2026-11-02";
+  const CYCLE_START_WEEK_INDEX = 0;
 
   // planDay: 0=lun, 1=mar, 2=mer, 3=jeu, 4=ven, 5=sam, 6=dim
   // Wassim ne fait plus partie du cycle fixe (gérant, 12/08/2026) : il
   // n'apparaît au planning que les jours où il encode lui-même ses heures.
+  //
+  // 🔴 LE VENDREDI EST VIDE DANS LES DEUX SEMAINES, et c'est VOULU : le gérant a
+  // confirmé le 04/11/2026 qu'il est tenu uniquement par des étudiants. Ce n'est
+  // pas un oubli, ne pas « corriger » en y plaçant un gérant.
   const CYCLE = [
-    { // Semaine 1
-      0: ["Mohammed"], 1: ["Mohammed"], 2: ["Mohammed","Nabil"],
-      3: ["Mohammed","Nabil"], 4: ["Abdel","Nabil"], 5: ["Abdel"], 6: ["Abdel"]
+    { // Semaine 1 — Abdel : lun, mar, sam, dim · Mohammed : mar, mer, jeu, dim
+      0: ["Abdel"], 1: ["Abdel","Mohammed"], 2: ["Mohammed"],
+      3: ["Mohammed"], 4: [], 5: ["Abdel"], 6: ["Abdel","Mohammed"]
     },
-    { // Semaine 2
-      0: ["Nabil"], 1: ["Nabil"], 2: ["Nabil","Abdel"],
-      3: ["Nabil","Abdel"], 4: ["Mohammed","Abdel"], 5: ["Mohammed"], 6: ["Mohammed"]
-    },
-    { // Semaine 3
-      0: ["Abdel"], 1: ["Abdel"], 2: ["Abdel","Mohammed"],
-      3: ["Abdel","Mohammed"], 4: ["Nabil","Mohammed"], 5: ["Nabil"], 6: ["Nabil"]
+    { // Semaine 2 — les deux échangent : Abdel : mar, mer, jeu, dim · Mohammed : lun, mar, sam, dim
+      0: ["Mohammed"], 1: ["Abdel","Mohammed"], 2: ["Abdel"],
+      3: ["Abdel"], 4: [], 5: ["Mohammed"], 6: ["Abdel","Mohammed"]
     }
   ];
 
@@ -2601,7 +2605,9 @@ export default function App() {
     const d = new Date(dateStr + "T12:00:00");
     const diffDays = Math.round((d.getTime() - start.getTime()) / 86400000);
     const diffWeeks = Math.floor(diffDays / 7);
-    return ((CYCLE_START_WEEK_INDEX + diffWeeks) % 3 + 3) % 3;
+    // Le cycle fait CYCLE.length semaines — deux depuis le 04/11/2026, trois avant.
+    const n = CYCLE.length;
+    return ((CYCLE_START_WEEK_INDEX + diffWeeks) % n + n) % n;
   }
 
   function getAutoEmployes(dateStr) {
@@ -4705,7 +4711,8 @@ A travaillé sans être au planning — qui a été remplacé ?
                 });
 
                 // VUE ADMIN/SUPERADMIN
-                const ADMINS = ["Abdel", "Nabil", "Mohammed"];
+                // Nabil retiré le 04/11/2026 : il ne fait plus partie de Sekai.
+                const ADMINS = ["Abdel", "Mohammed"];
                 if (isAdmin) {
                   return (
                     <div>
@@ -4984,7 +4991,7 @@ A travaillé sans être au planning — qui a été remplacé ?
                     <input value={amendeMontant} onChange={e => setAmendeMontant(e.target.value.replace(",","."))} placeholder="Montant en €" inputMode="decimal" style={{ background: "#faebd7", border: "1px solid #f5c842", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", outline: "none", width: "100%", boxSizing: "border-box", fontFamily: "'Poppins', sans-serif" }} />
                     <select value={amendeAttribueeA} onChange={e => setAmendeAttribueeA(e.target.value)} style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", outline: "none", width: "100%", fontFamily: "'Poppins', sans-serif" }}>
                       <option value="">Attribuer à...</option>
-                      {["Abdel","Nabil","Mohammed"].map(n => <option key={n} value={n}>{n}</option>)}
+                      {["Abdel","Mohammed"].map(n => <option key={n} value={n}>{n}</option>)}
                     </select>
                     <input type="date" value={amendeDateIncident} onChange={e => setAmendeDateIncident(e.target.value)} style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.95rem", outline: "none", width: "100%", boxSizing: "border-box", fontFamily: "'Poppins', sans-serif" }} />
                     <textarea value={amendeNote} onChange={e => setAmendeNote(e.target.value)} placeholder="Note (optionnel)..." rows={2} style={{ background: "#faebd7", border: "1.5px solid #f0d8b8", color: "#3d1a0a", padding: "0.8rem 1rem", borderRadius: "8px", fontSize: "0.9rem", outline: "none", width: "100%", boxSizing: "border-box", resize: "none", fontFamily: "'Poppins', sans-serif" }} />
