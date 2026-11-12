@@ -3372,7 +3372,10 @@ export default function App() {
       {[
         { id: "stock", label: "Stock", icon: "stock", adminOnly: false },
         { id: "horaires", label: "Horaires", icon: "horaires", adminOnly: false },
-        { id: "direct", label: "Direct", icon: "direct", adminOnly: false },
+        // 🔴 Réservé aux admins depuis le 12/11/2026, à la demande du gérant.
+        // Il était volontairement ouvert à tous jusque-là (« écran d'exploitation,
+        // pas de gestion ») : c'est une décision renversée, pas un oubli.
+        { id: "direct", label: "Direct", icon: "direct", adminOnly: true },
         { id: "finances", label: "Finances", icon: "finances", adminOnly: true },
         { id: "paie", label: "Paie", icon: "paie", adminOnly: true },
         { id: "profil", label: "Profil", icon: "profil", adminOnly: false }
@@ -9061,6 +9064,10 @@ A travaillé sans être au planning — qui a été remplacé ?
 
   // ── COMMANDES EN DIRECT ────────────────────────────────────
   if (page === "direct") {
+    // Le filtre de la barre du bas masque l'onglet, mais il reste joignable si
+    // `page` vaut encore "direct" quand on perd le rôle admin : on renvoie
+    // alors sur le stock plutôt que de laisser l'écran s'afficher.
+    if (!isAdmin) { setPage("stock"); return null; }
     const eur = (n: number) => n.toLocaleString("fr-BE", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €";
     // Contrairement à `ventes` (heures locales stockées en UTC), le webhook EasyOrder
     // envoie de l'UTC réel : il faut donc bien convertir vers l'heure de Bruxelles.

@@ -2093,8 +2093,11 @@ solides. À reprendre après une semaine pleine.
 
 ### Onglet « Direct » dans l'app
 
-Nouvel onglet de la barre du bas (icône radio), **visible par tout le monde**, pas
-réservé aux admins : c'est un écran d'exploitation, pas de gestion.
+🔴 **RÉSERVÉ AUX ADMINS depuis le 12/11/2026**, à la demande du gérant. Il était
+volontairement ouvert à tout le monde jusque-là (« écran d'exploitation, pas de
+gestion ») : **c'est une décision renversée, pas un oubli.** L'onglet est masqué de
+la barre du bas (`adminOnly: true`) et la page renvoie sur le Stock si quelqu'un y
+arrive sans le rôle.
 
 Il affiche les **60 dernières commandes** de `commandes_live` avec leur détail produit.
 
