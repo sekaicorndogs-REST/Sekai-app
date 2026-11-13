@@ -388,13 +388,31 @@ export type LigneEnvoi = {
  */
 export async function envoyerCommande(
   modeLivraison: string,
-  lignes: LigneEnvoi[]
+  lignes: LigneEnvoi[],
+  cle: string
 ): Promise<string> {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/borne_creer_commande`, {
-    method: "POST",
-    headers: HEADERS,
-    body: JSON.stringify({ p: { mode_livraison: modeLivraison, lignes } }),
-  });
-  if (!res.ok) throw new Error(`Envoi refusé (${res.status}) : ${await res.text()}`);
-  return res.json();
+  // 🔴 DÉLAI DE GARDE. Sans lui, une requête qui ne revient jamais — wifi du
+  // magasin qui décroche en plein envoi — laissait le client devant « Envoi… »
+  // pour toujours, sans bouton. Quinze secondes, puis on rend la main.
+  const garde = new AbortController();
+  const minuterie = setTimeout(() => garde.abort(), 15000);
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/borne_creer_commande`, {
+      method: "POST",
+      headers: HEADERS,
+      // 🔴 `cle` REND L'ENVOI REJOUABLE. C'est elle qui devient le `source_id`
+      // de la commande : renvoyer la même clé rend le même numéro, sans rien
+      // écrire une seconde fois. Sans elle, une réponse perdue APRÈS
+      // l'écriture donnait « rien n'a été envoyé » alors que la commande
+      // existait, et un second essai faisait un doublon en cuisine.
+      // ⚠️ Les prix envoyés ne servent plus à rien : la fonction relit chaque
+      // prix en base. Ils restent dans le corps pour le `payload` d'archive.
+      body: JSON.stringify({ p: { cle, mode_livraison: modeLivraison, lignes } }),
+      signal: garde.signal,
+    });
+    if (!res.ok) throw new Error(`Envoi refusé (${res.status}) : ${await res.text()}`);
+    return res.json();
+  } finally {
+    clearTimeout(minuterie);
+  }
 }

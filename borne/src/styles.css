@@ -1131,3 +1131,296 @@ h2 {
   text-transform: lowercase;
 }
 
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   LA PASSE DU 13/11/2026 — « analyse ma borne et rends-la meilleure »
+   Tout ce bloc vient d'une relecture écran par écran. Chaque règle répond à
+   un défaut VU en capture, pas à une préférence.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Une borne n'est pas un site ─────────────────────────────────────────────
+   `touch-action: manipulation` coupe le zoom au double-tap, qui se déclenche
+   tout seul quand un client tape deux fois vite sur « + ». `overscroll-behavior`
+   coupe le rebond de page et le « tirer pour rafraîchir » d'Android, qui
+   rechargeait la borne — et vidait le panier — sur un simple glissé vers le bas.
+   ⚠️ Sur `html`, pas sur `body` : voir la règle sur l'overflow plus haut. */
+html {
+  touch-action: manipulation;
+  overscroll-behavior: none;
+  -webkit-touch-callout: none;
+}
+img {
+  -webkit-user-drag: none;
+  user-select: none;
+}
+
+/* ── Le doigt sent le bouton ─────────────────────────────────────────────────
+   Un écran tactile ne rend rien au toucher : sans réponse visible, le client
+   appuie une seconde fois, et ajoute deux menus.
+   🔴 `transform` est posé sur des FEUILLES uniquement — jamais sur un ancêtre
+   du pied de page `position: fixed`, qu'il décrocherait de l'écran (règle 5). */
+.btn,
+.produit,
+.pastille,
+.categorie {
+  transition: transform 0.08s ease-out;
+}
+.btn:active,
+.produit:active,
+.pastille:active,
+.categorie:active {
+  transform: scale(0.97);
+}
+
+/* Les écrans se fondent au lieu de claquer. OPACITÉ SEULE, pour la même
+   raison : une opacité ne crée pas de bloc conteneur pour les `fixed`. */
+@keyframes fondu {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.carte-layout,
+.page > .liste,
+.page > .heros,
+.plein,
+.fini {
+  animation: fondu 0.18s ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* ── Le refus, partout ───────────────────────────────────────────────────────
+   Il n'était défini que dans l'offre de menu. L'écran d'erreur et la question
+   « toujours là ? » en ont besoin aussi. */
+.btn.refus {
+  background-color: var(--creme-clair);
+  color: var(--bordeaux);
+  border: 2px solid var(--bord);
+}
+.btn.refus:active {
+  background-color: var(--bord);
+}
+
+/* ── La barre du panier sur la carte ─────────────────────────────────────────
+   Trois zones fixes : le nombre, le libellé, le total. La phrase d'avant
+   passait sur deux lignes et laissait le « € » seul en dessous. */
+.btn.barre-panier {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 0 22px 0 16px;
+  text-align: left;
+  animation: arrivee 0.32s ease-out;
+}
+.barre-panier .nb {
+  flex: 0 0 auto;
+  min-width: 48px;
+  height: 48px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: var(--rouge);
+  color: var(--sur-rouge);
+  display: grid;
+  place-items: center;
+  font-size: 26px;
+  font-weight: 700;
+}
+.barre-panier .txt {
+  flex: 1;
+  min-width: 0;
+  font-size: 27px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.barre-panier .tot {
+  flex: 0 0 auto;
+  font-size: 30px;
+  white-space: nowrap;
+}
+/* Rejouée à chaque ajout (la clé React change) : c'est le seul signe que le
+   produit est bien parti dans le panier. */
+@keyframes arrivee {
+  0% {
+    transform: scale(0.94);
+  }
+  55% {
+    transform: scale(1.03);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* ── Le produit qu'on configure ──────────────────────────────────────────────
+   L'écran d'options n'avait qu'un nom en haut. */
+.heros {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 12px 20px;
+  margin-bottom: 6px;
+  background: var(--creme-clair);
+  border: 2px solid var(--bord);
+  border-radius: 22px;
+  box-shadow: 0 3px 10px rgba(101, 0, 0, 0.07);
+}
+.heros img {
+  flex: 0 0 auto;
+  height: 132px;
+  width: auto;
+  max-width: 210px;
+  object-fit: contain;
+  display: block;
+}
+.heros .texte {
+  flex: 1;
+  min-width: 0;
+}
+.heros .prix {
+  font-family: var(--titre);
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--rouge);
+}
+.heros p {
+  margin: 4px 0 0;
+  font-size: 17px;
+  line-height: 1.3;
+  color: var(--doux);
+}
+/* Un produit SANS option — un soft, un bubble tea déjà composé : le héros
+   devient la fiche entière. C'était une page blanche avec « Aucune option. » */
+.heros.grand {
+  flex-direction: column;
+  text-align: center;
+  gap: 10px;
+  padding: 34px 20px 30px;
+  margin-top: 26px;
+}
+.heros.grand img {
+  height: 460px;
+  max-width: 82%;
+}
+.heros.grand .prix {
+  font-size: 54px;
+}
+
+/* ── Les choix illustrés remplissent la largeur ──────────────────────────────
+   En largeur fixe (162 px), quatre pastilles laissaient une bande vide de
+   100 px à droite, sur chaque groupe. Une grille de quatre colonnes égales.
+   ⚠️ Toujours quatre : c'est le nombre que la sauce (10 choix) et la panure
+   (6) remplissent sans orphelin trop voyant. */
+.choix.illustre {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+.choix.illustre .pastille {
+  width: auto;
+  min-width: 0;
+  justify-content: flex-start;
+}
+.pastille .vignette {
+  width: 100%;
+  max-width: 150px;
+  height: auto;
+  aspect-ratio: 1;
+}
+/* « CORNDOG SAUCISSE/MOZA » débordait de sa pastille : un mot sans espace ne
+   se coupe pas tout seul. */
+.choix.illustre .pastille .libelle {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+/* ── Le panier ───────────────────────────────────────────────────────────────
+   C'était une liste de texte : pas d'image, pas de quantité, les options en
+   colonne de capitales, et « Retirer » en lien de 16 px. */
+.ligne {
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  margin-bottom: 10px;
+  background: var(--creme-clair);
+  border: 2px solid var(--bord);
+  border-radius: 20px;
+  box-shadow: 0 2px 8px rgba(101, 0, 0, 0.06);
+}
+.ligne .vignette {
+  flex: 0 0 auto;
+  width: 92px;
+  height: 92px;
+  object-fit: contain;
+  display: block;
+}
+.ligne .corps {
+  flex: 1;
+  min-width: 0;
+}
+/* Les options sur une ligne continue, séparées par un point : huit lignes de
+   capitales empilées poussaient le deuxième article hors de l'écran. */
+.ligne .opt {
+  display: inline;
+  font-size: 15px;
+  line-height: 1.45;
+}
+.ligne .opt + .opt::before {
+  content: " · ";
+}
+.ligne .droite {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+.ligne .montant {
+  font-size: 25px;
+  color: var(--rouge);
+  font-weight: 700;
+}
+.qte.petite {
+  gap: 8px;
+  padding: 4px;
+  background: var(--creme);
+}
+.qte.petite strong {
+  font-size: 24px;
+  min-width: 30px;
+}
+/* 🔴 56 px et pas moins : c'est la plus petite cible de la borne, et elle est
+   déjà sous les 64 px du reste. Elle tient parce que les deux boutons sont
+   espacés et qu'une erreur s'y rattrape d'un appui. */
+.qte.petite .btn.rond {
+  width: 56px;
+  min-height: 56px;
+  font-size: 28px;
+}
+
+/* ── « Toujours là ? » ──────────────────────────────────────────────────────
+   Au-dessus de tout, offre de menu comprise. */
+.proposer.veille {
+  z-index: 30;
+}
+.veille .boite {
+  align-items: center;
+  text-align: center;
+  gap: 14px;
+}
+.veille .decompte {
+  margin: 0 0 6px;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--doux);
+}
+.veille .btn.gros {
+  max-width: none;
+}

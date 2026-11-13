@@ -65,6 +65,10 @@ type Cle =
   | "economise"
   | "valeurCarte"
   | "ou"
+  | "toujoursLa"
+  | "retourDans"
+  | "jeContinue"
+  | "reessayer"
   | "retirer"
   | "toutAnnuler"
   | "changerLangue";
@@ -102,7 +106,7 @@ const TEXTES: Record<Langue, Record<Cle, string>> = {
     gardezNumero: "Gardez votre numéro, on vous appelle",
     terminer: "TERMINER",
     nonEnregistree: "Commande non enregistrée",
-    rienEnvoye: "Rien n'a été envoyé. Commandez au comptoir.",
+    rienEnvoye: "La commande n'est pas partie. Réessayez, ou commandez au comptoir.",
     compris: "Compris",
     proposerTitre: "Vous voulez le menu ?",
     proposerTitreXL: "Passer en XL ?",
@@ -110,6 +114,10 @@ const TEXTES: Record<Langue, Record<Cle, string>> = {
     economise: "vous économisez",
     valeurCarte: "vaut % à la carte",
     ou: "ou",
+    toujoursLa: "Toujours là ?",
+    retourDans: "Retour à l'accueil dans % s",
+    jeContinue: "Je continue",
+    reessayer: "Réessayer",
     retirer: "Retirer",
     toutAnnuler: "Tout annuler",
     changerLangue: "Langue",
@@ -142,7 +150,7 @@ const TEXTES: Record<Langue, Record<Cle, string>> = {
     gardezNumero: "Keep your number, we'll call you",
     terminer: "DONE",
     nonEnregistree: "Order not registered",
-    rienEnvoye: "Nothing was sent. Please order at the counter.",
+    rienEnvoye: "Your order did not go through. Try again, or order at the counter.",
     compris: "Got it",
     proposerTitre: "Make it a menu?",
     proposerTitreXL: "Upgrade to XL?",
@@ -150,6 +158,10 @@ const TEXTES: Record<Langue, Record<Cle, string>> = {
     economise: "you save",
     valeurCarte: "worth % bought separately",
     ou: "or",
+    toujoursLa: "Still there?",
+    retourDans: "Back to start in % s",
+    jeContinue: "Keep ordering",
+    reessayer: "Try again",
     retirer: "Remove",
     toutAnnuler: "Cancel all",
     changerLangue: "Language",
@@ -182,7 +194,7 @@ const TEXTES: Record<Langue, Record<Cle, string>> = {
     gardezNumero: "Houd uw nummer bij, we roepen u",
     terminer: "KLAAR",
     nonEnregistree: "Bestelling niet geregistreerd",
-    rienEnvoye: "Er is niets verzonden. Bestel aan de toonbank.",
+    rienEnvoye: "Uw bestelling is niet verstuurd. Probeer opnieuw of bestel aan de toonbank.",
     compris: "Begrepen",
     proposerTitre: "Er een menu van maken?",
     proposerTitreXL: "Naar XL?",
@@ -190,6 +202,10 @@ const TEXTES: Record<Langue, Record<Cle, string>> = {
     economise: "u bespaart",
     valeurCarte: "los % waard",
     ou: "of",
+    toujoursLa: "Bent u er nog?",
+    retourDans: "Terug naar start over % s",
+    jeContinue: "Verder bestellen",
+    reessayer: "Opnieuw proberen",
     retirer: "Verwijderen",
     toutAnnuler: "Alles annuleren",
     changerLangue: "Taal",
@@ -222,7 +238,7 @@ const TEXTES: Record<Langue, Record<Cle, string>> = {
     gardezNumero: "Guarde su número, le llamaremos",
     terminer: "TERMINAR",
     nonEnregistree: "Pedido no registrado",
-    rienEnvoye: "No se ha enviado nada. Pida en el mostrador.",
+    rienEnvoye: "Su pedido no se ha enviado. Reinténtelo o pida en el mostrador.",
     compris: "Entendido",
     proposerTitre: "¿Lo convertimos en menú?",
     proposerTitreXL: "¿Pasar a XL?",
@@ -230,6 +246,10 @@ const TEXTES: Record<Langue, Record<Cle, string>> = {
     economise: "ahorra",
     valeurCarte: "vale % por separado",
     ou: "o",
+    toujoursLa: "¿Sigue ahí?",
+    retourDans: "Volver al inicio en % s",
+    jeContinue: "Seguir pidiendo",
+    reessayer: "Reintentar",
     retirer: "Quitar",
     toutAnnuler: "Cancelar todo",
     changerLangue: "Idioma",

@@ -1,4 +1,4 @@
-import React, { Fragment, useEffect, useMemo, useState } from "react";
+import React, { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { LANGUES, NOM_LANGUE, champ, traducteur, type Langue, type T } from "./i18n";
 import { monteesPossibles, type Montee } from "./montee";
 import {
@@ -72,14 +72,14 @@ const PHOTOS: Record<string, string> = {
   "ACE": "signature-ace.webp",
   "SEKAI": "signature-sekai.webp",
   "SUISSE": "signature-suisse.webp",
-  "FRITES": "side-frites.png",
-  "Poulet karaage": "side-karaage.png",
-  "Tempura crevette": "side-tempura.png",
+  "FRITES": "side-frites.webp",
+  "Poulet karaage": "side-karaage.webp",
+  "Tempura crevette": "side-tempura.webp",
   // Les gobelets photoréalistes, les mêmes que les sirops du menu. Ils
   // remplacent une découpe d'affiche unique, partagée par les deux parfums et
   // donc incapable de les distinguer.
-  "BUBBLE TEA PECHE": "bubble-peche.png",
-  "BUBBLE TEA PASTEQUE": "bubble-pasteque.png",
+  "BUBBLE TEA PECHE": "bubble-peche.webp",
+  "BUBBLE TEA PASTEQUE": "bubble-pasteque.webp",
   // Les softs vendus SEULS, catégorie à part depuis le 22/10/2026 (demande du
   // gérant, comme sur la borne EasyOrder). Mêmes visuels que le groupe
   // `CHOIX DU SOFT` des menus — c'est la même canette.
@@ -89,13 +89,13 @@ const PHOTOS: Record<string, string> = {
   // qu'il n'y a pas de Coca et que c'est du Pepsi Max qui est servi — le
   // bouton de la borne EasyOrder garde un libellé périmé. Un libellé de vente
   // dit ce qu'affiche la borne, pas forcément ce qui est vendu.
-  "EAU": "soft-eau.png",
-  "PEPSI MAX": "soft-pepsi-max.png",
-  "PEPSI": "soft-pepsi.png",
-  "OASIS CASSIS": "soft-oasis-cassis.png",
-  "OASIS TROPICAL": "soft-oasis-tropical.png",
-  "ICE TEA PECHE": "soft-ice-tea-peche.png",
-  "ICE TEA PET": "soft-ice-tea-pet.png",
+  "EAU": "soft-eau.webp",
+  "PEPSI MAX": "soft-pepsi-max.webp",
+  "PEPSI": "soft-pepsi.webp",
+  "OASIS CASSIS": "soft-oasis-cassis.webp",
+  "OASIS TROPICAL": "soft-oasis-tropical.webp",
+  "ICE TEA PECHE": "soft-ice-tea-peche.webp",
+  "ICE TEA PET": "soft-ice-tea-pet.webp",
 };
 
 // ⚠️ La valeur porte le NOM DE FICHIER COMPLET, extension comprise : les
@@ -117,45 +117,45 @@ const photo = (nom: string): string | null =>
 //   "CEREALE CRUNCHY", "SIMPLE PANKO", "NOUILLE", "POTATOE", "BLUE", "SPICY"
 // et le groupe s'illustre seul.
 const PHOTOS_OPTIONS: Record<string, string> = {
-  "PEPSI": "soft-pepsi.png",
-  "PEPSI MAX": "soft-pepsi-max.png",
-  "EAU": "soft-eau.png",
-  "OASIS CASSIS": "soft-oasis-cassis.png",
-  "OASIS TROPICAL": "soft-oasis-tropical.png",
-  "ICE TEA PECHE": "soft-ice-tea-peche.png",
+  "PEPSI": "soft-pepsi.webp",
+  "PEPSI MAX": "soft-pepsi-max.webp",
+  "EAU": "soft-eau.webp",
+  "OASIS CASSIS": "soft-oasis-cassis.webp",
+  "OASIS TROPICAL": "soft-oasis-tropical.webp",
+  "ICE TEA PECHE": "soft-ice-tea-peche.webp",
   // ⚠️ « ICE TEA PET » veut dire PÉTILLANT, pas bouteille PET : c'est le Lipton
   // Citron / Citron Vert pétillant. Ce n'est donc PAS un doublon d'Ice Tea
   // Pêche — confirmé par le gérant le 22/10/2026. Ne pas fusionner les deux.
-  "ICE TEA PET": "soft-ice-tea-pet.png",
+  "ICE TEA PET": "soft-ice-tea-pet.webp",
   // Les six panures, envoyées par le gérant le 22/10/2026. ⚠️ La rouge et la
   // bleue arrivaient sur UNE SEULE image : elle a été coupée en deux.
-  "CEREALE CRUNCHY": "panure-cereale.png",
-  "SIMPLE PANKO": "panure-panko.png",
-  "NOUILLE": "panure-nouille.png",
-  "POTATOE": "panure-potatoe.png",
-  "BLUE": "panure-blue.png",
-  "SPICY": "panure-spicy.png",
+  "CEREALE CRUNCHY": "panure-cereale.webp",
+  "SIMPLE PANKO": "panure-panko.webp",
+  "NOUILLE": "panure-nouille.webp",
+  "POTATOE": "panure-potatoe.webp",
+  "BLUE": "panure-blue.webp",
+  "SPICY": "panure-spicy.webp",
   // Les sides, pris en option. ⚠️ Le groupe `SIDE 2` des menus XL nomme les
   // mêmes produits « … 3pcs » : deux libellés, une seule photo.
-  "FRITES": "side-frites.png",
-  "Poulet karaage": "side-karaage.png",
-  "Tempura crevette": "side-tempura.png",
-  "Poulet karaage 3pcs": "side-karaage.png",
-  "Tempura crevette 3pcs": "side-tempura.png",
+  "FRITES": "side-frites.webp",
+  "Poulet karaage": "side-karaage.webp",
+  "Tempura crevette": "side-tempura.webp",
+  "Poulet karaage 3pcs": "side-karaage.webp",
+  "Tempura crevette 3pcs": "side-tempura.webp",
   // Les perles du bubble tea. Le gérant a fourni le dessin en blanc et en
   // orange et demandé une troisième couleur, le rouge.
   // ⚠️ L'ASSOCIATION COULEUR → PARFUM EST UNE SUPPOSITION : litchi blanc,
   // mangue orange, passion rouge. À faire confirmer par le gérant.
-  "LITCHI": "perle-litchi.png",
-  "MANGUE": "perle-mangue.png",
-  "PASSION": "perle-passion.png",
+  "LITCHI": "perle-litchi.webp",
+  "MANGUE": "perle-mangue.webp",
+  "PASSION": "perle-passion.webp",
   // Le sirop du menu Bubble Dogs. Visuels fournis par le gérant le 22/10/2026
   // — il a repris mon dessin et l'a refait en photoréaliste, bien mieux.
   // ⚠️ Il n'en a envoyé que DEUX : la pêche est l'orange glissé vers le rose,
   // en protégeant le rouge du logo, qui aurait viré avec la boisson.
-  "MANGUE / MANGO": "bubble-mangue.png",
-  "PECHE": "bubble-peche.png",
-  "PASTHEQUE / WATERMELON": "bubble-pasteque.png",
+  "MANGUE / MANGO": "bubble-mangue.webp",
+  "PECHE": "bubble-peche.webp",
+  "PASTHEQUE / WATERMELON": "bubble-pasteque.webp",
   // Les neuf sauces. Le gérant a photographié le SAMOURAÏ dans son ramequin ;
   // les huit autres sont ce même pot recoloré, la texture et la lumière venant
   // de sa photo. C'est voulu qu'elles se ressemblent : même pot, même cadrage,
@@ -206,9 +206,9 @@ const PHOTOS_CATEGORIES: Record<string, string> = {
   Menus: "menu-gooddeal.webp",
   Corndogs: "base-saucisse-mozza.webp",
   Signatures: "signature-sekai.webp",
-  Sides: "side-frites.png",
-  "Bubble Tea": "bubble-peche.png",
-  Softs: "soft-pepsi.png",
+  Sides: "side-frites.webp",
+  "Bubble Tea": "bubble-peche.webp",
+  Softs: "soft-pepsi.webp",
 };
 
 const photoCategorie = (nom: string): string | null =>
@@ -312,6 +312,11 @@ type Article = { produit: Produit; options: Choix[]; quantite: number };
 const prixArticle = (a: Article) =>
   (a.produit.prix + a.options.reduce((s, o) => s + o.prix, 0)) * a.quantite;
 
+/** Sans geste pendant ce délai, la borne demande si le client est toujours là. */
+const DELAI_INACTIF_MS = 75_000;
+/** …et sans réponse au bout de ce décompte, elle revient à l'accueil. */
+const DELAI_REPONSE_S = 20;
+
 type Ecran =
   | { nom: "accueil" }
   | { nom: "mode" }
@@ -371,7 +376,89 @@ export default function App() {
     setEcran({ nom: "accueil" });
   }
 
+  // ── Le retour automatique à l'accueil ─────────────────────────────────
+  // 🔴 IL N'EXISTAIT PAS avant le 13/11/2026. Le commentaire au-dessus disait
+  // déjà « la borne doit toujours revenir d'elle-même à l'accueil », mais seul
+  // l'écran du numéro avait une minuterie. Un client qui abandonnait en cours
+  // de route laissait son panier, sa langue et son écran au suivant — qui
+  // pouvait envoyer en cuisine la commande d'un inconnu en croyant valider la
+  // sienne. C'est LE défaut d'une borne en libre-service.
+  //
+  // Deux temps, comme sur toutes les bornes de chaîne : 75 secondes sans
+  // toucher l'écran, puis une question avec un décompte de 20 secondes. La
+  // question compte : quelqu'un qui hésite devant la carte ne doit pas voir
+  // son panier disparaître sans avoir été prévenu.
+  //
+  // ⚠️ Pas de veille sur l'accueil (rien à effacer), ni pendant l'envoi (la
+  // commande est en route), ni sur l'écran du numéro (il a sa minuterie).
+  const [alerte, setAlerte] = useState<number | null>(null);
+  const veille =
+    ecran.nom !== "accueil" && ecran.nom !== "envoi" && ecran.nom !== "fini";
+  const alerteOuverte = alerte !== null;
+  useEffect(() => {
+    if (!veille) {
+      setAlerte(null);
+      return;
+    }
+    // Pendant que la question est posée, c'est le décompte qui commande.
+    if (alerteOuverte) return;
+    let minuterie: ReturnType<typeof setTimeout>;
+    const armer = () => {
+      clearTimeout(minuterie);
+      minuterie = setTimeout(() => setAlerte(DELAI_REPONSE_S), DELAI_INACTIF_MS);
+    };
+    armer();
+    const gestes = ["pointerdown", "touchstart", "keydown", "wheel"] as const;
+    gestes.forEach((g) => window.addEventListener(g, armer, { passive: true }));
+    return () => {
+      clearTimeout(minuterie);
+      gestes.forEach((g) => window.removeEventListener(g, armer));
+    };
+    // Changer d'écran réarme aussi : c'est un geste du client.
+  }, [veille, alerteOuverte, ecran]);
+  useEffect(() => {
+    if (alerte === null) return;
+    if (alerte <= 0) {
+      setAlerte(null);
+      recommencer();
+      return;
+    }
+    const m = setTimeout(() => setAlerte((a) => (a === null ? null : a - 1)), 1000);
+    return () => clearTimeout(m);
+  }, [alerte]);
+
+  // ── Le catalogue se rafraîchit à chaque retour à l'accueil ────────────
+  // Une borne reste allumée des jours. Chargé une seule fois, le catalogue
+  // gardait les prix et les produits du matin de l'allumage : un prix changé
+  // en base n'arrivait jamais à l'écran. Un échec est sans conséquence — on
+  // garde le catalogue qu'on a.
+  // ⚠️ Jamais en cours de commande : changer la carte sous les doigts d'un
+  // client viderait son écran d'options.
+  const premierAccueil = useRef(true);
+  useEffect(() => {
+    if (ecran.nom !== "accueil") return;
+    const rafraichir = () => chargerCatalogue().then(setCat, () => {});
+    if (premierAccueil.current) premierAccueil.current = false;
+    else rafraichir();
+    const m = setInterval(rafraichir, 10 * 60 * 1000);
+    return () => clearInterval(m);
+  }, [ecran.nom]);
+
+  // Quantité d'une ligne du panier. Descendre sous 1 retire la ligne : c'est
+  // ce que le client attend d'un « − » sur le dernier exemplaire.
+  const changerQuantite = (i: number, delta: number) =>
+    setPanier((p) =>
+      p.flatMap((a, k) =>
+        k !== i
+          ? [a]
+          : a.quantite + delta < 1
+            ? []
+            : [{ ...a, quantite: Math.min(20, a.quantite + delta) }]
+      )
+    );
+
   // ── Accueil ───────────────────────────────────────────────────────────
+  const vue = (() => {
   // 🔴 L'accueil s'affiche AVANT tout contrôle de réseau. Une borne coupée du
   // réseau continue de montrer l'affiche des menus en vitrine : elle garde sa
   // valeur publicitaire même quand elle ne prend plus de commandes.
@@ -524,11 +611,15 @@ export default function App() {
         <div className="liste">
           {panier.map((a, i) => (
             <div className="ligne" key={i}>
-              <div>
-                <div className="nom">
-                  {a.quantite > 1 ? `${a.quantite} × ` : ""}
-                  {a.produit.nom}
-                </div>
+              {/* La vignette : dans un panier de quatre lignes en capitales,
+                  c'est l'image qui dit laquelle est laquelle. */}
+              {photo(a.produit.nom) ? (
+                <img className="vignette" src={photo(a.produit.nom)!} alt="" />
+              ) : (
+                <span className="vignette" aria-hidden="true" />
+              )}
+              <div className="corps">
+                <div className="nom">{a.produit.nom}</div>
                 {a.options
                   // « Pas de supplément » n'est pas une ligne de commande.
                   // ⚠️ « Pas de SAUCE » si : c'est une consigne de
@@ -547,13 +638,28 @@ export default function App() {
                   ))}
               </div>
               <div className="droite">
-                <div>{eur(prixArticle(a))}</div>
-                <button
-                  className="lien rouge"
-                  onClick={() => setPanier((p) => p.filter((_, k) => k !== i))}
-                >
-                  {t("retirer")}
-                </button>
+                <div className="montant">{eur(prixArticle(a))}</div>
+                {/* 🔴 La quantité se change ICI. Avant, un client qui voulait
+                    un deuxième menu identique devait le reconfigurer en
+                    entier, et pour en enlever un il n'avait que « Retirer »,
+                    un lien de 16 px — sous la taille d'un doigt. */}
+                <div className="qte petite">
+                  <button
+                    className="btn rond"
+                    aria-label={t("retirer")}
+                    onClick={() => changerQuantite(i, -1)}
+                  >
+                    −
+                  </button>
+                  <strong>{a.quantite}</strong>
+                  <button
+                    className="btn rond"
+                    aria-label={t("ajouter")}
+                    onClick={() => changerQuantite(i, 1)}
+                  >
+                    +
+                  </button>
+                </div>
               </div>
             </div>
           ))}
@@ -600,6 +706,39 @@ export default function App() {
 
   return (
     <Fini reference={ecran.reference} total={total} t={t} onFermer={recommencer} />
+  );
+  })();
+
+  return (
+    <>
+      {vue}
+      {alerte !== null && (
+        // 🔴 Même règle que l'offre de menu : les deux réponses sont de vrais
+        // boutons de même taille. « Je continue » est le premier parce que
+        // c'est la réponse de quelqu'un qui est là — l'autre arrive toute
+        // seule au bout du décompte.
+        <div className="proposer veille" role="alertdialog" aria-live="assertive">
+          <div className="boite">
+            <h2>{t("toujoursLa")}</h2>
+            <p className="decompte">
+              {t("retourDans").replace("%", String(alerte))}
+            </p>
+            <button className="btn gros" onClick={() => setAlerte(null)}>
+              {t("jeContinue")}
+            </button>
+            <button
+              className="btn gros refus"
+              onClick={() => {
+                setAlerte(null);
+                recommencer();
+              }}
+            >
+              {t("toutAnnuler")}
+            </button>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 
@@ -704,10 +843,24 @@ function Carte({
       </div>
       {nbArticles > 0 && (
         <footer>
-          <button className="btn gros" onClick={onPanier}>
-            {t("voirCommande")} · {nbArticles}{" "}
-            {nbArticles > 1 ? t("articles") : t("article")} ·{" "}
-            {eur(total)}
+          {/* 🔴 Trois zones fixes, plus une phrase. « Voir ma commande ·
+              2 articles · 8,50 € » passait sur deux lignes dès deux articles,
+              et le « € » se retrouvait seul en dessous — vu en capture le
+              13/11. Le nombre à gauche, le total à droite : ils ne peuvent
+              plus se bousculer, dans aucune des quatre langues.
+              `key` rejoue l'animation à chaque ajout : c'est le seul signe
+              que le produit est bien parti dans le panier. */}
+          <button
+            key={nbArticles}
+            className="btn gros barre-panier"
+            onClick={onPanier}
+            aria-label={`${t("voirCommande")} · ${nbArticles} ${
+              nbArticles > 1 ? t("articles") : t("article")
+            } · ${eur(total)}`}
+          >
+            <span className="nb">{nbArticles}</span>
+            <span className="txt">{t("voirCommande")}</span>
+            <span className="tot">{eur(total)}</span>
           </button>
         </footer>
       )}
@@ -777,6 +930,21 @@ function Config({
         </button>
         <h1>{produit.nom}</h1>
       </header>
+      {/* 🔴 LE PRODUIT QU'ON CONFIGURE EST MONTRÉ. Avant, l'écran d'options
+          n'avait qu'un nom en haut : le client choisissait une panure sans
+          plus voir ce qu'il achetait ni à quel prix. Et un soft, qui n'a
+          aucune option, donnait une page blanche avec « Aucune option. » —
+          un écran entier pour rien.
+          Sans option, le héros prend la place : c'est une fiche produit. */}
+      <div className={groupes.length === 0 ? "heros grand" : "heros"}>
+        {photo(produit.nom) && <img src={photo(produit.nom)!} alt="" />}
+        <div className="texte">
+          <div className="prix">{eur(produit.prix)}</div>
+          {champ(produit, "description", langue) && (
+            <p>{champ(produit, "description", langue)}</p>
+          )}
+        </div>
+      </div>
       <div className="liste">
         {/* 🔴 UN GROUPE À UN SEUL CHOIX NE POSE PAS DE QUESTION : il est
             masqué. « OPTION FRITES » d'un Menu Good Deal ne contient que
@@ -837,7 +1005,6 @@ function Config({
             </section>
           );
         })}
-        {groupes.length === 0 && <p className="gris">{t("aucuneOption")}</p>}
       </div>
       <footer>
         <div className="qte">
@@ -1002,6 +1169,15 @@ function Proposer({
   );
 }
 
+/** Une clé d'envoi : un UUID quand le navigateur sait en faire, sinon 32
+ *  caractères hexadécimaux. La base accepte les deux formes. */
+const nouvelleCle = (): string => {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) return crypto.randomUUID();
+  let s = "";
+  for (let i = 0; i < 32; i++) s += Math.floor(Math.random() * 16).toString(16);
+  return s;
+};
+
 function Envoi({
   mode,
   panier,
@@ -1016,8 +1192,16 @@ function Envoi({
   onEchec: () => void;
 }) {
   const [erreur, setErreur] = useState<string | null>(null);
+  // 🔴 UNE CLÉ PAR COMMANDE, tirée une seule fois et gardée d'un essai à
+  // l'autre. C'est elle qui rend « Réessayer » sans danger : la base reconnaît
+  // la commande et rend le même numéro au lieu d'en créer une seconde.
+  // ⚠️ `useRef`, pas un état ni un calcul dans l'effet : une clé retirée à
+  // chaque essai annulerait exactement ce qu'elle protège.
+  const cle = useRef(nouvelleCle());
+  const [essai, setEssai] = useState(0);
 
   useEffect(() => {
+    setErreur(null);
     const lignes: LigneEnvoi[] = panier.map((a) => ({
       produit_nom: a.produit.nom,
       categorie: a.produit.categorie,
@@ -1034,8 +1218,10 @@ function Envoi({
         prix: o.prix,
       })),
     }));
-    envoyerCommande(mode, lignes).then(onFini, (e) => setErreur(String(e.message || e)));
-  }, []);
+    envoyerCommande(mode, lignes, cle.current).then(onFini, (e) =>
+      setErreur(String(e.message || e))
+    );
+  }, [essai]);
 
   if (erreur)
     return (
@@ -1043,9 +1229,16 @@ function Envoi({
         <h1>{t("nonEnregistree")}</h1>
         <p className="gris">{t("rienEnvoye")}</p>
         <p className="petit">{erreur}</p>
-        <button className="btn" onClick={onEchec}>
-          {t("retour")}
-        </button>
+        {/* « Réessayer » d'abord : la plupart des échecs sont un wifi qui a
+            décroché deux secondes, et le client a déjà tout choisi. */}
+        <div className="colonne">
+          <button className="btn gros" onClick={() => setEssai((n) => n + 1)}>
+            {t("reessayer")}
+          </button>
+          <button className="btn gros refus" onClick={onEchec}>
+            {t("retour")}
+          </button>
+        </div>
       </div>
     );
 
