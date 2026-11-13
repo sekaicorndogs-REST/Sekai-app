@@ -1424,3 +1424,295 @@ img {
 .veille .btn.gros {
   max-width: none;
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   LA DIRECTION ARTISTIQUE — 13/11/2026
+   « Tu peux le rendre plus beau, plus stylé, plus dans notre DA ? »
+
+   Relu sur la charte Moupress elle-même (`photos-recues/charte-…pdf`), pas de
+   mémoire. Jusqu'ici la borne en prenait les COULEURS et la police, mais
+   aucune de ses trois signatures :
+
+   1. LES TITRES À CONTOUR. « COULEUR », « PATTERNS », « BRANDING » : de
+      grosses lettres rondes, remplies d'or ou de blanc, cernées d'un trait
+      bordeaux épais. C'est la marque de fabrique de la charte, plus que le
+      rouge. La borne écrivait ses titres en bordeaux plat.
+   2. L'OR COMME SURFACE. La charte pose des bandeaux or avec le motif blanc
+      (la section casquettes). La borne ne s'en servait que comme couleur de
+      texte sur bordeaux — tout le reste était rouge ou crème.
+   3. LES FORMES EN PILULE. Les quatre échantillons de couleur sont des
+      stades ; les boutons de la borne étaient des rectangles arrondis.
+
+   S'y ajoute le relief « autocollant » : un contour net et une ombre DURE,
+   sans flou, comme le logo posé sur son disque rouge. C'est ce qui donne au
+   kawaii son côté découpé — une ombre floue fait « application », pas
+   « marque ».
+
+   🔴 CE QUI NE CHANGE PAS, et qui tient toujours :
+   - pas de motif derrière les produits (règle du 23/10) : il vit dans les
+     bandeaux, où il n'y a pas de photo ;
+   - l'or n'est JAMAIS du texte nu sur crème (1,40) : il est toujours cerné
+     de bordeaux, ou posé sur bordeaux ;
+   - l'accueil n'est pas touché — le gérant a demandé d'en garder le dessin.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── 1. Les titres à contour ─────────────────────────────────────────────────
+   `paint-order: stroke fill` peint le trait DERRIÈRE le remplissage : le
+   contour ne mange pas l'intérieur des lettres, et les jonctions internes de
+   la police variable restent invisibles. Sans lui, un trait de 7 px bouche
+   les « e » et les « a ».
+   ⚠️ Grands corps seulement. Sous ~24 px le contour empâte la lettre. */
+.plein h1,
+.proposer h2,
+.page .liste h2 {
+  color: var(--or);
+  -webkit-text-stroke: 7px var(--bordeaux);
+  paint-order: stroke fill;
+  letter-spacing: 1px;
+}
+.plein h1 {
+  font-size: 46px;
+  -webkit-text-stroke-width: 9px;
+  line-height: 1.15;
+}
+.proposer h2 {
+  font-size: 34px;
+  -webkit-text-stroke-width: 8px;
+}
+.page .liste h2 {
+  font-size: 27px;
+  margin: 28px 0 14px;
+}
+
+/* ── 2. Le bandeau or ────────────────────────────────────────────────────────
+   L'en-tête de chaque écran de commande devient le bandeau or de la charte,
+   motif blanc compris. Le titre y passe en BLANC cerné de bordeaux — la
+   variante « BRANDING » — parce que l'or sur l'or ne se lirait pas.
+   Il déborde des marges de la page : un bandeau s'arrête au bord de l'écran. */
+.page header {
+  margin: 0 -18px 16px;
+  padding: 12px 18px;
+  background-color: var(--or);
+  background-image: url("/photos/motif-blanc-fort.webp");
+  background-size: 380px;
+  border-bottom: 4px solid var(--bordeaux);
+}
+.page header h1 {
+  color: var(--creme-clair);
+  -webkit-text-stroke: 8px var(--bordeaux);
+  paint-order: stroke fill;
+  letter-spacing: 1px;
+}
+/* Le --doux ne vaut que ~3 sur l'or : dans le bandeau, les liens sont bordeaux. */
+.page header .lien {
+  color: var(--bordeaux);
+  font-weight: 800;
+}
+/* Le pied de page reçoit le même filet : les deux bandeaux se répondent. */
+.page footer {
+  border-top: 4px solid var(--bordeaux);
+}
+
+/* ── 3. Les pilules, et le relief d'autocollant ──────────────────────────────
+   L'ombre est DURE (zéro flou) et descend de 6 px ; à l'appui le bouton
+   s'enfonce de 4. C'est une vraie réponse au doigt, plus lisible que le
+   rétrécissement posé le matin même.
+   🔴 `translateY` sur des FEUILLES uniquement — règle 5, toujours. */
+.btn {
+  border-radius: 999px;
+  box-shadow: 0 6px 0 var(--bordeaux);
+}
+.btn:active {
+  background: var(--rouge);
+  transform: translateY(4px);
+  box-shadow: 0 2px 0 var(--bordeaux);
+}
+.btn:disabled {
+  box-shadow: none;
+  transform: none;
+}
+.page footer .btn {
+  box-shadow: 0 6px 0 rgba(101, 0, 0, 0.62);
+}
+.page footer .btn:active {
+  box-shadow: 0 2px 0 rgba(101, 0, 0, 0.62);
+}
+.btn.refus {
+  box-shadow: 0 6px 0 var(--bord);
+}
+.btn.refus:active {
+  box-shadow: 0 2px 0 var(--bord);
+}
+.btn.rond {
+  border-radius: 50%;
+  box-shadow: 0 4px 0 var(--bord);
+}
+.btn.rond:active {
+  background: #ffe0cc;
+  box-shadow: 0 1px 0 var(--bord);
+  transform: translateY(3px);
+}
+.qte {
+  border-radius: 999px;
+  padding: 8px 12px 12px;
+}
+.qte.petite {
+  padding: 4px 6px 8px;
+}
+/* ⚠️ L'accueil garde ses boutons d'origine : demande du gérant du 22/10. */
+.accueil .btn {
+  border-radius: 18px;
+  box-shadow: none;
+}
+.accueil .btn:active {
+  transform: none;
+}
+/* L'offre de menu est une CARTE, pas un bouton : elle garde ses coins. */
+.proposer .btn.offre {
+  border-radius: 26px;
+  box-shadow: 0 6px 0 var(--bord);
+}
+.proposer .btn.offre:active {
+  box-shadow: 0 2px 0 var(--bord);
+}
+
+/* Les cartes produit : même relief, en plus doux. */
+.produit {
+  border-radius: 26px;
+  box-shadow: 0 6px 0 var(--bord);
+}
+.produit:active {
+  transform: translateY(4px);
+  box-shadow: 0 2px 0 var(--bord);
+}
+/* 🔴 LE PRIX EN PILULE BORDEAUX ET OR. C'est le couple de la charte (8,37) —
+   bien mieux que le rouge sur crème d'avant, qui ne valait que 3,5 et ne
+   tenait que par sa taille. Et c'est le macaron de prix de l'affiche. */
+.produit .prix,
+.heros .prix {
+  width: fit-content;
+  margin: 9px auto 0;
+  padding: 3px 18px 4px;
+  border-radius: 999px;
+  background: var(--bordeaux);
+  color: var(--or);
+  font-size: 25px;
+}
+.heros .prix {
+  margin: 0;
+  font-size: 30px;
+  padding: 4px 22px 6px;
+}
+.heros.grand .prix {
+  margin: 0 auto;
+  font-size: 44px;
+  padding: 6px 34px 9px;
+}
+.produit {
+  padding-bottom: 14px;
+}
+
+.categorie {
+  border-width: 2px;
+  border-radius: 24px;
+  box-shadow: 0 5px 0 var(--bord);
+}
+.categorie:active {
+  transform: translateY(3px);
+  box-shadow: 0 2px 0 var(--bord);
+}
+.categorie.actif {
+  box-shadow: 0 5px 0 var(--bordeaux);
+}
+
+.heros,
+.ligne {
+  border-radius: 26px;
+  box-shadow: 0 5px 0 var(--bord);
+}
+.ligne .montant {
+  color: var(--bordeaux);
+}
+
+/* ── Les choix : le relief, et une coche ─────────────────────────────────────
+   Le choix retenu ne se distinguait que par un bord rouge et un fond rosé —
+   à un mètre, entre six panures, ça ne se voyait pas. Une pastille rouge
+   cochée dans le coin, cernée comme un autocollant. */
+.pastille {
+  position: relative;
+  border-width: 2px;
+  border-radius: 20px;
+  box-shadow: 0 4px 0 var(--bord);
+}
+.pastille:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 var(--bord);
+}
+.pastille.payante {
+  box-shadow: 0 4px 0 #2e0000;
+}
+.pastille.actif {
+  border-width: 3px;
+  box-shadow: 0 4px 0 var(--rouge);
+}
+.pastille.actif::before {
+  content: "✓";
+  position: absolute;
+  top: -11px;
+  right: -9px;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--rouge);
+  color: var(--sur-rouge);
+  border: 3px solid var(--creme);
+  display: grid;
+  place-items: center;
+  font: 800 18px/1 var(--texte);
+}
+
+/* ── Les boîtes de dialogue et l'écran du numéro ─────────────────────────────*/
+.proposer .boite {
+  border: 4px solid var(--bordeaux);
+  box-shadow: 0 8px 0 rgba(101, 0, 0, 0.45);
+}
+.fini .carte-numero {
+  border: 5px solid var(--bordeaux);
+  box-shadow: 0 9px 0 rgba(101, 0, 0, 0.5);
+}
+.fini .numero {
+  -webkit-text-stroke: 12px var(--bordeaux);
+  paint-order: stroke fill;
+}
+
+/* ── Trois défauts vus en capture, juste après la passe DA ─────────────────── */
+
+/* 1. La coche d'un choix passait PAR-DESSUS le pied de page : elle est en
+      `position: absolute`, donc peinte au-dessus d'un `fixed` sans z-index
+      dès que sa pastille défile dessous. Le pied de page prend un rang. */
+.page footer {
+  z-index: 5;
+}
+
+/* 2. Dans le pied de page, « − » et « + » prenaient le fond crème des boutons
+      de pied — le même que leur capsule. Ils disparaissaient, et il ne restait
+      que leur ombre : deux sourires. On leur rend leur fond. */
+.page footer .qte .btn.rond {
+  background: #ffe0cc;
+  box-shadow: 0 4px 0 var(--bord);
+}
+.page footer .qte .btn.rond:active {
+  box-shadow: 0 1px 0 var(--bord);
+}
+
+/* 3. Le héros d'un produit étroit (un bâtonnet) laissait les trois quarts de
+      sa carte vides à droite. Centré, il fait une étiquette. */
+.heros {
+  justify-content: center;
+}
+.heros .texte {
+  flex: 0 1 auto;
+}
+.page .liste h2 {
+  letter-spacing: 1.5px;
+}

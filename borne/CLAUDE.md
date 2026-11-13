@@ -135,6 +135,33 @@ la vraie borne reste à faire**, après fermeture.
 2. **Le serveur de prévisualisation répond 200 à une image absente.** « Aucune
    ressource en échec » ne prouvait rien : le tour contrôle `naturalWidth`.
 
+### 🎨 La direction artistique appliquée — même jour
+
+« Plus beau, plus stylé, plus dans notre DA ». Relu **sur le PDF de la charte**,
+pas de mémoire. La borne en prenait les couleurs et la police, mais aucune de
+ses trois signatures :
+
+| Signature de la charte | Avant | Maintenant |
+|---|---|---|
+| **Titres à contour** (« COULEUR », « BRANDING » : lettres rondes or ou blanches, cernées de bordeaux) | titres en bordeaux plat | titres d'écran, de groupe et de dialogue en or cerné ; blanc cerné dans le bandeau |
+| **L'or comme surface** (bandeaux or à motif blanc) | or utilisé seulement comme texte sur bordeaux | **en-tête en bandeau or** avec `motif-blanc-fort.webp` |
+| **Formes en pilule** (les échantillons de couleur) | rectangles arrondis | boutons en pilule, prix en **pilule bordeaux et or** |
+
+Plus le relief « autocollant » : ombre **dure**, sans flou, et le bouton
+s'enfonce à l'appui. Et une **coche** rouge sur le choix retenu.
+
+🔴 **Règles qui tiennent toujours** : pas de motif derrière les produits ; l'or
+n'est jamais du texte nu sur crème (toujours cerné ou sur bordeaux) ; l'accueil
+n'est pas touché. ⚠️ `paint-order: stroke fill` est indispensable aux titres à
+contour — sans lui le trait bouche les lettres. Grands corps seulement.
+⚠️ Le prix en pilule bordeaux/or vaut 8,37 de contraste, contre 3,5 pour le
+rouge sur crème d'avant : c'est aussi un gain de lisibilité.
+
+Trois défauts vus en capture et corrigés aussitôt : la coche passait
+par-dessus le pied de page (il a pris un `z-index`), les « − / + » du pied de
+page se fondaient dans leur capsule, le héros d'un bâtonnet laissait sa carte
+aux trois quarts vide.
+
 ### Ce que je n'ai PAS fait, et pourquoi
 
 - **Les trois bases en bâtonnet vertical** : il faut de nouvelles photos.
