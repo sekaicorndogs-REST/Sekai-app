@@ -66,6 +66,83 @@ des références**, qui est le seul filet de complétude depuis la fin de l'éch
 EasyOrder. Le test se fait donc **après la fermeture**, avec suppression
 immédiate des lignes par `source_id`, et **avec l'accord du gérant**.
 
+## 🟢 La passe du 13/11/2026 — ce qui a changé de fond
+
+Demande du gérant : « analyse ma borne et rends-la meilleure ». Relecture écran
+par écran **et** du chemin d'envoi. **Ce qui précède dans ce fichier sur l'envoi
+et le test est en partie périmé — lire ceci d'abord.**
+
+### 🔴 Le retour automatique à l'accueil n'existait pas
+
+Seul l'écran du numéro avait une minuterie. Un client qui abandonnait laissait
+son panier, sa langue et son écran au suivant, qui pouvait envoyer en cuisine
+la commande d'un inconnu. **75 s sans geste → « Toujours là ? » → 20 s de
+décompte → accueil** (`DELAI_INACTIF_MS`, `DELAI_REPONSE_S` dans `App.tsx`).
+Pas de veille sur l'accueil, ni pendant l'envoi, ni sur l'écran du numéro.
+⚠️ La question est obligatoire : quelqu'un qui hésite devant la carte ne doit
+pas voir son panier disparaître sans avoir été prévenu.
+
+### 🔴 `borne_creer_commande` v2 — prix relus, envoi rejouable
+
+| v1 | v2 (migration `borne_creer_commande_v2_prix_serveur_et_cle`) |
+|---|---|
+| Additionnait les **prix envoyés par la borne** | **Relit chaque prix** dans `borne_produits` / `borne_options`. Ce que la borne envoie comme prix est ignoré |
+| Un renvoi créait un **doublon** | `p->>'cle'` devient le `source_id` : **rejouer la même clé rend le même numéro** |
+| Acceptait une commande vide | Refuse : vide, quantité hors 1–50, produit inactif, option étrangère au produit |
+
+Côté borne : **une clé par commande**, tirée une fois (`useRef`) et gardée d'un
+essai à l'autre ; bouton **« Réessayer »** ; délai de garde de 15 s sur la
+requête. 🔴 Ne jamais retirer une clé à chaque essai : ça annule exactement ce
+qu'elle protège.
+
+### 🟢 La fonction a enfin tourné — et le test est GRATUIT
+
+Plus haut, ce fichier dit qu'un test « n'est pas gratuit » parce qu'il pollue
+`ventes`. **C'est faux si on l'annule** : appeler la fonction dans un bloc `DO`
+qui se termine par un `raise exception` portant le résultat. Tout est défait,
+le message d'erreur EST le rapport.
+
+Résultat du 13/11 : numéro attendu, rejeu = même numéro, **total 18,40 €
+recalculé alors que la borne envoyait 0**, 2 lignes, 8 options, 1 ligne dans
+`ventes` ; trois refus corrects ; puis **0 commande et 0 vente borne** après
+annulation. ⚠️ Ça prouve la moitié base. **Le chemin écran → réseau → base sur
+la vraie borne reste à faire**, après fermeture.
+
+### Le reste
+
+- **Catalogue rechargé à chaque retour à l'accueil** (et toutes les 10 min en
+  attente). Jamais en cours de commande.
+- **Panier** : quantité + / −, vignette, options sur une ligne. « − » sur le
+  dernier exemplaire retire la ligne.
+- **Écran d'options** : un « héros » montre le produit et son prix. Sans option
+  (softs), il devient la fiche entière — c'était une page blanche.
+- **Barre du panier** en trois zones fixes : elle passait sur deux lignes.
+- **Borne durcie** : plus de menu à l'appui long, de zoom au double-tap, de
+  tirer-pour-rafraîchir (qui vidait le panier). Une image absente s'efface.
+- **Images en WebP** : 22 PNG, 4,6 Mo → 0,9 Mo. 🔴 **Tout nouveau visuel
+  s'enregistre en `.webp`**, plus en PNG (l'étape 5 de la chaîne ci-dessous
+  date d'avant). ⚠️ `borne_propositions.visuels` porte des **noms de fichiers** :
+  changer une extension se fait aussi en base.
+- 🔴 **Animations : opacité seule sur les conteneurs**, `transform` uniquement
+  sur des feuilles. Un `transform` sur un ancêtre du pied de page le décroche
+  de l'écran (règle 5).
+
+### ⚠️ Deux pièges du banc de test, à ne pas reprendre
+
+1. **`catalogue.json` mentait encore** : il rattachait aux corndogs les perles
+   et le sirop du bubble tea. Recalé sur la base (61 liens). Avant de croire un
+   bug vu en capture, **vérifier en base**.
+2. **Le serveur de prévisualisation répond 200 à une image absente.** « Aucune
+   ressource en échec » ne prouvait rien : le tour contrôle `naturalWidth`.
+
+### Ce que je n'ai PAS fait, et pourquoi
+
+- **Les trois bases en bâtonnet vertical** : il faut de nouvelles photos.
+- **L'impression du ticket** : toujours bloquée par la marque et le modèle de
+  l'imprimante.
+- **Les policies RLS** : inchangé, voir Sécurité. La v2 ferme le trou des prix,
+  pas celui des tables.
+
 ## 🎨 LA CHARTE — officielle depuis le 22/10/2026
 
 Le gérant a fourni la **charte Moupress**, archivée dans
