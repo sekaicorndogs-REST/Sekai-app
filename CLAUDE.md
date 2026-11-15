@@ -1814,6 +1814,91 @@ hors-bornes journalier ne porte aucune information**, seul le cumul en porte. Ne
 réagir à un hors-bornes isolé, ni à la hausse ni à la baisse — et ne pas avoir conclu
 quoi que ce soit du record du 01/10 était le bon réflexe.
 
+## 📆 Relevé quotidien de NOVEMBRE 2026 — en cours
+
+Même méthode : une ligne par date dans `ca_jour_declare`, contrôle de la continuité des
+références de borne, témoin = le même jour de semaine de la **même semaine du mois** en 2025.
+
+| Jour | Annoncé | Bornes | **Hors-bornes réel** |
+|---|---|---|---|
+| **jeu 12/11** | *non annoncé* | 661,50 € | *inconnu* |
+| **ven 13/11** | 940 € | 854,10 € | **86 €** |
+| **sam 14/11** | 2 150 € | 1 979,90 € | **170 €** |
+
+Complétude OK sur les trois jours : références **001 → 060 · 001 → 078 · 001 → 151**,
+aucun trou.
+
+⚠️ **Le CA annoncé du jeudi 12/11 manque** — à demander au gérant pour fermer le mois.
+
+### 🟢 Samedi 14/11/2026 — 4e meilleure journée de l'historique
+
+**2 150 € annoncés · 1 979,90 € aux bornes · 151 commandes · ticket 13,11 €.**
+
+| | 14/11/2026 | Témoin : sam 15/11/2025 |
+|---|---|---|
+| CA bornes | **1 979,90 €** | 1 412,20 € |
+| Commandes | **151** | 104 |
+| Ticket | 13,11 € | 13,58 € |
+
+**+40 % de CA, +45 % de commandes.** Toujours la même structure : **tout vient du flux**,
+le ticket est même légèrement en dessous. Les deux fenêtres sont bien le 2e samedi de
+novembre de chaque année, donc le témoin est propre.
+
+**Classement historique : 4e meilleur CA** (après 2 240,20 € le 18/10/2025, 2 206,95 € le
+30/08/2025 et 2 018,30 € le 05/09/2026) et **4e plus gros volume** (159 le 05/09/2026,
+153 le 18/10/2025, 152 le 09/05/2026).
+
+### 🟡 Vendredi 13/11/2026 — sous son témoin, et c'est le ticket
+
+**940 € annoncés · 854,10 € aux bornes · 78 commandes · ticket 10,95 €.**
+
+| | 13/11/2026 | Témoin : ven 14/11/2025 |
+|---|---|---|
+| CA bornes | **854,10 €** | 874,90 € |
+| Commandes | **78** | 74 |
+| Ticket | **10,95 €** | 11,82 € |
+
+**−2,4 % de CA alors que le flux monte de 5 %** : l'écart vient entièrement du ticket
+(−0,87 €). ⚠️ Une journée isolée ne porte presque aucune information (écart-type ~310 €) :
+ne pas en conclure quoi que ce soit, c'est la semaine qui tranchera.
+C'est aussi le **1er vendredi depuis le départ de Nabil tenu uniquement par des étudiants**
+dans la nouvelle organisation — à resuivre sur plusieurs semaines avant d'y voir un lien.
+
+### 🔴 L'OUVERTURE À 11H A ÉTÉ GÉNÉRALISÉE À TOUTE LA SEMAINE — constaté le 15/11/2026
+
+**Découvert dans les données, pas annoncé.** Depuis le **lundi 02/11/2026**, la première
+commande tombe autour de **11h** tous les jours de semaine, au lieu de 12h :
+
+| | Ouverture | CA avant 12h |
+|---|---|---|
+| lun 02/11 | 11h02 | 124,40 € · 11 cmd |
+| mar 03/11 | 11h07 | 122,50 € · 12 cmd |
+| mer 04/11 | 11h10 | 88,80 € · 7 cmd |
+| **jeu 05/11** | 11h04 | **278,30 € · 22 cmd** |
+| ven 06/11 | 11h03 | 102,30 € · 10 cmd |
+| sam 07/11 | 11h09 | 142,60 € · 11 cmd |
+| lun 09/11 | 11h02 | 124,30 € · 10 cmd |
+| mar 10/11 | 11h03 | 114,90 € · 11 cmd |
+| jeu 12/11 | 11h25 | 32,50 € · 4 cmd |
+| ven 13/11 | 11h11 | 86,60 € · 9 cmd |
+| sam 14/11 | 11h21 | 96,90 € · 7 cmd |
+
+**Moyenne ~110 €/jour sur l'heure gagnée**, sur 11 jours. C'est **exactement** le niveau
+des sept mesures de week-end (109 €) : l'effet se reproduit en semaine.
+⚠️ Deux exceptions normales : **les dimanches** (01 et 08/11, ouverture 12h09 et 12h12,
+zéro vente avant 12h) et le **11/11, jour férié** (12h02).
+
+🔴 **Ce que ça change, et c'est important :** l'action « ouvrir une heure plus tôt » n'est
+plus un test de week-end, elle est **appliquée six jours sur sept**. À ~110 €/jour sur
+~26 jours, ça fait **~2 900 €/mois de CA**, soit de l'ordre de **600 à 650 €/mois de
+marge** — et non les ~550 € estimés sur les seuls samedi et dimanche.
+⚠️ **À confirmer par le gérant** : les horaires officiels de ce fichier disent encore
+lun–ven 12h–20h. Si l'ouverture à 11h est devenue la règle, **il faut corriger les
+horaires, les 54 h/semaine et le besoin en shifts étudiants** — une heure de plus six
+jours par semaine, c'est ~26 h/mois de main-d'œuvre en plus, ~330 €.
+⚠️ Le jeudi 05/11 à 278 € sur l'heure est un cas isolé (22 commandes) : ne pas le prendre
+pour la norme.
+
 ## ⚠️ Décisions déjà prises — À LIRE AVANT TOUTE ANALYSE
 
 Le travail des sessions précédentes est stocké en base, **pas dans la conversation**.
