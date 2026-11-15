@@ -1835,9 +1835,10 @@ références de borne, témoin = le même jour de semaine de la **même semaine 
 | **jeu 12/11** | **750 €** | 661,50 € | **89 €** |
 | **ven 13/11** | **940 €** | 854,10 € | **86 €** |
 | **sam 14/11** | **2 150 €** | 1 979,90 € | **170 €** |
-| **Cumul 14 jours** | **15 828 €** | **14 159,70 €** | **1 668 €, soit 119 €/jour** |
+| **dim 15/11** | **460 €** | 347,70 € | **112 €** |
+| **Cumul 15 jours** | **16 288 €** | **14 507,40 €** | **1 781 €, soit 119 €/jour** |
 
-**Position 01–14/11 : 1 011 €/jour aux bornes, 1 131 €/jour tout compris.**
+**Position 01–15/11 : 967 €/jour aux bornes, 1 086 €/jour tout compris.**
 Hors-bornes cumulé **119 €/jour**, dans la lignée des 124 € de septembre et bien en
 dessous des 150 € du paramètre.
 
@@ -1924,6 +1925,37 @@ novembre de chaque année, donc le témoin est propre.
 ne pas en conclure quoi que ce soit, c'est la semaine qui tranchera.
 C'est aussi le **1er vendredi depuis le départ de Nabil tenu uniquement par des étudiants**
 dans la nouvelle organisation — à resuivre sur plusieurs semaines avant d'y voir un lien.
+
+### 🟡 Dimanche 15/11/2026 — dimanche faible, mais pas une anomalie
+
+**460 € annoncés · 347,70 € aux bornes · 20 commandes · ticket 17,39 €.**
+Références **001 à 020 sans trou**, 13h04 → 19h36.
+
+| | 15/11/2026 | Témoin : dim 16/11/2025 |
+|---|---|---|
+| CA bornes | **347,70 €** | 548,20 € |
+| Commandes | **20** | 39 |
+| Ticket | **17,39 €** | 14,06 € |
+
+**−37 % de CA et −49 % de commandes.** Le flux s'effondre de moitié contre son témoin,
+et 20 commandes c'est aussi la moitié du dimanche moyen (39).
+
+⚠️ **Mais ce n'est PAS un record bas : six dimanches de l'historique ont fait moins**
+(151,70 € le 22/02/2026, 159 € le 21/06/2026, 251,60 € le 23/11/2025, 263,40 € le
+12/10/2025, 304,70 € le 22/03/2026, 312,80 € le 12/04/2026). C'est un **dimanche faible
+ordinaire**, pas un incident — voir la règle sur la variabilité d'une journée isolée.
+
+⚠️ **Le ticket de 17,39 € est le plus élevé de tout le suivi quotidien, et il ne veut rien
+dire** : sur 20 commandes, deux gros paniers déplacent la moyenne de plus d'un euro.
+**Ne rien en conclure sur la carte.**
+
+✅ **Rien ne suggère un problème d'exploitation** : le hors-bornes est normal (112 €, dans
+la moyenne du mois), donc ni Uber coupé ni caisse basculée. L'ouverture est bien avancée
+(13h04) et la journée va jusqu'à 19h36. C'est la fréquentation qui a manqué.
+
+**DOUZIÈME mesure de l'ouverture avancée : 61,40 €** sur l'heure gagnée, 4 commandes —
+la plus faible avec les 61,80 € du 27/09, sur une journée globalement creuse. La moyenne
+des douze reste à **108 €**.
 
 ### 🔴 CORRECTION DU 15/11/2026 — « l'ouverture à 11h généralisée » était FAUSSE
 
