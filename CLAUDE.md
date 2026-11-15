@@ -1821,14 +1821,75 @@ références de borne, témoin = le même jour de semaine de la **même semaine 
 
 | Jour | Annoncé | Bornes | **Hors-bornes réel** |
 |---|---|---|---|
-| **jeu 12/11** | *non annoncé* | 661,50 € | *inconnu* |
-| **ven 13/11** | 940 € | 854,10 € | **86 €** |
-| **sam 14/11** | 2 150 € | 1 979,90 € | **170 €** |
+| dim 01/11 | 660 € | 601,70 € | 58 € |
+| lun 02/11 | 1 260 € | 1 167,30 € | 93 € |
+| mar 03/11 | 1 200 € | 1 142,90 € | 57 € |
+| mer 04/11 | 1 290 € | 1 140,90 € | 149 € |
+| jeu 05/11 | 1 350 € | 1 266,60 € | 83 € |
+| ven 06/11 | 1 200 € | 1 111,00 € | 89 € |
+| sam 07/11 | 1 910 € | 1 590,40 € | **320 €** |
+| dim 08/11 | 608 € | 445,60 € | 162 € |
+| lun 09/11 | 920 € | 743,60 € | 176 € |
+| mar 10/11 | 930 € | 905,70 € | 24 € |
+| mer 11/11 *(férié)* | 660 € | 548,50 € | 112 € |
+| **jeu 12/11** | **750 €** | 661,50 € | **89 €** |
+| **ven 13/11** | **940 €** | 854,10 € | **86 €** |
+| **sam 14/11** | **2 150 €** | 1 979,90 € | **170 €** |
+| **Cumul 14 jours** | **15 828 €** | **14 159,70 €** | **1 668 €, soit 119 €/jour** |
 
-Complétude OK sur les trois jours : références **001 → 060 · 001 → 078 · 001 → 151**,
-aucun trou.
+**Position 01–14/11 : 1 011 €/jour aux bornes, 1 131 €/jour tout compris.**
+Hors-bornes cumulé **119 €/jour**, dans la lignée des 124 € de septembre et bien en
+dessous des 150 € du paramètre.
 
-⚠️ **Le CA annoncé du jeudi 12/11 manque** — à demander au gérant pour fermer le mois.
+Complétude OK sur tous les jours mesurés, aucun trou de référence.
+
+### 🟡 La quinzaine contre 2025 : +8,6 %, mais ne lire AUCUNE des deux semaines seule
+
+Mêmes dates des deux côtés, et **la composition est automatiquement identique** :
+14 jours consécutifs contiennent exactement deux fois chaque jour de semaine. Le
+**11/11 férié** tombe dans la 2e semaine des deux années.
+
+| 01–14 novembre, aux bornes | 2025 | 2026 | Écart |
+|---|---|---|---|
+| CA | 13 037 € | **14 159,70 €** | **+8,6 %** |
+| Commandes | 1 070 | **1 126** | +5,2 % |
+| **Ticket** | 12,18 € | **12,58 €** | **+0,40 €** |
+
+✅ **Pour une fois les DEUX leviers jouent** : le flux monte *et* le panier monte. C'est
+l'inverse de septembre entier (« du volume, pas du panier ») et ça rejoint ce qui avait
+été vu les 02-03/10.
+
+🔴 **Mais le détail hebdomadaire s'inverse complètement, et c'est le point à retenir :**
+
+| Par jour, aux bornes | 2025 | 2026 | Écart |
+|---|---|---|---|
+| Semaine 01-07 | 876 € | **1 146 €** | **+31 %** |
+| Semaine 08-14 | **986 €** | 877 € | **−11 %** |
+
+**2025 montait de la semaine 1 à la semaine 2 ; 2026 descend.** C'est exactement la leçon
+de la semaine du 22 septembre : *l'avance de 2026 sur 2025 est très inégale selon la
+semaine du mois, et le témoin bouge souvent plus que nous.* **Ne jamais annoncer un écart
+annuel depuis une seule semaine** — ici une semaine donnerait +31 % et l'autre −11 %,
+pour une réalité de +8,6 %.
+
+⚠️ La semaine 08-14 est à **877 €/jour aux bornes, au-dessus du seuil de 856 €** mais de
+très peu. Avec les 119 € de hors-bornes elle tient (996 €), donc elle est rentable — mais
+ce n'est pas une bonne semaine, et il ne faut pas la présenter comme telle.
+
+### 🟢 Jeudi 12/11/2026
+
+**750 € annoncés · 661,50 € aux bornes · 60 commandes · ticket 11,03 €.**
+Références **001 à 060 sans trou**, 12h25 → 20h11.
+
+| | 12/11/2026 | Témoin : jeu 13/11/2025 |
+|---|---|---|
+| CA bornes | **661,50 €** | 582,80 € |
+| Commandes | **60** | 49 |
+| Ticket | 11,03 € | 11,89 € |
+
+**+13,5 % de CA, +22 % de commandes.** Et c'est un **jeudi**, le jour structurellement
+creux (718 €/jour de moyenne annuelle) : 661 € reste en dessous de cette moyenne.
+Encore du volume contre du panier.
 
 ### 🟢 Samedi 14/11/2026 — 4e meilleure journée de l'historique
 
