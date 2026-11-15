@@ -1864,40 +1864,46 @@ ne pas en conclure quoi que ce soit, c'est la semaine qui tranchera.
 C'est aussi le **1er vendredi depuis le départ de Nabil tenu uniquement par des étudiants**
 dans la nouvelle organisation — à resuivre sur plusieurs semaines avant d'y voir un lien.
 
-### 🔴 L'OUVERTURE À 11H A ÉTÉ GÉNÉRALISÉE À TOUTE LA SEMAINE — constaté le 15/11/2026
+### 🔴 CORRECTION DU 15/11/2026 — « l'ouverture à 11h généralisée » était FAUSSE
 
-**Découvert dans les données, pas annoncé.** Depuis le **lundi 02/11/2026**, la première
-commande tombe autour de **11h** tous les jours de semaine, au lieu de 12h :
+J'ai écrit le 15/11 que la boutique ouvrait à 11h tous les jours depuis le 02/11, et
+chiffré ça à ~2 900 €/mois de CA. **C'était entièrement faux, et c'est le gérant qui l'a
+vu :** *« ton horaire bug car on ouvre bien à 12h, t'es décalé d'une heure. »*
 
-| | Ouverture | CA avant 12h |
+**Deux erreurs empilées :**
+1. J'ai lu `date_commande` **sans convertir** les lignes du webhook — exactement le piège
+   déjà documenté deux fois dans ce fichier.
+2. J'ai raisonné en **UTC+2** alors que l'heure d'hiver a commencé le **25/10/2026** :
+   Bruxelles est à **UTC+1** de fin octobre à fin mars.
+
+**La vérité, après conversion :** ouverture **12h02 · 12h07 · 12h10 · 12h04 · 12h03 ·
+12h02 · 12h03 · 12h25 · 12h11** en semaine, et **0,00 € avant 12h** sur tout novembre.
+Les horaires de semaine n'ont pas bougé. Les 54 h/semaine et le besoin en shifts
+étudiants restent valables : **rien à corriger.**
+
+🔴 **La bonne requête SQL, à réutiliser telle quelle :**
+`date_commande at time zone 'Europe/Brussels'` sur les lignes du webhook
+(`source_id is not null`), **une seule conversion**. Ni `at time zone 'UTC'` avant
+(ça décale d'une heure dans l'autre sens — testé le 15/11, ça sortait 10h02), ni rien
+du tout (ça sortait 11h02). Et pour l'historique importé (`source_id is null`),
+**aucune conversion**.
+
+### ✅ L'ouverture avancée du WEEK-END, elle, continue — 4 mesures de plus
+
+C'est la seule partie qui survit : le samedi ouvre vers **12h10-12h20** au lieu de
+~13h05, et le dimanche vers **13h10** au lieu de ~14h05.
+
+| | Ouverture | CA de l'heure gagnée |
 |---|---|---|
-| lun 02/11 | 11h02 | 124,40 € · 11 cmd |
-| mar 03/11 | 11h07 | 122,50 € · 12 cmd |
-| mer 04/11 | 11h10 | 88,80 € · 7 cmd |
-| **jeu 05/11** | 11h04 | **278,30 € · 22 cmd** |
-| ven 06/11 | 11h03 | 102,30 € · 10 cmd |
-| sam 07/11 | 11h09 | 142,60 € · 11 cmd |
-| lun 09/11 | 11h02 | 124,30 € · 10 cmd |
-| mar 10/11 | 11h03 | 114,90 € · 11 cmd |
-| jeu 12/11 | 11h25 | 32,50 € · 4 cmd |
-| ven 13/11 | 11h11 | 86,60 € · 9 cmd |
-| sam 14/11 | 11h21 | 96,90 € · 7 cmd |
+| dim 01/11 | 13h09 | **128,50 €** · 7 cmd |
+| sam 07/11 | 12h09 | **142,60 €** · 11 cmd |
+| dim 08/11 | 13h12 | **62,00 €** · 4 cmd |
+| sam 14/11 | 12h22 | **124,90 €** · 8 cmd |
 
-**Moyenne ~110 €/jour sur l'heure gagnée**, sur 11 jours. C'est **exactement** le niveau
-des sept mesures de week-end (109 €) : l'effet se reproduit en semaine.
-⚠️ Deux exceptions normales : **les dimanches** (01 et 08/11, ouverture 12h09 et 12h12,
-zéro vente avant 12h) et le **11/11, jour férié** (12h02).
-
-🔴 **Ce que ça change, et c'est important :** l'action « ouvrir une heure plus tôt » n'est
-plus un test de week-end, elle est **appliquée six jours sur sept**. À ~110 €/jour sur
-~26 jours, ça fait **~2 900 €/mois de CA**, soit de l'ordre de **600 à 650 €/mois de
-marge** — et non les ~550 € estimés sur les seuls samedi et dimanche.
-⚠️ **À confirmer par le gérant** : les horaires officiels de ce fichier disent encore
-lun–ven 12h–20h. Si l'ouverture à 11h est devenue la règle, **il faut corriger les
-horaires, les 54 h/semaine et le besoin en shifts étudiants** — une heure de plus six
-jours par semaine, c'est ~26 h/mois de main-d'œuvre en plus, ~330 €.
-⚠️ Le jeudi 05/11 à 278 € sur l'heure est un cas isolé (22 commandes) : ne pas le prendre
-pour la norme.
+**Onze mesures au total**, moyenne **112 €**. La série reste **systématiquement positive**,
+onze observations, aucune baisse du reste de la journée. Toujours l'action la mieux
+établie du dossier, et toujours **~550 à 650 €/mois de marge** sur les deux jours du
+week-end — **pas davantage** : il n'y a pas d'extension en semaine.
 
 ## ⚠️ Décisions déjà prises — À LIRE AVANT TOUTE ANALYSE
 
