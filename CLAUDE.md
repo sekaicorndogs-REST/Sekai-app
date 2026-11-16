@@ -1836,9 +1836,10 @@ références de borne, témoin = le même jour de semaine de la **même semaine 
 | **ven 13/11** | **940 €** | 854,10 € | **86 €** |
 | **sam 14/11** | **2 150 €** | 1 979,90 € | **170 €** |
 | **dim 15/11** | **460 €** | 347,70 € | **112 €** |
-| **Cumul 15 jours** | **16 288 €** | **14 507,40 €** | **1 781 €, soit 119 €/jour** |
+| **lun 16/11** | **765 €** | 655,30 € | **110 €** |
+| **Cumul 16 jours** | **17 053 €** | **15 162,70 €** | **1 890 €, soit 118 €/jour** |
 
-**Position 01–15/11 : 967 €/jour aux bornes, 1 086 €/jour tout compris.**
+**Position 01–16/11 : 948 €/jour aux bornes, 1 066 €/jour tout compris.**
 Hors-bornes cumulé **119 €/jour**, dans la lignée des 124 € de septembre et bien en
 dessous des 150 € du paramètre.
 
@@ -1956,6 +1957,58 @@ la moyenne du mois), donc ni Uber coupé ni caisse basculée. L'ouverture est bi
 **DOUZIÈME mesure de l'ouverture avancée : 61,40 €** sur l'heure gagnée, 4 commandes —
 la plus faible avec les 61,80 € du 27/09, sur une journée globalement creuse. La moyenne
 des douze reste à **108 €**.
+
+### 🔴 LA SEMAINE GLISSANTE PASSE EN NÉGATIF — premier signal baissier du suivi (16/11)
+
+**C'est le premier relevé au niveau de la SEMAINE qui sort sous 2025**, depuis le début du
+suivi quotidien le 18/09. Il faut le dire tel quel.
+
+Sept jours consécutifs, donc **exactement un de chaque jour de semaine des deux côtés**,
+et le **11/11 férié** tombe dans les deux fenêtres :
+
+| 10–16 novembre, aux bornes | 2025 | 2026 | Écart |
+|---|---|---|---|
+| CA | 6 621 € | **5 952,70 €** | **−10,2 %** |
+| **Par jour** | **946 €** | **850 €** | **−96 €** |
+| Commandes | 522 | **487** | −6,7 % |
+
+⚠️ **850 €/jour aux bornes est SOUS le seuil de rentabilité de 856 €.** Avec les 118 € de
+hors-bornes la semaine tient (968 €), donc elle reste rentable — mais c'est la fenêtre la
+plus faible mesurée depuis septembre.
+
+**Ce qu'on sait :** trois des quatre derniers jours sont sous leur témoin (13/11 −2,4 %,
+15/11 −37 %, 16/11 −31 %), seul le samedi 14/11 est au-dessus (+40 %). Et c'est le flux
+qui manque, pas seulement le panier.
+
+🔴 **Ce qu'on ne sait PAS, et qu'il ne faut pas inventer :** la cause. Trois pistes
+possibles, aucune testée :
+1. **Le cycle de paie** — la tranche 11-15 du mois est la 2e plus faible de l'année
+   (91,2 %), et le 16/11 est juste après. L'hypothèse existe déjà au dossier.
+2. **Novembre 2025 était peut-être fort sur cette fenêtre** — 946 €/jour contre 876 € la
+   semaine du 01-07/11/2025. Le témoin est au-dessus de sa propre moyenne mensuelle.
+3. **Le changement d'organisation** (départ de Nabil le 04/11, vendredis aux étudiants).
+   ⚠️ **Rien ne permet de l'incriminer** : la chute porte sur dimanche et lundi, pas sur
+   le vendredi, et elle est faite de fréquentation — ce que l'équipe ne contrôle pas.
+
+**La bonne maille pour trancher reste le mois complet**, le 30/11. D'ici là, ne pas
+conclure, et ne pas non plus balayer le signal : deux semaines de suite en négatif
+seraient à prendre au sérieux.
+
+### 🟡 Lundi 16/11/2026 — nettement sous son témoin
+
+**765 € annoncés · 655,30 € aux bornes · 60 commandes · ticket 10,92 €.**
+Références **001 à 060 sans trou**, 12h13 → 19h51.
+
+| | 16/11/2026 | Témoin : lun 17/11/2025 |
+|---|---|---|
+| CA bornes | **655,30 €** | 947,40 € |
+| Commandes | **60** | 73 |
+| Ticket | **10,92 €** | 12,98 € |
+
+**−31 % de CA**, et pour une fois **les deux leviers manquent** : −18 % de commandes
+*et* −2,06 € de ticket. C'est aussi bien en dessous du lundi moyen (881 €, 71 commandes).
+Deuxième jour faible d'affilée après le dimanche 15/11 — voir la semaine glissante
+ci-dessus, qui est le bon niveau de lecture.
 
 ### 🔴 CORRECTION DU 15/11/2026 — « l'ouverture à 11h généralisée » était FAUSSE
 
