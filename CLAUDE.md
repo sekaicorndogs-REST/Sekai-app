@@ -1837,9 +1837,11 @@ références de borne, témoin = le même jour de semaine de la **même semaine 
 | **sam 14/11** | **2 150 €** | 1 979,90 € | **170 €** |
 | **dim 15/11** | **460 €** | 347,70 € | **112 €** |
 | **lun 16/11** | **765 €** | 655,30 € | **110 €** |
-| **Cumul 16 jours** | **17 053 €** | **15 162,70 €** | **1 890 €, soit 118 €/jour** |
+| **mar 17/11** | **702 €** | 621,00 € | **81 €** |
+| **mer 18/11** | **835 €** | 712,40 € | **123 €** |
+| **Cumul 18 jours** | **18 590 €** | **16 496,10 €** | **2 094 €, soit 116 €/jour** |
 
-**Position 01–16/11 : 948 €/jour aux bornes, 1 066 €/jour tout compris.**
+**Position 01–18/11 : 916 €/jour aux bornes, 1 033 €/jour tout compris.**
 Hors-bornes cumulé **119 €/jour**, dans la lignée des 124 € de septembre et bien en
 dessous des 150 € du paramètre.
 
@@ -2009,6 +2011,102 @@ Références **001 à 060 sans trou**, 12h13 → 19h51.
 *et* −2,06 € de ticket. C'est aussi bien en dessous du lundi moyen (881 €, 71 commandes).
 Deuxième jour faible d'affilée après le dimanche 15/11 — voir la semaine glissante
 ci-dessus, qui est le bon niveau de lecture.
+
+### 🔴 NOVEMBRE 2025 JOUR PAR JOUR — le témoin, et ses deux pièges
+
+Chargé le 17/11/2026 à la demande du gérant. **25 415,70 € aux bornes, 2 032 commandes,
+847 €/jour, ticket 12,51 €.** À utiliser comme référence pour tout le reste du mois.
+
+| Jour | | CA | Cmd | | Jour | | CA | Cmd |
+|---|---|---|---|---|---|---|---|---|
+| 01 | sam | 1 343,50 € | 99 | | 16 | dim | 548,20 € | 39 |
+| 02 | dim | 797,90 € | 57 | | 17 | lun | 947,40 € | 73 |
+| 03 | lun | 789,00 € | 77 | | **18** | **mar** | **329,70 €** | **31** |
+| 04 | mar | 611,30 € | 54 | | 19 | mer | 527,80 € | 42 |
+| 05 | mer | 891,10 € | 76 | | 20 | jeu | 481,20 € | 40 |
+| 06 | jeu | 615,00 € | 54 | | 21 | ven | 674,50 € | 52 |
+| 07 | ven | 1 086,70 € | 99 | | 22 | sam | 1 475,90 € | 106 |
+| 08 | sam | 1 639,10 € | 129 | | **23** | **dim** | **251,60 €** | **20** |
+| 09 | dim | 602,80 € | 46 | | **24** | **lun** | **433,00 €** | **35** |
+| **10** | **lun** | **1 409,80 €** | **118** | | **25** | **mar** | **380,90 €** | **31** |
+| 11 | mar *(férié)* | 763,30 € | 59 | | 26 | mer | 745,30 € | 56 |
+| 12 | mer | 1 029,80 € | 79 | | 27 | jeu | 776,40 € | 66 |
+| 13 | jeu | 582,80 € | 49 | | 28 | ven | 1 133,60 € | 99 |
+| 14 | ven | 874,90 € | 74 | | 29 | sam | 1 642,50 € | 126 |
+| 15 | sam | 1 412,20 € | 104 | | 30 | dim | 618,50 € | 42 |
+
+| Semaine 2025 | Par jour |
+|---|---|
+| 01-07 | 876 € |
+| **08-14** | **986 €** ← le pic |
+| **15-21** | **703 €** ← le trou |
+| **22-28** | **742 €** |
+| 29-30 | 1 131 € |
+
+🔴 **PIÈGE 1 — le lundi 10/11/2025 à 1 409,80 € et 118 commandes est une ABERRATION.**
+Le lundi moyen fait 881 € et 71 commandes : c'est **+60 %**, sans explication au dossier
+(probablement un event). **C'est lui qui portait les 946 €/jour du témoin 10-16/11**, donc
+une bonne partie du « −10,2 % » annoncé le 16/11. Ne pas réutiliser une fenêtre contenant
+le 10/11/2025 sans le signaler.
+
+🔴 **PIÈGE 2 — les semaines 15-21 et 22-28 de 2025 sont les deux pires du mois** (703 et
+742 €/jour), avec un dimanche à 251,60 €, un lundi à 433 € et deux mardis à 330 et 381 €.
+Les jours de 2026 qui tombent en face vont donc ressortir **très positifs**. C'est la même
+configuration que la semaine creuse de septembre : **un témoin effondré gonfle l'écart.**
+Ne pas lire un +40 % de fin novembre comme un redressement.
+
+**Le seul chiffre qui tranchera ce mois est le mois complet le 30/11, contre 847 €/jour.**
+
+### 🟢 Le signal baissier du 16/11 s'est refermé — mesuré le 18/11
+
+**La « semaine glissante négative » de deux jours n'a pas duré, et il faut le dire aussi
+clairement que l'alerte.**
+
+| Par jour, aux bornes | 2025 | 2026 | Écart |
+|---|---|---|---|
+| Fenêtre 10-16/11 *(le 16/11)* | 946 € | 850 € | **−10,2 %** |
+| Fenêtre 11-17/11 *(le 17/11)* | 880 € | 810 € | −8,0 % |
+| **Fenêtre 12-18/11 *(le 18/11)*** | **818 €** | **833 €** | **+1,9 %** |
+
+L'écart s'est refermé **en partie parce que le lundi 10/11/2025 est sorti de la fenêtre** —
+c'est-à-dire que l'alerte mesurait surtout cette aberration. La réserve posée le 16/11
+(« piste 2 : le témoin était peut-être fort ») était la bonne.
+
+**Et le mois est à l'équilibre, ni plus ni moins :**
+
+| 01–18 novembre, aux bornes | 2025 | 2026 | Écart |
+|---|---|---|---|
+| CA | 16 274,50 € | **16 496,10 €** | **+1,3 %** |
+| **Par jour** | **904 €** | **916 €** | +12 € |
+| Commandes | 1 317 | **1 320** | **+0,2 %** |
+
+🔴 **Le +8,6 % de la quinzaine a été entièrement effacé.** Sur 18 jours, 2026 fait la même
+chose que 2025, au nombre de commandes près (1 320 contre 1 317). **Ne pas réutiliser le
++8,6 % du 15/11 : il ne portait que sur les 14 premiers jours et il n'a pas tenu.**
+
+### 🟡 Mardi 17/11/2026 — mardi faible, et un témoin inutilisable
+
+**702 € annoncés · 621,00 € aux bornes · 49 commandes · ticket 12,67 €.**
+Références **001 à 049**, 12h16 → 18h57.
+
+Témoin mardi 18/11/2025 : **329,70 €** et 31 commandes. ⚠️ **Le +88 % que donne ce témoin
+ne vaut rien** : le 18/11/2025 est le premier jour de l'effondrement du 18-25/11/2025.
+**La lecture honnête est 621 € contre 784 € de mardi moyen annuel, soit −21 %.**
+
+⚠️ **Zéro vente après 19h** — le deuxième cas de tout le suivi, après le 22/09.
+✅ **Non reproduit le 19/11** (voir ci-dessous) : comme le 22/09, c'était isolé.
+
+### 🟢 Mercredi 18/11/2026 — la soirée est revenue
+
+**835 € annoncés · 712,40 € aux bornes · 65 commandes · ticket 10,96 €.**
+Références **001 à 065 sans trou**, 12h23 → 20h15.
+
+✅ **83,00 € après 19h**, contre 0 € la veille. Le mardi était bien un jour isolé.
+
+Témoin mercredi 19/11/2025 : 527,80 € et 42 commandes → +35 % de CA, +55 % de commandes.
+⚠️ **Mais le témoin est dans la semaine effondrée de 2025.** Contre le mercredi moyen
+(900 €), les 712 € sont **21 % en dessous**. Ticket de 10,96 €, également sous la moyenne
+du mercredi (12,43 €).
 
 ### 🔴 CORRECTION DU 15/11/2026 — « l'ouverture à 11h généralisée » était FAUSSE
 
