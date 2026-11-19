@@ -10,7 +10,7 @@ chaque fois, donc une ligne fausse ici se retrouve dans tous les scripts.
 ## Who I am
 
 - **Name:** Sekaï Corndogs
-- **Handle:** `[À COMPLÉTER]` — je ne connais pas le @ Instagram
+- **Handle:** **@sekaicorndogs** (confirmé par le gérant le 19/11/2026)
 - **What I do, in one sentence:** des corndogs coréens faits à la commande,
   Rue Neuve à Bruxelles.
 - **Who I am talking to:** 70 à 80 % de femmes, forte communauté maghrébine,
