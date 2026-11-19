@@ -247,6 +247,11 @@ différents**. Au-delà du quota les cotisations passent au taux plein.
   Sekai est sur la rue, mieux noté, et moins cher : il y a du pouvoir de prix inutilisé.
 - **Clientèle** : 70–80 % de femmes, forte communauté maghrébine, étudiants, familles,
   touristes. Profil très fidélisable — et **aucune carte de fidélité à ce jour**.
+- 🔴 **HALAL** — confirmé par le gérant le 19/11/2026. Argument central vu la
+  clientèle (forte communauté maghrébine), utilisable en communication.
+  ⚠️ Distinguer **« viande halal »** (ce qui est confirmé) de **« certifié
+  halal »** (suppose un organisme certificateur, non vérifié). Allergènes et
+  végétarien : **toujours pas tranchés**, ne rien affirmer.
 - **Réseaux** : **@sekaicorndogs** — Instagram 9 940 abonnés, TikTok 5 600. 2 photos + 1 vidéo/semaine,
   sous-traité, c'est la totalité des 800 €/mois de marketing.
 - **Google : 423 avis, note 4,8** — le corndog le mieux noté à ce niveau d'avis.

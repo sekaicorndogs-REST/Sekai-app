@@ -58,9 +58,15 @@ qui viennent de faits vérifiés du dossier, à valider ou jeter :
   ce qui touche à la comptabilité, au bail, aux fournisseurs ou aux prix
   d'achat. Ne jamais nommer un employé ou un étudiant sans son accord.
   **Les seuls chiffres publiables sont ceux de la section « Proof » ci-dessous.**
-- **Claims I am not allowed to make:** `[À COMPLÉTER]` — ⚠️ en particulier :
-  **halal, allergènes, végétarien.** Je ne sais pas ce qui s'applique chez
-  vous et c'est réglementé. Ne rien affirmer avant que le gérant tranche.
+- **HALAL : oui, confirmé par le gérant le 19/11/2026.** C'est donc une
+  mention utilisable publiquement, et vu la clientèle (forte communauté
+  maghrébine) c'est un argument central, pas un détail.
+  ⚠️ Deux réserves de formulation, à trancher une fois :
+  **« certifié halal »** n'est pas la même affirmation que **« viande halal »** —
+  la première suppose un organisme certificateur. Dire la seconde tant que la
+  certification n'est pas vérifiée.
+- **Allergènes et végétarien :** `[À COMPLÉTER]` — toujours pas tranché, et
+  c'est réglementé. Ne rien affirmer.
 
 ## Proof I can use
 
