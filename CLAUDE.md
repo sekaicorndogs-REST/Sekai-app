@@ -1844,9 +1844,10 @@ références de borne, témoin = le même jour de semaine de la **même semaine 
 | **lun 16/11** | **765 €** | 655,30 € | **110 €** |
 | **mar 17/11** | **702 €** | 621,00 € | **81 €** |
 | **mer 18/11** | **835 €** | 712,40 € | **123 €** |
-| **Cumul 18 jours** | **18 590 €** | **16 496,10 €** | **2 094 €, soit 116 €/jour** |
+| **jeu 19/11** | **660 €** | 552,00 € | **108 €** |
+| **Cumul 19 jours** | **19 250 €** | **17 048,10 €** | **2 202 €, soit 116 €/jour** |
 
-**Position 01–18/11 : 916 €/jour aux bornes, 1 033 €/jour tout compris.**
+**Position 01–19/11 : 897 €/jour aux bornes, 1 013 €/jour tout compris.**
 Hors-bornes cumulé **119 €/jour**, dans la lignée des 124 € de septembre et bien en
 dessous des 150 € du paramètre.
 
@@ -2112,6 +2113,61 @@ Témoin mercredi 19/11/2025 : 527,80 € et 42 commandes → +35 % de CA, +55 % 
 ⚠️ **Mais le témoin est dans la semaine effondrée de 2025.** Contre le mercredi moyen
 (900 €), les 712 € sont **21 % en dessous**. Ticket de 10,96 €, également sous la moyenne
 du mercredi (12,43 €).
+
+### 🟡 Jeudi 19/11/2026 — et le PIÈGE 2 se déclenche exactement comme prévu
+
+**660 € annoncés · 552,00 € aux bornes · 52 commandes · ticket 10,62 €.**
+Références **001 à 052 sans trou**, 12h21 → 19h28. 30,50 € après 19h.
+
+| | 19/11/2026 | Témoin : jeu 20/11/2025 |
+|---|---|---|
+| CA bornes | **552,00 €** | 481,20 € |
+| Commandes | **52** | 40 |
+| Ticket | **10,62 €** | 12,03 € |
+
+⚠️ **+14,7 % contre le témoin, mais ce chiffre ne vaut rien** : le 20/11/2025 est dans la
+semaine effondrée. **Contre le jeudi moyen (718 €), les 552 € sont 23 % en dessous.**
+
+🔴 **Et la semaine glissante repasse à +9,5 % — c'est le PIÈGE 2, pas un redressement.**
+
+| Par jour, aux bornes | 2025 | 2026 | Écart |
+|---|---|---|---|
+| Fenêtre 12-18/11 *(le 18/11)* | 818 € | 833 € | +1,9 % |
+| **Fenêtre 13-19/11 *(le 19/11)*** | **746 €** | **817 €** | **+9,5 %** |
+
+**2026 n'a pas bougé (833 → 817 €, en baisse même). C'est le TÉMOIN qui est tombé de
+818 à 746 €**, parce que la fenêtre avale maintenant le mardi 18/11/2025 (330 €) et le
+mercredi 19/11/2025 (528 €). Le +9,5 % mesure l'effondrement de 2025, rien d'autre.
+**C'est exactement ce que le PIÈGE 2 annonçait trois jours plus tôt.**
+
+**Le mois reste plat :**
+
+| 01–19 novembre, aux bornes | 2025 | 2026 | Écart |
+|---|---|---|---|
+| **Par jour** | **884 €** | **897 €** | **+1,5 %** |
+| Commandes | 1 359 | **1 372** | +1,0 % |
+| Ticket | 12,36 € | 12,43 € | +0,07 € |
+
+### 🟡 À SURVEILLER — le ticket s'affaisse en deuxième partie de mois
+
+Constat du 19/11, **pas encore une conclusion** :
+
+| Novembre 2026, aux bornes | Commandes | Ticket |
+|---|---|---|
+| 01–11/11 | 837 | **12,74 €** |
+| **12–19/11** | **535** | **11,93 €** |
+
+**−0,81 € en huit jours.** Et c'est régulier, pas un accident : **quatre jours sur les
+huit sont sous 11 €** (10,62 · 10,92 · 10,95 · 10,96) alors qu'aucun jour du 01-11 ne
+l'était.
+
+⚠️ **Ce n'est PAS un effet de composition** : les deux fenêtres portent la même part de
+week-end (3 jours sur 11 contre 2 sur 8, soit 27 % et 25 %), et le week-end est ce qui
+tire le ticket vers le haut.
+
+🔴 **Mais huit jours ne suffisent pas à conclure**, et le ticket du mois entier reste
+**au-dessus** de 2025 (12,43 € contre 12,36 €). À reprendre au bilan du 30/11 : si le
+ticket du mois sort sous 12,36 €, alors il y a quelque chose. Sinon c'est du bruit.
 
 ### 🔴 CORRECTION DU 15/11/2026 — « l'ouverture à 11h généralisée » était FAUSSE
 
