@@ -2148,6 +2148,34 @@ mercredi 19/11/2025 (528 €). Le +9,5 % mesure l'effondrement de 2025, rien d'a
 | Commandes | 1 359 | **1 372** | +1,0 % |
 | Ticket | 12,36 € | 12,43 € | +0,07 € |
 
+### 🔴 CORRECTION DU 21/11/2026 — le mois est à +7 %, pas +1,5 %
+
+**Ce qui était faux :** le +1,5 % ci-dessus compare **les mêmes dates** (01–19 des deux
+années). Or cette fenêtre donne à 2025 **trois samedis (01, 08, 15) contre deux en 2026**,
+et un samedi vaut 1 414 €. **Le témoin était gonflé.**
+
+En décalant le témoin d'un jour pour aligner les jours de semaine (2025 = date + 1, soit
+02–20/11), les deux fenêtres de 19 jours portent **exactement la même composition** :
+
+| 19 jours, aux bornes | 2025 | 2026 | Écart |
+|---|---|---|---|
+| CA | 15 940,00 € | **17 048,10 €** | **+7,0 %** |
+| **Par jour** | **839 €** | **897 €** | **+58 €** |
+
+🔴 **Règle à appliquer désormais :** une fenêtre de N jours qui **n'est pas un multiple
+de 7** n'est **jamais** neutre en composition à dates égales. Décaler le témoin pour
+aligner les jours de semaine, ou ne comparer que sur 7, 14, 21 ou 28 jours. C'est le même
+piège que les moyennes par jour de semaine (15/09) et que les semaines isolées (28/09),
+un cran plus bas.
+
+⚠️ **Aucun total tout compris n'existe pour novembre 2025** (`ca_jour_declare` démarre en
+septembre 2026). Une comparaison en total passe donc par une estimation du hors-bornes —
+18 790 € à 150 €/j, 18 144 € à 116 €/j — et ne tranche rien. **Seule la comparaison
+bornes à bornes vaut.**
+
+⚠️ **Le total annoncé du vendredi 20/11 manque** : bornes **387,80 €**, très bas pour un
+vendredi (912 € de moyenne annuelle). À demander avant d'en conclure quoi que ce soit.
+
 ### 🟡 À SURVEILLER — le ticket s'affaisse en deuxième partie de mois
 
 Constat du 19/11, **pas encore une conclusion** :
