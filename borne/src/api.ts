@@ -28,6 +28,12 @@ export type Produit = {
   categorie: string;
   prix: number;
   ordre: number;
+  /** Phrase affichée sous le nom. `null` sur la plupart des produits — voir
+   *  le commentaire de `borne_produits.description`. */
+  description: string | null;
+  description_en: string | null;
+  description_nl: string | null;
+  description_es: string | null;
 };
 
 export type Option = {
@@ -35,20 +41,100 @@ export type Option = {
   nom: string;
   prix: number;
   ordre: number;
+  /** Traductions, remplies UNIQUEMENT pour les non-choix (« Pas de
+   *  supplément »). Un vrai choix garde son nom commercial partout. */
+  nom_en: string | null;
+  nom_nl: string | null;
+  nom_es: string | null;
 };
 
 export type Groupe = {
   id: number;
   nom: string;
   portee: "produit" | "commande";
+  nom_en: string | null;
+  nom_nl: string | null;
+  nom_es: string | null;
   options: Option[];
 };
+
+/**
+ * Une montée en gamme proposée après la configuration d'un produit.
+ *
+ * ⚠️ `baseOption` donne le nom de l'option à poser dans CHOIX DE LA BASE quand
+ * la cible est un menu : les libellés ne concordent pas entre le produit
+ * (« CORNDOG MOZZA ») et l'option (« CORNDOG MOZA »), on ne peut donc pas les
+ * rapprocher par le nom.
+ */
+export type Proposition = {
+  produitNom: string;
+  cibleNom: string;
+  baseOption: string | null;
+  ordre: number;
+  /** Noms de fichiers de ce que la cible AJOUTE : les frites et la canette
+   *  d'un menu, les karaage et tempura d'un XL. Vide = offre en texte seul. */
+  visuels: string[];
+  /**
+   * Valeur à la carte de ce que la cible ajoute, en euros, ou `null`.
+   *
+   * 🔴 C'est un FAIT vérifiable au comptoir, pas une « économie » : le client
+   * qui prend un menu ne renonce pas forcément à un achat qu'il aurait fait —
+   * 45 % des commandes « un corndog seul » n'ajoutent rien du tout. On lui
+   * montre ce qu'il reçoit et son prix affiché en carte, il soustrait s'il
+   * veut. Toujours le montant le plus BAS quand il a le choix entre plusieurs
+   * articles, pour ne jamais annoncer plus que ce qu'il aura.
+   */
+  valeurAjout: number | null;
+  /**
+   * Ce qui relie les visuels. `"et"` quand le client reçoit tout ce qui est
+   * montré (frites ET soft d'un menu), `"ou"` quand il n'en choisit qu'un
+   * (karaage OU tempura d'un XL).
+   *
+   * 🔴 Sans ça l'écran promettait les deux sides d'un XL alors que le client
+   * n'en a qu'un. Les deux photos étaient justes : c'est le signe entre elles
+   * qui mentait, et ça ne se voyait pas au test.
+   */
+  visuelsLiant: "et" | "ou";
+};
+
+/**
+ * Un NON-CHOIX : « pas de sauce », « pas de supplément », « pas de boisson ».
+ * Le client a répondu à la question, et sa réponse est « rien ».
+ *
+ * 🔴 C'EST UN MOTIF, PAS UNE LISTE DE LIBELLÉS, et c'est une leçon payée deux
+ * fois. Le 23/10 la liste citait `NO SAUCE` et `NO SIDE` ; le renommage de ces
+ * deux options en base a cassé le même jour l'illustration des dix sauces,
+ * puis — sans que ça se voie — le filtre du panier et de la cuisine.
+ * Un libellé de la base ne doit JAMAIS être recopié en dur dans le code.
+ *
+ * ⚠️ `\b` après `NO` est indispensable : sans lui la panure « NOUILLE »
+ * passerait pour un non-choix.
+ */
+export const estNonChoix = (nom: string) =>
+  /^(PAS DE|SANS|AUCUN|NO)\b/i.test(nom.trim());
+
+/**
+ * Les non-choix que le PANIER et la CUISINE n'affichent pas.
+ *
+ * 🔴 « PAS DE SAUCE » FAIT EXCEPTION : c'est une consigne de préparation, la
+ * cuisine doit la lire. « Pas de supplément » n'en est pas une, c'est du bruit.
+ * Le ticket papier, lui, imprime TOUT, non-choix compris — voir `ticket.ts` :
+ * sur papier une ligne absente peut vouloir dire « on a oublié de demander ».
+ *
+ * ⚠️ À terme ça mériterait une colonne `borne_options.masquer_au_service`,
+ * comme `visuels_liant` : la règle serait écrite là où vivent les options
+ * plutôt que devinée sur leur nom.
+ */
+export const masqueAuService = (nom: string) =>
+  estNonChoix(nom) && !/sauce/i.test(nom);
 
 export type Catalogue = {
   produits: Produit[];
   categories: string[];
   groupesParProduit: Record<string, Groupe[]>;
   groupeCommande: Groupe | null;
+  /** Les montées en gamme, rangées par produit d'origine. */
+  propositions: Record<string, Proposition[]>;
 };
 
 /**
@@ -60,17 +146,39 @@ export type Catalogue = {
  * `borne_produit_groupes` se retrouve simplement sans options.
  */
 export async function chargerCatalogue(): Promise<Catalogue> {
-  const [produits, groupes, options, liens] = await Promise.all([
-    get<any[]>("borne_produits?select=nom,categorie,prix,ordre&actif=is.true&order=ordre.asc"),
-    get<any[]>("borne_groupes?select=id,nom,portee"),
-    get<any[]>("borne_options?select=id,groupe_id,nom,prix,ordre&order=ordre.asc"),
+  const [produits, groupes, options, liens, propos] = await Promise.all([
+    get<any[]>(
+      "borne_produits?select=nom,categorie,prix,ordre,description,description_en,description_nl,description_es" +
+        "&actif=is.true&order=ordre.asc"
+    ),
+    get<any[]>("borne_groupes?select=id,nom,portee,nom_en,nom_nl,nom_es"),
+    // 🔴 `actif=is.true` : un choix retiré de la carte se désactive en base et
+    // disparaît de la borne sans toucher au code. Sans ce filtre, la colonne
+    // `actif` ne servait à rien — Oasis Fraise est restée affichée après avoir
+    // été retirée de la carte (22/10/2026).
+    get<any[]>(
+      "borne_options?select=id,groupe_id,nom,prix,ordre,nom_en,nom_nl,nom_es" +
+        "&actif=is.true&order=ordre.asc"
+    ),
     get<any[]>("borne_produit_groupes?select=produit_nom,groupe_id,ordre&order=ordre.asc"),
+    get<any[]>(
+      "borne_propositions?select=produit_nom,cible_nom,base_option_nom,ordre,visuels,valeur_ajout,visuels_liant" +
+        "&actif=is.true&order=ordre.asc"
+    ),
   ]);
 
   const optionsParGroupe = new Map<number, Option[]>();
   for (const o of options) {
     const liste = optionsParGroupe.get(o.groupe_id) ?? [];
-    liste.push({ id: o.id, nom: o.nom, prix: Number(o.prix) || 0, ordre: o.ordre });
+    liste.push({
+      id: o.id,
+      nom: o.nom,
+      prix: Number(o.prix) || 0,
+      ordre: o.ordre,
+      nom_en: o.nom_en,
+      nom_nl: o.nom_nl,
+      nom_es: o.nom_es,
+    });
     optionsParGroupe.set(o.groupe_id, liste);
   }
 
@@ -80,12 +188,22 @@ export async function chargerCatalogue(): Promise<Catalogue> {
       id: g.id,
       nom: g.nom,
       portee: g.portee,
+      nom_en: g.nom_en,
+      nom_nl: g.nom_nl,
+      nom_es: g.nom_es,
       options: optionsParGroupe.get(g.id) ?? [],
     });
   }
 
+  // 🔴 L'ordre des groupes est celui de `borne_produit_groupes.ordre`, et il
+  // est RETRIÉ ICI même si la requête le demande déjà. L'ordre décide de ce
+  // qu'on demande au client en premier : la base, puis la panure, puis la
+  // sauce, et la boisson à la fin. Se reposer sur l'ordre de la réponse
+  // laisse l'écran à la merci de la source — un jeu de test non trié affichait
+  // « CHOIX DU SOFT » avant « CHOIX DE LA BASE », donc la boisson avant le
+  // corndog. Le tri local coûte trois lignes et rend l'écran indépendant.
   const groupesParProduit: Record<string, Groupe[]> = {};
-  for (const l of liens) {
+  for (const l of [...liens].sort((a, b) => (a.ordre ?? 0) - (b.ordre ?? 0))) {
     const g = groupeParId.get(l.groupe_id);
     if (!g || g.portee !== "produit") continue;
     (groupesParProduit[l.produit_nom] ??= []).push(g);
@@ -96,6 +214,10 @@ export async function chargerCatalogue(): Promise<Catalogue> {
     categorie: p.categorie,
     prix: Number(p.prix),
     ordre: p.ordre,
+    description: p.description || null,
+    description_en: p.description_en || null,
+    description_nl: p.description_nl || null,
+    description_es: p.description_es || null,
   }));
 
   // L'ordre des catégories suit l'ordre des produits : les menus d'abord,
@@ -106,7 +228,31 @@ export async function chargerCatalogue(): Promise<Catalogue> {
   const groupeCommande =
     [...groupeParId.values()].find((g) => g.portee === "commande") ?? null;
 
-  return { produits: prods, categories, groupesParProduit, groupeCommande };
+  // ⚠️ Une proposition dont la cible n'est pas (ou plus) à la carte est
+  // ÉCARTÉE ici. Sans ce filtre, désactiver un menu en base laisserait la
+  // borne proposer un produit qu'elle ne sait pas configurer.
+  const connus = new Set(prods.map((p) => p.nom));
+  const propositions: Record<string, Proposition[]> = {};
+  for (const r of propos) {
+    if (!connus.has(r.cible_nom) || !connus.has(r.produit_nom)) continue;
+    (propositions[r.produit_nom] ??= []).push({
+      produitNom: r.produit_nom,
+      cibleNom: r.cible_nom,
+      baseOption: r.base_option_nom,
+      ordre: r.ordre,
+      visuels: Array.isArray(r.visuels) ? r.visuels : [],
+      valeurAjout: r.valeur_ajout == null ? null : Number(r.valeur_ajout),
+      visuelsLiant: r.visuels_liant === "ou" ? "ou" : "et",
+    });
+  }
+
+  return {
+    produits: prods,
+    categories,
+    groupesParProduit,
+    groupeCommande,
+    propositions,
+  };
 }
 
 // ── Écran cuisine ────────────────────────────────────────────────────────
@@ -242,13 +388,31 @@ export type LigneEnvoi = {
  */
 export async function envoyerCommande(
   modeLivraison: string,
-  lignes: LigneEnvoi[]
+  lignes: LigneEnvoi[],
+  cle: string
 ): Promise<string> {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/borne_creer_commande`, {
-    method: "POST",
-    headers: HEADERS,
-    body: JSON.stringify({ p: { mode_livraison: modeLivraison, lignes } }),
-  });
-  if (!res.ok) throw new Error(`Envoi refusé (${res.status}) : ${await res.text()}`);
-  return res.json();
+  // 🔴 DÉLAI DE GARDE. Sans lui, une requête qui ne revient jamais — wifi du
+  // magasin qui décroche en plein envoi — laissait le client devant « Envoi… »
+  // pour toujours, sans bouton. Quinze secondes, puis on rend la main.
+  const garde = new AbortController();
+  const minuterie = setTimeout(() => garde.abort(), 15000);
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/borne_creer_commande`, {
+      method: "POST",
+      headers: HEADERS,
+      // 🔴 `cle` REND L'ENVOI REJOUABLE. C'est elle qui devient le `source_id`
+      // de la commande : renvoyer la même clé rend le même numéro, sans rien
+      // écrire une seconde fois. Sans elle, une réponse perdue APRÈS
+      // l'écriture donnait « rien n'a été envoyé » alors que la commande
+      // existait, et un second essai faisait un doublon en cuisine.
+      // ⚠️ Les prix envoyés ne servent plus à rien : la fonction relit chaque
+      // prix en base. Ils restent dans le corps pour le `payload` d'archive.
+      body: JSON.stringify({ p: { cle, mode_livraison: modeLivraison, lignes } }),
+      signal: garde.signal,
+    });
+    if (!res.ok) throw new Error(`Envoi refusé (${res.status}) : ${await res.text()}`);
+    return res.json();
+  } finally {
+    clearTimeout(minuterie);
+  }
 }

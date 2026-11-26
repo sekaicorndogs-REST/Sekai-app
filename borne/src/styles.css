@@ -3,31 +3,84 @@
    - rien de cliquable sous 64 px de haut (on tape avec le pouce, debout) ;
    - rien d'essentiel hors de l'écran sans défilement (le client ne scrolle pas
      pour trouver le bouton d'envoi : il est en pied de page, fixe) ;
-   - la charte est celle de l'AFFICHE du magasin, pas une charte inventée :
-     crème, rouge, pastilles de prix noires et rondes, typo d'affichage grasse.
-     Devant un doute sur une couleur ou un style, regarder `public/photos/affiche.jpg`. */
+   - 🔴 la charte est la CHARTE OFFICIELLE Sekai Corndogs (Moupress), archivée
+     dans `photos-recues/charte-branding-guideline.pdf`. Elle remplace depuis le
+     22/10/2026 les couleurs relevées à l'œil sur l'affiche. Devant un doute sur
+     une couleur, une police ou le motif de fond, ouvrir ce PDF — pas l'affiche. */
 
-:root {
-  /* Repris de l'affiche. Ne pas « moderniser » en gris ou en noir : l'écran et
-     la vitrine doivent se répondre, c'est la même marque à deux mètres d'écart. */
-  --creme: #f4eada;
-  --creme-clair: #fff8ec;
-  --rouge: #d41f13;
-  --rouge-fonce: #a8160c;
-  --noir: #1a1613;
-  --brun: #6b5540;
-  --bord: #d9c9ae;
-  --or: #f6c66a;
-
-  --titre: Anton, "Arial Narrow", Impact, system-ui, sans-serif;
-  --texte: Barlow, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+/* ── Les polices, auto-hébergées ────────────────────────────────────────────
+   🔴 AUTO-HÉBERGÉES, pas chargées depuis Google Fonts. Une borne qui perd le
+   wifi du magasin doit garder son texte : avec un `<link>` distant elle serait
+   retombée sur la police système au pire moment, en plein service.
+   Les deux fichiers sont des polices VARIABLES : un seul woff2 par famille
+   couvre toutes les graisses, 53 Ko pour les deux.
+   Licence SIL OFL pour les deux, donc utilisables commercialement. */
+@font-face {
+  font-family: "Fredoka";
+  src: url("/fonts/fredoka.woff2") format("woff2");
+  font-weight: 300 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Comfortaa";
+  src: url("/fonts/comfortaa.woff2") format("woff2");
+  font-weight: 300 700;
+  font-display: swap;
 }
 
-/* 🔴 CONTRASTE — vérifié, ne pas intervertir :
-   rouge sur crème = 4,38, donc SOUS le seuil de 4,5 : le rouge ne sert qu'aux
-   grands titres et aux prix, jamais au texte courant, qui est en --noir (15,3).
-   Sur fond rouge, le texte est en --creme-clair (4,94), pas en blanc cassé
-   plus foncé ni en --creme (4,38, insuffisant). */
+:root {
+  /* 🔴 LES QUATRE COULEURS DE LA CHARTE, à l'hexadécimal près. Ne pas les
+     « ajuster » : l'écran, la vitrine, les polos et les boîtes doivent être la
+     même marque. */
+  --rouge: #ff0000;
+  --or: #ffc069;
+  --bordeaux: #650000;
+  --creme: #ffebdb;
+
+  /* Dérivés, parce que la charte ne donne que quatre couleurs et qu'une
+     interface en demande plus. Chacun reste dans la famille de la charte. */
+  --creme-clair: #fff7f0; /* les cartes, pour qu'elles ressortent du fond */
+  --doux: #8f5a50; /* texte secondaire : 4,85 sur crème, voir plus bas */
+  --bord: #efc7ad; /* bordures */
+  /* 🔴 Le texte posé sur un APLAT ROUGE est blanc, jamais crème : 4,00 contre
+     3,46. Et il doit rester grand et gras — voir le bloc CONTRASTE ci-dessous. */
+  --sur-rouge: #ffffff;
+
+  /* 🔴 KEEPSMILE, la police de titre de la charte, N'EST PAS ICI, et c'est
+     volontaire : elle n'est pas libre pour un usage commercial (Almarkhatype,
+     licence à acheter), et une borne en restaurant en est un. Fredoka la
+     remplace — même famille de formes, capitales arrondies et grasses — sous
+     licence SIL OFL.
+     Le jour où le gérant achète la licence Keepsmile : poser le woff2 dans
+     `public/fonts/`, ajouter son `@font-face` et changer CETTE SEULE LIGNE.
+     Comfortaa, elle, est bien celle de la charte. */
+  /* ⚠️ Les titres se posent en 600, pas en 400. Anton n'avait qu'une graisse,
+     donc tout le fichier portait `font-weight: 400` ; Fredoka est VARIABLE et
+     400 y est maigre — les titres sortaient fins et sans présence. */
+  --titre: Fredoka, "Comfortaa", system-ui, sans-serif;
+  --texte: Comfortaa, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+/* 🔴 CONTRASTE — tout recalculé sur la charte le 22/10/2026, ne pas intervertir.
+
+   Sur crème :
+     --bordeaux  11,69  ✅ c'est la couleur de TOUT le texte courant
+     --doux       4,85  ✅ texte secondaire
+     --rouge      3,46  ❌ SOUS 4,5 : réservé aux grands titres et aux prix
+     --or         1,40  ❌ invisible, jamais sur crème — uniquement sur bordeaux
+
+   Sur rouge :
+     blanc        4,00  ⚠️ sous 4,5 → tout texte sur aplat rouge doit être
+                       GRAND et GRAS (≥ 19 px / 700), sinon il n'est pas lisible
+     --creme      3,46  ❌ moins bon que le blanc, ne pas l'utiliser pour du texte
+
+   Sur bordeaux :
+     blanc       13,52  ✅
+     --or         8,37  ✅ c'est le couple des pastilles de prix payantes
+
+   ⚠️ Le motif de fond fait bouger ces chiffres de peu : sur les aplats rouges il
+   éclaircit localement à #ff1f1f, ce qui fait tomber le blanc de 4,00 à 3,84.
+   La règle « grand et gras sur rouge » couvre déjà ce cas. */
 
 * {
   box-sizing: border-box;
@@ -43,20 +96,48 @@ html {
   overflow-x: clip;
 }
 
+/* ── Le motif de fond ───────────────────────────────────────────────────────
+   Les quinze formes de la section PATTERNS de la charte, recomposées en une
+   tuile qui se RÉPÈTE SANS COUTURE : une forme coupée au bord revient de
+   l'autre côté. Deux versions du même dessin — rouge très pâle pour le crème,
+   blanc pour les aplats rouges.
+
+   🔴 Il est VOLONTAIREMENT très discret (9 % et 12 % d'opacité). C'est un fond
+   de borne de commande, pas un emballage : le client doit lire des prix et des
+   noms de produits dessus. Monter l'opacité le rendrait joli en capture et
+   illisible en service.
+
+   ⚠️ Chemins absolus (`/photos/…`) : ce fichier est servi depuis `/assets/`,
+   donc un chemin relatif chercherait `/assets/photos/…` et ne trouverait rien. */
 body {
   margin: 0;
-  background: var(--creme);
-  color: var(--noir);
+  /* 🔴 FOND UNI sur les écrans de commande. Le motif y a été retiré le
+     23/10/2026 : le gérant trouvait la borne « pas très pro », et c'était la
+     première raison. Un fond chargé derrière des photos de produits les fait
+     reculer et donne un air de maquette — toutes les bornes de chaîne posent
+     leurs produits sur un aplat neutre.
+     Le motif reste là où il sert : l'accueil (écran d'attente, vu de la rue)
+     et l'écran du numéro, qui ne portent aucune photo de produit. */
+  background-color: var(--creme);
+  color: var(--bordeaux);
   font-family: var(--texte);
   font-size: 20px;
   font-weight: 600;
   user-select: none;
 }
 
+/* Les aplats rouges portent le même motif, en blanc. */
+.accueil .appel,
+.page footer,
+.fini {
+  background-image: url("/photos/motif-blanc.webp");
+  background-size: 420px;
+}
+
 h1 {
   font-family: var(--titre);
   font-size: 38px;
-  font-weight: 400;
+  font-weight: 700;
   letter-spacing: -0.5px;
   margin: 0;
 }
@@ -64,18 +145,18 @@ h1 {
 h2 {
   font-family: var(--titre);
   font-size: 24px;
-  font-weight: 400;
+  font-weight: 600;
   letter-spacing: 0.5px;
-  color: var(--noir);
+  color: var(--bordeaux);
   margin: 26px 0 12px;
 }
 
 .gris {
-  color: var(--brun);
+  color: var(--doux);
 }
 .petit {
   font-size: 15px;
-  color: var(--brun);
+  color: var(--doux);
 }
 
 /* ── Écrans pleins (mode, envoi, numéro) ────────────────────────────────── */
@@ -99,7 +180,10 @@ h2 {
   height: 100svh;
   display: flex;
   flex-direction: column;
-  background: var(--creme);
+  background-image: url("/photos/motif-rouge.webp");
+  background-size: 460px;
+  /* Pas de `background` ici : le motif du `body` doit se voir dans les bandes
+     laissées par l'affiche, qui est en `contain`. */
 }
 .accueil .affiche {
   flex: 1;
@@ -107,36 +191,84 @@ h2 {
   min-height: 0;
   object-fit: contain;
 }
+/* ── Les mascottes ───────────────────────────────────────────────────────── */
+/* 🔴 ELLES NE VONT QUE SUR LES ÉCRANS SANS INFORMATION À LIRE : accueil, choix
+   du mode, panier vide, attente, écran du numéro. Pas sur la carte, pas sur les
+   options — c'est là que le client lit des prix, et un personnage y prendrait
+   la place de la photo qui vend. Même raisonnement que le motif de fond, retiré
+   de ces écrans le 23/10.
+   💡 Les bornes de chaîne font pareil : l'écran d'attente porte la marque, les
+   écrans de commande portent la clarté. */
+
+/* La mascotte seule, sur les écrans d'attente et de transition. */
+.mascotte {
+  width: auto;
+  height: 210px;
+  object-fit: contain;
+  display: block;
+  margin: 0 auto;
+}
+/* Le panier vide : la mascotte occupe le vide au lieu de le laisser nu —
+   c'est exactement le défaut qu'on vient de corriger sur les non-choix. */
+.panier-vide {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 26px 0;
+}
+.panier-vide .mascotte {
+  height: 190px;
+}
+
 .accueil .appel {
   padding: 20px 22px calc(22px + env(safe-area-inset-bottom));
-  background: var(--rouge);
+  background-color: var(--rouge);
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 10px;
 }
+/* 🔴 Les quatre langues, en DEUX COLONNES. En une seule, le bandeau mangeait
+   le tiers bas de l'affiche, qui est ce que le passant voit de la rue.
+   Chacun garde 72 px de haut : c'est le premier geste du client, debout,
+   souvent avec un sac dans l'autre main. */
+.accueil .langues {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  width: 100%;
+  max-width: 560px;
+}
+.accueil .btn.langue {
+  min-height: 72px;
+  width: 100%;
+  font-size: 24px;
+  padding: 0 10px;
+}
+
 .accueil .appel .btn {
   background: var(--creme-clair);
-  color: var(--rouge-fonce);
+  color: var(--bordeaux);
 }
 .accueil .appel .btn:active {
-  background: #efe2ce;
+  background: #ffe0cc;
 }
 .accueil .mention {
-  color: var(--creme-clair);
-  font-size: 17px;
+  color: var(--sur-rouge);
+  font-size: 20px;
   font-weight: 700;
 }
 .accueil .indispo {
   min-height: 76px;
   display: flex;
   align-items: center;
-  color: var(--creme-clair);
+  color: var(--sur-rouge);
   font-size: 21px;
   font-weight: 700;
 }
 .accueil .build {
-  color: #c9b79a;
+  color: #e2b79c;
 }
 
 .build {
@@ -144,14 +276,14 @@ h2 {
   bottom: 8px;
   right: 10px;
   font-size: 11px;
-  color: #b9a88c;
+  color: #e2b79c;
 }
 
 /* ── Le numéro de commande ──────────────────────────────────────────────── */
 /* La mascotte sert ici : c'est le moment où le client attend. */
 .fini {
   min-height: 100svh;
-  background: var(--rouge);
+  background-color: var(--rouge);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -176,16 +308,22 @@ h2 {
   width: auto;
   display: block;
 }
+/* La mascotte y remplace le logo : elle est plus large que haute, donc elle a
+   besoin d'un peu plus de hauteur pour peser autant. */
+.fini .carte-numero img.mascotte {
+  height: 190px;
+  margin-bottom: -6px;
+}
 .fini .libelle {
   font-size: 19px;
   font-weight: 700;
   letter-spacing: 3px;
-  color: var(--brun);
+  color: var(--doux);
 }
 .numero {
   font-family: var(--titre);
   font-size: 180px;
-  font-weight: 400;
+  font-weight: 700;
   line-height: 0.86;
   letter-spacing: -4px;
   color: var(--rouge);
@@ -195,7 +333,7 @@ h2 {
   display: flex;
   align-items: center;
   gap: 14px;
-  background: var(--noir);
+  background: var(--bordeaux);
   border-radius: 999px;
   padding: 12px 28px;
 }
@@ -208,24 +346,24 @@ h2 {
 .fini .montant strong {
   font-family: var(--titre);
   font-size: 34px;
-  font-weight: 400;
+  font-weight: 600;
   color: var(--creme-clair);
 }
 .fini .consigne {
   font-family: var(--titre);
   font-size: 40px;
-  color: var(--creme-clair);
+  color: var(--sur-rouge);
   line-height: 1.05;
 }
 .fini .sous-consigne {
-  font-size: 20px;
-  font-weight: 600;
-  color: #fbd9d5;
+  font-size: 21px;
+  font-weight: 700;
+  color: var(--sur-rouge);
 }
 .fini .btn {
   background: var(--rouge);
-  color: var(--creme-clair);
-  border: 3px solid var(--creme-clair);
+  color: var(--sur-rouge);
+  border: 3px solid var(--sur-rouge);
 }
 
 .colonne {
@@ -270,7 +408,7 @@ h2 {
   right: 0;
   bottom: 0;
   padding: 16px 18px calc(20px + env(safe-area-inset-bottom));
-  background: var(--rouge);
+  background-color: var(--rouge);
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -278,20 +416,23 @@ h2 {
 }
 .page footer .btn {
   background: var(--creme-clair);
-  color: var(--rouge-fonce);
+  color: var(--bordeaux);
 }
 .page footer .btn:active {
-  background: #efe2ce;
+  background: #ffe0cc;
 }
 .page footer .btn:disabled {
-  background: var(--rouge-fonce);
-  color: #e9b5b0;
+  background: var(--bordeaux);
+  color: var(--or);
 }
 .page footer .lien {
-  color: var(--creme-clair);
+  color: var(--sur-rouge);
 }
+/* 19 px et non 15 : sur un aplat rouge le blanc ne vaut que 4,00, donc le texte
+   doit passer la barre du « grand texte » pour rester lisible. */
 .page footer .petit {
-  color: #fbd9d5;
+  color: var(--sur-rouge);
+  font-size: 19px;
   font-weight: 700;
 }
 
@@ -302,19 +443,19 @@ h2 {
   border: none;
   border-radius: 18px;
   background: var(--rouge);
-  color: var(--creme-clair);
+  color: var(--sur-rouge);
   font-family: var(--titre);
   font-size: 24px;
-  font-weight: 400;
+  font-weight: 600;
   letter-spacing: 0.5px;
   cursor: pointer;
 }
 .btn:active {
-  background: var(--rouge-fonce);
+  background: var(--bordeaux);
 }
 .btn:disabled {
   background: var(--bord);
-  color: var(--brun);
+  color: var(--doux);
 }
 .btn.gros {
   width: 100%;
@@ -328,14 +469,14 @@ h2 {
   font-family: var(--texte);
   font-size: 30px;
   font-weight: 800;
-  background: #efe2ce;
-  color: var(--noir);
+  background: #ffe0cc;
+  color: var(--bordeaux);
 }
 
 .lien {
   background: none;
   border: none;
-  color: var(--brun);
+  color: var(--doux);
   font-family: var(--texte);
   font-size: 18px;
   font-weight: 700;
@@ -370,112 +511,146 @@ h2 {
 
 .categorie {
   min-height: 88px;
-  padding: 10px 12px;
+  padding: 10px 8px 12px;
   border: 3px solid var(--bord);
-  border-radius: 18px;
+  border-radius: 22px;
   background: var(--creme-clair);
-  color: var(--noir);
+  color: var(--bordeaux);
   font-family: var(--titre);
-  font-size: 22px;
-  font-weight: 400;
+  font-size: 20px;
+  font-weight: 600;
   line-height: 1.05;
   letter-spacing: 0.3px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
   cursor: pointer;
+}
+/* La vignette de catégorie, reprise de la borne EasyOrder. Fond crème pour
+   qu'un visuel détouré ne flotte pas dans le vide. */
+.categorie .vign {
+  width: 100%;
+  height: 86px;
+  object-fit: contain;
+  border-radius: 14px;
+  background: var(--creme);
+  display: block;
 }
 .categorie.actif {
   background: var(--rouge);
   border-color: var(--rouge);
-  color: var(--creme-clair);
+  color: var(--sur-rouge);
+}
+/* ⚠️ Sur la catégorie active, la vignette garde un fond CLAIR : posée sur le
+   rouge, un visuel détouré rouge-orangé (les corndogs) disparaissait. */
+.categorie.actif .vign {
+  background: var(--creme-clair);
 }
 
+/* 🔴 DEUX colonnes, pas trois — changé le 23/10/2026.
+   La borne EasyOrder en a trois, et c'est ce qui avait été repris ; mais sur
+   800 px, en retirant la colonne de catégories, trois colonnes laissent
+   190 px par produit et donc une photo de corndog de 90 px de large. Le
+   gérant a trouvé le résultat « pas très pro », et c'est la deuxième raison :
+   sur une borne, C'EST LA PHOTO QUI VEND. Deux colonnes la doublent.
+   Si l'on revient à trois un jour, il faudra des visuels cadrés serré. */
 .produits {
   flex: 1;
   min-width: 0;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  /* Les cartes d'une même rangée prennent la hauteur de la plus haute : une
+     grille régulière est le premier signe qu'une interface est finie. Sans ça,
+     un produit à longue description dépassait ses voisins. */
+  align-items: stretch;
 }
 
-/* Une carte produit se vend à l'image. Sans photo elle retombe sur un bandeau
-   crème : c'est volontairement neutre, pour qu'un produit non photographié se
-   voie et qu'on pense à le shooter. */
+/* La fiche produit : image, nom, prix, composition, centrés.
+   ⚠️ Elle garde un fond et une bordure, là où EasyOrder pose les produits à nu
+   sur du blanc : c'est une cible tactile, elle doit se voir comme telle. */
 .produit {
-  border: 3px solid var(--bord);
+  height: 100%;
+  border: 2px solid var(--bord);
   border-radius: 22px;
   background: var(--creme-clair);
-  color: var(--noir);
-  padding: 0;
+  color: var(--bordeaux);
+  padding: 0 0 16px;
   overflow: hidden;
-  text-align: left;
+  text-align: center;
   display: flex;
   flex-direction: column;
+  align-items: center;
   cursor: pointer;
+  /* Une ombre douce DÉTACHE la carte du fond. Sans elle, la carte et la page
+     étant deux crèmes voisins, tout paraissait plat — le défaut qui faisait
+     le plus « maquette ». */
+  box-shadow: 0 3px 10px rgba(101, 0, 0, 0.07);
 }
 .produit:active {
   border-color: var(--rouge);
+  box-shadow: 0 1px 4px rgba(101, 0, 0, 0.12);
 }
 .produit .photo {
-  position: relative;
   width: 100%;
-  height: 176px;
+  height: 232px;
   background: var(--creme);
   overflow: hidden;
+  margin-bottom: 12px;
 }
-/* 🔴 `contain`, surtout pas `cover`. Les photos sont découpées dans l'affiche :
-   ce sont des portraits serrés sur un seul produit. En `cover`, une carte large
-   les agrandit jusqu'à ne plus montrer qu'une macro de fromage fondu — constaté
-   en capture, deux fois. En `contain` sur fond crème, le produit se voit en
-   entier et se lit comme un détourage, ce que l'affiche fait déjà.
-   Le jour où il y aura de vraies photos cadrées large, `cover` redeviendra le
-   bon choix. */
+/* 🔴 `contain`, surtout pas `cover`. Les visuels sont DÉTOURÉS sur fond
+   transparent et souvent très verticaux (un corndog sur bâtonnet fait
+   440x760). En `cover`, la carte les agrandit jusqu'à n'en montrer qu'un
+   morceau — constaté en capture, deux fois à l'époque des découpes d'affiche. */
 .produit .photo img {
   width: 100%;
   height: 100%;
   object-fit: contain;
   display: block;
 }
-/* La pastille de prix noire et ronde, directement reprise de l'affiche. */
-.produit .prix {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  min-width: 78px;
-  height: 78px;
-  padding: 0 10px;
-  border-radius: 999px;
-  background: var(--noir);
-  color: var(--creme-clair);
-  font-family: var(--titre);
-  font-size: 25px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
 .produit .nom {
-  padding: 14px 16px 18px;
+  padding: 0 12px;
   font-family: var(--titre);
-  font-size: 25px;
-  line-height: 1.04;
-  letter-spacing: -0.3px;
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 1.08;
+}
+/* Le prix sous le nom, en rouge. Il ne vaut que 3,77 sur le crème-clair, donc
+   il tient par sa taille et sa graisse : ne pas le descendre sous 20 px. */
+.produit .prix {
+  margin-top: 7px;
+  font-family: var(--titre);
+  font-size: 27px;
+  font-weight: 700;
+  color: var(--rouge);
+}
+/* La composition, quand `borne_produits.description` en porte une.
+   En --doux (5,29 sur crème-clair) et en texte courant, pas en typo de titre :
+   c'est à lire, pas à voir de loin.
+   ⚠️ TROIS LIGNES AU MAXIMUM. Au-delà, la description devenait un pavé qui
+   repoussait le produit suivant hors de l'écran et déséquilibrait la grille.
+   Le client a le détail complet sur l'écran de configuration. */
+.produit .detail {
+  margin-top: 8px;
+  padding: 0 14px;
+  font-family: var(--texte);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--doux);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
-/* Les menus portent 41 % de la marge : photo plus haute, nom plus gros et en
-   rouge, pour qu'ils ne se confondent pas avec une canette.
-   ⚠️ Ils ont d'abord pris la largeur entière de la grille : avec des photos en
-   portrait découpées dans l'affiche, ça donnait deux bandes crème presque
-   vides. À reconsidérer le jour où il y aura de vraies photos cadrées large. */
+/* Les menus portent 41 % de la marge : leur photo est plus haute.
+   🔴 Ils n'ont PAS de nom sous la photo — il est écrit DANS le visuel
+   (« MENU GOOD DEAL » en gros au-dessus du plateau). Demande du gérant,
+   22/10/2026 : le nom ne doit apparaître qu'une fois. */
 .produit.menu .photo {
-  height: 252px;
-}
-.produit.menu .prix {
-  min-width: 96px;
-  height: 96px;
-  font-size: 30px;
-}
-.produit.menu .nom {
-  color: var(--rouge);
-  font-size: 34px;
-  padding: 16px 20px 20px;
+  height: 300px;
 }
 
 /* ── Choix d'options ────────────────────────────────────────────────────── */
@@ -491,7 +666,7 @@ h2 {
   border: 3px solid var(--bord);
   border-radius: 16px;
   background: var(--creme-clair);
-  color: var(--noir);
+  color: var(--bordeaux);
   font-family: var(--texte);
   font-size: 18px;
   font-weight: 800;
@@ -505,7 +680,7 @@ h2 {
 .pastille.actif {
   border-width: 4px;
   border-color: var(--rouge);
-  background: #fbe7e3;
+  background: #ffe3dd;
 }
 
 /* 🔴 Une option PAYANTE se voit — elle n'est jamais cochée d'office.
@@ -514,8 +689,8 @@ h2 {
    défaut », le motif que l'étude de mars 2026 reproche aux bornes McDonald's.
    `App.tsx` retient toujours le premier choix du groupe, qui est à 0 €. */
 .pastille.payante {
-  border-color: var(--noir);
-  background: var(--noir);
+  border-color: var(--bordeaux);
+  background: var(--bordeaux);
   color: var(--creme-clair);
 }
 .pastille.payante.actif {
@@ -530,15 +705,15 @@ h2 {
   color: var(--or);
 }
 .pastille.actif .sup {
-  color: var(--rouge-fonce);
+  color: var(--bordeaux);
 }
 .pastille .compris {
   font-size: 15px;
   font-weight: 700;
-  color: var(--brun);
+  color: var(--doux);
 }
 .pastille.actif .compris {
-  color: var(--rouge-fonce);
+  color: var(--bordeaux);
 }
 
 /* ── Choix illustrés ────────────────────────────────────────────────────── */
@@ -559,6 +734,33 @@ h2 {
   border-radius: 14px;
   background: var(--creme);
   margin-bottom: 4px;
+}
+/* Un non-choix (« pas de boisson ») n'a pas de photo mais garde la place de
+   celle de ses voisins : sans ça sa pastille est plus courte et il ressemble à
+   un bouton d'une autre nature.
+   🔴 ET IL PORTE UN SIGNE, pas du vide. Laissée nue, la case faisait un
+   rectangle creux de 136 px au milieu de vignettes photographiées : à l'écran
+   ça se lit « image manquante », pas « aucun ». Le cercle barré dit la même
+   chose que la photo absente, mais il le dit exprès. Discret (couleur --doux,
+   trait fin) : c'est un refus, il ne doit pas peser autant qu'une offre. */
+.pastille .vignette.vide {
+  background: transparent;
+  position: relative;
+}
+.pastille .vignette.vide::after {
+  content: "";
+  position: absolute;
+  inset: 32%;
+  border-radius: 50%;
+  border: 3px solid var(--doux);
+  opacity: 0.45;
+  background: linear-gradient(
+    to bottom right,
+    transparent calc(50% - 1.5px),
+    var(--doux) calc(50% - 1.5px),
+    var(--doux) calc(50% + 1.5px),
+    transparent calc(50% + 1.5px)
+  );
 }
 .choix.illustre .pastille .libelle {
   font-size: 17px;
@@ -587,7 +789,7 @@ h2 {
 .ligne .opt {
   font-size: 16px;
   font-weight: 600;
-  color: var(--brun);
+  color: var(--doux);
   margin-top: 4px;
 }
 .ligne .droite {
@@ -603,7 +805,7 @@ h2 {
   align-items: baseline;
   width: 100%;
   max-width: 560px;
-  color: var(--creme-clair);
+  color: var(--sur-rouge);
   font-size: 19px;
   font-weight: 700;
   letter-spacing: 1px;
@@ -611,7 +813,7 @@ h2 {
 .total strong {
   font-family: var(--titre);
   font-size: 34px;
-  font-weight: 400;
+  font-weight: 600;
 }
 
 .qte {
@@ -625,7 +827,7 @@ h2 {
 .qte strong {
   font-family: var(--titre);
   font-size: 30px;
-  font-weight: 400;
+  font-weight: 600;
   min-width: 34px;
   text-align: center;
 }
@@ -645,7 +847,7 @@ h2 {
 }
 
 .cuisine .bandeau {
-  background: var(--rouge-fonce);
+  background: var(--bordeaux);
   color: var(--creme-clair);
   padding: 12px 16px;
   border-radius: 12px;
@@ -670,7 +872,7 @@ h2 {
    d'alerte de l'écran, donc il doit être impossible à manquer. */
 .fiche.tard {
   border-color: var(--rouge);
-  box-shadow: 0 0 0 3px rgba(212, 31, 19, 0.3);
+  box-shadow: 0 0 0 3px rgba(255, 0, 0, 0.35);
 }
 
 .fiche .entete {
@@ -686,7 +888,7 @@ h2 {
 .fiche .age {
   font-size: 17px;
   font-weight: 700;
-  color: var(--brun);
+  color: var(--doux);
 }
 .fiche.tard .age {
   color: var(--rouge);
@@ -696,7 +898,7 @@ h2 {
   font-size: 15px;
   font-weight: 800;
   letter-spacing: 1px;
-  color: var(--brun);
+  color: var(--doux);
   margin: 8px 0 14px;
 }
 .fiche .tag {
@@ -704,7 +906,7 @@ h2 {
   padding: 2px 8px;
   border-radius: 999px;
   background: var(--bord);
-  color: var(--noir);
+  color: var(--bordeaux);
   letter-spacing: 0;
 }
 
@@ -722,13 +924,13 @@ h2 {
 .fiche .art .opt {
   font-size: 17px;
   font-weight: 600;
-  color: var(--brun);
+  color: var(--doux);
   margin-top: 3px;
 }
 .fiche .art .note {
   font-size: 17px;
   font-weight: 700;
-  color: var(--rouge-fonce);
+  color: var(--bordeaux);
   margin-top: 5px;
 }
 
@@ -748,4 +950,769 @@ h2 {
   margin-top: 40px;
   text-align: center;
   font-size: 22px;
+}
+
+/* ── La montée en gamme ─────────────────────────────────────────────────── */
+/* « Vous voulez le menu ? », posé par-dessus la configuration au moment
+   d'ajouter au panier.
+
+   🔴 LE REFUS EST UN VRAI BOUTON, de la même taille que les offres. Le rendre
+   plus petit, plus pâle ou en simple lien serait précisément le « mauvais
+   défaut » que ce dossier s'interdit depuis l'étude de mars 2026 sur les
+   bornes McDonald's. On propose, on ne pousse pas. */
+.proposer {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  background: rgba(101, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.proposer .boite {
+  width: 100%;
+  max-width: 620px;
+  /* La boîte prend le crème FONCÉ et les offres le crème clair : sans cet
+     écart, une carte d'offre posée sur une boîte de la même couleur ne se
+     détache de rien et l'ensemble paraît plat. */
+  background: var(--creme);
+  border-radius: 28px;
+  padding: 26px 22px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-height: 88svh;
+  /* ⚠️ `auto` et non `scroll` : sur un contenu court, une barre permanente
+     ferait croire qu'il reste quelque chose à lire plus bas. */
+  overflow-y: auto;
+}
+.proposer h2 {
+  margin: 0;
+  text-align: center;
+  font-size: 30px;
+  color: var(--bordeaux);
+}
+.proposer .offres {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* 🔴 L'OFFRE EST UNE CARTE, PAS UN APLAT ROUGE.
+   Elle l'a été : deux gros rectangles rouge vif, des vignettes de 62 px posées
+   dessus comme des autocollants, et quatre lignes de texte empilées au centre.
+   Le gérant : « ce visuel est trop moche et ne fait pas du tout
+   professionnel ». Il avait raison, et la cause tient en une phrase : un aplat
+   rouge plein écran, c'est un flyer de promotion, pas une borne.
+   Les cartes produit de la carte, elles, lui plaisent. L'offre reprend donc
+   exactement leur grammaire — fond crème clair, bordure, ombre, grande photo —
+   et le ROUGE est réservé à la pastille de prix. Une seule tache de couleur,
+   là où se prend la décision.
+   ⚠️ Ne pas « remettre du rouge pour que ça ressorte » : ce qui fait ressortir
+   une offre, c'est la photo et l'ombre, pas la surface colorée. */
+.proposer .btn.offre {
+  min-height: 92px;
+  height: auto;
+  padding: 0 0 16px;
+  flex-direction: column;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0;
+  line-height: 1.12;
+  background-color: var(--creme-clair);
+  color: var(--bordeaux);
+  border: 2px solid var(--bord);
+  border-radius: 22px;
+  box-shadow: 0 3px 12px rgba(101, 0, 0, 0.09);
+  overflow: hidden;
+}
+.proposer .btn.offre:active {
+  background-color: var(--creme);
+}
+.proposer .offre .quoi {
+  font-size: 26px;
+  margin-top: 12px;
+}
+/* La pastille de prix : la seule tache rouge de l'écran, et elle est posée là
+   où le client décide.
+   🔴 24 px / 800 en blanc sur rouge — le blanc n'y vaut que 4,00, la charte ne
+   l'autorise qu'« grand et gras ». Ne jamais descendre cette taille. */
+.proposer .offre .ecart {
+  font-family: var(--texte);
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--sur-rouge);
+  background: var(--rouge);
+  border-radius: 999px;
+  padding: 7px 22px;
+  margin-top: 10px;
+}
+/* Quand la cible revient MOINS cher — un corndog avec side et soft coûte plus
+   que le menu qui les comprend. On l'écrit, on ne le cache pas.
+   🔴 La pastille passe alors en BORDEAUX avec le montant en OR : c'est le
+   couple validé de la charte (8,37). L'or sur le rouge ne vaut que 2,47 et le
+   montant y était illisible — constaté en capture. */
+.proposer .offre .ecart.gain {
+  background: var(--bordeaux);
+  color: var(--or);
+}
+/* La valeur à la carte de ce que le menu ajoute, sous la pastille.
+   Elle est maintenant sur CRÈME, donc --doux (4,85) convient et la règle
+   « grand et gras » ne s'applique plus : c'est une précision, pas un prix. */
+.proposer .offre .valeur {
+  font-family: var(--texte);
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--doux);
+  margin-top: 8px;
+}
+.proposer .offre .quoi-dedans {
+  font-family: var(--texte);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--doux);
+  margin-top: 4px;
+  padding: 0 16px;
+}
+/* 🔴 Le refus garde la MÊME LARGEUR et la même hauteur minimale que les offres.
+   Il n'a ni photo ni pastille parce qu'il n'a rien à montrer, pas pour qu'on le
+   voie moins : le rendre plus petit ou plus pâle serait le « mauvais défaut »
+   que ce dossier s'interdit depuis l'étude de mars 2026. */
+.proposer .btn.refus {
+  background-color: var(--creme-clair);
+  color: var(--bordeaux);
+  border: 2px solid var(--bord);
+}
+.proposer .btn.refus:active {
+  background-color: var(--bord);
+}
+
+/* Ce que la montée en gamme AJOUTE, en images — « montre un paquet de frites
+   et une boisson » (gérant, 22/10/2026). C'est la différence qui est montrée,
+   pas le plateau complet : le client a déjà vu le menu sur la carte.
+
+   🔴 Les vignettes sont GRANDES et occupent un bandeau en haut de la carte.
+   À 62 px posées sur du rouge, elles passaient pour des autocollants ; c'est
+   la première cause du « pas professionnel » du 23/10. Sur une borne, c'est la
+   photo qui vend — la même règle que pour les cartes produit. */
+.proposer .offre .gagne {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 14px 16px;
+  background: var(--creme);
+  border-bottom: 2px solid var(--bord);
+}
+.proposer .offre .gagne img {
+  width: 118px;
+  height: 118px;
+  object-fit: contain;
+  display: block;
+}
+/* Le séparateur entre deux visuels. « + » quand le client reçoit les deux,
+   « ou » quand il n'en choisit qu'un — voir `visuels_liant` en base.
+   Le mot est plus petit que le signe : « ou » en 30 px pèserait plus que les
+   photos qu'il sépare. */
+.proposer .offre .gagne .plus {
+  font-family: var(--titre);
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--doux);
+}
+.proposer .offre .gagne .plus.mot {
+  font-family: var(--texte);
+  font-size: 19px;
+  font-weight: 700;
+  text-transform: lowercase;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   LA PASSE DU 13/11/2026 — « analyse ma borne et rends-la meilleure »
+   Tout ce bloc vient d'une relecture écran par écran. Chaque règle répond à
+   un défaut VU en capture, pas à une préférence.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Une borne n'est pas un site ─────────────────────────────────────────────
+   `touch-action: manipulation` coupe le zoom au double-tap, qui se déclenche
+   tout seul quand un client tape deux fois vite sur « + ». `overscroll-behavior`
+   coupe le rebond de page et le « tirer pour rafraîchir » d'Android, qui
+   rechargeait la borne — et vidait le panier — sur un simple glissé vers le bas.
+   ⚠️ Sur `html`, pas sur `body` : voir la règle sur l'overflow plus haut. */
+html {
+  touch-action: manipulation;
+  overscroll-behavior: none;
+  -webkit-touch-callout: none;
+}
+img {
+  -webkit-user-drag: none;
+  user-select: none;
+}
+
+/* ── Le doigt sent le bouton ─────────────────────────────────────────────────
+   Un écran tactile ne rend rien au toucher : sans réponse visible, le client
+   appuie une seconde fois, et ajoute deux menus.
+   🔴 `transform` est posé sur des FEUILLES uniquement — jamais sur un ancêtre
+   du pied de page `position: fixed`, qu'il décrocherait de l'écran (règle 5). */
+.btn,
+.produit,
+.pastille,
+.categorie {
+  transition: transform 0.08s ease-out;
+}
+.btn:active,
+.produit:active,
+.pastille:active,
+.categorie:active {
+  transform: scale(0.97);
+}
+
+/* Les écrans se fondent au lieu de claquer. OPACITÉ SEULE, pour la même
+   raison : une opacité ne crée pas de bloc conteneur pour les `fixed`. */
+@keyframes fondu {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.carte-layout,
+.page > .liste,
+.page > .heros,
+.plein,
+.fini {
+  animation: fondu 0.18s ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* ── Le refus, partout ───────────────────────────────────────────────────────
+   Il n'était défini que dans l'offre de menu. L'écran d'erreur et la question
+   « toujours là ? » en ont besoin aussi. */
+.btn.refus {
+  background-color: var(--creme-clair);
+  color: var(--bordeaux);
+  border: 2px solid var(--bord);
+}
+.btn.refus:active {
+  background-color: var(--bord);
+}
+
+/* ── La barre du panier sur la carte ─────────────────────────────────────────
+   Trois zones fixes : le nombre, le libellé, le total. La phrase d'avant
+   passait sur deux lignes et laissait le « € » seul en dessous. */
+.btn.barre-panier {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 0 22px 0 16px;
+  text-align: left;
+  animation: arrivee 0.32s ease-out;
+}
+.barre-panier .nb {
+  flex: 0 0 auto;
+  min-width: 48px;
+  height: 48px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: var(--rouge);
+  color: var(--sur-rouge);
+  display: grid;
+  place-items: center;
+  font-size: 26px;
+  font-weight: 700;
+}
+.barre-panier .txt {
+  flex: 1;
+  min-width: 0;
+  font-size: 27px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.barre-panier .tot {
+  flex: 0 0 auto;
+  font-size: 30px;
+  white-space: nowrap;
+}
+/* Rejouée à chaque ajout (la clé React change) : c'est le seul signe que le
+   produit est bien parti dans le panier. */
+@keyframes arrivee {
+  0% {
+    transform: scale(0.94);
+  }
+  55% {
+    transform: scale(1.03);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* ── Le produit qu'on configure ──────────────────────────────────────────────
+   L'écran d'options n'avait qu'un nom en haut. */
+.heros {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 12px 20px;
+  margin-bottom: 6px;
+  background: var(--creme-clair);
+  border: 2px solid var(--bord);
+  border-radius: 22px;
+  box-shadow: 0 3px 10px rgba(101, 0, 0, 0.07);
+}
+.heros img {
+  flex: 0 0 auto;
+  height: 132px;
+  width: auto;
+  max-width: 210px;
+  object-fit: contain;
+  display: block;
+}
+.heros .texte {
+  flex: 1;
+  min-width: 0;
+}
+.heros .prix {
+  font-family: var(--titre);
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--rouge);
+}
+.heros p {
+  margin: 4px 0 0;
+  font-size: 17px;
+  line-height: 1.3;
+  color: var(--doux);
+}
+/* Un produit SANS option — un soft, un bubble tea déjà composé : le héros
+   devient la fiche entière. C'était une page blanche avec « Aucune option. » */
+.heros.grand {
+  flex-direction: column;
+  text-align: center;
+  gap: 10px;
+  padding: 34px 20px 30px;
+  margin-top: 26px;
+}
+.heros.grand img {
+  height: 460px;
+  max-width: 82%;
+}
+.heros.grand .prix {
+  font-size: 54px;
+}
+
+/* ── Les choix illustrés remplissent la largeur ──────────────────────────────
+   En largeur fixe (162 px), quatre pastilles laissaient une bande vide de
+   100 px à droite, sur chaque groupe. Une grille de quatre colonnes égales.
+   ⚠️ Toujours quatre : c'est le nombre que la sauce (10 choix) et la panure
+   (6) remplissent sans orphelin trop voyant. */
+.choix.illustre {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+.choix.illustre .pastille {
+  width: auto;
+  min-width: 0;
+  justify-content: flex-start;
+}
+.pastille .vignette {
+  width: 100%;
+  max-width: 150px;
+  height: auto;
+  aspect-ratio: 1;
+}
+/* « CORNDOG SAUCISSE/MOZA » débordait de sa pastille : un mot sans espace ne
+   se coupe pas tout seul. */
+.choix.illustre .pastille .libelle {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+/* ── Le panier ───────────────────────────────────────────────────────────────
+   C'était une liste de texte : pas d'image, pas de quantité, les options en
+   colonne de capitales, et « Retirer » en lien de 16 px. */
+.ligne {
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  margin-bottom: 10px;
+  background: var(--creme-clair);
+  border: 2px solid var(--bord);
+  border-radius: 20px;
+  box-shadow: 0 2px 8px rgba(101, 0, 0, 0.06);
+}
+.ligne .vignette {
+  flex: 0 0 auto;
+  width: 92px;
+  height: 92px;
+  object-fit: contain;
+  display: block;
+}
+.ligne .corps {
+  flex: 1;
+  min-width: 0;
+}
+/* Les options sur une ligne continue, séparées par un point : huit lignes de
+   capitales empilées poussaient le deuxième article hors de l'écran. */
+.ligne .opt {
+  display: inline;
+  font-size: 15px;
+  line-height: 1.45;
+}
+.ligne .opt + .opt::before {
+  content: " · ";
+}
+.ligne .droite {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+.ligne .montant {
+  font-size: 25px;
+  color: var(--rouge);
+  font-weight: 700;
+}
+.qte.petite {
+  gap: 8px;
+  padding: 4px;
+  background: var(--creme);
+}
+.qte.petite strong {
+  font-size: 24px;
+  min-width: 30px;
+}
+/* 🔴 56 px et pas moins : c'est la plus petite cible de la borne, et elle est
+   déjà sous les 64 px du reste. Elle tient parce que les deux boutons sont
+   espacés et qu'une erreur s'y rattrape d'un appui. */
+.qte.petite .btn.rond {
+  width: 56px;
+  min-height: 56px;
+  font-size: 28px;
+}
+
+/* ── « Toujours là ? » ──────────────────────────────────────────────────────
+   Au-dessus de tout, offre de menu comprise. */
+.proposer.veille {
+  z-index: 30;
+}
+.veille .boite {
+  align-items: center;
+  text-align: center;
+  gap: 14px;
+}
+.veille .decompte {
+  margin: 0 0 6px;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--doux);
+}
+.veille .btn.gros {
+  max-width: none;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   LA DIRECTION ARTISTIQUE — 13/11/2026
+   « Tu peux le rendre plus beau, plus stylé, plus dans notre DA ? »
+
+   Relu sur la charte Moupress elle-même (`photos-recues/charte-…pdf`), pas de
+   mémoire. Jusqu'ici la borne en prenait les COULEURS et la police, mais
+   aucune de ses trois signatures :
+
+   1. LES TITRES À CONTOUR. « COULEUR », « PATTERNS », « BRANDING » : de
+      grosses lettres rondes, remplies d'or ou de blanc, cernées d'un trait
+      bordeaux épais. C'est la marque de fabrique de la charte, plus que le
+      rouge. La borne écrivait ses titres en bordeaux plat.
+   2. L'OR COMME SURFACE. La charte pose des bandeaux or avec le motif blanc
+      (la section casquettes). La borne ne s'en servait que comme couleur de
+      texte sur bordeaux — tout le reste était rouge ou crème.
+   3. LES FORMES EN PILULE. Les quatre échantillons de couleur sont des
+      stades ; les boutons de la borne étaient des rectangles arrondis.
+
+   S'y ajoute le relief « autocollant » : un contour net et une ombre DURE,
+   sans flou, comme le logo posé sur son disque rouge. C'est ce qui donne au
+   kawaii son côté découpé — une ombre floue fait « application », pas
+   « marque ».
+
+   🔴 CE QUI NE CHANGE PAS, et qui tient toujours :
+   - pas de motif derrière les produits (règle du 23/10) : il vit dans les
+     bandeaux, où il n'y a pas de photo ;
+   - l'or n'est JAMAIS du texte nu sur crème (1,40) : il est toujours cerné
+     de bordeaux, ou posé sur bordeaux ;
+   - l'accueil n'est pas touché — le gérant a demandé d'en garder le dessin.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── 1. Les titres à contour ─────────────────────────────────────────────────
+   `paint-order: stroke fill` peint le trait DERRIÈRE le remplissage : le
+   contour ne mange pas l'intérieur des lettres, et les jonctions internes de
+   la police variable restent invisibles. Sans lui, un trait de 7 px bouche
+   les « e » et les « a ».
+   ⚠️ Grands corps seulement. Sous ~24 px le contour empâte la lettre. */
+.plein h1,
+.proposer h2,
+.page .liste h2 {
+  color: var(--or);
+  -webkit-text-stroke: 7px var(--bordeaux);
+  paint-order: stroke fill;
+  letter-spacing: 1px;
+}
+.plein h1 {
+  font-size: 46px;
+  -webkit-text-stroke-width: 9px;
+  line-height: 1.15;
+}
+.proposer h2 {
+  font-size: 34px;
+  -webkit-text-stroke-width: 8px;
+}
+.page .liste h2 {
+  font-size: 27px;
+  margin: 28px 0 14px;
+}
+
+/* ── 2. Le bandeau or ────────────────────────────────────────────────────────
+   L'en-tête de chaque écran de commande devient le bandeau or de la charte,
+   motif blanc compris. Le titre y passe en BLANC cerné de bordeaux — la
+   variante « BRANDING » — parce que l'or sur l'or ne se lirait pas.
+   Il déborde des marges de la page : un bandeau s'arrête au bord de l'écran. */
+.page header {
+  margin: 0 -18px 16px;
+  padding: 12px 18px;
+  background-color: var(--or);
+  background-image: url("/photos/motif-blanc-fort.webp");
+  background-size: 380px;
+  border-bottom: 4px solid var(--bordeaux);
+}
+.page header h1 {
+  color: var(--creme-clair);
+  -webkit-text-stroke: 8px var(--bordeaux);
+  paint-order: stroke fill;
+  letter-spacing: 1px;
+}
+/* Le --doux ne vaut que ~3 sur l'or : dans le bandeau, les liens sont bordeaux. */
+.page header .lien {
+  color: var(--bordeaux);
+  font-weight: 800;
+}
+/* Le pied de page reçoit le même filet : les deux bandeaux se répondent. */
+.page footer {
+  border-top: 4px solid var(--bordeaux);
+}
+
+/* ── 3. Les pilules, et le relief d'autocollant ──────────────────────────────
+   L'ombre est DURE (zéro flou) et descend de 6 px ; à l'appui le bouton
+   s'enfonce de 4. C'est une vraie réponse au doigt, plus lisible que le
+   rétrécissement posé le matin même.
+   🔴 `translateY` sur des FEUILLES uniquement — règle 5, toujours. */
+.btn {
+  border-radius: 999px;
+  box-shadow: 0 6px 0 var(--bordeaux);
+}
+.btn:active {
+  background: var(--rouge);
+  transform: translateY(4px);
+  box-shadow: 0 2px 0 var(--bordeaux);
+}
+.btn:disabled {
+  box-shadow: none;
+  transform: none;
+}
+.page footer .btn {
+  box-shadow: 0 6px 0 rgba(101, 0, 0, 0.62);
+}
+.page footer .btn:active {
+  box-shadow: 0 2px 0 rgba(101, 0, 0, 0.62);
+}
+.btn.refus {
+  box-shadow: 0 6px 0 var(--bord);
+}
+.btn.refus:active {
+  box-shadow: 0 2px 0 var(--bord);
+}
+.btn.rond {
+  border-radius: 50%;
+  box-shadow: 0 4px 0 var(--bord);
+}
+.btn.rond:active {
+  background: #ffe0cc;
+  box-shadow: 0 1px 0 var(--bord);
+  transform: translateY(3px);
+}
+.qte {
+  border-radius: 999px;
+  padding: 8px 12px 12px;
+}
+.qte.petite {
+  padding: 4px 6px 8px;
+}
+/* ⚠️ L'accueil garde ses boutons d'origine : demande du gérant du 22/10. */
+.accueil .btn {
+  border-radius: 18px;
+  box-shadow: none;
+}
+.accueil .btn:active {
+  transform: none;
+}
+/* L'offre de menu est une CARTE, pas un bouton : elle garde ses coins. */
+.proposer .btn.offre {
+  border-radius: 26px;
+  box-shadow: 0 6px 0 var(--bord);
+}
+.proposer .btn.offre:active {
+  box-shadow: 0 2px 0 var(--bord);
+}
+
+/* Les cartes produit : même relief, en plus doux. */
+.produit {
+  border-radius: 26px;
+  box-shadow: 0 6px 0 var(--bord);
+}
+.produit:active {
+  transform: translateY(4px);
+  box-shadow: 0 2px 0 var(--bord);
+}
+/* 🔴 LE PRIX EN PILULE BORDEAUX ET OR. C'est le couple de la charte (8,37) —
+   bien mieux que le rouge sur crème d'avant, qui ne valait que 3,5 et ne
+   tenait que par sa taille. Et c'est le macaron de prix de l'affiche. */
+.produit .prix,
+.heros .prix {
+  width: fit-content;
+  margin: 9px auto 0;
+  padding: 3px 18px 4px;
+  border-radius: 999px;
+  background: var(--bordeaux);
+  color: var(--or);
+  font-size: 25px;
+}
+.heros .prix {
+  margin: 0;
+  font-size: 30px;
+  padding: 4px 22px 6px;
+}
+.heros.grand .prix {
+  margin: 0 auto;
+  font-size: 44px;
+  padding: 6px 34px 9px;
+}
+.produit {
+  padding-bottom: 14px;
+}
+
+.categorie {
+  border-width: 2px;
+  border-radius: 24px;
+  box-shadow: 0 5px 0 var(--bord);
+}
+.categorie:active {
+  transform: translateY(3px);
+  box-shadow: 0 2px 0 var(--bord);
+}
+.categorie.actif {
+  box-shadow: 0 5px 0 var(--bordeaux);
+}
+
+.heros,
+.ligne {
+  border-radius: 26px;
+  box-shadow: 0 5px 0 var(--bord);
+}
+.ligne .montant {
+  color: var(--bordeaux);
+}
+
+/* ── Les choix : le relief, et une coche ─────────────────────────────────────
+   Le choix retenu ne se distinguait que par un bord rouge et un fond rosé —
+   à un mètre, entre six panures, ça ne se voyait pas. Une pastille rouge
+   cochée dans le coin, cernée comme un autocollant. */
+.pastille {
+  position: relative;
+  border-width: 2px;
+  border-radius: 20px;
+  box-shadow: 0 4px 0 var(--bord);
+}
+.pastille:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 var(--bord);
+}
+.pastille.payante {
+  box-shadow: 0 4px 0 #2e0000;
+}
+.pastille.actif {
+  border-width: 3px;
+  box-shadow: 0 4px 0 var(--rouge);
+}
+.pastille.actif::before {
+  content: "✓";
+  position: absolute;
+  top: -11px;
+  right: -9px;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--rouge);
+  color: var(--sur-rouge);
+  border: 3px solid var(--creme);
+  display: grid;
+  place-items: center;
+  font: 800 18px/1 var(--texte);
+}
+
+/* ── Les boîtes de dialogue et l'écran du numéro ─────────────────────────────*/
+.proposer .boite {
+  border: 4px solid var(--bordeaux);
+  box-shadow: 0 8px 0 rgba(101, 0, 0, 0.45);
+}
+.fini .carte-numero {
+  border: 5px solid var(--bordeaux);
+  box-shadow: 0 9px 0 rgba(101, 0, 0, 0.5);
+}
+.fini .numero {
+  -webkit-text-stroke: 12px var(--bordeaux);
+  paint-order: stroke fill;
+}
+
+/* ── Trois défauts vus en capture, juste après la passe DA ─────────────────── */
+
+/* 1. La coche d'un choix passait PAR-DESSUS le pied de page : elle est en
+      `position: absolute`, donc peinte au-dessus d'un `fixed` sans z-index
+      dès que sa pastille défile dessous. Le pied de page prend un rang. */
+.page footer {
+  z-index: 5;
+}
+
+/* 2. Dans le pied de page, « − » et « + » prenaient le fond crème des boutons
+      de pied — le même que leur capsule. Ils disparaissaient, et il ne restait
+      que leur ombre : deux sourires. On leur rend leur fond. */
+.page footer .qte .btn.rond {
+  background: #ffe0cc;
+  box-shadow: 0 4px 0 var(--bord);
+}
+.page footer .qte .btn.rond:active {
+  box-shadow: 0 1px 0 var(--bord);
+}
+
+/* 3. Le héros d'un produit étroit (un bâtonnet) laissait les trois quarts de
+      sa carte vides à droite. Centré, il fait une étiquette. */
+.heros {
+  justify-content: center;
+}
+.heros .texte {
+  flex: 0 1 auto;
+}
+.page .liste h2 {
+  letter-spacing: 1.5px;
 }

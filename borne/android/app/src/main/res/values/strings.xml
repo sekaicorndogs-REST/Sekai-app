@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Sekai Borne</string>
+    <string name="title_activity_main">Sekai Borne</string>
+    <string name="package_name">com.sekaicorndogs.borne</string>
+    <string name="custom_url_scheme">com.sekaicorndogs.borne</string>
+</resources>

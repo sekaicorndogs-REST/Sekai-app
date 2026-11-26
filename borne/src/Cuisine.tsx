@@ -1,5 +1,10 @@
 import React, { useEffect, useRef, useState } from "react";
-import { chargerCuisine, marquerServie, type CommandeCuisine } from "./api";
+import {
+  chargerCuisine,
+  marquerServie,
+  masqueAuService,
+  type CommandeCuisine,
+} from "./api";
 
 declare const __BUILD_ID__: string;
 
@@ -116,14 +121,9 @@ export default function Cuisine() {
                     <span className="q">{l.quantite}×</span> {l.produit_nom}
                   </div>
                   {l.options
-                    // Mêmes non-choix écartés que dans le panier client
-                    // (`App.tsx`) : garder les deux filtres identiques.
-                    .filter(
-                      (o) =>
-                        !/^(NO SIDE|PAS DE SUPPLEMENT|PAS DE BOISSON\b.*)$/i.test(
-                          o.choix
-                        )
-                    )
+                    // Exactement le même filtre que le panier client : il vit
+                    // dans `api.ts`, les deux écrans ne peuvent plus diverger.
+                    .filter((o) => !masqueAuService(o.choix))
                     .map((o, j) => (
                       <div className="opt" key={j}>
                         {o.choix}

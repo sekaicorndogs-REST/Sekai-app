@@ -1,7 +1,11 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { Fragment, useEffect, useMemo, useRef, useState } from "react";
+import { LANGUES, NOM_LANGUE, champ, traducteur, type Langue, type T } from "./i18n";
+import { monteesPossibles, type Montee } from "./montee";
 import {
   chargerCatalogue,
   envoyerCommande,
+  estNonChoix,
+  masqueAuService,
   type Catalogue,
   type Groupe,
   type Produit,
@@ -12,51 +16,206 @@ declare const __BUILD_ID__: string;
 
 const eur = (n: number) => n.toFixed(2).replace(".", ",") + " €";
 
-// Les photos sont DÉCOUPÉES DANS L'AFFICHE du magasin (`public/photos/affiche.jpg`),
-// faute de photos produit à ce jour. Elles sont donc fidèles pour les corndogs,
-// les sides et les boissons, et seulement ÉVOCATRICES pour les menus — la photo
-// d'un menu montre l'un de ses éléments, pas le menu complet.
-// À remplacer dès qu'il y a de vraies photos : poser le fichier dans
-// `public/photos/` et ajouter sa ligne ici, rien d'autre à toucher.
+// ✅ Depuis le 22/10/2026, PLUS AUCUNE photo produit n'est découpée dans
+// l'affiche : le gérant a fourni de vrais visuels pour les douze. Les découpes
+// portaient du texte, une main, des cadrages de travers, et surtout le même
+// visuel pour deux produits différents — elles sont supprimées du dépôt.
+// `affiche.jpg` ne sert plus qu'à l'écran d'accueil.
+//
+// Pour ajouter une photo : poser le fichier dans `public/photos/` et ajouter sa
+// ligne ici, rien d'autre à toucher. ⚠️ La valeur porte le nom de fichier
+// COMPLET, extension comprise — les formats sont mélangés (.png, .webp).
+//
+// ✅ Depuis le 22/10/2026 les SEIZE produits ont leur visuel. Une carte sans
+// photo retombe sur un bandeau crème : c'est volontairement neutre, pour qu'un
+// produit non photographié se voie tout de suite.
 const PHOTOS: Record<string, string> = {
-  // 🔴 AUCUNE de ces photos ne montre un menu COMPLET : l'affiche n'en contient
-  // pas un seul sans son titre ni sa pastille de prix par-dessus, et un visuel
-  // qui affiche « 12,90 € » sur une carte à 10,00 € est pire que pas de photo.
-  // Les menus portent donc la photo de leur élément principal. C'est le poste
-  // où une vraie photo rapportera le plus.
-  "MENU GOODEAL": "mozza",
-  "MENU BUBBLE DOGS": "bubbletea",
-  "MENU GOODEAL XL": "karaage",
-  "MENU BUBBLE DOGS XL": "tempura",
-  "CORNDOG SAUCISSE": "saucisse",
-  "CORNDOG MOZZA": "mozza",
-  "CORNDOG SAUCISSE/MOZZA": "bubbledog",
-  "FRITES": "frites",
-  "Poulet karaage": "karaage",
-  "Tempura crevette": "tempura",
-  "BUBBLE TEA PECHE": "bubbletea",
-  "BUBBLE TEA PASTEQUE": "bubbletea",
+  // ✅ Les VRAIS visuels de menu, envoyés par le gérant le 22/10/2026 : le menu
+  // complet sur son plateau, détouré sur fond transparent.
+  //
+  // 🔴 Ils gardent leur TITRE (« MENU GOOD DEAL » en gros au-dessus du
+  // plateau). La première version le recadrait, parce que le nom était écrit
+  // sous la carte ; le gérant a demandé l'inverse le 22/10/2026 — le titre
+  // reste sur l'image et le libellé sous la carte disparaît. Le nom
+  // n'apparaît qu'une fois, dans les deux cas.
+  //
+  // ⚠️ Le mot « MENU » est en lettres BLANCHES sur fond blanc, tenues par un
+  // simple contour : au détourage, un remplissage trop gourmand passe au
+  // travers et les mange. Seuil serré, et vérifier en capture.
+  "MENU GOODEAL": "menu-gooddeal.webp",
+  "MENU BUBBLE DOGS": "menu-bubbledog.webp",
+  "MENU GOODEAL XL": "menu-gooddeal-xl.webp",
+  "MENU BUBBLE DOGS XL": "menu-bubbledog-xl.webp",
+  // ✅ Les trois bases sur bâtonnet, envoyées par le gérant le 22/10/2026.
+  // Elles remplacent des découpes de l'affiche qui portaient du texte, une
+  // main, et ne distinguaient PAS les trois produits — c'était le manque le
+  // plus ancien du projet : les corndogs sont identiques vus de l'extérieur,
+  // ils ne diffèrent que par l'intérieur.
+  //
+  // ⚠️ Ce sont les bases NUES, avant panure. C'est cohérent avec le parcours
+  // de commande (on choisit la garniture, puis la panure à l'écran suivant),
+  // mais ce n'est pas le produit fini. À confirmer avec le gérant.
+  "CORNDOG SAUCISSE": "base-saucisse.webp",
+  "CORNDOG MOZZA": "base-mozza.webp",
+  "CORNDOG SAUCISSE/MOZZA": "base-saucisse-mozza.webp",
+  // Les quatre signatures, envoyées sur UNE seule image le 22/10/2026 et
+  // découpées par composantes connexes.
+  //
+  // 🔴 L'association photo → signature n'est PAS une supposition : elle vient
+  // de `menu_recettes`, qui donne la panure de chacune — Saitama au panko
+  // simple, Ace au spicy (Doritos), Sekai au bleu, Suisse à la patate. Chaque
+  // panure a ensuite été recoupée avec sa propre photo du groupe
+  // `CHOIX DE LA PANURE`, et les quatre concordent.
+  // ⚠️ À faire confirmer quand même au comptoir : une photo attribuée au
+  // mauvais produit fait commander autre chose que ce qui est montré.
+  "SAITAMA": "signature-saitama.webp",
+  "ACE": "signature-ace.webp",
+  "SEKAI": "signature-sekai.webp",
+  "SUISSE": "signature-suisse.webp",
+  "FRITES": "side-frites.webp",
+  "Poulet karaage": "side-karaage.webp",
+  "Tempura crevette": "side-tempura.webp",
+  // Les gobelets photoréalistes, les mêmes que les sirops du menu. Ils
+  // remplacent une découpe d'affiche unique, partagée par les deux parfums et
+  // donc incapable de les distinguer.
+  "BUBBLE TEA PECHE": "bubble-peche.webp",
+  "BUBBLE TEA PASTEQUE": "bubble-pasteque.webp",
+  // Les softs vendus SEULS, catégorie à part depuis le 22/10/2026 (demande du
+  // gérant, comme sur la borne EasyOrder). Mêmes visuels que le groupe
+  // `CHOIX DU SOFT` des menus — c'est la même canette.
+  //
+  // ⚠️ La liste vient de `commandes_live_lignes`, donc des vraies ventes, SAUF
+  // le Pepsi Max : les lignes y portent « COCA », mais le gérant a tranché
+  // qu'il n'y a pas de Coca et que c'est du Pepsi Max qui est servi — le
+  // bouton de la borne EasyOrder garde un libellé périmé. Un libellé de vente
+  // dit ce qu'affiche la borne, pas forcément ce qui est vendu.
+  "EAU": "soft-eau.webp",
+  "PEPSI MAX": "soft-pepsi-max.webp",
+  "PEPSI": "soft-pepsi.webp",
+  "OASIS CASSIS": "soft-oasis-cassis.webp",
+  "OASIS TROPICAL": "soft-oasis-tropical.webp",
+  "ICE TEA PECHE": "soft-ice-tea-peche.webp",
+  "ICE TEA PET": "soft-ice-tea-pet.webp",
 };
 
+// ⚠️ La valeur porte le NOM DE FICHIER COMPLET, extension comprise : les
+// photos n'arrivent pas toutes au même format (le gérant envoie du .jpg, du
+// .png détouré, du .webp).
 const photo = (nom: string): string | null =>
-  PHOTOS[nom] ? `photos/${PHOTOS[nom]}.jpg` : null;
+  PHOTOS[nom] ? `photos/${PHOTOS[nom]}` : null;
 
 // Photos des CHOIX D'OPTIONS — panures, sauces, sides pris en option.
 // Même principe que `PHOTOS` : déposer le fichier dans `public/photos/` et
 // ajouter sa ligne ici, rien d'autre à toucher.
 //
-// 🔴 VIDE À DESSEIN AUJOURD'HUI. L'affiche ne montre que 2 panures sur 6
-// (la granuleuse et celle en cubes). Voir `groupeIllustre` juste en dessous :
-// tant qu'un groupe n'est pas complet, il reste en texte.
-// Le jour où les six panures arrivent, cette table devient par exemple :
-//   "CEREALE CRUNCHY": "panure-cereale", "SIMPLE PANKO": "panure-panko",
-//   "NOUILLE": "panure-nouille", "POTATOE": "panure-potatoe",
-//   "BLUE": "panure-blue", "SPICY": "panure-spicy",
-// et le groupe s'illustre seul. Mécanisme vérifié en capture le 21/10/2026.
-const PHOTOS_OPTIONS: Record<string, string> = {};
+// Les softs sont détourés sur fond transparent, d'où le `.png` : ils se posent
+// sur le crème sans rectangle blanc derrière.
+//
+// 🔴 Les PANURES n'y sont pas encore. Voir `groupeIllustre` juste en dessous :
+// tant qu'un groupe n'est pas complet, il reste entièrement en texte.
+// Le jour où les six panures arrivent, ajouter ici
+//   "CEREALE CRUNCHY", "SIMPLE PANKO", "NOUILLE", "POTATOE", "BLUE", "SPICY"
+// et le groupe s'illustre seul.
+const PHOTOS_OPTIONS: Record<string, string> = {
+  "PEPSI": "soft-pepsi.webp",
+  "PEPSI MAX": "soft-pepsi-max.webp",
+  "EAU": "soft-eau.webp",
+  "OASIS CASSIS": "soft-oasis-cassis.webp",
+  "OASIS TROPICAL": "soft-oasis-tropical.webp",
+  "ICE TEA PECHE": "soft-ice-tea-peche.webp",
+  // ⚠️ « ICE TEA PET » veut dire PÉTILLANT, pas bouteille PET : c'est le Lipton
+  // Citron / Citron Vert pétillant. Ce n'est donc PAS un doublon d'Ice Tea
+  // Pêche — confirmé par le gérant le 22/10/2026. Ne pas fusionner les deux.
+  "ICE TEA PET": "soft-ice-tea-pet.webp",
+  // Les six panures, envoyées par le gérant le 22/10/2026. ⚠️ La rouge et la
+  // bleue arrivaient sur UNE SEULE image : elle a été coupée en deux.
+  "CEREALE CRUNCHY": "panure-cereale.webp",
+  "SIMPLE PANKO": "panure-panko.webp",
+  "NOUILLE": "panure-nouille.webp",
+  "POTATOE": "panure-potatoe.webp",
+  "BLUE": "panure-blue.webp",
+  "SPICY": "panure-spicy.webp",
+  // Les sides, pris en option. ⚠️ Le groupe `SIDE 2` des menus XL nomme les
+  // mêmes produits « … 3pcs » : deux libellés, une seule photo.
+  "FRITES": "side-frites.webp",
+  "Poulet karaage": "side-karaage.webp",
+  "Tempura crevette": "side-tempura.webp",
+  "Poulet karaage 3pcs": "side-karaage.webp",
+  "Tempura crevette 3pcs": "side-tempura.webp",
+  // Les perles du bubble tea. Le gérant a fourni le dessin en blanc et en
+  // orange et demandé une troisième couleur, le rouge.
+  // ⚠️ L'ASSOCIATION COULEUR → PARFUM EST UNE SUPPOSITION : litchi blanc,
+  // mangue orange, passion rouge. À faire confirmer par le gérant.
+  "LITCHI": "perle-litchi.webp",
+  "MANGUE": "perle-mangue.webp",
+  "PASSION": "perle-passion.webp",
+  // Le sirop du menu Bubble Dogs. Visuels fournis par le gérant le 22/10/2026
+  // — il a repris mon dessin et l'a refait en photoréaliste, bien mieux.
+  // ⚠️ Il n'en a envoyé que DEUX : la pêche est l'orange glissé vers le rose,
+  // en protégeant le rouge du logo, qui aurait viré avec la boisson.
+  "MANGUE / MANGO": "bubble-mangue.webp",
+  "PECHE": "bubble-peche.webp",
+  "PASTHEQUE / WATERMELON": "bubble-pasteque.webp",
+  // Les neuf sauces. Le gérant a photographié le SAMOURAÏ dans son ramequin ;
+  // les huit autres sont ce même pot recoloré, la texture et la lumière venant
+  // de sa photo. C'est voulu qu'elles se ressemblent : même pot, même cadrage,
+  // donc le client compare des couleurs et rien d'autre.
+  // ⚠️ SEKAI est aussi le nom d'une signature à 7,50 € — aucun conflit, les
+  // produits sont dans `PHOTOS`, pas ici.
+  // 🟡 Les teintes sont approchées, pas mesurées : à faire valider au comptoir.
+  // Le gérant a seulement tranché que la Sekai est « une spicy mayo un peu plus
+  // foncée », ce qui est respecté ici.
+  // Le seul choix payant du groupe SUPPLEMENTS, donc le groupe entier
+  // dependait de cette image. Visuel fourni par le gérant le 22/10/2026.
+  "OIGNONS FRITS": "supplement-oignons-frits.webp",
+  // Les bases des menus, groupe CHOIX DE LA BASE.
+  // 🔴 Ce groupe écrit « MOZA » avec un seul Z, la carte « MOZZA » avec deux.
+  // Les deux orthographes sont donc câblées : c'est l'anomalie n° 3 des
+  // questions ouvertes de `borne/CLAUDE.md`, qui attend d'être tranchée en
+  // base. Tant qu'elle ne l'est pas, retirer une de ces lignes éteint le
+  // groupe entier.
+  "CORNDOG SAUCISSE": "base-saucisse.webp",
+  "CORNDOG SAUCISSE/MOZA": "base-saucisse-mozza.webp",
+  "CORNDOG MOZA": "base-mozza.webp",
+  "CORNDOG SAUCISSE/MOZZA": "base-saucisse-mozza.webp",
+  "CORNDOG MOZZA": "base-mozza.webp",
+  "SAMOURAI": "sauce-samourai.webp",
+  "SEKAI": "sauce-sekai.webp",
+  "SPICY MAYO": "sauce-spicy-mayo.webp",
+  "ANDALOUSE": "sauce-andalouse.webp",
+  "KETCHUP": "sauce-ketchup.webp",
+  "BBQ": "sauce-bbq.webp",
+  "AIGRE DOUCE / SWEET CHILI": "sauce-aigre-douce.webp",
+  "MAYONNAISE": "sauce-mayonnaise.webp",
+  "SRIRACHA": "sauce-sriracha.webp",
+};
+
+/**
+ * La vignette d'une catégorie dans la colonne de gauche.
+ *
+ * Reprise de la borne EasyOrder, que le gérant a demandé de suivre le
+ * 22/10/2026 : chaque catégorie y porte une image au-dessus de son nom. Une
+ * image se reconnaît plus vite qu'un mot, et la colonne est ce que le client
+ * regarde en premier.
+ *
+ * ⚠️ La clé est le nom AFFICHÉ de la catégorie, donc celui d'après
+ * `groupeCarte()` — « Menus », pas « Menus XL ». Une catégorie sans vignette
+ * retombe sur son libellé seul, sans rien casser.
+ */
+const PHOTOS_CATEGORIES: Record<string, string> = {
+  Menus: "menu-gooddeal.webp",
+  Corndogs: "base-saucisse-mozza.webp",
+  Signatures: "signature-sekai.webp",
+  Sides: "side-frites.webp",
+  "Bubble Tea": "bubble-peche.webp",
+  Softs: "soft-pepsi.webp",
+};
+
+const photoCategorie = (nom: string): string | null =>
+  PHOTOS_CATEGORIES[nom] ? `photos/${PHOTOS_CATEGORIES[nom]}` : null;
 
 const photoOption = (nom: string): string | null =>
-  PHOTOS_OPTIONS[nom] ? `photos/${PHOTOS_OPTIONS[nom]}.jpg` : null;
+  PHOTOS_OPTIONS[nom] ? `photos/${PHOTOS_OPTIONS[nom]}` : null;
 
 /**
  * Un groupe s'illustre ENTIÈREMENT ou PAS DU TOUT.
@@ -71,8 +230,46 @@ const photoOption = (nom: string): string | null =>
  *
  * Le jour où les six photos arrivent, le groupe s'illumine tout seul.
  */
-const groupeIllustre = (g: Groupe) =>
-  g.options.length > 0 && g.options.every((o) => PHOTOS_OPTIONS[o.nom]);
+/**
+ * Les quatre mascottes, posées sur les écrans qui ne portent aucune
+ * information à lire : le choix du mode, le panier vide, l'attente de l'envoi
+ * et l'écran du numéro.
+ *
+ * 🔴 PAS SUR L'ACCUEIL. La bande des quatre y a été posée puis RETIRÉE le
+ * 25/10/2026, à la demande du gérant. L'accueil porte déjà l'affiche des menus
+ * et le logo en haut de celle-ci : y ajouter quatre personnages faisait un
+ * troisième étage de marque sur un écran qui doit d'abord montrer des prix à
+ * un passant. Ne pas la remettre.
+ *
+ * 🔴 ELLES NE VONT PAS NON PLUS SUR LA CARTE NI SUR LES OPTIONS. C'est là que le client
+ * lit des prix et compare des produits ; un personnage y prendrait la place de
+ * la photo qui vend. Même règle que le motif de fond, retiré de ces écrans le
+ * 23/10 pour la même raison.
+ *
+ * ⚠️ Les noms de fichiers sont DESCRIPTIFS, pas produits — « bandeau »,
+ * « bleu », « takoyaki », « chapeau ». Les nommer d'après les signatures
+ * (Saitama, Sekai, Ace, Suisse) aurait affirmé une correspondance que l'image
+ * ne prouve pas, et une image attribuée au mauvais produit fait commander
+ * autre chose que ce qui est montré.
+ */
+const MASCOTTES = [
+  "mascotte-bandeau.webp",
+  "mascotte-bleu.webp",
+  "mascotte-takoyaki.webp",
+  "mascotte-chapeau.webp",
+] as const;
+
+/** Une mascotte stable pour un écran donné : le même écran montre toujours la
+ *  même, sinon elle changerait à chaque rendu sous les yeux du client. */
+const mascotte = (i: number) => `photos/${MASCOTTES[i % MASCOTTES.length]}`;
+
+const groupeIllustre = (g: Groupe) => {
+  const aPhotographier = g.options.filter((o) => !estNonChoix(o.nom));
+  return (
+    aPhotographier.length > 0 &&
+    aPhotographier.every((o) => PHOTOS_OPTIONS[o.nom])
+  );
+};
 
 // Les menus portent 41 % de la marge : leur carte est plus grande et leur nom
 // en rouge, pour qu'ils ne se confondent pas avec une canette.
@@ -95,17 +292,39 @@ const GROUPES_CARTE: Record<string, string> = { "Menus XL": "Menus" };
 const groupeCarte = (categorie: string) => GROUPES_CARTE[categorie] ?? categorie;
 
 // Un article du panier : le produit, ses choix d'options et sa quantité.
-type Choix = { groupe: string; choix: string; prix: number };
+/**
+ * Un choix retenu par le client.
+ *
+ * 🔴 `groupe` et `choix` sont TOUJOURS EN FRANÇAIS : ce sont eux qui partent en
+ * base et qui ressortent sur le ticket de cuisine. Un client espagnol ne doit
+ * pas faire sortir un ticket en espagnol — la cuisine lit une seule langue.
+ *
+ * `libelles` ne sert qu'à l'AFFICHAGE du panier, et n'est jamais envoyé.
+ */
+type Choix = {
+  groupe: string;
+  choix: string;
+  prix: number;
+  libelles?: { en: string | null; nl: string | null; es: string | null };
+};
 type Article = { produit: Produit; options: Choix[]; quantite: number };
 
 const prixArticle = (a: Article) =>
   (a.produit.prix + a.options.reduce((s, o) => s + o.prix, 0)) * a.quantite;
 
+/** Sans geste pendant ce délai, la borne demande si le client est toujours là. */
+const DELAI_INACTIF_MS = 75_000;
+/** …et sans réponse au bout de ce décompte, elle revient à l'accueil. */
+const DELAI_REPONSE_S = 20;
+
 type Ecran =
   | { nom: "accueil" }
   | { nom: "mode" }
   | { nom: "carte" }
-  | { nom: "config"; produit: Produit }
+  // `depart` : les choix repris quand le client accepte une montée en gamme.
+  // Sa présence dit aussi à `Config` qu'on EST déjà sur une montée, et qu'il
+  // ne faut donc pas en reproposer une — sinon le client enchaîne les écrans.
+  | { nom: "config"; produit: Produit; depart?: Record<number, number> }
   | { nom: "panier" }
   | { nom: "envoi" }
   | { nom: "fini"; reference: string };
@@ -115,6 +334,10 @@ export default function App() {
   const [erreurCat, setErreurCat] = useState<string | null>(null);
   const [ecran, setEcran] = useState<Ecran>({ nom: "accueil" });
   const [mode, setMode] = useState<string>("takeaway");
+  // 🔴 La langue est choisie à l'accueil et remise à « fr » à chaque retour à
+  // zéro : le client suivant ne doit pas hériter de l'espagnol du précédent.
+  const [langue, setLangue] = useState<Langue>("fr");
+  const t = traducteur(langue);
   const [panier, setPanier] = useState<Article[]>([]);
 
   // Le catalogue est rechargé tant qu'il n'est pas là : une borne allumée avant
@@ -149,16 +372,99 @@ export default function App() {
   // sur le panier du précédent.
   function recommencer() {
     setPanier([]);
+    setLangue("fr");
     setEcran({ nom: "accueil" });
   }
 
+  // ── Le retour automatique à l'accueil ─────────────────────────────────
+  // 🔴 IL N'EXISTAIT PAS avant le 13/11/2026. Le commentaire au-dessus disait
+  // déjà « la borne doit toujours revenir d'elle-même à l'accueil », mais seul
+  // l'écran du numéro avait une minuterie. Un client qui abandonnait en cours
+  // de route laissait son panier, sa langue et son écran au suivant — qui
+  // pouvait envoyer en cuisine la commande d'un inconnu en croyant valider la
+  // sienne. C'est LE défaut d'une borne en libre-service.
+  //
+  // Deux temps, comme sur toutes les bornes de chaîne : 75 secondes sans
+  // toucher l'écran, puis une question avec un décompte de 20 secondes. La
+  // question compte : quelqu'un qui hésite devant la carte ne doit pas voir
+  // son panier disparaître sans avoir été prévenu.
+  //
+  // ⚠️ Pas de veille sur l'accueil (rien à effacer), ni pendant l'envoi (la
+  // commande est en route), ni sur l'écran du numéro (il a sa minuterie).
+  const [alerte, setAlerte] = useState<number | null>(null);
+  const veille =
+    ecran.nom !== "accueil" && ecran.nom !== "envoi" && ecran.nom !== "fini";
+  const alerteOuverte = alerte !== null;
+  useEffect(() => {
+    if (!veille) {
+      setAlerte(null);
+      return;
+    }
+    // Pendant que la question est posée, c'est le décompte qui commande.
+    if (alerteOuverte) return;
+    let minuterie: ReturnType<typeof setTimeout>;
+    const armer = () => {
+      clearTimeout(minuterie);
+      minuterie = setTimeout(() => setAlerte(DELAI_REPONSE_S), DELAI_INACTIF_MS);
+    };
+    armer();
+    const gestes = ["pointerdown", "touchstart", "keydown", "wheel"] as const;
+    gestes.forEach((g) => window.addEventListener(g, armer, { passive: true }));
+    return () => {
+      clearTimeout(minuterie);
+      gestes.forEach((g) => window.removeEventListener(g, armer));
+    };
+    // Changer d'écran réarme aussi : c'est un geste du client.
+  }, [veille, alerteOuverte, ecran]);
+  useEffect(() => {
+    if (alerte === null) return;
+    if (alerte <= 0) {
+      setAlerte(null);
+      recommencer();
+      return;
+    }
+    const m = setTimeout(() => setAlerte((a) => (a === null ? null : a - 1)), 1000);
+    return () => clearTimeout(m);
+  }, [alerte]);
+
+  // ── Le catalogue se rafraîchit à chaque retour à l'accueil ────────────
+  // Une borne reste allumée des jours. Chargé une seule fois, le catalogue
+  // gardait les prix et les produits du matin de l'allumage : un prix changé
+  // en base n'arrivait jamais à l'écran. Un échec est sans conséquence — on
+  // garde le catalogue qu'on a.
+  // ⚠️ Jamais en cours de commande : changer la carte sous les doigts d'un
+  // client viderait son écran d'options.
+  const premierAccueil = useRef(true);
+  useEffect(() => {
+    if (ecran.nom !== "accueil") return;
+    const rafraichir = () => chargerCatalogue().then(setCat, () => {});
+    if (premierAccueil.current) premierAccueil.current = false;
+    else rafraichir();
+    const m = setInterval(rafraichir, 10 * 60 * 1000);
+    return () => clearInterval(m);
+  }, [ecran.nom]);
+
+  // Quantité d'une ligne du panier. Descendre sous 1 retire la ligne : c'est
+  // ce que le client attend d'un « − » sur le dernier exemplaire.
+  const changerQuantite = (i: number, delta: number) =>
+    setPanier((p) =>
+      p.flatMap((a, k) =>
+        k !== i
+          ? [a]
+          : a.quantite + delta < 1
+            ? []
+            : [{ ...a, quantite: Math.min(20, a.quantite + delta) }]
+      )
+    );
+
   // ── Accueil ───────────────────────────────────────────────────────────
+  const vue = (() => {
   // 🔴 L'accueil s'affiche AVANT tout contrôle de réseau. Une borne coupée du
   // réseau continue de montrer l'affiche des menus en vitrine : elle garde sa
   // valeur publicitaire même quand elle ne prend plus de commandes.
   if (ecran.nom === "accueil")
     return (
-      <div className="accueil" onClick={() => cat && setEcran({ nom: "mode" })}>
+      <div className="accueil">
         {/* Pas de logo ajouté ici : l'affiche porte DÉJÀ la mascotte en haut,
             et l'empiler deux fois donnait deux chats à dix centimètres d'écart.
             La mascotte revient sur l'écran du numéro, là où elle manquait. */}
@@ -169,7 +475,31 @@ export default function App() {
         <div className="appel">
           {cat ? (
             <>
-              <button className="btn gros">COMMANDER ICI</button>
+              {/* 🔴 Les quatre langues REMPLACENT le bouton « Commander ici »
+                  (gérant, 22/10/2026, sur photo de sa borne). Choisir sa langue
+                  EST l'entrée dans la commande : un deuxième écran pour dire
+                  « commander » après l'avoir déjà dit serait un tap de plus
+                  pour rien.
+                  Chaque bouton porte le nom de sa langue DANS cette langue :
+                  « Nederlands » se reconnaît sans savoir le français. */}
+              <div className="langues">
+                {LANGUES.map((l) => (
+                  <button
+                    key={l}
+                    className="btn langue"
+                    lang={l}
+                    onClick={() => {
+                      setLangue(l);
+                      setEcran({ nom: "mode" });
+                    }}
+                  >
+                    {NOM_LANGUE[l]}
+                  </button>
+                ))}
+              </div>
+              {/* En français seul : avant le choix, on ne sait pas encore quelle
+                  langue parle le client, et la mention revient traduite sur
+                  l'écran du numéro. */}
               <div className="mention">Paiement au comptoir</div>
             </>
           ) : (
@@ -186,10 +516,10 @@ export default function App() {
     // On ne peut arriver ici qu'en ayant perdu le réseau en cours de commande.
     return (
       <div className="plein">
-        <h1>Borne indisponible</h1>
-        <p className="gris">Commandez au comptoir.</p>
+        <h1>{t("borneIndispo")}</h1>
+        <p className="gris">{t("commandezComptoir")}</p>
         <button className="btn" onClick={recommencer}>
-          Retour
+          {t("retour")}
         </button>
       </div>
     );
@@ -199,7 +529,8 @@ export default function App() {
   if (ecran.nom === "mode")
     return (
       <div className="plein">
-        <h1>{cat.groupeCommande?.nom ?? "Sur place ou à emporter ?"}</h1>
+        <img className="mascotte" src={mascotte(0)} alt="" aria-hidden="true" />
+        <h1>{champ(cat.groupeCommande, "nom", langue) || t("modeTitre")}</h1>
         <div className="colonne">
           <button
             className="btn gros"
@@ -208,7 +539,7 @@ export default function App() {
               setEcran({ nom: "carte" });
             }}
           >
-            Sur place
+            {t("surPlace")}
           </button>
           <button
             className="btn gros"
@@ -217,11 +548,11 @@ export default function App() {
               setEcran({ nom: "carte" });
             }}
           >
-            À emporter
+            {t("aEmporter")}
           </button>
         </div>
         <button className="lien" onClick={recommencer}>
-          Annuler
+          {t("annuler")}
         </button>
       </div>
     );
@@ -231,6 +562,8 @@ export default function App() {
     return (
       <Carte
         cat={cat}
+        langue={langue}
+        t={t}
         onProduit={(p) => setEcran({ nom: "config", produit: p })}
         nbArticles={nbArticles}
         total={total}
@@ -243,13 +576,25 @@ export default function App() {
   if (ecran.nom === "config")
     return (
       <Config
+        key={ecran.produit.nom + (ecran.depart ? ":montee" : "")}
+        cat={cat}
         produit={ecran.produit}
         groupes={cat.groupesParProduit[ecran.produit.nom] ?? []}
+        langue={langue}
+        t={t}
+        depart={ecran.depart}
         onRetour={() => setEcran({ nom: "carte" })}
         onAjouter={(a) => {
           setPanier((p) => [...p, a]);
           setEcran({ nom: "carte" });
         }}
+        // 🔴 La montée REOUVRE la configuration de la cible, elle n'ajoute pas
+        // directement au panier : un menu demande un choix de soft que le
+        // corndog n'avait pas, et le choisir à la place du client serait
+        // exactement le défaut qu'on s'interdit.
+        onMonter={(m) =>
+          setEcran({ nom: "config", produit: m.cible, depart: m.reportes })
+        }
       />
     );
 
@@ -259,64 +604,89 @@ export default function App() {
       <div className="page">
         <header>
           <button className="lien" onClick={() => setEcran({ nom: "carte" })}>
-            ‹ Ajouter
+            ‹ {t("ajouter")}
           </button>
-          <h1>Votre commande</h1>
+          <h1>{t("votreCommande")}</h1>
         </header>
         <div className="liste">
           {panier.map((a, i) => (
             <div className="ligne" key={i}>
-              <div>
-                <div className="nom">
-                  {a.quantite > 1 ? `${a.quantite} × ` : ""}
-                  {a.produit.nom}
-                </div>
+              {/* La vignette : dans un panier de quatre lignes en capitales,
+                  c'est l'image qui dit laquelle est laquelle. */}
+              {photo(a.produit.nom) ? (
+                <img className="vignette" src={photo(a.produit.nom)!} alt="" />
+              ) : (
+                <span className="vignette" aria-hidden="true" />
+              )}
+              <div className="corps">
+                <div className="nom">{a.produit.nom}</div>
                 {a.options
-                  // Les NON-choix ne se listent pas : « pas de supplément »
-                  // n'est pas une ligne de commande. ⚠️ `NO SAUCE` en est un
-                  // vrai, lui — la cuisine doit le voir. Même filtre dans
-                  // `Cuisine.tsx` : garder les deux identiques.
-                  .filter(
-                    (o) =>
-                      !/^(NO SIDE|PAS DE SUPPLEMENT|PAS DE BOISSON\b.*)$/i.test(o.choix)
-                  )
+                  // « Pas de supplément » n'est pas une ligne de commande.
+                  // ⚠️ « Pas de SAUCE » si : c'est une consigne de
+                  // préparation. Le partage avec `Cuisine.tsx` passe par
+                  // `masqueAuService`, pour que les deux écrans ne puissent
+                  // plus diverger.
+                  .filter((o) => !masqueAuService(o.choix))
                   .map((o, j) => (
                     <div className="opt" key={j}>
-                      {o.choix}
+                      {/* Le panier montre la traduction, la base garde le
+                          français : `o.choix` part en cuisine, `o.libelles`
+                          reste à l'écran. */}
+                      {(langue !== "fr" && o.libelles?.[langue]) || o.choix}
                       {o.prix > 0 ? ` +${eur(o.prix)}` : ""}
                     </div>
                   ))}
               </div>
               <div className="droite">
-                <div>{eur(prixArticle(a))}</div>
-                <button
-                  className="lien rouge"
-                  onClick={() => setPanier((p) => p.filter((_, k) => k !== i))}
-                >
-                  Retirer
-                </button>
+                <div className="montant">{eur(prixArticle(a))}</div>
+                {/* 🔴 La quantité se change ICI. Avant, un client qui voulait
+                    un deuxième menu identique devait le reconfigurer en
+                    entier, et pour en enlever un il n'avait que « Retirer »,
+                    un lien de 16 px — sous la taille d'un doigt. */}
+                <div className="qte petite">
+                  <button
+                    className="btn rond"
+                    aria-label={t("retirer")}
+                    onClick={() => changerQuantite(i, -1)}
+                  >
+                    −
+                  </button>
+                  <strong>{a.quantite}</strong>
+                  <button
+                    className="btn rond"
+                    aria-label={t("ajouter")}
+                    onClick={() => changerQuantite(i, 1)}
+                  >
+                    +
+                  </button>
+                </div>
               </div>
             </div>
           ))}
-          {panier.length === 0 && <p className="gris">Votre panier est vide.</p>}
+          {panier.length === 0 && (
+            <div className="panier-vide">
+              <img className="mascotte" src={mascotte(2)} alt="" aria-hidden="true" />
+              <p className="gris">{t("panierVide")}</p>
+            </div>
+          )}
         </div>
         <footer>
           <div className="total">
-            <span>Total</span>
+            <span>{t("total")}</span>
             <strong>{eur(total)}</strong>
           </div>
           {/* 🔴 Aucun paiement sur la borne : 100 % des commandes EasyOrder
               sont en « cash / non payé », le client règle au comptoir. */}
-          <p className="petit">Paiement au comptoir</p>
+          <p className="petit">{t("paiementComptoir")}</p>
           <button
             className="btn gros"
             disabled={panier.length === 0}
             onClick={() => setEcran({ nom: "envoi" })}
           >
-            Envoyer la commande
+            {t("envoyer")}
           </button>
           <button className="lien" onClick={recommencer}>
-            Tout annuler
+            {t("toutAnnuler")}
           </button>
         </footer>
       </div>
@@ -328,17 +698,55 @@ export default function App() {
       <Envoi
         mode={mode}
         panier={panier}
+        t={t}
         onFini={(ref) => setEcran({ nom: "fini", reference: ref })}
         onEchec={() => setEcran({ nom: "panier" })}
       />
     );
 
-  return <Fini reference={ecran.reference} total={total} onFermer={recommencer} />;
+  return (
+    <Fini reference={ecran.reference} total={total} t={t} onFermer={recommencer} />
+  );
+  })();
+
+  return (
+    <>
+      {vue}
+      {alerte !== null && (
+        // 🔴 Même règle que l'offre de menu : les deux réponses sont de vrais
+        // boutons de même taille. « Je continue » est le premier parce que
+        // c'est la réponse de quelqu'un qui est là — l'autre arrive toute
+        // seule au bout du décompte.
+        <div className="proposer veille" role="alertdialog" aria-live="assertive">
+          <div className="boite">
+            <h2>{t("toujoursLa")}</h2>
+            <p className="decompte">
+              {t("retourDans").replace("%", String(alerte))}
+            </p>
+            <button className="btn gros" onClick={() => setAlerte(null)}>
+              {t("jeContinue")}
+            </button>
+            <button
+              className="btn gros refus"
+              onClick={() => {
+                setAlerte(null);
+                recommencer();
+              }}
+            >
+              {t("toutAnnuler")}
+            </button>
+          </div>
+        </div>
+      )}
+    </>
+  );
 }
 
 // ── La carte, par catégorie ─────────────────────────────────────────────
 function Carte({
   cat,
+  langue,
+  t,
   onProduit,
   nbArticles,
   total,
@@ -346,6 +754,8 @@ function Carte({
   onAnnuler,
 }: {
   cat: Catalogue;
+  langue: Langue;
+  t: T;
   onProduit: (p: Produit) => void;
   nbArticles: number;
   total: number;
@@ -373,9 +783,9 @@ function Carte({
     <div className="page">
       <header>
         <img className="logo" src="photos/logo-sekai.webp" alt="Sekai Corndogs" />
-        <h1>NOTRE CARTE</h1>
+        <h1>{t("notreCarte")}</h1>
         <button className="lien" onClick={onAnnuler}>
-          Annuler
+          {t("annuler")}
         </button>
       </header>
       {/* 🔴 Les catégories sont une COLONNE VERTICALE qui tient à l'écran.
@@ -385,15 +795,19 @@ function Carte({
           défilement était masquée. */}
       <div className="carte-layout">
         <nav className="categories">
-          {onglets.map((c) => (
-            <button
-              key={c}
-              className={c === categorie ? "categorie actif" : "categorie"}
-              onClick={() => setCategorie(c)}
-            >
-              {c}
-            </button>
-          ))}
+          {onglets.map((c) => {
+            const vign = photoCategorie(c);
+            return (
+              <button
+                key={c}
+                className={c === categorie ? "categorie actif" : "categorie"}
+                onClick={() => setCategorie(c)}
+              >
+                {vign && <img className="vign" src={vign} alt="" />}
+                <span className="libelle">{c}</span>
+              </button>
+            );
+          })}
         </nav>
         <div className="produits">
           {produits.map((p) => {
@@ -402,13 +816,26 @@ function Carte({
               <button
                 className={estMenu(p) ? "produit menu" : "produit"}
                 key={p.nom}
+                aria-label={`${p.nom}, ${eur(p.prix)}`}
                 onClick={() => onProduit(p)}
               >
-                <div className="photo">
-                  {img && <img src={img} alt="" />}
-                  <div className="prix">{eur(p.prix)}</div>
-                </div>
-                <div className="nom">{p.nom}</div>
+                <div className="photo">{img && <img src={img} alt="" />}</div>
+                {/* 🔴 Le nom des MENUS est écrit DANS leur visuel (« MENU GOOD
+                    DEAL » en gros sur la photo), donc il n'est pas répété
+                    dessous : demande du gérant, 22/10/2026. Il reste dans le
+                    `aria-label` du bouton, sinon la carte n'aurait aucun nom
+                    pour qui ne voit pas l'image.
+                    ⚠️ Si un jour un visuel de menu arrive SANS son titre, la
+                    carte devient muette : remettre le libellé. */}
+                {!estMenu(p) && <div className="nom">{p.nom}</div>}
+                <div className="prix">{eur(p.prix)}</div>
+                {/* La description ne s'affiche que si elle existe. Les
+                    signatures en ont besoin — leur nom ne dit rien de ce
+                    qu'elles contiennent — là où « CORNDOG MOZZA » se suffit.
+                    Textes relevés sur la borne EasyOrder. */}
+                {champ(p, "description", langue) && (
+                  <div className="detail">{champ(p, "description", langue)}</div>
+                )}
               </button>
             );
           })}
@@ -416,9 +843,24 @@ function Carte({
       </div>
       {nbArticles > 0 && (
         <footer>
-          <button className="btn gros" onClick={onPanier}>
-            Voir ma commande · {nbArticles} article{nbArticles > 1 ? "s" : ""} ·{" "}
-            {eur(total)}
+          {/* 🔴 Trois zones fixes, plus une phrase. « Voir ma commande ·
+              2 articles · 8,50 € » passait sur deux lignes dès deux articles,
+              et le « € » se retrouvait seul en dessous — vu en capture le
+              13/11. Le nombre à gauche, le total à droite : ils ne peuvent
+              plus se bousculer, dans aucune des quatre langues.
+              `key` rejoue l'animation à chaque ajout : c'est le seul signe
+              que le produit est bien parti dans le panier. */}
+          <button
+            key={nbArticles}
+            className="btn gros barre-panier"
+            onClick={onPanier}
+            aria-label={`${t("voirCommande")} · ${nbArticles} ${
+              nbArticles > 1 ? t("articles") : t("article")
+            } · ${eur(total)}`}
+          >
+            <span className="nb">{nbArticles}</span>
+            <span className="txt">{t("voirCommande")}</span>
+            <span className="tot">{eur(total)}</span>
           </button>
         </footer>
       )}
@@ -428,15 +870,26 @@ function Carte({
 
 // ── Les options, un groupe après l'autre ────────────────────────────────
 function Config({
+  cat,
   produit,
   groupes,
+  langue,
+  t,
+  depart,
   onRetour,
   onAjouter,
+  onMonter,
 }: {
+  cat: Catalogue;
   produit: Produit;
   groupes: Groupe[];
+  langue: Langue;
+  t: T;
+  /** Choix repris d'une configuration précédente, lors d'une montée en gamme. */
+  depart?: Record<number, number>;
   onRetour: () => void;
   onAjouter: (a: Article) => void;
+  onMonter: (m: Montee) => void;
 }) {
   // Chaque groupe est un choix unique. L'option présélectionnée est la
   // PREMIÈRE, et `borne_options.ordre` porte la fréquence réelle observée :
@@ -445,13 +898,27 @@ function Config({
   const [choix, setChoix] = useState<Record<number, number>>(() => {
     const d: Record<number, number> = {};
     for (const g of groupes) if (g.options[0]) d[g.id] = g.options[0].id;
+    // Une montée en gamme arrive avec les choix déjà repris : ils écrasent les
+    // défauts, mais seulement pour les groupes que la cible porte vraiment.
+    if (depart) for (const g of groupes) if (depart[g.id]) d[g.id] = depart[g.id];
     return d;
   });
+  // L'écran de proposition, ouvert au moment d'ajouter. `null` = pas ouvert.
+  const [montees, setMontees] = useState<Montee[] | null>(null);
   const [quantite, setQuantite] = useState(1);
 
   const retenus: Choix[] = groupes.flatMap((g) => {
     const o = g.options.find((x) => x.id === choix[g.id]);
-    return o ? [{ groupe: g.nom, choix: o.nom, prix: o.prix }] : [];
+    return o
+      ? [
+          {
+            groupe: g.nom,
+            choix: o.nom,
+            prix: o.prix,
+            libelles: { en: o.nom_en, nl: o.nom_nl, es: o.nom_es },
+          },
+        ]
+      : [];
   });
   const prix = (produit.prix + retenus.reduce((s, o) => s + o.prix, 0)) * quantite;
 
@@ -459,12 +926,38 @@ function Config({
     <div className="page">
       <header>
         <button className="lien" onClick={onRetour}>
-          ‹ Retour
+          ‹ {t("retour")}
         </button>
         <h1>{produit.nom}</h1>
       </header>
+      {/* 🔴 LE PRODUIT QU'ON CONFIGURE EST MONTRÉ. Avant, l'écran d'options
+          n'avait qu'un nom en haut : le client choisissait une panure sans
+          plus voir ce qu'il achetait ni à quel prix. Et un soft, qui n'a
+          aucune option, donnait une page blanche avec « Aucune option. » —
+          un écran entier pour rien.
+          Sans option, le héros prend la place : c'est une fiche produit. */}
+      <div className={groupes.length === 0 ? "heros grand" : "heros"}>
+        {photo(produit.nom) && <img src={photo(produit.nom)!} alt="" />}
+        <div className="texte">
+          <div className="prix">{eur(produit.prix)}</div>
+          {champ(produit, "description", langue) && (
+            <p>{champ(produit, "description", langue)}</p>
+          )}
+        </div>
+      </div>
       <div className="liste">
-        {groupes.map((g) => {
+        {/* 🔴 UN GROUPE À UN SEUL CHOIX NE POSE PAS DE QUESTION : il est
+            masqué. « OPTION FRITES » d'un Menu Good Deal ne contient que
+            « FRITES » à 0 € — le client ne peut rien décider, il ne voit
+            qu'une case déjà cochée qu'il ne peut pas décocher, et ça lui fait
+            douter du reste de l'écran.
+            ⚠️ MASQUÉ À L'AFFICHAGE SEULEMENT. Le choix reste dans `choix` et
+            dans `retenus`, donc il part en base et s'imprime sur le ticket :
+            la cuisine continue de lire « OPTION FRITES · FRITES ». Le jour où
+            un « sans frites » est ajouté au groupe, il réapparaît tout seul. */}
+        {groupes
+          .filter((g) => g.options.length > 1)
+          .map((g) => {
           // Un groupe où quelque chose se paie affiche « Compris » sur ses
           // choix gratuits : sans ça le client croit que tout coûte un
           // supplément, et il n'ose plus toucher au groupe.
@@ -472,7 +965,7 @@ function Config({
           const illustre = groupeIllustre(g);
           return (
             <section key={g.id}>
-              <h2>{g.nom}</h2>
+              <h2>{champ(g, "nom", langue)}</h2>
               <div className={illustre ? "choix illustre" : "choix"}>
                 {g.options.map((o) => {
                   const classes = ["pastille"];
@@ -484,14 +977,26 @@ function Config({
                       className={classes.join(" ")}
                       onClick={() => setChoix((c) => ({ ...c, [g.id]: o.id }))}
                     >
-                      {illustre && (
-                        <img className="vignette" src={photoOption(o.nom)!} alt="" />
-                      )}
-                      <span className="libelle">{o.nom}</span>
+                      {illustre &&
+                        (photoOption(o.nom) ? (
+                          <img className="vignette" src={photoOption(o.nom)!} alt="" />
+                        ) : (
+                          // Un non-choix garde la hauteur de ses voisins, sinon
+                          // la rangée se décale et il passe pour un bouton à part.
+                          <span className="vignette vide" aria-hidden="true" />
+                        ))}
+                      {/* ⚠️ `champ()` retombe sur le français quand il n'y a
+                          pas de traduction : les non-choix sont traduits en
+                          base, les vrais noms d'options ne le sont pas et
+                          passent donc tels quels. Un seul appel couvre les
+                          deux cas. */}
+                      <span className="libelle">{champ(o, "nom", langue)}</span>
                       {o.prix > 0 ? (
                         <span className="sup">+ {eur(o.prix)}</span>
                       ) : (
-                        groupePayant && <span className="compris">Compris</span>
+                        groupePayant && (
+                          <span className="compris">{t("inclus")}</span>
+                        )
                       )}
                     </button>
                   );
@@ -500,7 +1005,6 @@ function Config({
             </section>
           );
         })}
-        {groupes.length === 0 && <p className="gris">Aucune option.</p>}
       </div>
       <footer>
         <div className="qte">
@@ -514,29 +1018,190 @@ function Config({
         </div>
         <button
           className="btn gros"
-          onClick={() => onAjouter({ produit, options: retenus, quantite })}
+          onClick={() => {
+            // 🔴 La proposition n'apparaît QUE si une montée existe vraiment,
+            // et jamais sur une montée elle-même (`depart` est posé) : sans
+            // ça, passer en menu rouvrirait aussitôt une proposition de XL et
+            // le client serait pris en boucle.
+            const m = depart ? [] : monteesPossibles(cat, produit, retenus, choix);
+            if (m.length > 0) setMontees(m);
+            else onAjouter({ produit, options: retenus, quantite });
+          }}
         >
-          Ajouter · {eur(prix)}
+          {t("ajouter")} · {eur(prix)}
         </button>
       </footer>
+
+      {montees && (
+        <Proposer
+          montees={montees}
+          // ⚠️ Deux titres, pas un : « Vous voulez le menu ? » devant un
+          // corndog, « Passer en XL ? » devant un menu. Le premier n'a aucun
+          // sens quand le client tient déjà un menu dans les mains.
+          deMenu={estMenu(produit)}
+          langue={langue}
+          t={t}
+          onNon={() => {
+            setMontees(null);
+            onAjouter({ produit, options: retenus, quantite });
+          }}
+          onOui={(m) => {
+            setMontees(null);
+            onMonter(m);
+          }}
+        />
+      )}
     </div>
   );
 }
 
+/**
+ * « Vous voulez le menu ? » — l'écran de montée en gamme.
+ *
+ * 🔴 TROIS RÈGLES D'HONNÊTETÉ, qui sont la raison d'être de la mise en forme :
+ * 1. Le REFUS est un vrai bouton, de la même taille et au même endroit que
+ *    les autres. Il n'est ni plus petit, ni plus pâle, ni relégué en lien.
+ * 2. Le prix affiché est la DIFFÉRENCE RÉELLE, calculée sur la configuration
+ *    du client. Elle peut être négative : un corndog avec side et soft coûte
+ *    plus cher que le menu qui les comprend, et on le dit.
+ * 3. Rien n'est présélectionné. Fermer sans choisir n'est pas possible : il
+ *    faut appuyer, dans un sens ou dans l'autre.
+ */
+function Proposer({
+  montees,
+  deMenu,
+  langue,
+  t,
+  onNon,
+  onOui,
+}: {
+  montees: Montee[];
+  deMenu: boolean;
+  langue: Langue;
+  t: T;
+  onNon: () => void;
+  onOui: (m: Montee) => void;
+}) {
+  return (
+    <div className="proposer">
+      <div className="boite">
+        <h2>{t(deMenu ? "proposerTitreXL" : "proposerTitre")}</h2>
+        <div className="offres">
+          {montees.map((m) => {
+            const moinsCher = m.difference < 0;
+            return (
+              <button
+                key={m.cible.nom}
+                /* ⚠️ Le cas « moins cher » ne change plus le fond de la carte,
+                   seulement la pastille de prix (`.ecart.gain`, bordeaux + or).
+                   Depuis que l'offre est une carte crème et non un aplat rouge,
+                   repeindre toute la carte en bordeaux la ferait hurler plus
+                   fort que l'offre normale pour la même information. */
+                className="btn gros offre"
+                onClick={() => onOui(m)}
+              >
+                {/* Ce que le menu AJOUTE, en images. Fond clair derrière
+                    chaque vignette : les visuels sont détourés et certains
+                    sont rouges — le pot de frites disparaîtrait sur l'aplat. */}
+                {/* ⚠️ Le « + » se met ENTRE les visuels, jamais devant le
+                    premier. Devant, il déportait toute la rangée vers la
+                    droite — les images n'étaient plus centrées dans la carte,
+                    et avec un seul visuel (le bubble tea) le signe pendait
+                    dans le vide. Entre deux, il dit « frites ET boisson »,
+                    ce qui est la même information, bien posée. */}
+                {m.proposition.visuels.length > 0 && (
+                  <span className="gagne">
+                    {m.proposition.visuels.map((f, i) => (
+                      <Fragment key={f}>
+                        {i > 0 && (
+                          <span
+                            className={
+                              m.proposition.visuelsLiant === "ou"
+                                ? "plus mot"
+                                : "plus"
+                            }
+                          >
+                            {m.proposition.visuelsLiant === "ou"
+                              ? t("ou")
+                              : "+"}
+                          </span>
+                        )}
+                        <img src={`photos/${f}`} alt="" />
+                      </Fragment>
+                    ))}
+                  </span>
+                )}
+                <span className="quoi">{m.cible.nom}</span>
+                <span className={moinsCher ? "ecart gain" : "ecart"}>
+                  {moinsCher
+                    ? `${t("economise")} ${eur(-m.difference)}`
+                    : `+ ${eur(m.difference)}`}
+                </span>
+                {/* 🔴 CE QU'IL REÇOIT, pas seulement ce qu'il paie. Un client
+                    qui lit « + 3,50 € » ne voit qu'une dépense ; les frites et
+                    la boisson qu'il reçoit valent 5,50 € en carte.
+                    ⚠️ Et ce n'est volontairement PAS présenté comme une
+                    économie : 45 % des commandes « un corndog seul »
+                    n'ajoutent rien, donc ces clients ne renoncent à aucun
+                    achat. On affiche un prix de carte, vérifiable au
+                    comptoir, et le client soustrait s'il le veut.
+                    Inutile quand la cible revient déjà moins cher : le gain y
+                    est dit en toutes lettres juste au-dessus. */}
+                {!moinsCher && m.proposition.valeurAjout != null && (
+                  <span className="valeur">
+                    {t("valeurCarte").replace("%", eur(m.proposition.valeurAjout))}
+                  </span>
+                )}
+                {champ(m.cible, "description", langue) && (
+                  <span className="quoi-dedans">
+                    {champ(m.cible, "description", langue)}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+        <button className="btn gros refus" onClick={onNon}>
+          {t("sansMerci")}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/** Une clé d'envoi : un UUID quand le navigateur sait en faire, sinon 32
+ *  caractères hexadécimaux. La base accepte les deux formes. */
+const nouvelleCle = (): string => {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) return crypto.randomUUID();
+  let s = "";
+  for (let i = 0; i < 32; i++) s += Math.floor(Math.random() * 16).toString(16);
+  return s;
+};
+
 function Envoi({
   mode,
   panier,
+  t,
   onFini,
   onEchec,
 }: {
   mode: string;
   panier: Article[];
+  t: T;
   onFini: (ref: string) => void;
   onEchec: () => void;
 }) {
   const [erreur, setErreur] = useState<string | null>(null);
+  // 🔴 UNE CLÉ PAR COMMANDE, tirée une seule fois et gardée d'un essai à
+  // l'autre. C'est elle qui rend « Réessayer » sans danger : la base reconnaît
+  // la commande et rend le même numéro au lieu d'en créer une seconde.
+  // ⚠️ `useRef`, pas un état ni un calcul dans l'effet : une clé retirée à
+  // chaque essai annulerait exactement ce qu'elle protège.
+  const cle = useRef(nouvelleCle());
+  const [essai, setEssai] = useState(0);
 
   useEffect(() => {
+    setErreur(null);
     const lignes: LigneEnvoi[] = panier.map((a) => ({
       produit_nom: a.produit.nom,
       categorie: a.produit.categorie,
@@ -545,26 +1210,42 @@ function Envoi({
       // à part : la fonction Postgres recalcule le total elle-même, option
       // facturée par unité. Ne pas lui envoyer un prix déjà additionné.
       prix: a.produit.prix,
-      options: a.options,
+      // ⚠️ On ne renvoie que les trois champs attendus : `libelles` est de
+      // l'affichage, il n'a rien à faire en base.
+      options: a.options.map((o) => ({
+        groupe: o.groupe,
+        choix: o.choix,
+        prix: o.prix,
+      })),
     }));
-    envoyerCommande(mode, lignes).then(onFini, (e) => setErreur(String(e.message || e)));
-  }, []);
+    envoyerCommande(mode, lignes, cle.current).then(onFini, (e) =>
+      setErreur(String(e.message || e))
+    );
+  }, [essai]);
 
   if (erreur)
     return (
       <div className="plein">
-        <h1>Commande non enregistrée</h1>
-        <p className="gris">Rien n'a été envoyé. Commandez au comptoir.</p>
+        <h1>{t("nonEnregistree")}</h1>
+        <p className="gris">{t("rienEnvoye")}</p>
         <p className="petit">{erreur}</p>
-        <button className="btn" onClick={onEchec}>
-          Retour
-        </button>
+        {/* « Réessayer » d'abord : la plupart des échecs sont un wifi qui a
+            décroché deux secondes, et le client a déjà tout choisi. */}
+        <div className="colonne">
+          <button className="btn gros" onClick={() => setEssai((n) => n + 1)}>
+            {t("reessayer")}
+          </button>
+          <button className="btn gros refus" onClick={onEchec}>
+            {t("retour")}
+          </button>
+        </div>
       </div>
     );
 
   return (
     <div className="plein">
-      <h1>Envoi…</h1>
+      <img className="mascotte" src={mascotte(1)} alt="" aria-hidden="true" />
+      <h1>{t("envoiEnCours")}</h1>
     </div>
   );
 }
@@ -572,10 +1253,12 @@ function Envoi({
 function Fini({
   reference,
   total,
+  t,
   onFermer,
 }: {
   reference: string;
   total: number;
+  t: T;
   onFermer: () => void;
 }) {
   // La borne se remet seule à l'accueil : personne n'appuie sur « Fermer »
@@ -589,19 +1272,21 @@ function Fini({
     <div className="fini" onClick={onFermer}>
       {/* La mascotte sert ici : c'est le moment où le client attend. */}
       <div className="carte-numero">
-        <img src="photos/logo-sekai.webp" alt="Sekai Corndogs" />
-        <div className="libelle">VOTRE NUMÉRO</div>
+        {/* La mascotte prend ici la place du logo : c'est le moment où le
+            client attend, et elle y fait plus que le logo, déjà vu partout. */}
+        <img className="mascotte" src={mascotte(3)} alt="Sekai Corndogs" />
+        <div className="libelle">{t("votreNumero")}</div>
         <div className="numero">{reference}</div>
         <div className="montant">
-          <span>TOTAL</span>
+          <span>{t("totalMaj")}</span>
           <strong>{eur(total)}</strong>
         </div>
       </div>
       <div>
-        <div className="consigne">À RÉGLER AU COMPTOIR</div>
-        <div className="sous-consigne">Gardez votre numéro, on vous appelle</div>
+        <div className="consigne">{t("reglerComptoir")}</div>
+        <div className="sous-consigne">{t("gardezNumero")}</div>
       </div>
-      <button className="btn">TERMINER</button>
+      <button className="btn">{t("terminer")}</button>
     </div>
   );
 }
