@@ -2176,6 +2176,56 @@ bornes à bornes vaut.**
 ⚠️ **Le total annoncé du vendredi 20/11 manque** : bornes **387,80 €**, très bas pour un
 vendredi (912 € de moyenne annuelle). À demander avant d'en conclure quoi que ce soit.
 
+### 🔴 LA 2e QUINZAINE DE NOVEMBRE EST CONJONCTURELLE — froid record et manifestations
+
+**Cause donnée par le gérant le 26/11/2026**, et les données la confirment. ⚠️ **À lire
+avant d'interpréter le bilan du 30/11** : sans cette note, le mois se lit comme un
+décrochage structurel alors qu'il ne l'est pas.
+
+Le gérant : *« ça fait un peu plus d'une semaine où c'est très calme […] le froid actuel
+qui est un record de 1998, et aussi de nombreuses manifs. »*
+
+| Novembre 2026, aux bornes | Par jour | Ticket |
+|---|---|---|
+| **01–14/11** | **1 011 €** | 12,58 € |
+| **15–26/11** | **586 €** | 12,09 € |
+| *hors la grève du 23/11* | *612 €* | *12,06 €* |
+
+🔴 **−42 %, et le ticket ne bouge pas (12,58 → 12,09 €).** C'est la signature d'un
+problème de **flux**, pas de commerce : si la carte, les prix ou l'équipe étaient en
+cause, le panier ou le mix auraient bougé. Ils n'ont pas bougé. **Ne pas chercher une
+cause interne à cette quinzaine.**
+
+Et la 1re quinzaine était **excellente** : 1 011 €/jour aux bornes, au-dessus de la
+moyenne du meilleur mois de l'historique. Rien ne s'est cassé dans l'exploitation.
+
+⚠️ **Le témoin 2025 ne tranche rien ici** : sur la même fenêtre alignée (16-27/11/2025)
+il fait 631 €/jour, à peine plus que nos 586 € — mais c'est l'effondrement de fin
+novembre 2025 (PIÈGE 2). Deux mauvaises périodes en face l'une de l'autre ne prouvent
+rien.
+
+**Causes externes identifiées sur la période, à conserver :**
+- **lun 23/11 : grève générale** — ouverture à 14h04, 307,20 € (−65 % vs lundi moyen).
+  Enregistré comme incident, **à écarter de toute moyenne du lundi.**
+- **froid record** (le gérant cite un record depuis 1998) et **manifestations répétées**
+  à Bruxelles sur toute la quinzaine.
+- **jeu 26/11 : ouverture à 13h02 au lieu de ~12h** — voir ci-dessous, ~130 € perdus.
+
+### 🟡 Jeudi 26/11/2026 — une heure d'ouverture perdue, chiffrée
+
+**600 € annoncés · 485,20 € aux bornes · 42 commandes · ticket 11,55 €.**
+Références 001 à 042 sans trou. Première commande à **13h02**, soit ~1 h de retard.
+
+| Jeudi | Ouverture | CA avant 13h05 |
+|---|---|---|
+| 01/10 → 19/11 *(8 jeudis)* | 12h01 à 12h31 | **164 € en moyenne** |
+| **26/11** | **13h02** | **32,60 €** |
+
+**~130 € manquants sur la seule tranche du midi.** Sans ce retard la journée sortait
+vers 615 €, en ligne avec les jeudis précédents (552 et 661 €). ⚠️ Cause du retard
+inconnue — à surveiller : 130 € par occurrence, c'est **le double** de ce que rapporte
+l'ouverture avancée du week-end.
+
 ### 🟡 À SURVEILLER — le ticket s'affaisse en deuxième partie de mois
 
 Constat du 19/11, **pas encore une conclusion** :
