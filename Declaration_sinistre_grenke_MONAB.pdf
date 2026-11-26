@@ -38,7 +38,7 @@ endobj
 endobj
 5 0 obj
 <<
-/Length 2047603
+/Length 2048356
 >>
 stream
 q
@@ -53231,6 +53231,7 @@ BT
 ET
 BT
 1 0 0 1 188.64 653.76 Tm
+(0493 42 35 97) Tj
 T*
 ET
 BT
@@ -53247,8 +53248,8 @@ BT
 10.2 TL
 ET
 BT
-1 0 0 1 136.8 603.36 Tm
-(Caisse enregistreuse en leasing \055 contrat 254\055013844\056) Tj
+1 0 0 1 136.8 606.24 Tm
+(Caisse automatique CASHMATIC SELFPAY 460 \055 contrat de leasing 254\055013844\056) Tj
 T*
 ET
 BT
@@ -53256,8 +53257,17 @@ BT
 10.2 TL
 ET
 BT
-1 0 0 1 136.8 594.72 Tm
-(Appareil DEROBE lors d\047un cambriolage \050n\260 de serie \072 a completer\051\056) Tj
+1 0 0 1 136.8 597.6 Tm
+(Commande Moneytic S00309 du 02\05704\0572026 \050n\260 de serie a confirmer par Moneytic\051\056) Tj
+T*
+ET
+BT
+/F1 8.5 Tf
+10.2 TL
+ET
+BT
+1 0 0 1 136.8 588.96 Tm
+(Appareil derobe lors d\047un cambriolage\054 retrouve depuis par la police mais FORCE\056) Tj
 T*
 ET
 BT
@@ -53270,12 +53280,39 @@ BT
 T*
 ET
 BT
+/F2 9 Tf
+10.8 TL
+ET
+BT
+1 0 0 1 460.08 557.28 Tm
+(X) Tj
+T*
+ET
+BT
+/F1 7 Tf
+8.4 TL
+ET
+BT
+1 0 0 1 365.76 542.16 Tm
+(A convenir \055 appareil retrouve par la police) Tj
+T*
+ET
+BT
 /F1 8.5 Tf
 10.2 TL
 ET
 BT
 1 0 0 1 192.96 489.6 Tm
 (24\05711\0572026) Tj
+T*
+ET
+BT
+/F1 7 Tf
+8.4 TL
+ET
+BT
+1 0 0 1 432 489.6 Tm
+(Rue de Malines 50\054 1000 Bruxelles) Tj
 T*
 ET
 BT
@@ -53293,7 +53330,7 @@ BT
 ET
 BT
 1 0 0 1 136.8 442.08 Tm
-(La caisse enregistreuse a ete emportee\054 ainsi que 1 800 EUR en especes\056) Tj
+(La caisse automatique a ete emportee\054 ainsi que 1 800 EUR en especes\056) Tj
 T*
 ET
 BT
@@ -53302,7 +53339,7 @@ BT
 ET
 BT
 1 0 0 1 136.8 433.44 Tm
-(Plainte deposee le 24\05711\0572026 aupres de la zone de police Bruxelles) Tj
+(Plainte deposee le 24\05711\0572026 \050zone de police Bruxelles CAPITALE Ixelles\051\056) Tj
 T*
 ET
 BT
@@ -53311,7 +53348,16 @@ BT
 ET
 BT
 1 0 0 1 136.8 424.8 Tm
-(CAPITALE Ixelles\056 PV simplifie\054 enquete d\047office\054 auteur inconnu\056) Tj
+(L\047appareil a depuis ete RETROUVE PAR LA POLICE\054 mais il a ete force \072) Tj
+T*
+ET
+BT
+/F1 8.5 Tf
+10.2 TL
+ET
+BT
+1 0 0 1 136.8 416.16 Tm
+(une reparation ne parait pas envisageable\054 nous demandons un remplacement\056) Tj
 T*
 ET
 BT
@@ -53348,6 +53394,24 @@ ET
 BT
 1 0 0 1 463.68 362.88 Tm
 (BR\05618\056LL\056119808\0572026) Tj
+T*
+ET
+BT
+/F2 9 Tf
+10.8 TL
+ET
+BT
+1 0 0 1 192.24 312.48 Tm
+(X) Tj
+T*
+ET
+BT
+/F2 9 Tf
+10.8 TL
+ET
+BT
+1 0 0 1 424.8 301.68 Tm
+(X) Tj
 T*
 ET
 BT
@@ -53398,8 +53462,8 @@ xref
 0000000113 00000 n 
 0000000162 00000 n 
 0000000403 00000 n 
-0002048061 00000 n 
-0002048168 00000 n 
+0002048814 00000 n 
+0002048921 00000 n 
 trailer
 <<
 /Size 8
@@ -53407,5 +53471,5 @@ trailer
 /Info 1 0 R
 >>
 startxref
-2048280
+2049033
 %%EOF
