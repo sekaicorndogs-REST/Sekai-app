@@ -2293,6 +2293,72 @@ Veilles automatiques en cours, qui n'écrivent que quand elles trouvent quelque
 chose : **locaux à Tanger** (lundis et jeudis) et **Chaussée d'Ixelles**
 (quotidienne).
 
+## 🔴 SÉCURITÉ ET SAUVEGARDES — constat du 26/11/2026, RIEN N'EST RÉGLÉ
+
+Audit déclenché par un mail Supabase « Action required: security vulnerabilities ».
+**Les deux problèmes ci-dessous se combinent et c'est leur combinaison qui est grave.**
+
+### 1. 48 tables publiques sans RLS, en lecture ET en écriture
+
+`get_advisors(security)` remonte **48 tables en ERREUR** : RLS non activée alors qu'elles
+sont exposées via PostREST. L'app lit la base depuis le navigateur avec la **clé anon**,
+qui est **dans le JavaScript du site** — donc publique par construction.
+
+Sont exposés, modifiables et supprimables par quiconque lit cette clé : `fiches_paie`,
+`users`, `finances_charges`, `finances_dettes`, `paiements`, `ventes` (28 000 commandes),
+`ca_jour_declare`, `saisonnalite`, `journal`, `amendes`, `projet_maroc`, toutes les
+tables `borne_*` et `commandes_live*`.
+
+🔴 **NE JAMAIS activer la RLS sans écrire les policies d'abord.** L'app **n'utilise pas
+Supabase Auth** : elle a sa propre table `users` et gère les rôles côté front. Il n'existe
+donc aucun `auth.uid()`. RLS activée sans policy = accès refusé à tout = **l'app et les
+bornes affichent des écrans vides dans la minute.**
+
+✅ **Deux alertes à NE PAS « corriger »** :
+- `integrations_comptes` — RLS activée, aucune policy : **c'est voulu**, ce sont les
+  identifiants EasyOrder et c'est précisément pour que la clé anon ne les lise pas.
+- `borne_creer_commande` appelable par `anon` — **c'est sa raison d'être**, la borne
+  envoie les commandes sans compte. À surveiller seulement si de fausses commandes
+  apparaissent.
+
+### 2. 🔴 AUCUNE SAUVEGARDE — plan Supabase FREE
+
+| | |
+|---|---|
+| Organisation | plan **free**, `tier_free` |
+| Sauvegardes quotidiennes | **aucune** (réservées à Pro / Team / Enterprise) |
+| Point-in-Time Recovery | **non disponible** en Free |
+
+La doc Supabase recommande explicitement aux projets Free d'exporter eux-mêmes
+(`supabase db dump`) et de garder une copie hors site. **Ça n'a jamais été fait.**
+
+**Conséquence : les 28 000 commandes de `ventes`, tout le relevé quotidien et le `journal`
+sont irremplaçables et sans filet.** Une fausse manœuvre dans le dashboard aurait le même
+effet qu'un acte malveillant.
+
+### Ce qui bloque, et l'environnement créé pour le débloquer
+
+⚠️ Le proxy sortant bloque `ldpxgfgcnlzktaymtnwd.supabase.co` (**HTTP 000**), donc
+**impossible d'exporter depuis une session Claude ordinaire** — seul le MCP Supabase
+passe, et il ramène tout dans le contexte, ce qui ne tient pas pour 28 000 lignes.
+
+✅ **Environnement `Sekai-app` créé le 26/11/2026** (`env_01TrjPA4jm7jWrJ2ptUbjisf`),
+qui autorise `ldpxgfgcnlzktaymtnwd.supabase.co` et `project-ynxry.vercel.app`.
+⚠️ **Une session en cours ne peut pas y basculer** : il faut démarrer une session dessus.
+C'est aussi ce qui permettrait enfin de vérifier la version en ligne sans la demander.
+
+### Séquence recommandée
+
+1. **Export manuel immédiat** par le gérant : Table Editor → *Download CSV* sur `ventes`,
+   `ca_jour_declare`, `saisonnalite`, `journal`. 10 minutes, gratuit, couvre l'essentiel.
+2. **Export automatique versionné** depuis une session sur l'environnement `Sekai-app`.
+   ⚠️ **Ne pas y inclure `fiches_paie` ni `users`** : mettre des fiches de paie dans un
+   dépôt Git, même privé, déplace le problème au lieu de le régler.
+3. Sécuriser pour de bon. Deux chemins, aucun gratuit : des **policies en lecture seule**
+   sur les tables que le navigateur ne modifie jamais (~1 session, bloque la destruction
+   sans bloquer la lecture), ou **Supabase Auth + policies par rôle** (gros chantier).
+   ⚠️ Vu la trésorerie à zéro, le plan Pro à 25 $/mois n'est pas recommandé pour l'instant.
+
 ## Conventions de travail
 
 - Répondre en français.
