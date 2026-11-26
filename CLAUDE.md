@@ -2176,40 +2176,53 @@ bornes à bornes vaut.**
 ⚠️ **Le total annoncé du vendredi 20/11 manque** : bornes **387,80 €**, très bas pour un
 vendredi (912 € de moyenne annuelle). À demander avant d'en conclure quoi que ce soit.
 
-### 🔴 LA 2e QUINZAINE DE NOVEMBRE EST CONJONCTURELLE — froid record et manifestations
+### 🔴 LA RUPTURE EST LE 22/11, PAS LE 15 — froid record et manifestations
 
-**Cause donnée par le gérant le 26/11/2026**, et les données la confirment. ⚠️ **À lire
-avant d'interpréter le bilan du 30/11** : sans cette note, le mois se lit comme un
-décrochage structurel alors qu'il ne l'est pas.
+⚠️ **À lire avant d'interpréter le bilan du 30/11** : sans cette note, le mois se lit
+comme un décrochage structurel alors qu'il ne l'est pas.
 
-Le gérant : *« ça fait un peu plus d'une semaine où c'est très calme […] le froid actuel
-qui est un record de 1998, et aussi de nombreuses manifs. »*
+Le gérant, le 26/11/2026 : *« ça fait un peu plus d'une semaine où c'est très calme […]
+le froid actuel qui est un record de 1998, et aussi de nombreuses manifs. »*
 
-| Novembre 2026, aux bornes | Par jour | Ticket |
-|---|---|---|
-| **01–14/11** | **1 011 €** | 12,58 € |
-| **15–26/11** | **586 €** | 12,09 € |
-| *hors la grève du 23/11* | *612 €* | *12,06 €* |
+🔴 **CORRECTION DU 26/11, le même jour.** J'avais d'abord écrit que la cassure portait
+sur **15-26/11** (586 €/jour contre 1 011 € sur 01-14). **C'était la mauvaise découpe :
+j'avais comparé deux demi-mois sans vérifier le témoin semaine par semaine.** Avec le
+témoin, la semaine 15-21 apparaît parfaitement normale.
 
-🔴 **−42 %, et le ticket ne bouge pas (12,58 → 12,09 €).** C'est la signature d'un
-problème de **flux**, pas de commerce : si la carte, les prix ou l'équipe étaient en
-cause, le panier ou le mix auraient bougé. Ils n'ont pas bougé. **Ne pas chercher une
-cause interne à cette quinzaine.**
+| Semaine 2026 | Par jour | Même fenêtre 2025 | Écart |
+|---|---|---|---|
+| 01-07 | **1 146 €** | 876 € | **+31 %** |
+| 08-14 | 877 € | 986 € | −11 % |
+| **15-21** | **680 €** | **703 €** | **−3 %** |
+| **22-26** | **455 €** | **657 €** | **−31 %** |
 
-Et la 1re quinzaine était **excellente** : 1 011 €/jour aux bornes, au-dessus de la
-moyenne du meilleur mois de l'historique. Rien ne s'est cassé dans l'exploitation.
+✅ **La semaine 15-21 n'a rien d'anormal** : 680 € contre 703 € en 2025. C'est le creux
+de mi-novembre, **déjà présent en 2025** (c'était le trou du mois, voir le tableau de
+novembre 2025). **Ne pas chercher d'événement sur cette semaine.**
 
-⚠️ **Le témoin 2025 ne tranche rien ici** : sur la même fenêtre alignée (16-27/11/2025)
-il fait 631 €/jour, à peine plus que nos 586 € — mais c'est l'effondrement de fin
-novembre 2025 (PIÈGE 2). Deux mauvaises périodes en face l'une de l'autre ne prouvent
-rien.
+🔴 **La rupture est le 22/11** : −31 % contre 2025, la seule semaine qui décroche
+vraiment. Et le ticket tient (12,44 €) : c'est un problème de **flux**, pas de commerce.
+Si la carte, les prix ou l'équipe étaient en cause, le panier aurait bougé.
 
-**Causes externes identifiées sur la période, à conserver :**
-- **lun 23/11 : grève générale** — ouverture à 14h04, 307,20 € (−65 % vs lundi moyen).
-  Enregistré comme incident, **à écarter de toute moyenne du lundi.**
-- **froid record** (le gérant cite un record depuis 1998) et **manifestations répétées**
-  à Bruxelles sur toute la quinzaine.
+**Causes externes VÉRIFIÉES le 26/11 (sources de presse, pas la parole du gérant seule) :**
+- 🥶 **IRM : novembre 2026 est le mois de novembre le plus froid depuis 1998** — ce que
+  le gérant annonçait. L'épisode sévère court du **22 au 28/11** (−4,5 °C à Uccle,
+  gelées généralisées), **donc il ne couvre PAS le 15-21**.
+- ✊ **Lundi 23/11 : manifestation nationale de 50 000 à 70 000 personnes**, Nord → Midi
+  par la Petite Ceinture de 10h à 13h, **STIB fortement perturbée**, trafic aérien
+  touché, heurts Gare du Midi. C'était la **11e action** syndicale de la série.
+  Côté Sekaï : ouverture à 14h04, 307,20 € (−65 % vs lundi moyen). Enregistré comme
+  incident, **à écarter de toute moyenne du lundi.**
 - **jeu 26/11 : ouverture à 13h02 au lieu de ~12h** — voir ci-dessous, ~130 € perdus.
+
+⚠️ **Deux réserves à garder :**
+1. **Aucune source ne parle de la Rue Neuve ni de la fréquentation des commerces du
+   centre.** Le lien entre ces événements et la caisse reste une déduction, solide mais
+   non prouvée.
+2. **Le froid seul ne suffit pas comme explication** : il y a eu un premier coup de
+   froid vers le 02/11 (gelées généralisées) et cette semaine-là est la **meilleure du
+   mois** (1 146 €/jour). C'est l'intensité de fin novembre **plus** la manif **plus**
+   les transports coupés qui font l'effet.
 
 ### 🟡 Jeudi 26/11/2026 — une heure d'ouverture perdue, chiffrée
 
